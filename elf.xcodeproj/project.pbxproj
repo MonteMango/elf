@@ -9,13 +9,12 @@
 /* Begin PBXBuildFile section */
 		09A8CD622BE13E3100DDC851 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A8CD612BE13E3100DDC851 /* AppDelegate.swift */; };
 		09A8CD642BE13E3100DDC851 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A8CD632BE13E3100DDC851 /* SceneDelegate.swift */; };
-		09A8CD662BE13E3100DDC851 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A8CD652BE13E3100DDC851 /* ViewController.swift */; };
-		09A8CD692BE13E3100DDC851 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 09A8CD682BE13E3100DDC851 /* Base */; };
 		09A8CD6B2BE13E3300DDC851 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 09A8CD6A2BE13E3300DDC851 /* Assets.xcassets */; };
 		09A8CD6E2BE13E3300DDC851 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 09A8CD6D2BE13E3300DDC851 /* Base */; };
 		09A8CD792BE13E3300DDC851 /* elfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A8CD782BE13E3300DDC851 /* elfTests.swift */; };
 		09A8CD832BE13E3300DDC851 /* elfUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A8CD822BE13E3300DDC851 /* elfUITests.swift */; };
 		09A8CD852BE13E3300DDC851 /* elfUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A8CD842BE13E3300DDC851 /* elfUITestsLaunchTests.swift */; };
+		09F2ACCE2C3274EF004139A1 /* elf_iOS in Frameworks */ = {isa = PBXBuildFile; productRef = 09F2ACCD2C3274EF004139A1 /* elf_iOS */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,8 +38,6 @@
 		09A8CD5E2BE13E3100DDC851 /* elf.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = elf.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		09A8CD612BE13E3100DDC851 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		09A8CD632BE13E3100DDC851 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		09A8CD652BE13E3100DDC851 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		09A8CD682BE13E3100DDC851 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		09A8CD6A2BE13E3300DDC851 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		09A8CD6D2BE13E3300DDC851 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		09A8CD6F2BE13E3300DDC851 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -59,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				09F2ACCE2C3274EF004139A1 /* elf_iOS in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -89,6 +87,7 @@
 				09A8CD772BE13E3300DDC851 /* elfTests */,
 				09A8CD812BE13E3300DDC851 /* elfUITests */,
 				09A8CD5F2BE13E3100DDC851 /* Products */,
+				09F2ACCC2C3274EF004139A1 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -107,8 +106,6 @@
 			children = (
 				09A8CD612BE13E3100DDC851 /* AppDelegate.swift */,
 				09A8CD632BE13E3100DDC851 /* SceneDelegate.swift */,
-				09A8CD652BE13E3100DDC851 /* ViewController.swift */,
-				09A8CD672BE13E3100DDC851 /* Main.storyboard */,
 				09A8CD6A2BE13E3300DDC851 /* Assets.xcassets */,
 				09A8CD6C2BE13E3300DDC851 /* LaunchScreen.storyboard */,
 				09A8CD6F2BE13E3300DDC851 /* Info.plist */,
@@ -133,6 +130,13 @@
 			path = elfUITests;
 			sourceTree = "<group>";
 		};
+		09F2ACCC2C3274EF004139A1 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -149,6 +153,9 @@
 			dependencies = (
 			);
 			name = elf;
+			packageProductDependencies = (
+				09F2ACCD2C3274EF004139A1 /* elf_iOS */,
+			);
 			productName = elf;
 			productReference = 09A8CD5E2BE13E3100DDC851 /* elf.app */;
 			productType = "com.apple.product-type.application";
@@ -239,7 +246,6 @@
 			files = (
 				09A8CD6B2BE13E3300DDC851 /* Assets.xcassets in Resources */,
 				09A8CD6E2BE13E3300DDC851 /* Base in Resources */,
-				09A8CD692BE13E3100DDC851 /* Base in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -264,7 +270,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				09A8CD662BE13E3100DDC851 /* ViewController.swift in Sources */,
 				09A8CD622BE13E3100DDC851 /* AppDelegate.swift in Sources */,
 				09A8CD642BE13E3100DDC851 /* SceneDelegate.swift in Sources */,
 			);
@@ -303,14 +308,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		09A8CD672BE13E3100DDC851 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				09A8CD682BE13E3100DDC851 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
 		09A8CD6C2BE13E3300DDC851 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -446,21 +443,28 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = L39YW86E89;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = elf/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = monte.mango.elf;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.michael-mueller-verlag.mmtravel-app";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development de.michael-mueller-verlag.mmtravel-app";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -472,21 +476,28 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = L39YW86E89;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = elf/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = monte.mango.elf;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.michael-mueller-verlag.mmtravel-app";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development de.michael-mueller-verlag.mmtravel-app";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -605,6 +616,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		09F2ACCD2C3274EF004139A1 /* elf_iOS */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = elf_iOS;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 09A8CD562BE13E3100DDC851 /* Project object */;
 }
