@@ -7,7 +7,6 @@
 
 import elf_Kit
 import elf_UIKit
-import UIKit
 
 internal final class MenuViewController: NiblessViewController {
     
@@ -38,5 +37,4 @@ internal final class MenuViewController: NiblessViewController {
             action: #selector(viewModel.fightButtonAction),
             for: .touchUpInside)
     }
-    
 }

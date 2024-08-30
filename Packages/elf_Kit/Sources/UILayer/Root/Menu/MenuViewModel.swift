@@ -9,8 +9,10 @@ import Foundation
 
 public final class MenuViewModel {
     
-    public init() {
-        
+    private let rootViewStateDelegate: AnyViewStateDelegate<RootViewState>
+    
+    public init(rootViewStateDelegate: AnyViewStateDelegate<RootViewState>) {
+        self.rootViewStateDelegate = rootViewStateDelegate
     }
     
     // MARK: Actions
@@ -18,5 +20,6 @@ public final class MenuViewModel {
     @objc
     public func fightButtonAction() {
         print("Fight button pressed")
+        self.rootViewStateDelegate.setViewState(.battle)
     }
 }

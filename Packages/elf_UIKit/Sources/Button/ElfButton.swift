@@ -31,9 +31,9 @@ public final class ElfButton: UIControl {
         
         self.backgroundColor = buttonStyle.backgroundColor
         self.tintColor = buttonStyle.tintColor
-        self.layer.borderWidth = buttonStyle.borderWidth
-        self.layer.borderColor = buttonStyle.borderColor.cgColor
-        self.layer.cornerRadius = buttonStyle.cornerRadius
+        self.layer.borderWidth = buttonStyle.borderWidth ?? 0.0
+        self.layer.borderColor = buttonStyle.borderColor?.cgColor
+        self.layer.cornerRadius = buttonStyle.cornerRadius ?? 0.0
         
         translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -44,6 +44,8 @@ public final class ElfButton: UIControl {
         switch buttonStyle {
         case .menu:
             addCenterLabel(labelStyle: .menuButtonTitle, text: centerText)
+        case .close:
+            break
         }
     }
     
@@ -83,19 +85,15 @@ public final class ElfButton: UIControl {
             case .selected:
                 self.backgroundColor = self.buttonStyle.selectedBackgroundColor
                 self.tintColor = self.buttonStyle.selectedTintColor
-                print("\(Date()) selected")
             case .highlighted:
                 self.backgroundColor = self.buttonStyle.highlightedBackgroundColor
                 self.tintColor = self.buttonStyle.highlightedTintColor
-                print("\(Date()) highlighted")
             case .disabled:
                 self.alpha = 0.4
-                print("\(Date()) disabled")
             default:
                 self.backgroundColor = self.buttonStyle.backgroundColor
                 self.tintColor = self.buttonStyle.tintColor
                 self.alpha = 1.0
-                print("\(Date()) default")
             }
         }
     }
