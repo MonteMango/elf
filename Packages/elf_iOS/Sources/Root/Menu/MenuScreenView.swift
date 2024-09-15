@@ -43,13 +43,14 @@ internal final class MenuScreenView: NiblessView {
     
     private func activateConstraints() {
         newGameButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            newGameButton.topAnchor.constraint(equalTo: topAnchor, constant: 100),
-            newGameButton.centerXAnchor.constraint(equalTo: centerXAnchor)
-        ])
-        
         battleButton.translatesAutoresizingMaskIntoConstraints = false
+       
         NSLayoutConstraint.activate([
+            // newGameButton
+            newGameButton.topAnchor.constraint(equalTo: topAnchor, constant: 100),
+            newGameButton.centerXAnchor.constraint(equalTo: centerXAnchor),
+            
+            // battleButton
             battleButton.topAnchor.constraint(equalTo: newGameButton.bottomAnchor, constant: 30),
             battleButton.centerXAnchor.constraint(equalTo: centerXAnchor)
         ])

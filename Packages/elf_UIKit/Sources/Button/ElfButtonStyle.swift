@@ -11,10 +11,14 @@ public enum ElfButtonStyle {
     case menu
     case close
     
+    // Battle
+    case selectFightStyle
+    
     var textStyle: ElfLabelStyle? {
         switch self {
         case .menu: return .menuButtonTitle
         case .close: return nil
+        case .selectFightStyle: return nil
         }
     }
     
@@ -22,13 +26,15 @@ public enum ElfButtonStyle {
         switch self {
         case .menu: return UIColor.systemPink
         case .close: return nil
+        case .selectFightStyle: return UIColor.systemGray
         }
     }
     
-    var borderWidth: CGFloat? {
+    var borderWidth: CGFloat {
         switch self {
-        case .menu: return 2
-        case .close: return nil
+        case .menu: return 2.0
+        case .close: return 0.0
+        case .selectFightStyle: return 2.0
         }
     }
     
@@ -36,6 +42,7 @@ public enum ElfButtonStyle {
         switch self {
         case .menu: return nil
         case .close: return nil
+        case .selectFightStyle: return nil
         }
     }
     
@@ -43,6 +50,7 @@ public enum ElfButtonStyle {
         switch self {
         case .menu: return 50
         case .close: return 50
+        case .selectFightStyle: return 45
         }
     }
     
@@ -50,6 +58,7 @@ public enum ElfButtonStyle {
         switch self {
         case .menu: return 200
         case .close: return 50
+        case .selectFightStyle: return 45
         }
     }
     
@@ -59,6 +68,7 @@ public enum ElfButtonStyle {
         switch self {
         case .menu: return UIColor.systemGray
         case .close: return UIColor.systemRed
+        case.selectFightStyle: return UIColor.systemBlue
         }
     }
     
@@ -66,6 +76,7 @@ public enum ElfButtonStyle {
         switch self {
         case .menu: return UIColor.systemBlue
         case .close: return UIColor.systemBlue
+        case .selectFightStyle: return UIColor.systemBlue
         }
     }
     
@@ -75,6 +86,7 @@ public enum ElfButtonStyle {
         switch self {
         case .menu: return UIColor.systemGray2
         case .close: return UIColor.systemGray2
+        case .selectFightStyle: return UIColor.systemGray2
         }
     }
     
@@ -82,6 +94,23 @@ public enum ElfButtonStyle {
         switch self {
         case .menu: return UIColor.systemOrange
         case .close: return UIColor.systemOrange
+        case .selectFightStyle: return UIColor.systemOrange
+        }
+    }
+    
+    var selectedBorderColor: UIColor? {
+        switch self {
+        case .menu: return nil
+        case .close: return nil
+        case .selectFightStyle: return UIColor.systemRed
+        }
+    }
+    
+    var selectedBorderWidth: CGFloat {
+        switch self {
+        case .menu: return 0.0
+        case .close: return 0.0
+        case .selectFightStyle: return 6.0
         }
     }
     
@@ -91,6 +120,7 @@ public enum ElfButtonStyle {
         switch self {
         case .menu: return UIColor.systemGray3
         case .close: return UIColor.systemGray3
+        case .selectFightStyle: return UIColor.systemGray3
         }
     }
     
@@ -98,6 +128,7 @@ public enum ElfButtonStyle {
         switch self {
         case .menu: return UIColor.systemPurple
         case .close: return UIColor.systemPurple
+        case .selectFightStyle: return UIColor.systemPurple
         }
     }
 }

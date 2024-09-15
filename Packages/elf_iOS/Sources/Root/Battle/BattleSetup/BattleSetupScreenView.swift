@@ -17,6 +17,16 @@ internal final class BattleSetupScreenView: NiblessView {
         return button
     }()
     
+    internal lazy var userSelectFightStyleLabel: ElfLabel = {
+        let label = ElfLabel(labelStyle: .battleTitleLabel, text: "Fight style")
+        return label
+    }()
+    
+    internal lazy var userSelectFightStyleStackView: SelectFightStyleStackView = {
+        let stackView = SelectFightStyleStackView()
+        return stackView
+    }()
+    
     // MARK: Initializer
     
     internal override init(frame: CGRect = .zero) {
@@ -33,13 +43,27 @@ internal final class BattleSetupScreenView: NiblessView {
     
     private func constructHierarchy() {
         addSubview(closeButton)
+        addSubview(userSelectFightStyleLabel)
+        addSubview(userSelectFightStyleStackView)
     }
     
     private func activateConstraints() {
         closeButton.translatesAutoresizingMaskIntoConstraints = false
+        userSelectFightStyleLabel.translatesAutoresizingMaskIntoConstraints = false
+        userSelectFightStyleStackView.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
+            // closeButton
             closeButton.topAnchor.constraint(equalTo: topAnchor),
-            closeButton.trailingAnchor.constraint(equalTo: trailingAnchor)
+            closeButton.trailingAnchor.constraint(equalTo: trailingAnchor),
+            
+            // userSelectFightStyleLabel
+            userSelectFightStyleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 10),
+            userSelectFightStyleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 70),
+            
+            // userSelectFightStyleStackView
+            userSelectFightStyleStackView.topAnchor.constraint(equalTo: userSelectFightStyleLabel.bottomAnchor, constant: 5),
+            userSelectFightStyleStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 70)
         ])
     }
 }

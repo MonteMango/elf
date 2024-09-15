@@ -27,11 +27,11 @@ public final class ElfButton: UIControl {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func configureStyle(centerText: String? = nil) {
+    private func configureStyle(centerText: String? = nil, centerImage: UIImage? = nil) {
         
         self.backgroundColor = buttonStyle.backgroundColor
         self.tintColor = buttonStyle.tintColor
-        self.layer.borderWidth = buttonStyle.borderWidth ?? 0.0
+        self.layer.borderWidth = buttonStyle.borderWidth
         self.layer.borderColor = buttonStyle.borderColor?.cgColor
         self.layer.cornerRadius = buttonStyle.cornerRadius ?? 0.0
         
@@ -45,7 +45,9 @@ public final class ElfButton: UIControl {
         case .menu:
             addCenterLabel(labelStyle: .menuButtonTitle, text: centerText)
         case .close:
-            break
+            addCenterImageView(centerImage)
+        case .selectFightStyle:
+            addCenterImageView(centerImage)
         }
     }
     
@@ -59,6 +61,19 @@ public final class ElfButton: UIControl {
         ])
     }
     
+    private func addCenterImageView(_ image: UIImage?) {
+        let imageView = UIImageView()
+        imageView.image = image
+        addSubview(imageView)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: topAnchor),
+            imageView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            imageView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: trailingAnchor)
+        ])
+    }
+    
     // MARK: State properties
     
     public override var isSelected: Bool {
@@ -66,10 +81,14 @@ public final class ElfButton: UIControl {
             updateAppearance(for: isSelected ? .selected : .normal)
         }
     }
-
+    
     public override var isHighlighted: Bool {
         didSet {
-            updateAppearance(for: isHighlighted ? .highlighted : .normal)
+            if isSelected {
+                updateAppearance(for: .selected)
+            } else {
+                updateAppearance(for: isHighlighted ? .highlighted : .normal)
+            }
         }
     }
 
@@ -85,6 +104,8 @@ public final class ElfButton: UIControl {
             case .selected:
                 self.backgroundColor = self.buttonStyle.selectedBackgroundColor
                 self.tintColor = self.buttonStyle.selectedTintColor
+                self.layer.borderColor = self.buttonStyle.selectedBorderColor?.cgColor
+                self.layer.borderWidth = self.buttonStyle.selectedBorderWidth
             case .highlighted:
                 self.backgroundColor = self.buttonStyle.highlightedBackgroundColor
                 self.tintColor = self.buttonStyle.highlightedTintColor
@@ -93,6 +114,8 @@ public final class ElfButton: UIControl {
             default:
                 self.backgroundColor = self.buttonStyle.backgroundColor
                 self.tintColor = self.buttonStyle.tintColor
+                self.layer.borderColor = self.buttonStyle.borderColor?.cgColor
+                self.layer.borderWidth = self.buttonStyle.borderWidth
                 self.alpha = 1.0
             }
         }
