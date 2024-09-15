@@ -46,8 +46,14 @@ public final class ElfButton: UIControl {
             addCenterLabel(labelStyle: .menuButtonTitle, text: centerText)
         case .close:
             addCenterImageView(centerImage)
+        case .actionButton:
+            addCenterLabel(labelStyle: .actionButtonTitle, text: centerText)
+            
+        // Battle
         case .selectFightStyle:
             addCenterImageView(centerImage)
+        case .selectLevel:
+            addCenterLabel(labelStyle: .battleLevelLabel, text: centerText)
         }
     }
     

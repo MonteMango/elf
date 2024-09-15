@@ -27,6 +27,42 @@ internal final class BattleSetupScreenView: NiblessView {
         return stackView
     }()
     
+    internal lazy var userLevelLabel: ElfLabel = {
+        let label = ElfLabel(labelStyle: .battleTitleLabel, text: "Level")
+        return label
+    }()
+    
+    internal lazy var userLevelView: HeroLevelView = {
+        let view = HeroLevelView()
+        return view
+    }()
+    
+    internal lazy var botSelectFightStyleLabel: ElfLabel = {
+        let label = ElfLabel(labelStyle: .battleTitleLabel, text: "Fight style")
+        return label
+    }()
+    
+    internal lazy var botSelectFightStyleStackView: SelectFightStyleStackView = {
+        let stackView = SelectFightStyleStackView()
+        return stackView
+    }()
+    
+    internal lazy var botLevelLabel: ElfLabel = {
+        let label = ElfLabel(labelStyle: .battleTitleLabel, text: "Level")
+        return label
+    }()
+    
+    internal lazy var botLevelView: HeroLevelView = {
+        let view = HeroLevelView()
+        return view
+    }()
+    
+    internal lazy var fightButton: ElfButton = {
+        let button = ElfButton(buttonStyle: .actionButton, centerText: "Battle")
+        button.isEnabled = false
+        return button
+    }()
+    
     // MARK: Initializer
     
     internal override init(frame: CGRect = .zero) {
@@ -43,27 +79,72 @@ internal final class BattleSetupScreenView: NiblessView {
     
     private func constructHierarchy() {
         addSubview(closeButton)
+        
         addSubview(userSelectFightStyleLabel)
         addSubview(userSelectFightStyleStackView)
+        addSubview(userLevelLabel)
+        addSubview(userLevelView)
+        
+        addSubview(botSelectFightStyleLabel)
+        addSubview(botSelectFightStyleStackView)
+        addSubview(botLevelLabel)
+        addSubview(botLevelView)
+        
+        addSubview(fightButton)
     }
     
     private func activateConstraints() {
         closeButton.translatesAutoresizingMaskIntoConstraints = false
         userSelectFightStyleLabel.translatesAutoresizingMaskIntoConstraints = false
         userSelectFightStyleStackView.translatesAutoresizingMaskIntoConstraints = false
+        userLevelLabel.translatesAutoresizingMaskIntoConstraints = false
+        userLevelView.translatesAutoresizingMaskIntoConstraints = false
+        botSelectFightStyleLabel.translatesAutoresizingMaskIntoConstraints = false
+        botSelectFightStyleStackView.translatesAutoresizingMaskIntoConstraints = false
+        botLevelLabel.translatesAutoresizingMaskIntoConstraints = false
+        botLevelView.translatesAutoresizingMaskIntoConstraints = false
+        fightButton.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             // closeButton
             closeButton.topAnchor.constraint(equalTo: topAnchor),
-            closeButton.trailingAnchor.constraint(equalTo: trailingAnchor),
+            closeButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 30),
             
             // userSelectFightStyleLabel
             userSelectFightStyleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 10),
-            userSelectFightStyleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 70),
+            userSelectFightStyleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 50),
             
             // userSelectFightStyleStackView
             userSelectFightStyleStackView.topAnchor.constraint(equalTo: userSelectFightStyleLabel.bottomAnchor, constant: 5),
-            userSelectFightStyleStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 70)
+            userSelectFightStyleStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 50),
+            
+            // userLevelLabel
+            userLevelLabel.centerXAnchor.constraint(equalTo: userLevelView.centerXAnchor),
+            userLevelLabel.topAnchor.constraint(equalTo: topAnchor, constant: 10),
+            
+            // userLevelView
+            userLevelView.leadingAnchor.constraint(equalTo: userSelectFightStyleStackView.trailingAnchor, constant: 50),
+            userLevelView.topAnchor.constraint(equalTo: userLevelLabel.bottomAnchor, constant: 5),
+            
+            // botSelectFightStyleLabel
+            botSelectFightStyleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 10),
+            botSelectFightStyleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -50),
+            
+            // botSelectFightStyleStackView
+            botSelectFightStyleStackView.topAnchor.constraint(equalTo: botSelectFightStyleLabel.bottomAnchor, constant: 5),
+            botSelectFightStyleStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -50),
+            
+            // botLevelLabel
+            botLevelLabel.centerXAnchor.constraint(equalTo: botLevelView.centerXAnchor),
+            botLevelLabel.topAnchor.constraint(equalTo: topAnchor, constant: 10),
+            
+            // botLevelView
+            botLevelView.trailingAnchor.constraint(equalTo: botSelectFightStyleStackView.leadingAnchor, constant: -50),
+            botLevelView.topAnchor.constraint(equalTo: botLevelLabel.bottomAnchor, constant: 5),
+            
+            // fightButton
+            fightButton.centerXAnchor.constraint(equalTo: centerXAnchor),
+            fightButton.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
 }

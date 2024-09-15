@@ -36,6 +36,35 @@ internal final class BattleSetupViewController: NiblessViewController {
     
     private func setupBindings() {
         screenView.closeButton.addTarget(viewModel, action: #selector(viewModel.closeButtonAction), for: .touchUpInside)
+        
+        screenView.userLevelView.increaseLevelAction = { [weak self] in
+            self?.viewModel.increasePlayerLevel()
+        }
+        screenView.userLevelView.decreaseLevelAction = { [weak self] in
+            self?.viewModel.decreasePlayerLevel()
+        }
+        
+        screenView.botLevelView.increaseLevelAction = { [weak self] in
+            self?.viewModel.increaseBotLevel()
+        }
+        screenView.botLevelView.decreaseLevelAction = { [weak self] in
+            self?.viewModel.decreaseBotLevel()
+        }
+        
+        viewModel.$playerHeroConfiguration
+            .map { $0.level }
+            .sink { [weak self] level in
+                self?.screenView.userLevelView.updateLevelLabel(to: level)
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$botHeroConfiguration
+            .map { $0.level }
+            .sink { [weak self] level in
+                self?.screenView.botLevelView.updateLevelLabel(to: level)
+            }
+            .store(in: &cancellables)
+        
         screenView.userSelectFightStyleStackView.selectFightStyleRadioButtonGroup
             .$selectedValue
             .sink{ [weak self] selectedUserFightStyle in
@@ -45,6 +74,19 @@ internal final class BattleSetupViewController: NiblessViewController {
                 case .dodge: self.viewModel.playerHeroConfiguration.fightStyle = .dodge
                 case .def: self.viewModel.playerHeroConfiguration.fightStyle = .def
                 case .none: self.viewModel.playerHeroConfiguration.fightStyle = nil
+                }
+            }
+            .store(in: &cancellables)
+        
+        screenView.botSelectFightStyleStackView.selectFightStyleRadioButtonGroup
+            .$selectedValue
+            .sink{ [weak self] selectedBotFightStyle in
+                guard let self = self else { return }
+                switch selectedBotFightStyle {
+                case .crit: self.viewModel.botHeroConfiguration.fightStyle = .crit
+                case .dodge: self.viewModel.botHeroConfiguration.fightStyle = .dodge
+                case .def: self.viewModel.botHeroConfiguration.fightStyle = .def
+                case .none: self.viewModel.botHeroConfiguration.fightStyle = nil
                 }
             }
             .store(in: &cancellables)
