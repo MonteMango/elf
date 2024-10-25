@@ -14,6 +14,7 @@
 		09A8CD792BE13E3300DDC851 /* elfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A8CD782BE13E3300DDC851 /* elfTests.swift */; };
 		09A8CD832BE13E3300DDC851 /* elfUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A8CD822BE13E3300DDC851 /* elfUITests.swift */; };
 		09A8CD852BE13E3300DDC851 /* elfUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A8CD842BE13E3300DDC851 /* elfUITestsLaunchTests.swift */; };
+		09D5060C2CB9D91200082EA0 /* HeroItems.json in Resources */ = {isa = PBXBuildFile; fileRef = 09D5060A2CB9D91200082EA0 /* HeroItems.json */; };
 		09F2ACCE2C3274EF004139A1 /* elf_iOS in Frameworks */ = {isa = PBXBuildFile; productRef = 09F2ACCD2C3274EF004139A1 /* elf_iOS */; };
 /* End PBXBuildFile section */
 
@@ -49,6 +50,7 @@
 		09A8CD912BE13E7000DDC851 /* elf_iOS */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = elf_iOS; path = Packages/elf_iOS; sourceTree = "<group>"; };
 		09A8CD922BE13E9000DDC851 /* elf_UIKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = elf_UIKit; path = Packages/elf_UIKit; sourceTree = "<group>"; };
 		09A8CD932BE13EB300DDC851 /* elf_Kit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = elf_Kit; path = Packages/elf_Kit; sourceTree = "<group>"; };
+		09D5060A2CB9D91200082EA0 /* HeroItems.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = HeroItems.json; path = elf/Resources/HeroItems.json; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +111,7 @@
 				09A8CD6A2BE13E3300DDC851 /* Assets.xcassets */,
 				09A8CD6C2BE13E3300DDC851 /* LaunchScreen.storyboard */,
 				09A8CD6F2BE13E3300DDC851 /* Info.plist */,
+				09D5060B2CB9D91200082EA0 /* Resources */,
 			);
 			path = elf;
 			sourceTree = "<group>";
@@ -128,6 +131,14 @@
 				09A8CD842BE13E3300DDC851 /* elfUITestsLaunchTests.swift */,
 			);
 			path = elfUITests;
+			sourceTree = "<group>";
+		};
+		09D5060B2CB9D91200082EA0 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				09D5060A2CB9D91200082EA0 /* HeroItems.json */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		09F2ACCC2C3274EF004139A1 /* Frameworks */ = {
@@ -246,6 +257,7 @@
 			files = (
 				09A8CD6B2BE13E3300DDC851 /* Assets.xcassets in Resources */,
 				09A8CD6E2BE13E3300DDC851 /* Base in Resources */,
+				09D5060C2CB9D91200082EA0 /* HeroItems.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

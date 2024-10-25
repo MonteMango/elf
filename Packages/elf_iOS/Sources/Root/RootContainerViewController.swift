@@ -28,7 +28,7 @@ public final class RootContainerViewController: NiblessContainerViewController {
     // MARK: - Methods
     
     internal init(viewModel: RootViewModel,
-                menuViewController: MenuViewController,
+                  menuViewController: MenuViewController,
                   battleContainerViewControllerFactory: @escaping () -> BattleContainerViewController) {
         self.viewModel = viewModel
         self.menuViewController = menuViewController
@@ -38,6 +38,8 @@ public final class RootContainerViewController: NiblessContainerViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
+        
+        viewModel.loadHeroItems()
         
         viewModel
             .$viewState
@@ -49,6 +51,7 @@ public final class RootContainerViewController: NiblessContainerViewController {
                     if let battleContainerViewController = self.battleContainerViewController {
                         hideViewController(battleContainerViewController)
                         removeViewController(battleContainerViewController)
+                        self.battleContainerViewController = nil
                     }
                     
                     showViewController(self.menuViewController)
@@ -56,7 +59,7 @@ public final class RootContainerViewController: NiblessContainerViewController {
                     hideViewController(menuViewController)
                     if self.battleContainerViewController == nil {
                         self.battleContainerViewController = makeBattleContainerViewControllerFactory()
-                        guard let battleContainerViewController = battleContainerViewController else { return }
+                        guard let battleContainerViewController = self.battleContainerViewController else { return }
                         addViewController(battleContainerViewController)
                     }
                     

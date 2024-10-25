@@ -6,18 +6,19 @@
 //
 
 public protocol ViewStateDelegate {
-    associatedtype viewStateType
-    func setViewState(_ state: viewStateType)
+    associatedtype ViewStateType
+    
+    func setViewState(_ state: ViewStateType)
 }
 
-public final class AnyViewStateDelegate<T>: ViewStateDelegate {
-    private let _setViewState: (T) -> Void
+public final class AnyViewStateDelegate<ViewState>: ViewStateDelegate {
+    private let _setViewState: (ViewState) -> Void
     
-    public init<Delegate: ViewStateDelegate>(_ delegate: Delegate) where Delegate.viewStateType == T {
+    public init<Delegate: ViewStateDelegate>(_ delegate: Delegate) where Delegate.ViewStateType == ViewState {
         self._setViewState = delegate.setViewState
     }
     
-    public func setViewState(_ state: T) {
+    public func setViewState(_ state: ViewState) {
         _setViewState(state)
     }
 }

@@ -27,7 +27,7 @@ public final class ElfButton: UIControl {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func configureStyle(centerText: String? = nil, centerImage: UIImage? = nil) {
+    private func configureStyle(centerText: String? = nil, centerImage: UIImage? = nil, leftImage: UIImage? = nil) {
         
         self.backgroundColor = buttonStyle.backgroundColor
         self.tintColor = buttonStyle.tintColor
@@ -54,6 +54,14 @@ public final class ElfButton: UIControl {
             addCenterImageView(centerImage)
         case .selectLevel:
             addCenterLabel(labelStyle: .battleLevelLabel, text: centerText)
+        case .item:
+            addCenterImageView(centerImage)
+        case .jewelryItem:
+            addCenterImageView(centerImage)
+        
+        // SelectItem
+        case .equip:
+            addLeftImageRightLabel(image: leftImage, labelStyle: .actionButtonTitle, text: "Equip")
         }
     }
     
@@ -77,6 +85,33 @@ public final class ElfButton: UIControl {
             imageView.bottomAnchor.constraint(equalTo: bottomAnchor),
             imageView.leadingAnchor.constraint(equalTo: leadingAnchor),
             imageView.trailingAnchor.constraint(equalTo: trailingAnchor)
+        ])
+    }
+    
+    private func addLeftImageRightLabel(image: UIImage?, labelStyle: ElfLabelStyle, text: String? = nil) {
+        let imageView = UIImageView()
+        imageView.backgroundColor = UIColor.systemGreen
+        imageView.image = image
+        
+        let label = ElfLabel(labelStyle: labelStyle, text: text)
+        
+        addSubview(imageView)
+        addSubview(label)
+        
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        label.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            // ImageView
+            imageView.topAnchor.constraint(equalTo: topAnchor),
+            imageView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            imageView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            imageView.widthAnchor.constraint(equalTo: imageView.heightAnchor),
+            
+            // Label
+            label.topAnchor.constraint(equalTo: topAnchor),
+            label.bottomAnchor.constraint(equalTo: bottomAnchor),
+            label.leadingAnchor.constraint(equalTo: imageView.trailingAnchor),
+            label.trailingAnchor.constraint(equalTo: trailingAnchor)
         ])
     }
     

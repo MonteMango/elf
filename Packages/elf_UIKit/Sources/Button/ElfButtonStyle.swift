@@ -15,6 +15,11 @@ public enum ElfButtonStyle {
     // Battle
     case selectFightStyle
     case selectLevel
+    case item
+    case jewelryItem
+    
+    // SelectItem
+    case equip
     
     var borderColor: UIColor? {
         switch self {
@@ -25,6 +30,11 @@ public enum ElfButtonStyle {
         // Battle
         case .selectFightStyle: return UIColor.systemGray
         case .selectLevel: return UIColor.systemGray
+        case .item: return UIColor.systemGray
+        case .jewelryItem: return UIColor.systemGray
+            
+        // SelectItem
+        case .equip: return UIColor.systemGray
         }
     }
     
@@ -37,6 +47,11 @@ public enum ElfButtonStyle {
         // Battle
         case .selectFightStyle: return 2.0
         case .selectLevel: return 2.0
+        case .item: return 2.0
+        case .jewelryItem: return 2.0
+            
+        // SelectItem
+        case .equip: return 2.0
         }
     }
     
@@ -49,6 +64,11 @@ public enum ElfButtonStyle {
         // Battle
         case .selectFightStyle: return nil
         case .selectLevel: return 17.5
+        case .item: return nil
+        case .jewelryItem: return nil
+            
+        // SelectItem
+        case .equip: return nil
         }
     }
     
@@ -61,6 +81,11 @@ public enum ElfButtonStyle {
         // Battle
         case .selectFightStyle: return 45.0
         case .selectLevel: return 35.0
+        case .item: return 45.0
+        case .jewelryItem: return 35.0
+            
+        // SelectItem
+        case .equip: return 50.0
         }
     }
     
@@ -73,6 +98,11 @@ public enum ElfButtonStyle {
         // Battle
         case .selectFightStyle: return 45.0
         case .selectLevel: return 35.0
+        case .item: return 45.0
+        case .jewelryItem: return 35.0
+        
+        // SelectItem
+        case .equip: return 180.0
         }
     }
     
@@ -87,6 +117,11 @@ public enum ElfButtonStyle {
         // Battle
         case.selectFightStyle: return UIColor.systemBlue
         case .selectLevel: return UIColor.systemBlue
+        case .item: return UIColor.systemBlue
+        case .jewelryItem: return UIColor.systemBlue
+            
+        // SelectItem
+        case .equip: return UIColor.systemBlue
         }
     }
     
@@ -99,6 +134,11 @@ public enum ElfButtonStyle {
         // Battle
         case .selectFightStyle: return UIColor.systemBlue
         case .selectLevel: return UIColor.systemBlue
+        case .item: return UIColor.systemBlue
+        case .jewelryItem: return UIColor.systemBlue
+            
+        // SelectItem
+        case .equip: return UIColor.systemBlue
         }
     }
     
@@ -113,6 +153,11 @@ public enum ElfButtonStyle {
         // Battle
         case .selectFightStyle: return UIColor.systemGray2
         case .selectLevel: return UIColor.systemGray2
+        case .item: return UIColor.systemGray2
+        case .jewelryItem: return UIColor.systemGray2
+            
+        // SelectItem
+        case .equip: return UIColor.systemGray2
         }
     }
     
@@ -125,6 +170,11 @@ public enum ElfButtonStyle {
         // Battle
         case .selectFightStyle: return UIColor.systemOrange
         case .selectLevel: return UIColor.systemOrange
+        case .item: return UIColor.systemOrange
+        case .jewelryItem: return UIColor.systemOrange
+            
+        // SelectItem
+        case.equip: return UIColor.systemOrange
         }
     }
     
@@ -137,6 +187,11 @@ public enum ElfButtonStyle {
         // Battle
         case .selectFightStyle: return UIColor.systemRed
         case .selectLevel: return UIColor.systemRed
+        case .item: return UIColor.systemRed
+        case .jewelryItem: return UIColor.systemRed
+        
+        // SelectItem
+        case .equip: return UIColor.systemRed
         }
     }
     
@@ -149,6 +204,11 @@ public enum ElfButtonStyle {
         // Battle
         case .selectFightStyle: return 6.0
         case .selectLevel: return 0.0
+        case .item: return 0.0
+        case .jewelryItem: return 0.0
+            
+        // SelectItem
+        case .equip: return 0.0
         }
     }
     
@@ -163,6 +223,11 @@ public enum ElfButtonStyle {
         // Battle
         case .selectFightStyle: return UIColor.systemGray3
         case .selectLevel: return UIColor.systemGray3
+        case .item: return UIColor.systemGray3
+        case .jewelryItem: return UIColor.systemGray3
+            
+        // SelectItem
+        case .equip: return UIColor.systemGray3
         }
     }
     
@@ -175,6 +240,11 @@ public enum ElfButtonStyle {
         // Battle
         case .selectFightStyle: return UIColor.systemPurple
         case .selectLevel: return UIColor.systemPurple
+        case .item: return UIColor.systemPurple
+        case .jewelryItem: return UIColor.systemPurple
+            
+        // SelectItem
+        case .equip: return UIColor.systemPurple
         }
     }
 }

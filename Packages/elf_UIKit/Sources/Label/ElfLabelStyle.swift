@@ -16,6 +16,9 @@ public enum ElfLabelStyle {
     case battleTitleLabel
     case battleLevelLabel
     
+    // Items
+    case itemTitle
+    
     var font: UIFont {
         switch self {
         case .menuButtonTitle: return UIFont.preferredFont(forTextStyle: .body)
@@ -24,6 +27,9 @@ public enum ElfLabelStyle {
         // Battle
         case .battleTitleLabel: return UIFont.preferredFont(forTextStyle: .subheadline)
         case .battleLevelLabel: return UIFont.preferredFont(forTextStyle: .title1)
+            
+        // Items
+        case .itemTitle: return UIFont.preferredFont(forTextStyle: .title1)
         }
     }
     
@@ -35,6 +41,9 @@ public enum ElfLabelStyle {
         // Battle
         case .battleTitleLabel: return .left
         case .battleLevelLabel: return .center
+            
+        // Items
+        case .itemTitle: return .center
         }
     }
     
@@ -46,6 +55,9 @@ public enum ElfLabelStyle {
         // Battle
         case .battleTitleLabel: return UIColor.red
         case .battleLevelLabel: return UIColor.red
+            
+        // Items
+        case .itemTitle: return UIColor.white
         }
     }
     
@@ -57,6 +69,9 @@ public enum ElfLabelStyle {
         // Battle
         case .battleTitleLabel: return 1
         case .battleLevelLabel: return 1
+            
+        // Items
+        case .itemTitle: return 3
         }
     }
     
@@ -68,6 +83,9 @@ public enum ElfLabelStyle {
         // Battle
         case .battleTitleLabel: return .byTruncatingMiddle
         case .battleLevelLabel: return .byTruncatingMiddle
+            
+        // Items
+        case .itemTitle: return .byTruncatingMiddle
         }
     }
 }

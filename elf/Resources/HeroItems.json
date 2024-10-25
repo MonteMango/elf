@@ -1,0 +1,175 @@
+{
+    "version": "1.0",
+    "helmets": [
+        {
+            "id": "e228ed8b-1c1e-4d71-8d06-d26d32849dc4",
+            "title": "Leather Helmet",
+            "tier": 4,
+            "physicalDefensePoint": 1,
+            "protectParts": [
+                "head"
+            ]
+        }, {
+            "id": "e228ed8b-1c1e-ffff-8d06-d26d32849dc4",
+            "title": "Helmet 1",
+            "tier": 4,
+            "physicalDefensePoint": 1,
+            "protectParts": [
+                "head"
+            ]
+        }, {
+            "id": "e228ed8b-1c1e-fff1-8d06-d26d32849dc4",
+            "title": "Helmet 2",
+            "tier": 4,
+            "physicalDefensePoint": 1,
+            "protectParts": [
+                "head"
+            ]
+        }, {
+            "id": "e228ed8b-1c1e-fff2-8d06-d26d32849dc4",
+            "title": "Helmet 3",
+            "tier": 4,
+            "physicalDefensePoint": 1,
+            "protectParts": [
+                "head"
+            ]
+        }, {
+            "id": "e228ed8b-1c1e-fff3-8d06-d26d32849dc4",
+            "title": "Helmet 4",
+            "tier": 4,
+            "physicalDefensePoint": 1,
+            "protectParts": [
+                "head"
+            ]
+        }, {
+            "id": "e228ed8b-1c1e-fff4-8d06-d26d32849dc4",
+            "title": "Helmet 5",
+            "tier": 4,
+            "physicalDefensePoint": 1,
+            "protectParts": [
+                "head"
+            ]
+        }, {
+            "id": "e228ed8b-1c1e-fff5-8d06-d26d32849dc4",
+            "title": "Helmet 6",
+            "tier": 4,
+            "physicalDefensePoint": 1,
+            "protectParts": [
+                "head"
+            ]
+        }, {
+            "id": "e228ed8b-1c1e-fff6-8d06-d26d32849dc4",
+            "title": "Helmet 7",
+            "tier": 4,
+            "physicalDefensePoint": 1,
+            "protectParts": [
+                "head"
+            ]
+        }, {
+            "id": "e228ed8b-1c1e-fff7-8d06-d26d32849dc4",
+            "title": "Helmet 8",
+            "tier": 4,
+            "physicalDefensePoint": 1,
+            "protectParts": [
+                "head"
+            ]
+        }
+    ],
+    "gloves": [
+        {
+            "id": "215b9612-7e63-4b79-8ce9-cc51925183d1",
+            "title": "Leather Gloves",
+            "tier": 4,
+            "physicalDefensePoint": 1,
+            "protectParts": [
+                "leftHand",
+                "rightHand"
+            ]
+        }
+    ],
+    "shoes": [
+        {
+            "id": "16ca4878-1cb0-4c2f-a6d2-362bd69e8c65",
+            "title": "Leather Boots",
+            "tier": 4,
+            "physicalDefensePoint": 1,
+            "protectParts": [
+                "legs"
+            ]
+        }
+    ],
+    "upperBodies": [
+        {
+            "id": "e228ed8b-1c1e-4d71-8d06-d26d32849dc4",
+            "title": "Leather Jacket",
+            "tier": 4,
+            "physicalDefensePoint": 1,
+            "protectParts": [
+                "head",
+                "body",
+                "leftHand",
+                "rightHand"
+            ]
+        }
+    ],
+    "bottomBodies": [
+        {
+            "id": "16ca4878-1cb0-4c2f-a6d2-362bd69e8c65",
+            "title": "Leather Greaves",
+            "tier": 4,
+            "descriptionText": "Heavy steel boots.",
+            "physicalDefensePoint": 1,
+            "protectParts": [
+                "legs",
+                "body"
+            ]
+        }
+    ],
+    "robes": [
+        {
+            "id": "215b9612-7e63-4b79-8ce9-cc51925183d1",
+            "title": "Linen Robe",
+            "tier": 4
+        }
+    ],
+    "primaryWeapons": [
+        {
+            "id": "e23b27e6-f4ca-4739-9747-9089f0612b84",
+            "title": "Recruit's Spear",
+            "tier": 4,
+            "minimumAttackPoint": 7,
+            "maximumAttackPoint": 9,
+            "handUse": "primary"
+        }
+    ],
+    "secondaryWeapons": [
+        
+    ],
+    "shields": [
+        
+    ],
+    "rings": [
+        {
+            "id": "d6a67793-4148-433e-bd77-a349b96d93bf",
+            "title": "Arcane Guard Ring",
+            "tier": 4,
+            "magicalDefensePoint": 1
+        }
+    ],
+    "necklaces": [
+        {
+            "id": "58485b83-ffaa-43b4-8ebf-01db6d0c3e76",
+            "title": "Arcane Guard Pendant",
+            "tier": 4,
+            "magicalDefensePoint": 1
+        }
+    ],
+    "earrings": [
+        {
+            "id": "9309d16a-aa45-45ee-bb35-9d51bd834026",
+            "title": "Arcane Guard Earrings",
+            "tier": 3,
+            "magicalDefensePoint": 1
+        }
+    ]
+}

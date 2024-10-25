@@ -38,17 +38,27 @@ internal final class BattleSetupViewController: NiblessViewController {
         screenView.closeButton.addTarget(viewModel, action: #selector(viewModel.closeButtonAction), for: .touchUpInside)
         
         screenView.userLevelView.increaseLevelAction = { [weak self] in
-            self?.viewModel.increasePlayerLevel()
+            self?.viewModel.changeLevel(.player, increment: +1)
         }
         screenView.userLevelView.decreaseLevelAction = { [weak self] in
-            self?.viewModel.decreasePlayerLevel()
+            self?.viewModel.changeLevel(.player, increment: -1)
         }
         
         screenView.botLevelView.increaseLevelAction = { [weak self] in
-            self?.viewModel.increaseBotLevel()
+            self?.viewModel.changeLevel(.bot, increment: +1)
         }
         screenView.botLevelView.decreaseLevelAction = { [weak self] in
-            self?.viewModel.decreaseBotLevel()
+            self?.viewModel.changeLevel(.bot, increment: -1)
+        }
+        
+        screenView.userHeroItemsView.onItemSelected = { [weak self] heroItemButtonType in
+            guard let heroItemType = self?.mapHeroItemButtonTypeToHeroItemType(heroItemButtonType) else { return }
+            self?.viewModel.heroItemSelected(for: .player, heroItemType: heroItemType)
+        }
+        
+        screenView.botHeroItemsView.onItemSelected = { [weak self] heroItemButtonType in
+            guard let heroItemType = self?.mapHeroItemButtonTypeToHeroItemType(heroItemButtonType) else { return }
+            self?.viewModel.heroItemSelected(for: .bot, heroItemType: heroItemType)
         }
         
         viewModel.$playerHeroConfiguration
@@ -70,10 +80,10 @@ internal final class BattleSetupViewController: NiblessViewController {
             .sink{ [weak self] selectedUserFightStyle in
                 guard let self = self else { return }
                 switch selectedUserFightStyle {
-                case .crit: self.viewModel.playerHeroConfiguration.fightStyle = .crit
-                case .dodge: self.viewModel.playerHeroConfiguration.fightStyle = .dodge
-                case .def: self.viewModel.playerHeroConfiguration.fightStyle = .def
-                case .none: self.viewModel.playerHeroConfiguration.fightStyle = nil
+                case .crit: self.viewModel.setHeroFightStyle(for: .player, fightStyle: .crit)
+                case .dodge: self.viewModel.setHeroFightStyle(for: .player, fightStyle: .dodge)
+                case .def: self.viewModel.setHeroFightStyle(for: .player, fightStyle: .def)
+                case .none: self.viewModel.setHeroFightStyle(for: .player, fightStyle: nil)
                 }
             }
             .store(in: &cancellables)
@@ -83,12 +93,28 @@ internal final class BattleSetupViewController: NiblessViewController {
             .sink{ [weak self] selectedBotFightStyle in
                 guard let self = self else { return }
                 switch selectedBotFightStyle {
-                case .crit: self.viewModel.botHeroConfiguration.fightStyle = .crit
-                case .dodge: self.viewModel.botHeroConfiguration.fightStyle = .dodge
-                case .def: self.viewModel.botHeroConfiguration.fightStyle = .def
-                case .none: self.viewModel.botHeroConfiguration.fightStyle = nil
+                case .crit: self.viewModel.setHeroFightStyle(for: .bot, fightStyle: .crit)
+                case .dodge: self.viewModel.setHeroFightStyle(for: .bot, fightStyle: .dodge)
+                case .def: self.viewModel.setHeroFightStyle(for: .bot, fightStyle: .def)
+                case .none: self.viewModel.setHeroFightStyle(for: .bot, fightStyle: nil)
                 }
             }
             .store(in: &cancellables)
+    }
+    
+    private func mapHeroItemButtonTypeToHeroItemType(_ buttonType: HeroItemButtonType) -> HeroItemType? {
+        switch buttonType {
+        case .helmet: return .helmet
+        case .gloves: return .gloves
+        case .shoes: return .shoes
+        case .weaponPrimary: return .weaponPrimary
+        case .weaponSecondary: return .weaponSecondary
+        case .upperBody: return .upperBody
+        case .bottomBody: return .bottomBody
+        case .shirt: return .shirt
+        case .ring: return .ring
+        case .necklace: return .necklace
+        case .earrings: return .earrings
+        }
     }
 }

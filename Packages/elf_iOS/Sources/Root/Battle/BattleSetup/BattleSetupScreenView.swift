@@ -17,6 +17,8 @@ internal final class BattleSetupScreenView: NiblessView {
         return button
     }()
     
+    // user
+    
     internal lazy var userSelectFightStyleLabel: ElfLabel = {
         let label = ElfLabel(labelStyle: .battleTitleLabel, text: "Fight style")
         return label
@@ -37,6 +39,13 @@ internal final class BattleSetupScreenView: NiblessView {
         return view
     }()
     
+    internal lazy var userHeroItemsView: HeroItemsView = {
+        let view = HeroItemsView()
+        return view
+    }()
+    
+    // bot
+    
     internal lazy var botSelectFightStyleLabel: ElfLabel = {
         let label = ElfLabel(labelStyle: .battleTitleLabel, text: "Fight style")
         return label
@@ -54,6 +63,11 @@ internal final class BattleSetupScreenView: NiblessView {
     
     internal lazy var botLevelView: HeroLevelView = {
         let view = HeroLevelView()
+        return view
+    }()
+    
+    internal lazy var botHeroItemsView: HeroItemsView = {
+        let view = HeroItemsView()
         return view
     }()
     
@@ -84,25 +98,32 @@ internal final class BattleSetupScreenView: NiblessView {
         addSubview(userSelectFightStyleStackView)
         addSubview(userLevelLabel)
         addSubview(userLevelView)
+        addSubview(userHeroItemsView)
         
         addSubview(botSelectFightStyleLabel)
         addSubview(botSelectFightStyleStackView)
         addSubview(botLevelLabel)
         addSubview(botLevelView)
+        addSubview(botHeroItemsView)
         
         addSubview(fightButton)
     }
     
     private func activateConstraints() {
         closeButton.translatesAutoresizingMaskIntoConstraints = false
+        
         userSelectFightStyleLabel.translatesAutoresizingMaskIntoConstraints = false
         userSelectFightStyleStackView.translatesAutoresizingMaskIntoConstraints = false
         userLevelLabel.translatesAutoresizingMaskIntoConstraints = false
         userLevelView.translatesAutoresizingMaskIntoConstraints = false
+        userHeroItemsView.translatesAutoresizingMaskIntoConstraints = false
+        
         botSelectFightStyleLabel.translatesAutoresizingMaskIntoConstraints = false
         botSelectFightStyleStackView.translatesAutoresizingMaskIntoConstraints = false
         botLevelLabel.translatesAutoresizingMaskIntoConstraints = false
         botLevelView.translatesAutoresizingMaskIntoConstraints = false
+        botHeroItemsView.translatesAutoresizingMaskIntoConstraints = false
+        
         fightButton.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
@@ -126,6 +147,10 @@ internal final class BattleSetupScreenView: NiblessView {
             userLevelView.leadingAnchor.constraint(equalTo: userSelectFightStyleStackView.trailingAnchor, constant: 50),
             userLevelView.topAnchor.constraint(equalTo: userLevelLabel.bottomAnchor, constant: 5),
             
+            //userHeroItemsView
+            userHeroItemsView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            userHeroItemsView.topAnchor.constraint(equalTo: userSelectFightStyleStackView.bottomAnchor, constant: 20),
+            
             // botSelectFightStyleLabel
             botSelectFightStyleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 10),
             botSelectFightStyleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -50),
@@ -141,6 +166,10 @@ internal final class BattleSetupScreenView: NiblessView {
             // botLevelView
             botLevelView.trailingAnchor.constraint(equalTo: botSelectFightStyleStackView.leadingAnchor, constant: -50),
             botLevelView.topAnchor.constraint(equalTo: botLevelLabel.bottomAnchor, constant: 5),
+            
+            // botHeroItemsView
+            botHeroItemsView.trailingAnchor.constraint(equalTo: trailingAnchor,constant: -20),
+            botHeroItemsView.topAnchor.constraint(equalTo: botSelectFightStyleStackView.bottomAnchor, constant: 20),
             
             // fightButton
             fightButton.centerXAnchor.constraint(equalTo: centerXAnchor),

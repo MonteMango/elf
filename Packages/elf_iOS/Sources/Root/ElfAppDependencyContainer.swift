@@ -6,14 +6,17 @@
 //
 
 import elf_Kit
+import Foundation
 
 public final class ElfAppDependencyContainer {
     
     // Long-lived dependencies
     internal let sharedRootViewModel: RootViewModel
+    internal let itemsRepository: ItemsRepository
     
     public init() {
-        self.sharedRootViewModel = RootViewModel()
+        self.itemsRepository = ElfItemsRepository()
+        self.sharedRootViewModel = RootViewModel(itemsRepository: self.itemsRepository)
     }
     
     // MARK: Root
@@ -42,9 +45,15 @@ public final class ElfAppDependencyContainer {
     // MARK: Battle
     
     private func makeBattleContainerViewController() -> BattleContainerViewController {
-        let battleDependencyContainer = ElfBattleDependencyContainer(appDependencyContainer: self)
-        return BattleContainerViewController(viewModel: makeBattleViewModel(),
-                                             battleSetupViewController: battleDependencyContainer.makeBattleSetupViewController())
+        let battleViewModel = makeBattleViewModel()
+        let battleDependencyContainer = ElfBattleDependencyContainer(appDependencyContainer: self, battleViewModel: battleViewModel)
+        let selectHeroItemViewControllerFactory = { (currentHeroItemId: UUID?, heroType:HeroType, heroItemType: HeroItemType) in
+            return battleDependencyContainer.makeSelectHeroItemViewController(currentHeroItemId: currentHeroItemId, heroType: heroType, heroItemType: heroItemType)
+        }
+        
+        return BattleContainerViewController(viewModel: battleViewModel,
+                                             battleSetupViewController: battleDependencyContainer.makeBattleSetupViewController(), 
+                                             selectHeroItemViewControllerFactory: selectHeroItemViewControllerFactory)
     }
     
     private func makeBattleViewModel() -> BattleViewModel {
