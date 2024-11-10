@@ -13,13 +13,20 @@ public final class BattleSetupViewModel {
     private let rootViewStateDelegate: AnyViewStateDelegate<RootViewState>
     private let battleViewStateDelegate: AnyViewStateDelegate<BattleViewState>
     
+    private let attributeService: AttributeService
+    
     private var cancellables = Set<AnyCancellable>()
+    private var selectHeroItemCancellables = Set<AnyCancellable>()
     
     public init(
         rootViewStateDelegate: AnyViewStateDelegate<RootViewState>,
-        battleViewStateDelegate: AnyViewStateDelegate<BattleViewState>) {
+        battleViewStateDelegate: AnyViewStateDelegate<BattleViewState>,
+        attributeService: AttributeService) {
             self.rootViewStateDelegate = rootViewStateDelegate
             self.battleViewStateDelegate = battleViewStateDelegate
+            self.attributeService = attributeService
+            
+            setupBindings()
         }
     
     @Published public private(set) var viewState: RootViewState = .menu
@@ -28,14 +35,14 @@ public final class BattleSetupViewModel {
     
     public var selectHeroItemViewModel: SelectHeroItemViewModel? {
         didSet {
-            cancellables.removeAll()
+            selectHeroItemCancellables.removeAll()
             guard let selectHeroItemViewModel = self.selectHeroItemViewModel else { return }
             selectHeroItemViewModel
                 .selectedHeroItem
                 .sink { [weak self] heroType, heroItemType, itemId in
                     self?.updateHeroConfiguration(for: heroType, itemType: heroItemType, itemId: itemId)
                 }
-                .store(in: &cancellables)
+                .store(in: &selectHeroItemCancellables)
         }
     }
     
@@ -75,128 +82,56 @@ public final class BattleSetupViewModel {
     
     // MARK: Private Methods
     
-    private func updateHeroConfiguration(for heroType: HeroType, itemType: HeroItemType, itemId: UUID?) {
-        switch heroType {
-        case .player:
-            updateHeroConfiguration(&playerHeroConfiguration, itemType: itemType, itemId: itemId)
-        case .bot:
-            updateHeroConfiguration(&botHeroConfiguration, itemType: itemType, itemId: itemId)
+    private func setupBindings() {
+        // Track changes in playerHeroConfiguration
+        Publishers.CombineLatest3(playerHeroConfiguration.$level, playerHeroConfiguration.$fightStyle, playerHeroConfiguration.$itemIds)
+            .sink { [weak self] level, fightStyle, itemIds in
+                guard let self = self else { return }
+                self.updateFightStyleAttributes(for: self.playerHeroConfiguration, level: level, fightStyle: fightStyle)
+                self.updateRandomLevelAttributes(for: self.playerHeroConfiguration, level: level)
+                self.updateItemsAttributes(for: self.playerHeroConfiguration, itemIds: itemIds)
+            }
+            .store(in: &cancellables)
+        
+        // Track changes in botHeroConfiguration
+        Publishers.CombineLatest3(botHeroConfiguration.$level, botHeroConfiguration.$fightStyle, playerHeroConfiguration.$itemIds)
+            .sink { [weak self] level, fightStyle, itemIds in
+                guard let self = self else { return }
+                self.updateFightStyleAttributes(for: self.botHeroConfiguration, level: level, fightStyle: fightStyle)
+                self.updateRandomLevelAttributes(for: self.botHeroConfiguration, level: level)
+                self.updateItemsAttributes(for: self.botHeroConfiguration, itemIds: itemIds)
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func updateFightStyleAttributes(for configuration: HeroConfiguration, level: Int16, fightStyle: FightStyle?) {
+        guard let fightStyle = fightStyle else { return }
+        Task {
+            let updatedAttributes = await attributeService.getAllFightStyleAttributes(for: fightStyle, at: level)
+            configuration.fightStyleAttributes = updatedAttributes
         }
     }
     
-    private func updateHeroConfiguration(_ configuration: inout HeroConfiguration, itemType: HeroItemType, itemId: UUID?) {
-        switch itemType {
-        case .helmet:
-            configuration.helmetId = itemId
-        case .gloves:
-            configuration.glovesId = itemId
-        case .shoes:
-            configuration.shoesId = itemId
-        case .upperBody:
-            configuration.upperBodyId = itemId
-        case .bottomBody:
-            configuration.bottomBodyId = itemId
-        case .shirt:
-            configuration.shirtId = itemId
-        case .ring:
-            configuration.ringId = itemId
-        case .necklace:
-            configuration.necklaceId = itemId
-        case .earrings:
-            configuration.earringsId = itemId
-        case .weaponPrimary:
-            configuration.weaponPrimaryId = itemId
-        case .weaponSecondary:
-            configuration.weaponSecondaryId = itemId
+    private func updateRandomLevelAttributes(for configuration: HeroConfiguration, level: Int16) {
+        Task {
+            let updateAttributes = await attributeService.getAllRandomLevelAttributes(for: level)
+            configuration.levelRandomAttributes = updateAttributes
         }
+    }
+    
+    private func updateItemsAttributes(for configuration: HeroConfiguration, itemIds: [HeroItemType: UUID?]) {
+//        Task {
+//            let updateAttributes = await ...
+//        }
+    }
+    
+    private func updateHeroConfiguration(for heroType: HeroType, itemType: HeroItemType, itemId: UUID?) {
+        let configuration = heroType == .player ? playerHeroConfiguration : botHeroConfiguration
+        configuration.itemIds[itemType] = itemId
     }
     
     private func getCurrentItemId(for hero: HeroType, heroItemType: HeroItemType) -> UUID? {
-        let configuration: HeroConfiguration
-        switch hero {
-        case .player:
-            configuration = playerHeroConfiguration
-        case .bot:
-            configuration = botHeroConfiguration
-        }
-        
-        switch heroItemType {
-        case .helmet:
-            return configuration.helmetId
-        case .gloves:
-            return configuration.glovesId
-        case .shoes:
-            return configuration.shoesId
-        case .upperBody:
-            return configuration.upperBodyId
-        case .bottomBody:
-            return configuration.bottomBodyId
-        case .shirt:
-            return configuration.shirtId
-        case .ring:
-            return configuration.ringId
-        case .necklace:
-            return configuration.necklaceId
-        case .earrings:
-            return configuration.earringsId
-        case .weaponPrimary:
-            return configuration.weaponPrimaryId
-        case .weaponSecondary:
-            return configuration.weaponSecondaryId
-        }
+        let configuration = hero == .player ? playerHeroConfiguration : botHeroConfiguration
+        return configuration.itemIds[heroItemType] ?? nil
     }
-}
-
-public struct HeroConfiguration {
-    public var fightStyle: FightStyle? = nil
-    
-    public var level: Int16 = 1
-    
-    public var endurance: Int16? = nil
-    public var intelligent: Int16? = nil
-    
-    public var agility: Int16? = nil
-    public var strength: Int16? = nil
-    public var power: Int16? = nil
-    public var instinct: Int16? = nil
-    
-    public var helmetId: UUID? = nil
-    public var glovesId: UUID? = nil
-    public var shoesId: UUID? = nil
-    
-    public var upperBodyId: UUID? = nil
-    public var bottomBodyId: UUID? = nil
-    public var shirtId: UUID? = nil
-    
-    public var ringId: UUID? = nil
-    public var necklaceId: UUID? = nil
-    public var earringsId: UUID? = nil
-    
-    public var weaponPrimaryId: UUID? = nil
-    public var weaponSecondaryId: UUID? = nil
-}
-
-public enum FightStyle {
-    case crit
-    case dodge
-    case def
-}
-
-public enum HeroItemType {
-    case helmet
-    case gloves
-    case shoes
-    case weaponPrimary
-    case weaponSecondary
-    case upperBody
-    case bottomBody
-    case shirt
-    case ring
-    case necklace
-    case earrings
-}
-
-public enum HeroType {
-    case player
-    case bot
 }

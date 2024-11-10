@@ -108,10 +108,10 @@
 			children = (
 				09A8CD612BE13E3100DDC851 /* AppDelegate.swift */,
 				09A8CD632BE13E3100DDC851 /* SceneDelegate.swift */,
-				09A8CD6A2BE13E3300DDC851 /* Assets.xcassets */,
 				09A8CD6C2BE13E3300DDC851 /* LaunchScreen.storyboard */,
 				09A8CD6F2BE13E3300DDC851 /* Info.plist */,
 				09D5060B2CB9D91200082EA0 /* Resources */,
+				09A8CD6A2BE13E3300DDC851 /* Assets.xcassets */,
 			);
 			path = elf;
 			sourceTree = "<group>";
@@ -215,7 +215,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1530;
-				LastUpgradeCheck = 1530;
+				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					09A8CD5D2BE13E3100DDC851 = {
 						CreatedOnToolsVersion = 15.3;
@@ -519,7 +519,6 @@
 		09A8CD8C2BE13E3300DDC851 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -538,7 +537,6 @@
 		09A8CD8D2BE13E3300DDC851 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -557,7 +555,6 @@
 		09A8CD8F2BE13E3300DDC851 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -574,7 +571,6 @@
 		09A8CD902BE13E3300DDC851 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;

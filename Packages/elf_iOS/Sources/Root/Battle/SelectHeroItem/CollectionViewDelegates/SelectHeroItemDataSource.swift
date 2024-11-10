@@ -62,6 +62,7 @@ internal final class SelectHeroItemDataSource {
                 }
                 
                 cell.itemTitleLabel.text = heroItem.title
+                cell.itemImageView.image = UIImage(named: "card_\(heroItem.id.uuidString.lowercased())")
                 return cell
             }
         }
@@ -89,7 +90,7 @@ internal final class SelectHeroItemDataSource {
             return
         }
         
-        let filteredItems = filterItems(for: viewModel.heroItemType, in: heroItems)
+        let filteredItems = viewModel.filterItems(for: viewModel.heroItemType, in: heroItems)
         
         heroItemDictionary = filteredItems.reduce(into: [:]) { $0[$1.id] = $1 }
         
@@ -108,25 +109,6 @@ internal final class SelectHeroItemDataSource {
         dataSource.apply(snapshot, animatingDifferences: animate) { [weak self] in
             self?.selectInitialItem()
         }
-    }
-
-    // Функция для фильтрации элементов на основе выбранного типа HeroItemType
-    private func filterItems(for type: HeroItemType, in heroItems: HeroItems) -> [Item] {
-        let itemsMap: [HeroItemType: [Item]] = [
-            .helmet: heroItems.helmets,
-            .gloves: heroItems.gloves,
-            .shoes: heroItems.shoes,
-            .upperBody: heroItems.upperBodies,
-            .bottomBody: heroItems.bottomBodies,
-            .shirt: heroItems.robes,
-            .weaponPrimary: heroItems.primaryWeapons,
-            .weaponSecondary: heroItems.secondaryWeapons,
-            .ring: heroItems.rings,
-            .necklace: heroItems.necklaces,
-            .earrings: heroItems.earrings
-        ]
-        
-        return itemsMap[type] ?? []
     }
     
     internal func selectInitialItem() {

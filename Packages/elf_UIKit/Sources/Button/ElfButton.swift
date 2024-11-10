@@ -15,6 +15,8 @@ public final class ElfButton: UIControl {
     
     private let buttonStyle: ElfButtonStyle
     
+    public var imageView: UIImageView?
+    
     // MARK: Initializer
     
     public init(buttonStyle: ElfButtonStyle, centerText: String? = nil) {
@@ -43,11 +45,11 @@ public final class ElfButton: UIControl {
         
         switch buttonStyle {
         case .menu:
-            addCenterLabel(labelStyle: .menuButtonTitle, text: centerText)
+            addCenterLabel(labelStyle: .menuTitleButton, text: centerText)
         case .close:
             addCenterImageView(centerImage)
         case .actionButton:
-            addCenterLabel(labelStyle: .actionButtonTitle, text: centerText)
+            addCenterLabel(labelStyle: .actionTitleButton, text: centerText)
             
         // Battle
         case .selectFightStyle:
@@ -61,7 +63,7 @@ public final class ElfButton: UIControl {
         
         // SelectItem
         case .equip:
-            addLeftImageRightLabel(image: leftImage, labelStyle: .actionButtonTitle, text: "Equip")
+            addLeftImageRightLabel(image: leftImage, labelStyle: .actionTitleButton, text: "Equip")
         }
     }
     
@@ -86,6 +88,8 @@ public final class ElfButton: UIControl {
             imageView.leadingAnchor.constraint(equalTo: leadingAnchor),
             imageView.trailingAnchor.constraint(equalTo: trailingAnchor)
         ])
+        
+        self.imageView = imageView
     }
     
     private func addLeftImageRightLabel(image: UIImage?, labelStyle: ElfLabelStyle, text: String? = nil) {
@@ -113,6 +117,8 @@ public final class ElfButton: UIControl {
             label.leadingAnchor.constraint(equalTo: imageView.trailingAnchor),
             label.trailingAnchor.constraint(equalTo: trailingAnchor)
         ])
+        
+        self.imageView = imageView
     }
     
     // MARK: State properties

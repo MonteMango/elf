@@ -20,6 +20,7 @@ public final class SelectHeroItemViewModel {
     public private(set) var heroItemType: HeroItemType
     
     @Published public private(set) var heroItems: HeroItems?
+    @Published public private(set) var selectedHeroItemId: UUID?
     
     public let selectedHeroItem = PassthroughSubject<(HeroType, HeroItemType, UUID?), Never>()
     
@@ -45,13 +46,39 @@ public final class SelectHeroItemViewModel {
     // MARK: Methods
     
     public func didSelectItem(at indexPath: IndexPath, itemId: UUID?) {
-        selectedHeroItem.send((heroType, heroItemType, itemId))
+        
+        selectedHeroItemId = itemId
+    }
+    
+    // Функция для фильтрации элементов на основе выбранного типа HeroItemType
+    public func filterItems(for type: HeroItemType, in heroItems: HeroItems) -> [Item] {
+        let itemsMap: [HeroItemType: [Item]] = [
+            .helmet: heroItems.helmets,
+            .gloves: heroItems.gloves,
+            .shoes: heroItems.shoes,
+            .upperBody: heroItems.upperBodies,
+            .bottomBody: heroItems.bottomBodies,
+            .shirt: heroItems.robes,
+            .weaponPrimary: heroItems.primaryWeapons,
+            .weaponSecondary: heroItems.secondaryWeapons,
+            .ring: heroItems.rings,
+            .necklace: heroItems.necklaces,
+            .earrings: heroItems.earrings
+        ]
+        
+        return itemsMap[type] ?? []
     }
     
     // MARK: Actions
     
     @objc
     public func closeButtonAction() {
+        battleViewStateDelegate.setViewState(.setup)
+    }
+    
+    @objc
+    public func equipButtonAction() {
+        selectedHeroItem.send((heroType, heroItemType, self.selectedHeroItemId))
         battleViewStateDelegate.setViewState(.setup)
     }
 }

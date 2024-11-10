@@ -16,6 +16,7 @@ internal final class ElfBattleDependencyContainer {
     
     // Long-lived
     private let sharedBattleViewModel: BattleViewModel
+    private let sharedAttributeService: AttributeService
     
     // Temporal
     private weak var sharedBattleSetupViewModel: BattleSetupViewModel?
@@ -24,6 +25,7 @@ internal final class ElfBattleDependencyContainer {
         self.sharedBattleViewModel = battleViewModel
         self.rootViewModel = appDependencyContainer.sharedRootViewModel
         self.itemsRepository = appDependencyContainer.itemsRepository
+        self.sharedAttributeService = ElfAttributeService()
     }
     
     // MARK: BattleSetup
@@ -35,7 +37,8 @@ internal final class ElfBattleDependencyContainer {
     internal func makeBattleSetupViewModel() -> BattleSetupViewModel {
         let viewModel = BattleSetupViewModel(
             rootViewStateDelegate: AnyViewStateDelegate(rootViewModel),
-            battleViewStateDelegate: AnyViewStateDelegate<BattleViewState>(sharedBattleViewModel))
+            battleViewStateDelegate: AnyViewStateDelegate<BattleViewState>(sharedBattleViewModel),
+            attributeService: self.sharedAttributeService)
         self.sharedBattleSetupViewModel = viewModel
         return viewModel
     }

@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 19.09.24.
 //
 
+import Combine
 import elf_Kit
 import elf_UIKit
 import UIKit
@@ -19,6 +20,8 @@ internal final class SelectHeroItemViewController: NiblessViewController {
     private var dataSource: SelectHeroItemDataSource!
     
     private lazy var flowLayoutDelegate = SelectHeroItemFlowLayout(viewModel: viewModel, dataSource: dataSource)
+    
+    private var cancellables = Set<AnyCancellable>()
     
     internal init(viewModel: SelectHeroItemViewModel) {
         self.viewModel = viewModel
@@ -52,7 +55,26 @@ internal final class SelectHeroItemViewController: NiblessViewController {
             action: #selector(viewModel.closeButtonAction),
             for: .touchUpInside)
         
+        screenView.equipButton.addTarget(
+            viewModel,
+            action: #selector(viewModel.equipButtonAction),
+            for: .touchUpInside)
+        
         screenView.itemsCollectionView.delegate = flowLayoutDelegate
+        
+        viewModel.$selectedHeroItemId
+            .sink { [weak self] selectedHeroItemId in
+                guard
+                    let self = self,
+                    let heroItems = viewModel.heroItems
+                else { return }
+                if let heroItem = viewModel.filterItems(for: viewModel.heroItemType, in: heroItems).first(where: { $0.id == selectedHeroItemId }) {
+                    screenView.equipButton.imageView?.image = UIImage(named: heroItem.id.uuidString.lowercased())
+                } else {
+                    screenView.equipButton.imageView?.image = nil
+                }
+            }
+            .store(in: &cancellables)
     }
     
     private func performAppearAnimations() {

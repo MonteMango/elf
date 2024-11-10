@@ -44,6 +44,11 @@ internal final class BattleSetupScreenView: NiblessView {
         return view
     }()
     
+    internal lazy var userAttributesView: PlayerAttributesView = {
+        let view = PlayerAttributesView()
+        return view
+    }()
+    
     // bot
     
     internal lazy var botSelectFightStyleLabel: ElfLabel = {
@@ -68,6 +73,19 @@ internal final class BattleSetupScreenView: NiblessView {
     
     internal lazy var botHeroItemsView: HeroItemsView = {
         let view = HeroItemsView()
+        return view
+    }()
+    
+    internal lazy var botAttributesView: BotAttributesView = {
+        let view = BotAttributesView()
+        return view
+    }()
+    
+    // common
+    
+    internal lazy var separatorView: NiblessView = {
+        let view = NiblessView()
+        view.backgroundColor = UIColor.white.withAlphaComponent(0.5)
         return view
     }()
     
@@ -99,14 +117,17 @@ internal final class BattleSetupScreenView: NiblessView {
         addSubview(userLevelLabel)
         addSubview(userLevelView)
         addSubview(userHeroItemsView)
+        addSubview(userAttributesView)
         
         addSubview(botSelectFightStyleLabel)
         addSubview(botSelectFightStyleStackView)
         addSubview(botLevelLabel)
         addSubview(botLevelView)
         addSubview(botHeroItemsView)
+        addSubview(botAttributesView)
         
         addSubview(fightButton)
+        addSubview(separatorView)
     }
     
     private func activateConstraints() {
@@ -117,14 +138,17 @@ internal final class BattleSetupScreenView: NiblessView {
         userLevelLabel.translatesAutoresizingMaskIntoConstraints = false
         userLevelView.translatesAutoresizingMaskIntoConstraints = false
         userHeroItemsView.translatesAutoresizingMaskIntoConstraints = false
+        userAttributesView.translatesAutoresizingMaskIntoConstraints = false
         
         botSelectFightStyleLabel.translatesAutoresizingMaskIntoConstraints = false
         botSelectFightStyleStackView.translatesAutoresizingMaskIntoConstraints = false
         botLevelLabel.translatesAutoresizingMaskIntoConstraints = false
         botLevelView.translatesAutoresizingMaskIntoConstraints = false
         botHeroItemsView.translatesAutoresizingMaskIntoConstraints = false
+        botAttributesView.translatesAutoresizingMaskIntoConstraints = false
         
         fightButton.translatesAutoresizingMaskIntoConstraints = false
+        separatorView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             // closeButton
@@ -151,6 +175,10 @@ internal final class BattleSetupScreenView: NiblessView {
             userHeroItemsView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
             userHeroItemsView.topAnchor.constraint(equalTo: userSelectFightStyleStackView.bottomAnchor, constant: 20),
             
+            // userAttributesView
+            userAttributesView.leadingAnchor.constraint(equalTo: userHeroItemsView.trailingAnchor, constant: 15),
+            userAttributesView.bottomAnchor.constraint(equalTo: fightButton.topAnchor, constant: -15),
+            
             // botSelectFightStyleLabel
             botSelectFightStyleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 10),
             botSelectFightStyleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -50),
@@ -171,9 +199,19 @@ internal final class BattleSetupScreenView: NiblessView {
             botHeroItemsView.trailingAnchor.constraint(equalTo: trailingAnchor,constant: -20),
             botHeroItemsView.topAnchor.constraint(equalTo: botSelectFightStyleStackView.bottomAnchor, constant: 20),
             
+            // botAttributesView
+            botAttributesView.trailingAnchor.constraint(equalTo: botHeroItemsView.leadingAnchor, constant: -15),
+            botAttributesView.bottomAnchor.constraint(equalTo: fightButton.topAnchor, constant: -15),
+            
             // fightButton
             fightButton.centerXAnchor.constraint(equalTo: centerXAnchor),
-            fightButton.bottomAnchor.constraint(equalTo: bottomAnchor)
+            fightButton.bottomAnchor.constraint(equalTo: bottomAnchor),
+            
+            // separatorView
+            separatorView.topAnchor.constraint(equalTo: topAnchor),
+            separatorView.bottomAnchor.constraint(equalTo: fightButton.topAnchor, constant: -15),
+            separatorView.centerXAnchor.constraint(equalTo: fightButton.centerXAnchor),
+            separatorView.widthAnchor.constraint(equalToConstant: 2)
         ])
     }
 }
