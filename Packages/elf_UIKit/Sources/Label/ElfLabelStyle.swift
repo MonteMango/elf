@@ -25,6 +25,10 @@ public enum ElfLabelStyle {
     // Items
     case itemTitle
     
+    // Select Items
+    case selectItemsAttributesLabel
+    case selectItemsPrevNextButton
+    
     var font: UIFont {
         switch self {
         case .menuTitleButton: return UIFont.preferredFont(forTextStyle: .body)
@@ -42,6 +46,10 @@ public enum ElfLabelStyle {
             
         // Items
         case .itemTitle: return UIFont.preferredFont(forTextStyle: .title1)
+            
+        // Select Items
+        case .selectItemsAttributesLabel: return UIFont.systemFont(ofSize: 13, weight: .regular)
+        case .selectItemsPrevNextButton: return UIFont.systemFont(ofSize: 15, weight: .bold)
         }
     }
     
@@ -62,6 +70,10 @@ public enum ElfLabelStyle {
             
         // Items
         case .itemTitle: return .center
+            
+        // Select Items
+        case .selectItemsAttributesLabel: return .center
+        case .selectItemsPrevNextButton: return .center
         }
     }
     
@@ -82,6 +94,10 @@ public enum ElfLabelStyle {
             
         // Items
         case .itemTitle: return UIColor.white
+            
+        // Select Items
+        case .selectItemsAttributesLabel: return UIColor.white
+        case .selectItemsPrevNextButton: return UIColor.white
         }
     }
     
@@ -102,6 +118,10 @@ public enum ElfLabelStyle {
             
         // Items
         case .itemTitle: return 3
+            
+        // Select Items
+        case .selectItemsAttributesLabel: return 1
+        case .selectItemsPrevNextButton: return 1
         }
     }
     
@@ -122,6 +142,10 @@ public enum ElfLabelStyle {
             
         // Items
         case .itemTitle: return .byTruncatingMiddle
+            
+        // Select Items
+        case .selectItemsAttributesLabel: return .byTruncatingMiddle
+        case .selectItemsPrevNextButton: return .byTruncatingMiddle
         }
     }
 }

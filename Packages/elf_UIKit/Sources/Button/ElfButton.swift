@@ -62,8 +62,10 @@ public final class ElfButton: UIControl {
             addCenterImageView(centerImage)
         
         // SelectItem
-        case .equip:
+        case .selectItemEquip:
             addLeftImageRightLabel(image: leftImage, labelStyle: .actionTitleButton, text: "Equip")
+        case .selectItemPrevNextAttribute:
+            addCenterLabel(labelStyle: <#T##ElfLabelStyle#>)
         }
     }
     

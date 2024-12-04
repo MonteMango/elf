@@ -45,8 +45,7 @@ public final class SelectHeroItemViewModel {
     
     // MARK: Methods
     
-    public func didSelectItem(at indexPath: IndexPath, itemId: UUID?) {
-        
+    public func didSelectItem(itemId: UUID?) {
         selectedHeroItemId = itemId
     }
     

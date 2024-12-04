@@ -45,8 +45,13 @@ internal final class SelectHeroItemScreenView: NiblessView {
     }()
     
     internal lazy var equipButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .equip)
+        let button = ElfButton(buttonStyle: .selectItemEquip)
         return button
+    }()
+    
+    internal lazy var setupItemAttributesView: SetupItemAttributesView = {
+        let view = SetupItemAttributesView()
+        return view
     }()
     
     // MARK: Initializer
@@ -68,6 +73,7 @@ internal final class SelectHeroItemScreenView: NiblessView {
         addSubview(backgroundView)
         addSubview(closeButton)
         addSubview(equipButton)
+        addSubview(setupItemAttributesView)
     }
     
     private func activateConstraints() {
@@ -79,6 +85,7 @@ internal final class SelectHeroItemScreenView: NiblessView {
         itemsCollectionView.translatesAutoresizingMaskIntoConstraints = false
         closeButton.translatesAutoresizingMaskIntoConstraints = false
         equipButton.translatesAutoresizingMaskIntoConstraints = false
+        setupItemAttributesView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             
@@ -100,7 +107,11 @@ internal final class SelectHeroItemScreenView: NiblessView {
             
             // equipButton
             equipButton.centerYAnchor.constraint(equalTo: backgroundView.bottomAnchor),
-            equipButton.trailingAnchor.constraint(equalTo: closeButton.trailingAnchor)
+            equipButton.trailingAnchor.constraint(equalTo: closeButton.trailingAnchor),
+            
+            // setupItemAttributesView
+            setupItemAttributesView.centerYAnchor.constraint(equalTo: backgroundView.bottomAnchor),
+            setupItemAttributesView.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: -25)
         ])
     }
     

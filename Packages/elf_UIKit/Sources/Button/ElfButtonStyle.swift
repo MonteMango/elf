@@ -19,7 +19,8 @@ public enum ElfButtonStyle {
     case jewelryItem
     
     // SelectItem
-    case equip
+    case selectItemEquip
+    case selectItemPrevNextAttribute
     
     var borderColor: UIColor? {
         switch self {
@@ -34,7 +35,8 @@ public enum ElfButtonStyle {
         case .jewelryItem: return UIColor.systemGray
             
         // SelectItem
-        case .equip: return UIColor.systemGray
+        case .selectItemEquip: return UIColor.systemGray
+        case .selectItemPrevNextAttribute: return nil
         }
     }
     
@@ -51,7 +53,8 @@ public enum ElfButtonStyle {
         case .jewelryItem: return 2.0
             
         // SelectItem
-        case .equip: return 2.0
+        case .selectItemEquip: return 2.0
+        case .selectItemPrevNextAttribute: return 0.0
         }
     }
     
@@ -68,7 +71,8 @@ public enum ElfButtonStyle {
         case .jewelryItem: return nil
             
         // SelectItem
-        case .equip: return nil
+        case .selectItemEquip: return nil
+        case .selectItemPrevNextAttribute: return nil
         }
     }
     
@@ -85,7 +89,8 @@ public enum ElfButtonStyle {
         case .jewelryItem: return 35.0
             
         // SelectItem
-        case .equip: return 50.0
+        case .selectItemEquip: return 50.0
+        case .selectItemPrevNextAttribute: return 50.0
         }
     }
     
@@ -102,7 +107,8 @@ public enum ElfButtonStyle {
         case .jewelryItem: return 35.0
         
         // SelectItem
-        case .equip: return 180.0
+        case .selectItemEquip: return 180.0
+        case .selectItemPrevNextAttribute: return 50.0
         }
     }
     
@@ -121,7 +127,8 @@ public enum ElfButtonStyle {
         case .jewelryItem: return UIColor.systemBlue
             
         // SelectItem
-        case .equip: return UIColor.systemBlue
+        case .selectItemEquip: return UIColor.systemBlue
+        case .selectItemPrevNextAttribute: return UIColor.systemBlue
         }
     }
     
@@ -138,7 +145,8 @@ public enum ElfButtonStyle {
         case .jewelryItem: return UIColor.systemBlue
             
         // SelectItem
-        case .equip: return UIColor.systemBlue
+        case .selectItemEquip: return UIColor.systemBlue
+        case .selectItemPrevNextAttribute: return UIColor.systemBlue
         }
     }
     
@@ -157,7 +165,8 @@ public enum ElfButtonStyle {
         case .jewelryItem: return UIColor.systemGray2
             
         // SelectItem
-        case .equip: return UIColor.systemGray2
+        case .selectItemEquip: return UIColor.systemGray2
+        case .selectItemPrevNextAttribute: return UIColor.systemGray2
         }
     }
     
@@ -174,7 +183,8 @@ public enum ElfButtonStyle {
         case .jewelryItem: return UIColor.systemOrange
             
         // SelectItem
-        case.equip: return UIColor.systemOrange
+        case.selectItemEquip: return UIColor.systemOrange
+        case .selectItemPrevNextAttribute: return UIColor.systemOrange
         }
     }
     
@@ -191,7 +201,8 @@ public enum ElfButtonStyle {
         case .jewelryItem: return UIColor.systemRed
         
         // SelectItem
-        case .equip: return UIColor.systemRed
+        case .selectItemEquip: return UIColor.systemRed
+        case .selectItemPrevNextAttribute: return nil
         }
     }
     
@@ -208,7 +219,8 @@ public enum ElfButtonStyle {
         case .jewelryItem: return 0.0
             
         // SelectItem
-        case .equip: return 0.0
+        case .selectItemEquip: return 0.0
+        case .selectItemPrevNextAttribute: return 0.0
         }
     }
     
@@ -227,7 +239,8 @@ public enum ElfButtonStyle {
         case .jewelryItem: return UIColor.systemGray3
             
         // SelectItem
-        case .equip: return UIColor.systemGray3
+        case .selectItemEquip: return UIColor.systemGray3
+        case .selectItemPrevNextAttribute: return nil
         }
     }
     
@@ -244,7 +257,8 @@ public enum ElfButtonStyle {
         case .jewelryItem: return UIColor.systemPurple
             
         // SelectItem
-        case .equip: return UIColor.systemPurple
+        case .selectItemEquip: return UIColor.systemPurple
+        case .selectItemPrevNextAttribute: return UIColor.systemPurple
         }
     }
 }

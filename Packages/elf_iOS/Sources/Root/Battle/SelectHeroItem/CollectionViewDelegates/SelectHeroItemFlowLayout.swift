@@ -48,7 +48,7 @@ internal final class SelectHeroItemFlowLayout: NSObject, UICollectionViewDelegat
         let itemId = dataSource.itemIdentifier(for: indexPath) == dataSource.emptyCellUUID ? nil : dataSource.itemIdentifier(for: indexPath)
         
         // Сообщить viewModel о выбранном элементе
-        viewModel.didSelectItem(at: indexPath, itemId: itemId)
+        viewModel.didSelectItem(itemId: itemId)
     }
     
     func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
