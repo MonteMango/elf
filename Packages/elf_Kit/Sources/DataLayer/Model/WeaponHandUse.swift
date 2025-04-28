@@ -7,6 +7,6 @@
 
 public enum WeaponHandUse: String, Decodable {
     case primary
-    case primaryOrSecondary
+    case secondary
     case both
 }

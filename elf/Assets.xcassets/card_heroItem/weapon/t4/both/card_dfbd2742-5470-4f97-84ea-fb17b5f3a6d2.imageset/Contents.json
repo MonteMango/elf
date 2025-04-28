@@ -1,0 +1,23 @@
+{
+  "images" : [
+    {
+      "filename" : "Recruit's Spear _ Card.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "Recruit's Spear _ Card@2x.png",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "Recruit's Spear _ Card@3x.png",
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
