@@ -60,8 +60,8 @@ internal final class BattleSetupViewController: NiblessViewController {
         bindItemButton(for: .ring, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.ringItemButton)
         bindItemButton(for: .necklace, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.necklaceItemButton)
         bindItemButton(for: .earrings, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.earringsItemButton)
-        bindItemButton(for: .weaponPrimary, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.weaponPrimaryItemButton)
-        bindItemButton(for: .weaponSecondary, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.weaponScondaryItemButton)
+        bindItemButton(for: .weapons, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.weaponPrimaryItemButton)
+        bindItemButton(for: .shields, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.weaponScondaryItemButton)
         
         // Привязка кнопок для бота
         bindItemButton(for: .helmet, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.helmetItemButton)
@@ -73,8 +73,8 @@ internal final class BattleSetupViewController: NiblessViewController {
         bindItemButton(for: .ring, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.ringItemButton)
         bindItemButton(for: .necklace, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.necklaceItemButton)
         bindItemButton(for: .earrings, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.earringsItemButton)
-        bindItemButton(for: .weaponPrimary, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.weaponPrimaryItemButton)
-        bindItemButton(for: .weaponSecondary, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.weaponScondaryItemButton)
+        bindItemButton(for: .weapons, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.weaponPrimaryItemButton)
+        bindItemButton(for: .shields, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.weaponScondaryItemButton)
     }
     
     private func bindLevel(_ publisher: Published<Int16>.Publisher, to levelView: HeroLevelView) {
@@ -158,8 +158,8 @@ internal final class BattleSetupViewController: NiblessViewController {
         case .helmet: return .helmet
         case .gloves: return .gloves
         case .shoes: return .shoes
-        case .weaponPrimary: return .weaponPrimary
-        case .weaponSecondary: return .weaponSecondary
+        case .weaponPrimary: return .weapons
+        case .weaponSecondary: return .shields
         case .upperBody: return .upperBody
         case .bottomBody: return .bottomBody
         case .shirt: return .shirt

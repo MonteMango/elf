@@ -6,70 +6,17 @@
             "title": "Leather Helmet",
             "tier": 4,
             "physicalDefensePoint": 1,
+            "instinct": 1,
             "protectParts": [
                 "head"
             ]
         }, {
             "id": "e228ed8b-1c1e-ffff-8d06-d26d32849dc4",
-            "title": "Helmet 1",
-            "tier": 4,
-            "physicalDefensePoint": 1,
-            "protectParts": [
-                "head"
-            ]
-        }, {
-            "id": "e228ed8b-1c1e-fff1-8d06-d26d32849dc4",
-            "title": "Helmet 2",
-            "tier": 4,
-            "physicalDefensePoint": 1,
-            "protectParts": [
-                "head"
-            ]
-        }, {
-            "id": "e228ed8b-1c1e-fff2-8d06-d26d32849dc4",
-            "title": "Helmet 3",
-            "tier": 4,
-            "physicalDefensePoint": 1,
-            "protectParts": [
-                "head"
-            ]
-        }, {
-            "id": "e228ed8b-1c1e-fff3-8d06-d26d32849dc4",
-            "title": "Helmet 4",
-            "tier": 4,
-            "physicalDefensePoint": 1,
-            "protectParts": [
-                "head"
-            ]
-        }, {
-            "id": "e228ed8b-1c1e-fff4-8d06-d26d32849dc4",
-            "title": "Helmet 5",
-            "tier": 4,
-            "physicalDefensePoint": 1,
-            "protectParts": [
-                "head"
-            ]
-        }, {
-            "id": "e228ed8b-1c1e-fff5-8d06-d26d32849dc4",
-            "title": "Helmet 6",
-            "tier": 4,
-            "physicalDefensePoint": 1,
-            "protectParts": [
-                "head"
-            ]
-        }, {
-            "id": "e228ed8b-1c1e-fff6-8d06-d26d32849dc4",
-            "title": "Helmet 7",
-            "tier": 4,
-            "physicalDefensePoint": 1,
-            "protectParts": [
-                "head"
-            ]
-        }, {
-            "id": "e228ed8b-1c1e-fff7-8d06-d26d32849dc4",
-            "title": "Helmet 8",
-            "tier": 4,
-            "physicalDefensePoint": 1,
+            "title": "Metal Helmet",
+            "tier": 3,
+            "physicalDefensePoint": 2,
+            "instinct": 2,
+            "strength": 1,
             "protectParts": [
                 "head"
             ]
@@ -81,6 +28,18 @@
             "title": "Leather Gloves",
             "tier": 4,
             "physicalDefensePoint": 1,
+            "strength": 1,
+            "protectParts": [
+                "leftHand",
+                "rightHand"
+            ]
+        }, {
+            "id": "215b9612-7e63-4b79-8ce9-cc5192518300",
+            "title": "Metal Gloves",
+            "tier": 3,
+            "physicalDefensePoint": 2,
+            "strength": 2,
+            "instinct": 1,
             "protectParts": [
                 "leftHand",
                 "rightHand"
@@ -93,6 +52,17 @@
             "title": "Leather Boots",
             "tier": 4,
             "physicalDefensePoint": 1,
+            "agility": 1,
+            "protectParts": [
+                "legs"
+            ]
+        }, {
+            "id": "16ca4878-1cb0-4c2f-a6d2-362bd69e8c00",
+            "title": "Metal Boots",
+            "tier": 3,
+            "physicalDefensePoint": 2,
+            "agility": 2,
+            "power": 1,
             "protectParts": [
                 "legs"
             ]
@@ -104,6 +74,20 @@
             "title": "Leather Jacket",
             "tier": 4,
             "physicalDefensePoint": 1,
+            "hitPoints": 5,
+            "protectParts": [
+                "head",
+                "body",
+                "leftHand",
+                "rightHand"
+            ]
+        }, {
+            "id": "e228ed8b-1c1e-4d71-8d06-d26d32849d00",
+            "title": "Metal Jacket",
+            "tier": 3,
+            "physicalDefensePoint": 2,
+            "hitPoints": 10,
+            "power": 1,
             "protectParts": [
                 "head",
                 "body",
@@ -117,8 +101,19 @@
             "id": "16ca4878-1cb0-4c2f-a6d2-362bd69e8c65",
             "title": "Leather Greaves",
             "tier": 4,
-            "descriptionText": "Heavy steel boots.",
             "physicalDefensePoint": 1,
+            "power": 1,
+            "protectParts": [
+                "legs",
+                "body"
+            ]
+        }, {
+            "id": "16ca4878-1cb0-4c2f-a6d2-362bd69e8c00",
+            "title": "Metal Greaves",
+            "tier": 3,
+            "physicalDefensePoint": 2,
+            "power": 2,
+            "hitPoints": 5,
             "protectParts": [
                 "legs",
                 "body"
@@ -129,24 +124,98 @@
         {
             "id": "215b9612-7e63-4b79-8ce9-cc51925183d1",
             "title": "Linen Robe",
-            "tier": 4
+            "tier": 4,
+            "manaPoints": 5
         }
     ],
-    "primaryWeapons": [
+    "weapons": [
         {
             "id": "e23b27e6-f4ca-4739-9747-9089f0612b84",
             "title": "Recruit's Spear",
             "tier": 4,
-            "minimumAttackPoint": 7,
+            "minimumAttackPoint": 6,
             "maximumAttackPoint": 9,
+            "handUse": "both"
+        }, {
+            "id": "e23b27e6-f4ca-4739-9747-9089f0610010",
+            "title": "Wooden club",
+            "tier": 4,
+            "minimumAttackPoint": 7,
+            "maximumAttackPoint": 8,
+            "handUse": "primary"
+        }, {
+            "id": "e23b27e6-f4ca-4739-5555-9089f0610010",
+            "title": "Traveler's dagger",
+            "tier": 4,
+            "minimumAttackPoint": 3,
+            "maximumAttackPoint": 5,
+            "handUse": "secondary"
+        }, {
+            "id": "e23b27e6-f4ca-4739-9747-9089f0612b07",
+            "title": "Wild beast club",
+            "tier": 4,
+            "isUnique": true,
+            "minimumAttackPoint": 8,
+            "maximumAttackPoint": 10,
+            "power": 1,
+            "handUse": "both",
+            "weaponSpecialAbility": {
+                "type": "antiDodge",
+                "probability": 0.05
+            }
+        }, {
+            "id": "e23b27e6-f4ca-4739-9747-9089f0612b97",
+            "title": "Nightfang dagger",
+            "tier": 4,
+            "isUnique": true,
+            "minimumAttackPoint": 8,
+            "maximumAttackPoint": 9,
+            "agility": 1,
+            "handUse": "primary",
+            "weaponSpecialAbility": {
+                "type": "passThroughBlock",
+                "probability": 0.05
+            }
+        }, {
+            "id": "e23b27e6-f4ca-4739-9747-9089f0612001",
+            "title": "Warrior Axe",
+            "tier": 3,
+            "minimumAttackPoint": 9,
+            "maximumAttackPoint": 12,
+            "handUse": "both"
+        }, {
+            "id": "e23b27e6-f4ca-4739-9747-9089f0612555",
+            "title": "Warrior dagger",
+            "tier": 3,
+            "minimumAttackPoint": 8,
+            "maximumAttackPoint": 10,
             "handUse": "primary"
         }
     ],
-    "secondaryWeapons": [
-        
-    ],
     "shields": [
-        
+        {
+            "id": "e23b27e6-f4ca-4739-9747-9089f0617777",
+            "title": "Wooden shield",
+            "tier": 4,
+            "physicalDefensePoint": 1
+        }, {
+            "id": "e23b27e6-f4ca-4739-9747-9089f0615577",
+            "title": "Goblin's shield",
+            "tier": 4,
+            "isUnique": true,
+            "physicalDefensePoint": 1,
+            "strength": 1,
+            "hitPoints": 5,
+            "shieldSpecialAbility": {
+                "type": "antiCrit",
+                "probability": 0.05
+            }
+        }, {
+            "id": "e23b27e6-f4ca-4739-9747-907650617777",
+            "title": "Metal shield",
+            "tier": 3,
+            "physicalDefensePoint": 2
+        }
     ],
     "rings": [
         {
@@ -168,7 +237,7 @@
         {
             "id": "9309d16a-aa45-45ee-bb35-9d51bd834026",
             "title": "Arcane Guard Earrings",
-            "tier": 3,
+            "tier": 4,
             "magicalDefensePoint": 1
         }
     ]

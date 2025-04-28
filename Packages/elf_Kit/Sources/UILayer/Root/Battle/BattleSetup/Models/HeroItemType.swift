@@ -9,12 +9,12 @@ public enum HeroItemType {
     case helmet
     case gloves
     case shoes
-    case weaponPrimary
-    case weaponSecondary
     case upperBody
     case bottomBody
     case shirt
     case ring
     case necklace
     case earrings
+    case weapons
+    case shields
 }

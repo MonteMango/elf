@@ -29,7 +29,6 @@ public final class HeroConfiguration: ObservableObject {
         .ring: nil,
         .necklace: nil,
         .earrings: nil,
-        .weaponPrimary: nil,
-        .weaponSecondary: nil
+        .weapons: nil
     ]
 }

@@ -49,11 +49,6 @@ internal final class SelectHeroItemScreenView: NiblessView {
         return button
     }()
     
-    internal lazy var setupItemAttributesView: SetupItemAttributesView = {
-        let view = SetupItemAttributesView()
-        return view
-    }()
-    
     // MARK: Initializer
     
     internal override init(frame: CGRect = .zero) {
@@ -73,7 +68,6 @@ internal final class SelectHeroItemScreenView: NiblessView {
         addSubview(backgroundView)
         addSubview(closeButton)
         addSubview(equipButton)
-        addSubview(setupItemAttributesView)
     }
     
     private func activateConstraints() {
@@ -85,7 +79,6 @@ internal final class SelectHeroItemScreenView: NiblessView {
         itemsCollectionView.translatesAutoresizingMaskIntoConstraints = false
         closeButton.translatesAutoresizingMaskIntoConstraints = false
         equipButton.translatesAutoresizingMaskIntoConstraints = false
-        setupItemAttributesView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             
@@ -108,10 +101,6 @@ internal final class SelectHeroItemScreenView: NiblessView {
             // equipButton
             equipButton.centerYAnchor.constraint(equalTo: backgroundView.bottomAnchor),
             equipButton.trailingAnchor.constraint(equalTo: closeButton.trailingAnchor),
-            
-            // setupItemAttributesView
-            setupItemAttributesView.centerYAnchor.constraint(equalTo: backgroundView.bottomAnchor),
-            setupItemAttributesView.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: -25)
         ])
     }
     

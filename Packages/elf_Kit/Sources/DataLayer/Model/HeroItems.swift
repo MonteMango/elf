@@ -18,8 +18,7 @@ public struct HeroItems: Decodable {
     public let bottomBodies: [DefenseItem]
     public let robes: [RobeItem]
     
-    public let primaryWeapons: [OffenseItem]
-    public let secondaryWeapons: [OffenseItem]
+    public let weapons: [WeaponItem]
     public let shields: [ShieldItem]
     
     public let rings: [JewelryItem]

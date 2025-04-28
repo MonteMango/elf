@@ -58,8 +58,7 @@ public final class SelectHeroItemViewModel {
             .upperBody: heroItems.upperBodies,
             .bottomBody: heroItems.bottomBodies,
             .shirt: heroItems.robes,
-            .weaponPrimary: heroItems.primaryWeapons,
-            .weaponSecondary: heroItems.secondaryWeapons,
+            .weapons: heroItems.weapons,
             .ring: heroItems.rings,
             .necklace: heroItems.necklaces,
             .earrings: heroItems.earrings
