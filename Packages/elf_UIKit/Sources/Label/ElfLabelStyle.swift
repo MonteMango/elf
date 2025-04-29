@@ -138,7 +138,7 @@ public enum ElfLabelStyle {
         case .attributePlayerTitleLabel: return .byTruncatingMiddle
         case .attributePlayerCalculationLabel: return .byTruncatingMiddle
         case .attributeBotTitleLabel: return .byTruncatingMiddle
-        case .attributeBotCalculationLabel: return .byTruncatingMiddle
+        case .attributeBotCalculationLabel: return .byWordWrapping
             
         // Items
         case .itemTitle: return .byTruncatingMiddle
@@ -146,6 +146,30 @@ public enum ElfLabelStyle {
         // Select Items
         case .selectItemsAttributesLabel: return .byTruncatingMiddle
         case .selectItemsPrevNextButton: return .byTruncatingMiddle
+        }
+    }
+    
+    var adjustsFontSizeToFitWidth: Bool {
+        switch self {
+        case .menuTitleButton: return false
+        case .actionTitleButton: return false
+            
+        // Battle
+        case .battleTitleLabel: return false
+        case .battleLevelLabel: return false
+        
+        // BattleSetupAttribute
+        case .attributePlayerTitleLabel: return false
+        case .attributePlayerCalculationLabel: return false
+        case .attributeBotTitleLabel: return false
+        case .attributeBotCalculationLabel: return true
+            
+        // Items
+        case .itemTitle: return false
+            
+        // Select Items
+        case .selectItemsAttributesLabel: return false
+        case .selectItemsPrevNextButton: return false
         }
     }
 }

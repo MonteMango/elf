@@ -236,37 +236,37 @@ internal final class PlayerAttributesView: NiblessView, AttributesView {
     // MARK: Methods
     
     internal func updateAttributes(fightStyleAttributes: HeroAttributes?, levelRandomAttributes: [Int16: HeroAttributes]?, itemsAttributes: HeroAttributes?) {
-        strengthCalculationLabel.text = formattedText(
+        strengthCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.strength,
             sumOfLevelAttributes(for: \.strength, in: levelRandomAttributes),
             itemsAttributes?.strength
         )
         
-        agilityCalculationLabel.text = formattedText(
+        agilityCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.agility,
             sumOfLevelAttributes(for: \.agility, in: levelRandomAttributes),
             itemsAttributes?.agility
         )
         
-        powerCalculationLabel.text = formattedText(
+        powerCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.power,
             sumOfLevelAttributes(for: \.power, in: levelRandomAttributes),
             itemsAttributes?.power
         )
         
-        instinctCalculationLabel.text = formattedText(
+        instinctCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.instinct,
             sumOfLevelAttributes(for: \.instinct, in: levelRandomAttributes),
             itemsAttributes?.instinct
         )
         
-        hitPointsCalculationLabel.text = formattedText(
+        hitPointsCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.hitPoints,
             sumOfLevelAttributes(for: \.hitPoints, in: levelRandomAttributes),
             itemsAttributes?.hitPoints
         )
         
-        manaPointsCalculationLabel.text = formattedText(
+        manaPointsCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.manaPoints,
             sumOfLevelAttributes(for: \.manaPoints, in: levelRandomAttributes),
             itemsAttributes?.manaPoints
@@ -275,14 +275,35 @@ internal final class PlayerAttributesView: NiblessView, AttributesView {
     
     // MARK: Private methods
     
-    // Helper function to format the text as "A+B+C X"
-    private func formattedText(_ fightStyleValue: Int16?, _ levelValueSum: Int16, _ itemValue: Int16?) -> String {
+    // Helper function to format the text as "X A+B+C"
+    private func formattedText(_ fightStyleValue: Int16?, _ levelValueSum: Int16, _ itemValue: Int16?) -> NSAttributedString {
         let a: Int16 = fightStyleValue ?? 0
         let b: Int16 = levelValueSum
         let c: Int16 = itemValue ?? 0
         let total = a + b + c
-        return "\(a)+\(b)+\(c) \(total)"
+        
+        // Create the string components
+        let firstPart = "\(total)"
+        let secondPart = "\(a)+\(b)+\(c)"
+        
+        // Create a mutable attributed string
+        let attributedString = NSMutableAttributedString(string: "\(firstPart) \(secondPart)")
+        
+        // Define the ranges for each part of the string
+        let firstRange = NSRange(location: 0, length: firstPart.count)
+        let secondRange = NSRange(location: firstPart.count + 1, length: secondPart.count)
+        
+        // Set attributes for the first part (X) -> bold, orange, font 12
+        attributedString.addAttribute(.font, value: UIFont.boldSystemFont(ofSize: 12), range: firstRange)
+        attributedString.addAttribute(.foregroundColor, value: UIColor.orange, range: firstRange)
+        
+        // Set attributes for the second part (C+B+A) -> regular, white (with transparency), font 10
+        attributedString.addAttribute(.font, value: UIFont.systemFont(ofSize: 8), range: secondRange)
+        attributedString.addAttribute(.foregroundColor, value: UIColor.white.withAlphaComponent(0.8), range: secondRange)
+        
+        return attributedString
     }
+
     
     // Helper function to sum level attributes for a specific property
     private func sumOfLevelAttributes(for keyPath: KeyPath<HeroAttributes, Int16>, in levelAttributes: [Int16: HeroAttributes]?) -> Int16 {

@@ -177,6 +177,7 @@ internal final class BattleSetupScreenView: NiblessView {
             
             // userAttributesView
             userAttributesView.leadingAnchor.constraint(equalTo: userHeroItemsView.trailingAnchor, constant: 15),
+            userAttributesView.trailingAnchor.constraint(equalTo: separatorView.leadingAnchor, constant: -2),
             userAttributesView.bottomAnchor.constraint(equalTo: fightButton.topAnchor, constant: -15),
             
             // botSelectFightStyleLabel

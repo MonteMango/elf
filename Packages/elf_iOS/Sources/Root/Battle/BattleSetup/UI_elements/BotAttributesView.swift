@@ -238,37 +238,37 @@ internal final class BotAttributesView: NiblessView, AttributesView {
     // MARK: Methods
     
     internal func updateAttributes(fightStyleAttributes: HeroAttributes?, levelRandomAttributes: [Int16: HeroAttributes]?, itemsAttributes: HeroAttributes?) {
-        strengthCalculationLabel.text = formattedText(
+        strengthCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.strength,
             sumOfLevelAttributes(for: \.strength, in: levelRandomAttributes),
             itemsAttributes?.strength
         )
         
-        agilityCalculationLabel.text = formattedText(
+        agilityCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.agility,
             sumOfLevelAttributes(for: \.agility, in: levelRandomAttributes),
             itemsAttributes?.agility
         )
         
-        powerCalculationLabel.text = formattedText(
+        powerCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.power,
             sumOfLevelAttributes(for: \.power, in: levelRandomAttributes),
             itemsAttributes?.power
         )
         
-        instinctCalculationLabel.text = formattedText(
+        instinctCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.instinct,
             sumOfLevelAttributes(for: \.instinct, in: levelRandomAttributes),
             itemsAttributes?.instinct
         )
         
-        hitPointsCalculationLabel.text = formattedText(
+        hitPointsCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.hitPoints,
             sumOfLevelAttributes(for: \.hitPoints, in: levelRandomAttributes),
             itemsAttributes?.hitPoints
         )
         
-        manaPointsCalculationLabel.text = formattedText(
+        manaPointsCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.manaPoints,
             sumOfLevelAttributes(for: \.manaPoints, in: levelRandomAttributes),
             itemsAttributes?.manaPoints
@@ -278,12 +278,30 @@ internal final class BotAttributesView: NiblessView, AttributesView {
     // MARK: Private methods
     
     // Helper function to format the text as "A+B+C X"
-    private func formattedText(_ fightStyleValue: Int16?, _ levelValueSum: Int16, _ itemValue: Int16?) -> String {
+    private func formattedText(_ fightStyleValue: Int16?, _ levelValueSum: Int16, _ itemValue: Int16?) -> NSAttributedString {
         let a: Int16 = fightStyleValue ?? 0
         let b: Int16 = levelValueSum
         let c: Int16 = itemValue ?? 0
         let total = a + b + c
-        return "\(total) \(c)+\(b)+\(a)"
+        
+        let firstPart = "\(c)+\(b)+\(a)"
+        let secondPart = "\(total)"
+        
+        let attributedString = NSMutableAttributedString(string: "\(firstPart) \(secondPart)")
+        
+        // Define the ranges for each part of the string
+        let firstRange = NSRange(location: 0, length: firstPart.count)
+        let secondRange = NSRange(location: firstPart.count + 1, length: secondPart.count)
+        
+        // Set attributes for the first part (C+B+A) -> regular, white (with transparency), font 10
+        attributedString.addAttribute(.font, value: UIFont.systemFont(ofSize: 8), range: firstRange)
+        attributedString.addAttribute(.foregroundColor, value: UIColor.white.withAlphaComponent(0.8), range: firstRange)
+        
+        // Set attributes for the second part (X) -> bold, orange, font 12
+        attributedString.addAttribute(.font, value: UIFont.boldSystemFont(ofSize: 12), range: secondRange)
+        attributedString.addAttribute(.foregroundColor, value: UIColor.orange, range: secondRange)
+        
+        return attributedString
     }
     
     // Helper function to sum level attributes for a specific property

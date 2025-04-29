@@ -30,6 +30,7 @@ public final class ElfLabel: UILabel {
         self.font = labelStyle.font
         self.numberOfLines = labelStyle.numberOfLines
         self.lineBreakMode = labelStyle.lineBreakMode
+        self.adjustsFontSizeToFitWidth = labelStyle.adjustsFontSizeToFitWidth
         self.text = text
     }
 }
