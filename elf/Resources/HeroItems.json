@@ -201,6 +201,14 @@
             "minimumAttackPoint": 8,
             "maximumAttackPoint": 10,
             "handUse": "primary"
+        },
+        {
+            "id": "ba01059d-f04d-4d1d-8170-57ab9ec2a958",
+            "title": "Scout dagger",
+            "tier": 3,
+            "minimumAttackPoint": 5,
+            "maximumAttackPoint": 6,
+            "handUse": "secondary"
         }
     ],
     "shields": [
