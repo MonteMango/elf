@@ -39,8 +39,8 @@ public final class BattleSetupViewModel {
             guard let selectHeroItemViewModel = self.selectHeroItemViewModel else { return }
             selectHeroItemViewModel
                 .selectedHeroItem
-                .sink { [weak self] heroType, heroItemType, itemId in
-                    self?.updateHeroConfiguration(for: heroType, itemType: heroItemType, itemId: itemId)
+                .sink { [weak self] heroType, heroItemType, itemId, blockingTwoHandsWeaponId in
+                    self?.updateHeroConfiguration(for: heroType, itemType: heroItemType, itemId: itemId, blockingTwoHandsWeaponId: blockingTwoHandsWeaponId)
                 }
                 .store(in: &selectHeroItemCancellables)
         }
@@ -94,7 +94,7 @@ public final class BattleSetupViewModel {
             .store(in: &cancellables)
         
         // Track changes in botHeroConfiguration
-        Publishers.CombineLatest3(botHeroConfiguration.$level, botHeroConfiguration.$fightStyle, playerHeroConfiguration.$itemIds)
+        Publishers.CombineLatest3(botHeroConfiguration.$level, botHeroConfiguration.$fightStyle, botHeroConfiguration.$itemIds)
             .sink { [weak self] level, fightStyle, itemIds in
                 guard let self = self else { return }
                 self.updateFightStyleAttributes(for: self.botHeroConfiguration, level: level, fightStyle: fightStyle)
@@ -120,13 +120,27 @@ public final class BattleSetupViewModel {
     }
     
     private func updateItemsAttributes(for configuration: HeroConfiguration, itemIds: [HeroItemType: UUID?]) {
-//        Task {
-//            let updateAttributes = await ...
-//        }
+        Task {
+            let updateAttributes = await attributeService.getAllItemsAttrbutes(for: itemIds)
+            configuration.itemsAttributes = updateAttributes
+        }
     }
     
-    private func updateHeroConfiguration(for heroType: HeroType, itemType: HeroItemType, itemId: UUID?) {
+    private func updateHeroConfiguration(for heroType: HeroType, itemType: HeroItemType, itemId: UUID?, blockingTwoHandsWeaponId: UUID?) {
         let configuration = heroType == .player ? playerHeroConfiguration : botHeroConfiguration
+        
+        if itemType == .weapons {
+            configuration.blockingTwoHandsWeaponId = blockingTwoHandsWeaponId
+            if blockingTwoHandsWeaponId != nil {
+                configuration.itemIds[.shields] = nil
+            }
+        }
+        
+        if itemType == .shields && configuration.blockingTwoHandsWeaponId != nil {
+            configuration.itemIds[.weapons] = nil
+            configuration.blockingTwoHandsWeaponId = nil
+        }
+        
         configuration.itemIds[itemType] = itemId
     }
     

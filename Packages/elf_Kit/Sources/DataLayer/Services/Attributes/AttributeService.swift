@@ -5,10 +5,14 @@
 //  Created by Vitalii Lytvynov on 01.11.24.
 //
 
+import Foundation
+
 public protocol AttributeService {
     
     func getAllFightStyleAttributes(for fightStyle: FightStyle, at level: Int16) async -> HeroAttributes
     
     func getRandomLevelAttributes() async -> HeroAttributes
     func getAllRandomLevelAttributes(for level: Int16) async -> [Int16: HeroAttributes]
+    
+    func getAllItemsAttrbutes(for itemIds: [HeroItemType: UUID?]) async -> HeroAttributes
 }

@@ -31,4 +31,6 @@ public final class HeroConfiguration: ObservableObject {
         .earrings: nil,
         .weapons: nil
     ]
+    
+    @Published public var blockingTwoHandsWeaponId: UUID? = nil
 }

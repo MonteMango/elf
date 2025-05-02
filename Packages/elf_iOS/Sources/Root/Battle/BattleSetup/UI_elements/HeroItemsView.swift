@@ -60,6 +60,15 @@ internal final class HeroItemsView: NiblessView {
         return button
     }()
     
+    internal lazy var weaponSecondaryFilterView: UIView = {
+        let view = UIView()
+        view.alpha = 0.4
+        view.backgroundColor = .black
+        view.isUserInteractionEnabled = false
+        view.isHidden = true
+        return view
+    }()
+    
     internal lazy var weaponScondaryItemButton: ElfButton = {
         let button = ElfButton(buttonStyle: .item)
         button.tag = HeroItemButtonType.weaponSecondary.rawValue
@@ -111,6 +120,7 @@ internal final class HeroItemsView: NiblessView {
         addSubview(bottomBodyItemButton)
         addSubview(shirtItemButton)
         addSubview(weaponScondaryItemButton)
+        addSubview(weaponSecondaryFilterView)
         
         addSubview(ringItemButton)
         addSubview(necklaceItemButton)
@@ -127,6 +137,7 @@ internal final class HeroItemsView: NiblessView {
         bottomBodyItemButton.translatesAutoresizingMaskIntoConstraints = false
         shirtItemButton.translatesAutoresizingMaskIntoConstraints = false
         weaponScondaryItemButton.translatesAutoresizingMaskIntoConstraints = false
+        weaponSecondaryFilterView.translatesAutoresizingMaskIntoConstraints = false
         
         ringItemButton.translatesAutoresizingMaskIntoConstraints = false
         necklaceItemButton.translatesAutoresizingMaskIntoConstraints = false
@@ -166,6 +177,12 @@ internal final class HeroItemsView: NiblessView {
             weaponScondaryItemButton.trailingAnchor.constraint(equalTo: trailingAnchor),
             weaponScondaryItemButton.topAnchor.constraint(equalTo: shirtItemButton.bottomAnchor),
             weaponScondaryItemButton.bottomAnchor.constraint(equalTo: bottomAnchor),
+            
+            // weaponSecondaryFilterView
+            weaponSecondaryFilterView.leadingAnchor.constraint(equalTo: weaponScondaryItemButton.leadingAnchor),
+            weaponSecondaryFilterView.trailingAnchor.constraint(equalTo: weaponScondaryItemButton.trailingAnchor),
+            weaponSecondaryFilterView.topAnchor.constraint(equalTo: weaponScondaryItemButton.topAnchor),
+            weaponSecondaryFilterView.bottomAnchor.constraint(equalTo: weaponScondaryItemButton.bottomAnchor),
             
             // ringItemButton
             ringItemButton.leadingAnchor.constraint(equalTo: weaponPrimaryItemButton.trailingAnchor, constant: 20),

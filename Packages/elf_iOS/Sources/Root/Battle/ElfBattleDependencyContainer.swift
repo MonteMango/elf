@@ -25,7 +25,7 @@ internal final class ElfBattleDependencyContainer {
         self.sharedBattleViewModel = battleViewModel
         self.rootViewModel = appDependencyContainer.sharedRootViewModel
         self.itemsRepository = appDependencyContainer.itemsRepository
-        self.sharedAttributeService = ElfAttributeService()
+        self.sharedAttributeService = ElfAttributeService(itemsRepository: self.itemsRepository)
     }
     
     // MARK: BattleSetup

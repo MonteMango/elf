@@ -22,7 +22,7 @@ public final class SelectHeroItemViewModel {
     @Published public private(set) var heroItems: HeroItems?
     @Published public private(set) var selectedHeroItemId: UUID?
     
-    public let selectedHeroItem = PassthroughSubject<(HeroType, HeroItemType, UUID?), Never>()
+    public let selectedHeroItem = PassthroughSubject<(HeroType, HeroItemType, UUID?, UUID?), Never>()
     
     public init(
         currentHeroItemId: UUID?,
@@ -59,6 +59,7 @@ public final class SelectHeroItemViewModel {
             .bottomBody: heroItems.bottomBodies,
             .shirt: heroItems.robes,
             .weapons: heroItems.weapons,
+            .shields: heroItems.shields + heroItems.weapons.filter({ $0.handUse == .secondary }),
             .ring: heroItems.rings,
             .necklace: heroItems.necklaces,
             .earrings: heroItems.earrings
@@ -76,7 +77,8 @@ public final class SelectHeroItemViewModel {
     
     @objc
     public func equipButtonAction() {
-        selectedHeroItem.send((heroType, heroItemType, self.selectedHeroItemId))
+        let blockingTwoHandsWeaponId = self.heroItems?.weapons.first(where: { $0.id == self.selectedHeroItemId && $0.handUse == .both})?.id
+        selectedHeroItem.send((heroType, heroItemType, self.selectedHeroItemId, blockingTwoHandsWeaponId))
         battleViewStateDelegate.setViewState(.setup)
     }
 }

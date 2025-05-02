@@ -91,7 +91,7 @@
             "tier": 3,
             "physicalDefensePoint": 2,
             "hitPoints": 10,
-            "power": 1,
+            "agility": 1,
             "protectParts": [
                 "head",
                 "body",
@@ -196,7 +196,7 @@
         },
         {
             "id": "d90bce80-202a-4e83-85c8-b5d5f52d8a9f",
-            "title": "Warrior dagger",
+            "title": "Warrior sword",
             "tier": 3,
             "minimumAttackPoint": 8,
             "maximumAttackPoint": 10,

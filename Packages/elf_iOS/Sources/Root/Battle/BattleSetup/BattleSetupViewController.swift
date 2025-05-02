@@ -75,6 +75,9 @@ internal final class BattleSetupViewController: NiblessViewController {
         bindItemButton(for: .earrings, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.earringsItemButton)
         bindItemButton(for: .weapons, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.weaponPrimaryItemButton)
         bindItemButton(for: .shields, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.weaponScondaryItemButton)
+        
+        bindIsBlockingTwoHands(configuration: viewModel.playerHeroConfiguration, heroItemsView: screenView.userHeroItemsView)
+        bindIsBlockingTwoHands(configuration: viewModel.botHeroConfiguration, heroItemsView: screenView.botHeroItemsView)
     }
     
     private func bindLevel(_ publisher: Published<Int16>.Publisher, to levelView: HeroLevelView) {
@@ -120,6 +123,19 @@ internal final class BattleSetupViewController: NiblessViewController {
                 } else {
                     // Очищаем изображение, если идентификатор отсутствует
                     button.imageView?.image = nil
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func bindIsBlockingTwoHands(configuration: HeroConfiguration, heroItemsView: HeroItemsView) {
+        configuration.$blockingTwoHandsWeaponId
+            .sink { [weak heroItemsView] blockingTwoHandsWeaponId in
+                guard let heroItemsView = heroItemsView else { return }
+                if blockingTwoHandsWeaponId != nil {
+                    heroItemsView.weaponSecondaryFilterView.isHidden = false
+                } else {
+                    heroItemsView.weaponSecondaryFilterView.isHidden = true
                 }
             }
             .store(in: &cancellables)
