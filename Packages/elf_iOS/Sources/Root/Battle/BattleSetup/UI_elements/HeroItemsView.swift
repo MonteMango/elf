@@ -95,6 +95,13 @@ internal final class HeroItemsView: NiblessView {
         return button
     }()
     
+    // Armor (middle)
+    
+    internal lazy var armorView: ArmorView = {
+        let view = ArmorView()
+        return view
+    }()
+    
     // MARK: Initializer
     
     internal override init(frame: CGRect = .zero) {
@@ -125,6 +132,8 @@ internal final class HeroItemsView: NiblessView {
         addSubview(ringItemButton)
         addSubview(necklaceItemButton)
         addSubview(earringsItemButton)
+        
+        addSubview(armorView)
     }
     
     private func activateConstraints() {
@@ -142,6 +151,8 @@ internal final class HeroItemsView: NiblessView {
         ringItemButton.translatesAutoresizingMaskIntoConstraints = false
         necklaceItemButton.translatesAutoresizingMaskIntoConstraints = false
         earringsItemButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        armorView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             // helmetItemButton
@@ -195,7 +206,13 @@ internal final class HeroItemsView: NiblessView {
             // earringsItemButton
             earringsItemButton.leadingAnchor.constraint(equalTo: necklaceItemButton.trailingAnchor),
             earringsItemButton.trailingAnchor.constraint(equalTo: weaponScondaryItemButton.leadingAnchor, constant: -20),
-            earringsItemButton.bottomAnchor.constraint(equalTo: bottomAnchor)
+            earringsItemButton.bottomAnchor.constraint(equalTo: bottomAnchor),
+            
+            // armorView
+            armorView.topAnchor.constraint(equalTo: topAnchor),
+            armorView.leadingAnchor.constraint(equalTo: weaponPrimaryItemButton.trailingAnchor, constant: 10),
+            armorView.trailingAnchor.constraint(equalTo: weaponScondaryItemButton.leadingAnchor, constant: -10),
+            armorView.bottomAnchor.constraint(equalTo: ringItemButton.topAnchor, constant: -10)
         ])
     }
     

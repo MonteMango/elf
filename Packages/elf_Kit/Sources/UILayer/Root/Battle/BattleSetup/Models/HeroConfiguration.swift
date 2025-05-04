@@ -17,6 +17,13 @@ public final class HeroConfiguration: ObservableObject {
     @Published public var fightStyleAttributes: HeroAttributes? = nil
     @Published public var levelRandomAttributes: [Int16: HeroAttributes]? = nil
     @Published public var itemsAttributes: HeroAttributes? = nil
+    @Published public var itemsArmor: [BodyPart: Int16] = [
+        .head: 0,
+        .leftHand: 0,
+        .body: 0,
+        .rightHand: 0,
+        .legs: 0
+    ]
     
     // Используем словарь для хранения идентификаторов предметов экипировки
     @Published public var itemIds: [HeroItemType: UUID?] = [

@@ -22,6 +22,9 @@ public enum ElfLabelStyle {
     case attributeBotTitleLabel
     case attributeBotCalculationLabel
     
+    // BattleSetupArmor
+    case armorTitleLabel
+    
     // Items
     case itemTitle
     
@@ -43,6 +46,9 @@ public enum ElfLabelStyle {
         case .attributePlayerCalculationLabel: return UIFont.systemFont(ofSize: 11, weight: .regular)
         case .attributeBotTitleLabel: return UIFont.systemFont(ofSize: 13, weight: .bold)
         case .attributeBotCalculationLabel: return UIFont.systemFont(ofSize: 11, weight: .regular)
+            
+        // BattleSetupArmor
+        case .armorTitleLabel: return UIFont.systemFont(ofSize: 11, weight: .light)
             
         // Items
         case .itemTitle: return UIFont.preferredFont(forTextStyle: .title1)
@@ -68,6 +74,9 @@ public enum ElfLabelStyle {
         case .attributeBotTitleLabel: return .right
         case .attributeBotCalculationLabel: return .right
             
+        // BattleSetupArmor
+        case .armorTitleLabel: return .center
+            
         // Items
         case .itemTitle: return .center
             
@@ -79,18 +88,21 @@ public enum ElfLabelStyle {
     
     var textColor: UIColor {
         switch self {
-        case .menuTitleButton: return UIColor.red
-        case .actionTitleButton: return UIColor.red
+        case .menuTitleButton: return UIColor.white
+        case .actionTitleButton: return UIColor.white
             
         // Battle
-        case .battleTitleLabel: return UIColor.red
-        case .battleLevelLabel: return UIColor.red
+        case .battleTitleLabel: return UIColor.white
+        case .battleLevelLabel: return UIColor.white
             
         // BattleSetupAttribute
         case .attributePlayerTitleLabel: return UIColor.white
         case .attributePlayerCalculationLabel: return UIColor.white
         case .attributeBotTitleLabel: return UIColor.white
         case .attributeBotCalculationLabel: return UIColor.white
+            
+        // BattleSetupArmor
+        case .armorTitleLabel: return UIColor.black
             
         // Items
         case .itemTitle: return UIColor.white
@@ -116,6 +128,9 @@ public enum ElfLabelStyle {
         case .attributeBotTitleLabel: return 1
         case .attributeBotCalculationLabel: return 1
             
+        // BattleSetupArmor
+        case .armorTitleLabel: return 1
+            
         // Items
         case .itemTitle: return 3
             
@@ -140,6 +155,9 @@ public enum ElfLabelStyle {
         case .attributeBotTitleLabel: return .byTruncatingMiddle
         case .attributeBotCalculationLabel: return .byWordWrapping
             
+        // BattleSetupArmor
+        case .armorTitleLabel: return .byTruncatingMiddle
+            
         // Items
         case .itemTitle: return .byTruncatingMiddle
             
@@ -163,6 +181,9 @@ public enum ElfLabelStyle {
         case .attributePlayerCalculationLabel: return false
         case .attributeBotTitleLabel: return false
         case .attributeBotCalculationLabel: return true
+            
+        // BattleSetupArmor
+        case .armorTitleLabel: return true
             
         // Items
         case .itemTitle: return false

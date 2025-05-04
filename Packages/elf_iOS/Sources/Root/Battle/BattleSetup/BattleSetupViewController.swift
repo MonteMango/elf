@@ -76,6 +76,9 @@ internal final class BattleSetupViewController: NiblessViewController {
         bindItemButton(for: .weapons, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.weaponPrimaryItemButton)
         bindItemButton(for: .shields, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.weaponScondaryItemButton)
         
+        bindArmor(configuration: viewModel.playerHeroConfiguration, armorView: screenView.userHeroItemsView.armorView)
+        bindArmor(configuration: viewModel.botHeroConfiguration, armorView: screenView.botHeroItemsView.armorView)
+        
         bindIsBlockingTwoHands(configuration: viewModel.playerHeroConfiguration, heroItemsView: screenView.userHeroItemsView)
         bindIsBlockingTwoHands(configuration: viewModel.botHeroConfiguration, heroItemsView: screenView.botHeroItemsView)
     }
@@ -128,8 +131,32 @@ internal final class BattleSetupViewController: NiblessViewController {
             .store(in: &cancellables)
     }
     
+    private func bindArmor(configuration: HeroConfiguration, armorView: ArmorView) {
+        configuration.$itemsArmor
+            .receive(on: DispatchQueue.main)
+            .sink { [weak armorView] itemsArmor in
+                guard let armorView = armorView else { return }
+                for (bodyPart, armor) in itemsArmor {
+                    switch bodyPart {
+                    case .head:
+                        armorView.topArmorLabel.text = "\(armor)"
+                    case .leftHand:
+                        armorView.leftArmorLabel.text = "\(armor)"
+                    case .body:
+                        armorView.middleArmorLabel.text = "\(armor)"
+                    case .rightHand:
+                        armorView.rightArmorLabel.text = "\(armor)"
+                    case .legs:
+                        armorView.bottomArmorLabel.text = "\(armor)"
+                    }
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
     private func bindIsBlockingTwoHands(configuration: HeroConfiguration, heroItemsView: HeroItemsView) {
         configuration.$blockingTwoHandsWeaponId
+            .receive(on: DispatchQueue.main)
             .sink { [weak heroItemsView] blockingTwoHandsWeaponId in
                 guard let heroItemsView = heroItemsView else { return }
                 if blockingTwoHandsWeaponId != nil {

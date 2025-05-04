@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct DefenseItem: Item {
+public struct DefenseItem: Item, HasPhysicalDefense {
     public let id: UUID
     public let title: String
     public let tier: Int16
@@ -22,5 +22,5 @@ public struct DefenseItem: Item {
     public let manaPoints: Int16?
     
     public let physicalDefensePoint: Int16
-    public let protectParts: [ProtectBodyPart]
+    public let protectParts: [BodyPart]
 }

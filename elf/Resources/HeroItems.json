@@ -17,7 +17,7 @@
             "tier": 3,
             "physicalDefensePoint": 2,
             "instinct": 2,
-            "strength": 1,
+            "agility": 1,
             "protectParts": [
                 "head"
             ]
@@ -91,7 +91,7 @@
             "tier": 3,
             "physicalDefensePoint": 2,
             "hitPoints": 10,
-            "agility": 1,
+            "strength": 1,
             "protectParts": [
                 "head",
                 "body",

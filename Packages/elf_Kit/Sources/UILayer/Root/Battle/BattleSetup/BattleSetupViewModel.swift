@@ -14,6 +14,7 @@ public final class BattleSetupViewModel {
     private let battleViewStateDelegate: AnyViewStateDelegate<BattleViewState>
     
     private let attributeService: AttributeService
+    private let armorService: ArmorService
     
     private var cancellables = Set<AnyCancellable>()
     private var selectHeroItemCancellables = Set<AnyCancellable>()
@@ -21,10 +22,12 @@ public final class BattleSetupViewModel {
     public init(
         rootViewStateDelegate: AnyViewStateDelegate<RootViewState>,
         battleViewStateDelegate: AnyViewStateDelegate<BattleViewState>,
-        attributeService: AttributeService) {
+        attributeService: AttributeService,
+        armorService: ArmorService) {
             self.rootViewStateDelegate = rootViewStateDelegate
             self.battleViewStateDelegate = battleViewStateDelegate
             self.attributeService = attributeService
+            self.armorService = armorService
             
             setupBindings()
         }
@@ -102,6 +105,22 @@ public final class BattleSetupViewModel {
                 self.updateItemsAttributes(for: self.botHeroConfiguration, itemIds: itemIds)
             }
             .store(in: &cancellables)
+        
+        playerHeroConfiguration
+            .$itemIds
+            .sink { [weak self] itemIds in
+                guard let self = self else { return }
+                self.updateItemsArmor(for: self.playerHeroConfiguration, itemIds: itemIds)
+            }
+            .store(in: &cancellables)
+        
+        botHeroConfiguration
+            .$itemIds
+            .sink { [weak self] itemIds in
+                guard let self = self else { return }
+                self.updateItemsArmor(for: self.botHeroConfiguration, itemIds: itemIds)
+            }
+            .store(in: &cancellables)
     }
     
     private func updateFightStyleAttributes(for configuration: HeroConfiguration, level: Int16, fightStyle: FightStyle?) {
@@ -123,6 +142,13 @@ public final class BattleSetupViewModel {
         Task {
             let updateAttributes = await attributeService.getAllItemsAttrbutes(for: itemIds)
             configuration.itemsAttributes = updateAttributes
+        }
+    }
+    
+    private func updateItemsArmor(for configuration: HeroConfiguration, itemIds: [HeroItemType: UUID?]) {
+        Task {
+            let updateArmor = await armorService.getAllItemsArmor(for: itemIds)
+            configuration.itemsArmor = updateArmor
         }
     }
     

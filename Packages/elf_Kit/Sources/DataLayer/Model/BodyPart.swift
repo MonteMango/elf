@@ -1,11 +1,11 @@
 //
-//  ProtectBodyPart.swift
+//  BodyPart.swift
 //  elf_Kit
 //
 //  Created by Vitalii Lytvynov on 10.11.24.
 //
 
-public enum ProtectBodyPart: String, Decodable {
+public enum BodyPart: String, Decodable {
     case head
     case body
     case leftHand

@@ -28,6 +28,7 @@ public final class ElfLabel: UILabel {
     private func configureStyle(text: String? = nil) {
         self.textAlignment = labelStyle.textAlignment
         self.font = labelStyle.font
+        self.textColor = labelStyle.textColor
         self.numberOfLines = labelStyle.numberOfLines
         self.lineBreakMode = labelStyle.lineBreakMode
         self.adjustsFontSizeToFitWidth = labelStyle.adjustsFontSizeToFitWidth
