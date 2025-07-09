@@ -22,7 +22,7 @@ public final class SelectHeroItemViewModel {
     @Published public private(set) var heroItems: HeroItems?
     @Published public private(set) var selectedHeroItemId: UUID?
     
-    public let selectedHeroItem = PassthroughSubject<(HeroType, HeroItemType, UUID?, UUID?), Never>()
+    public let selectedHeroItem = PassthroughSubject<(HeroType, HeroItemType, UUID?), Never>()
     
     public init(
         currentHeroItemId: UUID?,
@@ -77,8 +77,7 @@ public final class SelectHeroItemViewModel {
     
     @objc
     public func equipButtonAction() {
-        let blockingTwoHandsWeaponId = self.heroItems?.weapons.first(where: { $0.id == self.selectedHeroItemId && $0.handUse == .both})?.id
-        selectedHeroItem.send((heroType, heroItemType, self.selectedHeroItemId, blockingTwoHandsWeaponId))
+        selectedHeroItem.send((heroType, heroItemType, self.selectedHeroItemId))
         battleViewStateDelegate.setViewState(.setup)
     }
 }

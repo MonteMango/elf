@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ShieldItem: Item, HasPhysicalDefense, Decodable {
+public class ShieldItem: Item, HasPhysicalDefense, Decodable {
     
     public let id: UUID
     public let title: String
@@ -27,7 +27,7 @@ public struct ShieldItem: Item, HasPhysicalDefense, Decodable {
     public let physicalDefensePoint: Int16
     public let protectParts: [BodyPart]
     
-    public init(from decoder: Decoder) throws {
+    required public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
         id = try container.decode(UUID.self, forKey: .id)

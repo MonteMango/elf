@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol ArmorService {
-    func getAllItemsArmor(for itemIds: [HeroItemType: UUID?]) async -> [BodyPart: Int16]
+    func getAllItemsArmor(for itemIds: [UUID]) async -> [BodyPart: Int16]
 }

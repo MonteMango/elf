@@ -57,7 +57,7 @@ internal final class PlayerAttributesView: NiblessView, AttributesView {
     }()
     
     internal lazy var attackPrimaryCalculationLabel: ElfLabel = {
-        let label = ElfLabel(labelStyle: .attributePlayerCalculationLabel)
+        let label = ElfLabel(labelStyle: .attributeWeaponPlayerCalculationLabel)
         return label
     }()
     
@@ -67,7 +67,7 @@ internal final class PlayerAttributesView: NiblessView, AttributesView {
     }()
     
     internal lazy var attackSecondaryCalculationLabel: ElfLabel = {
-        let label = ElfLabel(labelStyle: .attributePlayerCalculationLabel)
+        let label = ElfLabel(labelStyle: .attributeWeaponPlayerCalculationLabel)
         return label
     }()
     
@@ -235,50 +235,55 @@ internal final class PlayerAttributesView: NiblessView, AttributesView {
     
     // MARK: Methods
     
-    internal func updateAttributes(fightStyleAttributes: HeroAttributes?, levelRandomAttributes: [Int16: HeroAttributes]?, itemsAttributes: HeroAttributes?) {
+    internal func updateAttributes(fightStyleAttributes: HeroAttributes?, levelRandomAttributes: HeroAttributes?, itemsAttributes: HeroAttributes?) {
         strengthCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.strength,
-            sumOfLevelAttributes(for: \.strength, in: levelRandomAttributes),
+            levelRandomAttributes?.strength,
             itemsAttributes?.strength
         )
         
         agilityCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.agility,
-            sumOfLevelAttributes(for: \.agility, in: levelRandomAttributes),
+            levelRandomAttributes?.agility,
             itemsAttributes?.agility
         )
         
         powerCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.power,
-            sumOfLevelAttributes(for: \.power, in: levelRandomAttributes),
+            levelRandomAttributes?.power,
             itemsAttributes?.power
         )
         
         instinctCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.instinct,
-            sumOfLevelAttributes(for: \.instinct, in: levelRandomAttributes),
+            levelRandomAttributes?.instinct,
             itemsAttributes?.instinct
         )
         
         hitPointsCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.hitPoints,
-            sumOfLevelAttributes(for: \.hitPoints, in: levelRandomAttributes),
+            levelRandomAttributes?.hitPoints,
             itemsAttributes?.hitPoints
         )
         
         manaPointsCalculationLabel.attributedText = formattedText(
             fightStyleAttributes?.manaPoints,
-            sumOfLevelAttributes(for: \.manaPoints, in: levelRandomAttributes),
+            levelRandomAttributes?.manaPoints,
             itemsAttributes?.manaPoints
         )
+    }
+    
+    internal func updateDamageAttributes(primaryMinDmg: Int16, primaryMaxDmg: Int16, secondaryMinDmg: Int16, secondaryMaxDmg: Int16) {
+        attackPrimaryCalculationLabel.text = "\(primaryMinDmg) - \(primaryMaxDmg)"
+        attackSecondaryCalculationLabel.text = "\(secondaryMinDmg) - \(secondaryMaxDmg)"
     }
     
     // MARK: Private methods
     
     // Helper function to format the text as "X A+B+C"
-    private func formattedText(_ fightStyleValue: Int16?, _ levelValueSum: Int16, _ itemValue: Int16?) -> NSAttributedString {
+    private func formattedText(_ fightStyleValue: Int16?, _ levelValueSum: Int16?, _ itemValue: Int16?) -> NSAttributedString {
         let a: Int16 = fightStyleValue ?? 0
-        let b: Int16 = levelValueSum
+        let b: Int16 = levelValueSum ?? 0
         let c: Int16 = itemValue ?? 0
         let total = a + b + c
         
@@ -302,12 +307,5 @@ internal final class PlayerAttributesView: NiblessView, AttributesView {
         attributedString.addAttribute(.foregroundColor, value: UIColor.white.withAlphaComponent(0.8), range: secondRange)
         
         return attributedString
-    }
-
-    
-    // Helper function to sum level attributes for a specific property
-    private func sumOfLevelAttributes(for keyPath: KeyPath<HeroAttributes, Int16>, in levelAttributes: [Int16: HeroAttributes]?) -> Int16 {
-        guard let levelAttributes = levelAttributes else { return 0 }
-        return levelAttributes.values.reduce(0) { $0 + $1[keyPath: keyPath] }
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Foundation
 
 public protocol ItemsRepository {
     
@@ -13,4 +14,5 @@ public protocol ItemsRepository {
     var heroItemsPublisher: Published<HeroItems?>.Publisher { get }
     
     func loadHeroItems() async throws
+    func getHeroItem(_ id: UUID) async -> Item?
 }

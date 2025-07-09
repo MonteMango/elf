@@ -50,37 +50,30 @@ internal final class BattleSetupViewController: NiblessViewController {
         bindFightStyle(screenView.userSelectFightStyleStackView.selectFightStyleRadioButtonGroup, heroType: .player)
         bindFightStyle(screenView.botSelectFightStyleStackView.selectFightStyleRadioButtonGroup, heroType: .bot)
         
-        // Привязка кнопок для игрока
-        bindItemButton(for: .helmet, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.helmetItemButton)
-        bindItemButton(for: .gloves, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.glovesItemButton)
-        bindItemButton(for: .shoes, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.shoesItemButton)
-        bindItemButton(for: .upperBody, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.upperBodyItemButton)
-        bindItemButton(for: .bottomBody, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.bottomBodyItemButton)
-        bindItemButton(for: .shirt, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.shirtItemButton)
-        bindItemButton(for: .ring, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.ringItemButton)
-        bindItemButton(for: .necklace, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.necklaceItemButton)
-        bindItemButton(for: .earrings, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.earringsItemButton)
-        bindItemButton(for: .weapons, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.weaponPrimaryItemButton)
-        bindItemButton(for: .shields, configuration: viewModel.playerHeroConfiguration, button: screenView.userHeroItemsView.weaponScondaryItemButton)
+        bindItemImage(itemPublisher: viewModel.playerHeroConfiguration.items.$helmet, to: screenView.userHeroItemsView.helmetItemButton)
+        bindItemImage(itemPublisher: viewModel.playerHeroConfiguration.items.$gloves, to: screenView.userHeroItemsView.glovesItemButton)
+        bindItemImage(itemPublisher: viewModel.playerHeroConfiguration.items.$shoes, to: screenView.userHeroItemsView.shoesItemButton)
+        bindItemImage(itemPublisher: viewModel.playerHeroConfiguration.items.$upperBody, to: screenView.userHeroItemsView.upperBodyItemButton)
+        bindItemImage(itemPublisher: viewModel.playerHeroConfiguration.items.$bottomBody, to: screenView.userHeroItemsView.bottomBodyItemButton)
+        bindItemImage(itemPublisher: viewModel.playerHeroConfiguration.items.$shirt, to: screenView.userHeroItemsView.shirtItemButton)
+        bindItemImage(itemPublisher: viewModel.playerHeroConfiguration.items.$ring, to: screenView.userHeroItemsView.ringItemButton)
+        bindItemImage(itemPublisher: viewModel.playerHeroConfiguration.items.$necklace, to: screenView.userHeroItemsView.necklaceItemButton)
+        bindItemImage(itemPublisher: viewModel.playerHeroConfiguration.items.$earrings, to: screenView.userHeroItemsView.earringsItemButton)
+        bindHandUse(viewModel.playerHeroConfiguration, attributesView: screenView.userAttributesView, heroItemsView: screenView.userHeroItemsView)
         
-        // Привязка кнопок для бота
-        bindItemButton(for: .helmet, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.helmetItemButton)
-        bindItemButton(for: .gloves, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.glovesItemButton)
-        bindItemButton(for: .shoes, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.shoesItemButton)
-        bindItemButton(for: .upperBody, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.upperBodyItemButton)
-        bindItemButton(for: .bottomBody, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.bottomBodyItemButton)
-        bindItemButton(for: .shirt, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.shirtItemButton)
-        bindItemButton(for: .ring, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.ringItemButton)
-        bindItemButton(for: .necklace, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.necklaceItemButton)
-        bindItemButton(for: .earrings, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.earringsItemButton)
-        bindItemButton(for: .weapons, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.weaponPrimaryItemButton)
-        bindItemButton(for: .shields, configuration: viewModel.botHeroConfiguration, button: screenView.botHeroItemsView.weaponScondaryItemButton)
+        bindItemImage(itemPublisher: viewModel.botHeroConfiguration.items.$helmet, to: screenView.botHeroItemsView.helmetItemButton)
+        bindItemImage(itemPublisher: viewModel.botHeroConfiguration.items.$gloves, to: screenView.botHeroItemsView.glovesItemButton)
+        bindItemImage(itemPublisher: viewModel.botHeroConfiguration.items.$shoes, to: screenView.botHeroItemsView.shoesItemButton)
+        bindItemImage(itemPublisher: viewModel.botHeroConfiguration.items.$upperBody, to: screenView.botHeroItemsView.upperBodyItemButton)
+        bindItemImage(itemPublisher: viewModel.botHeroConfiguration.items.$bottomBody, to: screenView.botHeroItemsView.bottomBodyItemButton)
+        bindItemImage(itemPublisher: viewModel.botHeroConfiguration.items.$shirt, to: screenView.botHeroItemsView.shirtItemButton)
+        bindItemImage(itemPublisher: viewModel.botHeroConfiguration.items.$ring, to: screenView.botHeroItemsView.ringItemButton)
+        bindItemImage(itemPublisher: viewModel.botHeroConfiguration.items.$necklace, to: screenView.botHeroItemsView.necklaceItemButton)
+        bindItemImage(itemPublisher: viewModel.botHeroConfiguration.items.$earrings, to: screenView.botHeroItemsView.earringsItemButton)
+        bindHandUse(viewModel.botHeroConfiguration, attributesView: screenView.botAttributesView, heroItemsView: screenView.botHeroItemsView)
         
         bindArmor(configuration: viewModel.playerHeroConfiguration, armorView: screenView.userHeroItemsView.armorView)
         bindArmor(configuration: viewModel.botHeroConfiguration, armorView: screenView.botHeroItemsView.armorView)
-        
-        bindIsBlockingTwoHands(configuration: viewModel.playerHeroConfiguration, heroItemsView: screenView.userHeroItemsView)
-        bindIsBlockingTwoHands(configuration: viewModel.botHeroConfiguration, heroItemsView: screenView.botHeroItemsView)
     }
     
     private func bindLevel(_ publisher: Published<Int16>.Publisher, to levelView: HeroLevelView) {
@@ -115,16 +108,14 @@ internal final class BattleSetupViewController: NiblessViewController {
             .store(in: &cancellables)
     }
     
-    private func bindItemButton(for itemType: HeroItemType, configuration: HeroConfiguration, button: ElfButton) {
-        configuration.$itemIds
-            .map { $0[itemType] ?? nil } // Извлекаем UUID для данного типа предмета
+    private func bindItemImage<T>(itemPublisher: Published<T?>.Publisher, to button: ElfButton) where T: ElfItem {
+        itemPublisher
             .receive(on: DispatchQueue.main)
-            .sink { [weak button] itemId in
+            .sink { [weak button] elfItem in
                 guard let button = button else { return }
-                if let itemId = itemId {
-                    button.imageView?.image = UIImage(named: itemId.uuidString.lowercased())
+                if let id = elfItem?.item.id {
+                    button.imageView?.image = UIImage(named: id.uuidString.lowercased())
                 } else {
-                    // Очищаем изображение, если идентификатор отсутствует
                     button.imageView?.image = nil
                 }
             }
@@ -154,15 +145,66 @@ internal final class BattleSetupViewController: NiblessViewController {
             .store(in: &cancellables)
     }
     
-    private func bindIsBlockingTwoHands(configuration: HeroConfiguration, heroItemsView: HeroItemsView) {
-        configuration.$blockingTwoHandsWeaponId
+    private func bindHandUse(_ configuration: HeroConfiguration, attributesView: AttributesView, heroItemsView: HeroItemsView) {
+        configuration.items.$handsUse
             .receive(on: DispatchQueue.main)
-            .sink { [weak heroItemsView] blockingTwoHandsWeaponId in
-                guard let heroItemsView = heroItemsView else { return }
-                if blockingTwoHandsWeaponId != nil {
+            .sink { handUse in
+                heroItemsView.weaponSecondaryFilterView.isHidden = true
+                switch handUse {
+                case .noWeapon:
+                    attributesView.updateDamageAttributes(primaryMinDmg: 0, primaryMaxDmg: 0, secondaryMinDmg: 0, secondaryMaxDmg: 0)
+                    heroItemsView.weaponPrimaryItemButton.imageView?.image = nil
+                    heroItemsView.weaponScondaryItemButton.imageView?.image = nil
+                case .twoHandsWeapon(let twoHandsweapon):
+                    guard let weaponItem = twoHandsweapon.item as? WeaponItem else { return }
                     heroItemsView.weaponSecondaryFilterView.isHidden = false
-                } else {
-                    heroItemsView.weaponSecondaryFilterView.isHidden = true
+                    heroItemsView.weaponPrimaryItemButton.imageView?.image = UIImage(named: weaponItem.id.uuidString.lowercased())
+                    heroItemsView.weaponScondaryItemButton.imageView?.image = UIImage(named: weaponItem.id.uuidString.lowercased())
+                    attributesView.updateDamageAttributes(primaryMinDmg: weaponItem.minimumAttackPoint, primaryMaxDmg: weaponItem.maximumAttackPoint, secondaryMinDmg: 0, secondaryMaxDmg: 0)
+                case .leftEmptyRigthShield(let shield):
+                    guard let shieldItem = shield.item as? ShieldItem else { return }
+                    heroItemsView.weaponPrimaryItemButton.imageView?.image = nil
+                    heroItemsView.weaponScondaryItemButton.imageView?.image = UIImage(named: shieldItem.id.uuidString.lowercased())
+                    attributesView.updateDamageAttributes(primaryMinDmg: 0, primaryMaxDmg: 0, secondaryMinDmg: 0, secondaryMaxDmg: 0)
+                case .leftEmptyRightSecondary(let secondaryWeapon):
+                    guard let weaponItem = secondaryWeapon.item as? WeaponItem else { return }
+                    heroItemsView.weaponPrimaryItemButton.imageView?.image = nil
+                    heroItemsView.weaponScondaryItemButton.imageView?.image = UIImage(named: weaponItem.id.uuidString.lowercased())
+                    attributesView.updateDamageAttributes(primaryMinDmg: 0, primaryMaxDmg: 0, secondaryMinDmg: weaponItem.minimumAttackPoint, secondaryMaxDmg: weaponItem.maximumAttackPoint)
+                case .leftPrimaryRightEmpty(let primaryWeapon):
+                    guard let weaponItem = primaryWeapon.item as? WeaponItem else { return }
+                    heroItemsView.weaponPrimaryItemButton.imageView?.image = UIImage(named: weaponItem.id.uuidString.lowercased())
+                    heroItemsView.weaponScondaryItemButton.imageView?.image = nil
+                    attributesView.updateDamageAttributes(primaryMinDmg: weaponItem.minimumAttackPoint, primaryMaxDmg: weaponItem.maximumAttackPoint, secondaryMinDmg: 0, secondaryMaxDmg: 0)
+                case .leftPrimaryRightShield(let primaryWeapon, let shield):
+                    guard
+                        let weaponItem = primaryWeapon.item as? WeaponItem,
+                        let shieldItem = shield.item as? ShieldItem
+                    else { return }
+                    heroItemsView.weaponPrimaryItemButton.imageView?.image = UIImage(named: weaponItem.id.uuidString.lowercased())
+                    heroItemsView.weaponScondaryItemButton.imageView?.image = UIImage(named: shieldItem.id.uuidString.lowercased())
+                    attributesView.updateDamageAttributes(primaryMinDmg: weaponItem.minimumAttackPoint, primaryMaxDmg: weaponItem.maximumAttackPoint, secondaryMinDmg: 0, secondaryMaxDmg: 0)
+                case .leftSecondaryRightEmpty(let secondaryWeapon):
+                    guard let weaponItem = secondaryWeapon.item as? WeaponItem else { return }
+                    heroItemsView.weaponPrimaryItemButton.imageView?.image = UIImage(named: weaponItem.id.uuidString.lowercased())
+                    heroItemsView.weaponScondaryItemButton.imageView?.image = nil
+                    attributesView.updateDamageAttributes(primaryMinDmg: weaponItem.minimumAttackPoint, primaryMaxDmg: weaponItem.maximumAttackPoint, secondaryMinDmg: 0, secondaryMaxDmg: 0)
+                case .leftSecondaryRightShield(let secondaryWeapon, let shield):
+                    guard
+                        let weaponItem = secondaryWeapon.item as? WeaponItem,
+                        let shieldItem = shield.item as? ShieldItem
+                    else { return }
+                    heroItemsView.weaponPrimaryItemButton.imageView?.image = UIImage(named: weaponItem.id.uuidString.lowercased())
+                    heroItemsView.weaponScondaryItemButton.imageView?.image = UIImage(named: shieldItem.id.uuidString.lowercased())
+                    attributesView.updateDamageAttributes(primaryMinDmg: weaponItem.minimumAttackPoint, primaryMaxDmg: weaponItem.maximumAttackPoint, secondaryMinDmg: 0, secondaryMaxDmg: 0)
+                case .leftSecondaryRightSecondary(let leftSecondaryWeapon, let rightSecondaryWeapon):
+                    guard
+                        let leftWeaponItem = leftSecondaryWeapon.item as? WeaponItem,
+                        let rightWeaponItem = rightSecondaryWeapon.item as? WeaponItem
+                    else { return }
+                    heroItemsView.weaponPrimaryItemButton.imageView?.image = UIImage(named: leftWeaponItem.id.uuidString.lowercased())
+                    heroItemsView.weaponScondaryItemButton.imageView?.image = UIImage(named: rightWeaponItem.id.uuidString.lowercased())
+                    attributesView.updateDamageAttributes(primaryMinDmg: leftWeaponItem.minimumAttackPoint, primaryMaxDmg: leftWeaponItem.maximumAttackPoint, secondaryMinDmg: rightWeaponItem.minimumAttackPoint, secondaryMaxDmg: rightWeaponItem.maximumAttackPoint)
                 }
             }
             .store(in: &cancellables)

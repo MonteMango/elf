@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct DefenseItem: Item, HasPhysicalDefense {
+public final class DefenseItem: Item, HasPhysicalDefense, Decodable {
     public let id: UUID
     public let title: String
     public let tier: Int16

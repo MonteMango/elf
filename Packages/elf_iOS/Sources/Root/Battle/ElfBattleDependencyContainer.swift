@@ -18,6 +18,7 @@ internal final class ElfBattleDependencyContainer {
     private let sharedBattleViewModel: BattleViewModel
     private let sharedAttributeService: AttributeService
     private let sharedArmorService: ArmorService
+    private let sharedDamageService: DamageService
     
     // Temporal
     private weak var sharedBattleSetupViewModel: BattleSetupViewModel?
@@ -28,6 +29,7 @@ internal final class ElfBattleDependencyContainer {
         self.itemsRepository = appDependencyContainer.itemsRepository
         self.sharedAttributeService = ElfAttributeService(itemsRepository: self.itemsRepository)
         self.sharedArmorService = ElfArmorService(itemsRepository: self.itemsRepository)
+        self.sharedDamageService = ElfDamageService(itemsRepository: self.itemsRepository)
     }
     
     // MARK: BattleSetup
@@ -41,7 +43,9 @@ internal final class ElfBattleDependencyContainer {
             rootViewStateDelegate: AnyViewStateDelegate(rootViewModel),
             battleViewStateDelegate: AnyViewStateDelegate<BattleViewState>(sharedBattleViewModel),
             attributeService: self.sharedAttributeService,
-            armorService: self.sharedArmorService)
+            armorService: self.sharedArmorService,
+            damageService: self.sharedDamageService,
+            itemsRepository: self.itemsRepository)
         self.sharedBattleSetupViewModel = viewModel
         return viewModel
     }

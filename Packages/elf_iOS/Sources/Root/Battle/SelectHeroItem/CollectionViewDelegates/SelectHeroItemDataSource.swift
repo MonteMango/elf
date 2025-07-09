@@ -45,7 +45,8 @@ internal final class SelectHeroItemDataSource {
     }
     
     private func configureDataSource() -> UICollectionViewDiffableDataSource<Int, UUID> {
-        return UICollectionViewDiffableDataSource<Int, UUID>(collectionView: collectionView) { collectionView, indexPath, itemIdentifier in
+        return UICollectionViewDiffableDataSource<Int, UUID>(collectionView: collectionView) { [weak self] collectionView, indexPath, itemIdentifier in
+            guard let self = self else { return nil }
             if itemIdentifier == self.emptyCellUUID {
                 // Вернуть пустую ячейку
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EmptyHeroItemCollectionViewCell.reuseIdentifier, for: indexPath) as? EmptyHeroItemCollectionViewCell else {
