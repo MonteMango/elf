@@ -12,6 +12,8 @@ public final class ElfItemsRepository: ItemsRepository {
     
     // MARK: Properties
     
+    private let dataLoader: DataLoader
+    
     @Published public private(set) var heroItems: HeroItems?
     public var heroItemsPublisher: Published<HeroItems?>.Publisher {
         $heroItems
@@ -21,19 +23,12 @@ public final class ElfItemsRepository: ItemsRepository {
     
     // MARK: Methods
     
-    public init() {
-        
+    public init(dataLoader: DataLoader) {
+        self.dataLoader = dataLoader
     }
     
     public func loadHeroItems() async throws {
-        guard let fileURL = Bundle.main.url(forResource: "HeroItems", withExtension: "json") else {
-            throw NSError(domain: "File HeroItems.json not found in bundle", code: 404, userInfo: nil)
-        }
-        
-        let data = try await Task { () -> Data in
-            return try Data(contentsOf: fileURL)
-        }.value
-        
+        let data = try await dataLoader.loadHeroItemsData()
         let heroItems = try JSONDecoder().decode(HeroItems.self, from: data)
         self.heroItems = heroItems
         

@@ -36,6 +36,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0961F0632E1EA46F003DB623 /* ElfTest.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = ElfTest.xctestplan; sourceTree = "<group>"; };
 		09A8CD5E2BE13E3100DDC851 /* elf.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = elf.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		09A8CD612BE13E3100DDC851 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		09A8CD632BE13E3100DDC851 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -82,6 +83,7 @@
 		09A8CD552BE13E3100DDC851 = {
 			isa = PBXGroup;
 			children = (
+				0961F0632E1EA46F003DB623 /* ElfTest.xctestplan */,
 				09A8CD602BE13E3100DDC851 /* elf */,
 				09A8CD912BE13E7000DDC851 /* elf_iOS */,
 				09A8CD922BE13E9000DDC851 /* elf_UIKit */,

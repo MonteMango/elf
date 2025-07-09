@@ -13,9 +13,11 @@ public final class ElfAppDependencyContainer {
     // Long-lived dependencies
     internal let sharedRootViewModel: RootViewModel
     internal let itemsRepository: ItemsRepository
+    internal let dataLoader: DataLoader
     
     public init() {
-        self.itemsRepository = ElfItemsRepository()
+        self.dataLoader = ElfDataLoader()
+        self.itemsRepository = ElfItemsRepository(dataLoader: self.dataLoader)
         self.sharedRootViewModel = RootViewModel(itemsRepository: self.itemsRepository)
     }
     
