@@ -1,0 +1,32 @@
+{
+  "configurations" : [
+    {
+      "id" : "DD274D26-6C34-44B3-AD89-6E27F16D016B",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : {
+      "targets" : [
+        {
+          "containerPath" : "container:",
+          "identifier" : "elf_Kit",
+          "name" : "elf_Kit"
+        }
+      ]
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "elf_KitTests",
+        "name" : "elf_KitTests"
+      }
+    }
+  ],
+  "version" : 1
+}

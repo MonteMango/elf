@@ -11,7 +11,7 @@ import Foundation
 public protocol ItemsRepository {
     
     var heroItems: HeroItems? { get }
-    var heroItemsPublisher: Published<HeroItems?>.Publisher { get }
+    var heroItemsPublisher: AnyPublisher<HeroItems?, Never> { get }
     
     func loadHeroItems() async throws
     func getHeroItem(_ id: UUID) async -> Item?

@@ -41,7 +41,6 @@ public final class ElfDamageService: DamageService {
         case 7...11:
             return await distributionForStrwngth(strength, minArgument: 7, minRangeLength: 4)
         default:
-//            fatalError("Unhandled strength")
             return DamageDistribution(values: [0], weights: [0])
         }
     }
@@ -61,7 +60,6 @@ public final class ElfDamageService: DamageService {
         case 6:
             return DamageDistribution(values: [0, 1, 2, 3], weights: [2, 2, 2, 2])
         default:
-//            fatalError("Unhandled strength")
             return DamageDistribution(values: [0], weights: [0])
         }
     }

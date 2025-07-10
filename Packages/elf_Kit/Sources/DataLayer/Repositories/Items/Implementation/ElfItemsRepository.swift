@@ -14,9 +14,13 @@ public final class ElfItemsRepository: ItemsRepository {
     
     private let dataLoader: DataLoader
     
-    @Published public private(set) var heroItems: HeroItems?
-    public var heroItemsPublisher: Published<HeroItems?>.Publisher {
-        $heroItems
+    @Published private var _heroItems: HeroItems?
+    public var heroItems: HeroItems? {
+        _heroItems
+    }
+    
+    public var heroItemsPublisher: AnyPublisher<HeroItems?, Never> {
+        $_heroItems.eraseToAnyPublisher()
     }
     
     private var heroItemLookup: [UUID: Item] = [:]
@@ -30,7 +34,7 @@ public final class ElfItemsRepository: ItemsRepository {
     public func loadHeroItems() async throws {
         let data = try await dataLoader.loadHeroItemsData()
         let heroItems = try JSONDecoder().decode(HeroItems.self, from: data)
-        self.heroItems = heroItems
+        self._heroItems = heroItems
         
         // Rebuild the lookup cache
         var lookup: [UUID: Item] = [:]

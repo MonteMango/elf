@@ -36,7 +36,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0961F0632E1EA46F003DB623 /* ElfTest.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = ElfTest.xctestplan; sourceTree = "<group>"; };
 		09A8CD5E2BE13E3100DDC851 /* elf.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = elf.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		09A8CD612BE13E3100DDC851 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		09A8CD632BE13E3100DDC851 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -51,6 +50,7 @@
 		09A8CD912BE13E7000DDC851 /* elf_iOS */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = elf_iOS; path = Packages/elf_iOS; sourceTree = "<group>"; };
 		09A8CD922BE13E9000DDC851 /* elf_UIKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = elf_UIKit; path = Packages/elf_UIKit; sourceTree = "<group>"; };
 		09A8CD932BE13EB300DDC851 /* elf_Kit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = elf_Kit; path = Packages/elf_Kit; sourceTree = "<group>"; };
+		09AFC6C22E203CB500C0C2A8 /* elf_Kit_Tests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = elf_Kit_Tests.xctestplan; sourceTree = "<group>"; };
 		09D5060A2CB9D91200082EA0 /* HeroItems.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = HeroItems.json; path = elf/Resources/HeroItems.json; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -83,7 +83,7 @@
 		09A8CD552BE13E3100DDC851 = {
 			isa = PBXGroup;
 			children = (
-				0961F0632E1EA46F003DB623 /* ElfTest.xctestplan */,
+				09AFC6C22E203CB500C0C2A8 /* elf_Kit_Tests.xctestplan */,
 				09A8CD602BE13E3100DDC851 /* elf */,
 				09A8CD912BE13E7000DDC851 /* elf_iOS */,
 				09A8CD922BE13E9000DDC851 /* elf_UIKit */,
@@ -462,6 +462,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = L39YW86E89;
+				ENABLE_CODE_COVERAGE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = elf/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -494,6 +495,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = L39YW86E89;
+				ENABLE_CODE_COVERAGE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = elf/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -523,6 +525,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = L39YW86E89;
+				ENABLE_CODE_COVERAGE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
 				MARKETING_VERSION = 1.0;
@@ -542,6 +545,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = L39YW86E89;
+				ENABLE_CODE_COVERAGE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
 				MARKETING_VERSION = 1.0;
@@ -560,6 +564,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = L39YW86E89;
+				ENABLE_CODE_COVERAGE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = monte.mango.elfUITests;
@@ -577,6 +582,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = L39YW86E89;
+				ENABLE_CODE_COVERAGE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = monte.mango.elfUITests;
