@@ -32,11 +32,11 @@ final class ElfAttributeRandomizerTests: XCTestCase {
         // Проверим примерный процент (с учетом допуска)
         let expectedDistribution: [String: Double] = [
             "hitPoints": 0.10,
-            "manaPoints": 0.10,
-            "agility": 0.20,
-            "strength": 0.20,
-            "power": 0.20,
-            "instinct": 0.20
+            "manaPoints": 0.02,
+            "agility": 0.22,
+            "strength": 0.22,
+            "power": 0.22,
+            "instinct": 0.22
         ]
 
         for (attr, expectedRatio) in expectedDistribution {

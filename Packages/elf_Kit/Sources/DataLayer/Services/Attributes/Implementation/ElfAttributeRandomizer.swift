@@ -14,11 +14,11 @@ public final class ElfAttributeRandomizer: AttributeRandomizer {
     public init() {
         self.weightedAttributes = [
             ("hitPoints", 0.10),
-            ("manaPoints", 0.10),
-            ("agility", 0.20),
-            ("strength", 0.20),
-            ("power", 0.20),
-            ("instinct", 0.20)
+            ("manaPoints", 0.02),
+            ("agility", 0.22),
+            ("strength", 0.22),
+            ("power", 0.22),
+            ("instinct", 0.22)
         ]
         self.totalWeight = weightedAttributes.map { $0.1 }.reduce(0, +)
     }

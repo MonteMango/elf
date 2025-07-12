@@ -29,7 +29,7 @@ internal final class ElfBattleDependencyContainer {
         self.itemsRepository = appDependencyContainer.itemsRepository
         self.sharedAttributeService = ElfAttributeService(itemsRepository: self.itemsRepository)
         self.sharedArmorService = ElfArmorService(itemsRepository: self.itemsRepository)
-        self.sharedDamageService = ElfDamageService(itemsRepository: self.itemsRepository)
+        self.sharedDamageService = ElfDamageService()
     }
     
     // MARK: BattleSetup
