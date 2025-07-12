@@ -100,7 +100,7 @@ final class ElfArmorServiceTests: XCTestCase {
         XCTAssertEqual(result[.rightHand], 0)
         XCTAssertEqual(result[.legs], 0)
     }
-
+    
     func testMultipleItemsAddArmorTogether() async throws {
         let id1 = UUID()
         let id2 = UUID()

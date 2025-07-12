@@ -20,7 +20,7 @@ public final class RootViewModel {
     }
     
     public func loadHeroItems() {
-        Task {
+        Task(priority: .background) {
             do {
                 try await itemsRepository.loadHeroItems()
             } catch {

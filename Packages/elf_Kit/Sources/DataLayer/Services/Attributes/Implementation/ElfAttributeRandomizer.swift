@@ -5,27 +5,36 @@
 //  Created by Vitalii Lytvynov on 10.07.25.
 //
 
-import GameplayKit
+import Foundation
 
 public final class ElfAttributeRandomizer: AttributeRandomizer {
-    private let weightedAttributes: [String]
-    private let distribution: GKShuffledDistribution
+    private let weightedAttributes: [(String, Double)]  // имя + вес
+    private let totalWeight: Double
 
     public init() {
         self.weightedAttributes = [
-            "hitPoints", "hitPoints",               // 10%
-            "manaPoints", "manaPoints",             // 10%
-            "agility", "agility", "agility", "agility",  // 20%
-            "strength", "strength", "strength", "strength", // 20%
-            "power", "power", "power", "power",     // 20%
-            "instinct", "instinct", "instinct", "instinct" // 20%
+            ("hitPoints", 0.10),
+            ("manaPoints", 0.10),
+            ("agility", 0.20),
+            ("strength", 0.20),
+            ("power", 0.20),
+            ("instinct", 0.20)
         ]
-        
-        self.distribution = GKShuffledDistribution(lowestValue: 0, highestValue: weightedAttributes.count - 1)
+        self.totalWeight = weightedAttributes.map { $0.1 }.reduce(0, +)
     }
 
     public func nextAttribute() -> String {
-        let index = distribution.nextInt()
-        return weightedAttributes[index]
+        let r = Double.random(in: 0..<totalWeight)
+        var cumulative: Double = 0
+        
+        for (attribute, weight) in weightedAttributes {
+            cumulative += weight
+            if r < cumulative {
+                return attribute
+            }
+        }
+
+        // fallback (должно быть невозможно, но для безопасности)
+        return weightedAttributes.last!.0
     }
 }

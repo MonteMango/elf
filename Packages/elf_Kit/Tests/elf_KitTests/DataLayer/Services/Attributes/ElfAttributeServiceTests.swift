@@ -120,6 +120,20 @@ final class ElfAttributeServiceTests: XCTestCase {
         XCTAssertEqual(result.hitPoints, 0)
         XCTAssertEqual(result.manaPoints, 0)
     }
+    
+    func testAllRandomAttributesSumsWithWrongAttributeCorrectly() async {
+        let randomizer = FixedRandomizer(queue: ["endurance"])
+        let service = ElfAttributeService(itemsRepository: FakeItemsRepository(), randomizer: randomizer)
+        
+        let result = await service.getAllRandomLevelAttributes(for: 1)
+        
+        XCTAssertEqual(result.agility, 0)
+        XCTAssertEqual(result.strength, 0)
+        XCTAssertEqual(result.power, 0)
+        XCTAssertEqual(result.instinct, 0)
+        XCTAssertEqual(result.hitPoints, 0)
+        XCTAssertEqual(result.manaPoints, 0)
+    }
 
     func testItemsAttributesAggregation() async {
         let id1 = UUID()

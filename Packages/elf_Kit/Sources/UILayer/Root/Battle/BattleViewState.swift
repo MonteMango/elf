@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum BattleViewState {
+public enum BattleViewState: Equatable {
     case setup
     case selectItem(heroType: HeroType, heroItemType: HeroItemType, currentHeroItemId: UUID?)
     case fight
