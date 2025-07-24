@@ -98,7 +98,6 @@ public final class BattleSetupViewModel {
                 guard let self = self else { return }
                 self.updateFightStyleAttributes(for: self.playerHeroConfiguration, level: level, fightStyle: fightStyle)
                 self.updateRandomLevelAttributes(for: self.playerHeroConfiguration, level: level)
-//                self.updateItemsAttributes(for: self.playerHeroConfiguration, items: items)
             }
             .store(in: &cancellables)
         
@@ -107,7 +106,6 @@ public final class BattleSetupViewModel {
                 guard let self = self else { return }
                 self.updateFightStyleAttributes(for: self.botHeroConfiguration, level: level, fightStyle: fightStyle)
                 self.updateRandomLevelAttributes(for: self.botHeroConfiguration, level: level)
-//                self.updateItemsAttributes(for: self.botHeroConfiguration, items: items)
             }
             .store(in: &cancellables)
         
@@ -128,99 +126,8 @@ public final class BattleSetupViewModel {
             .store(in: &cancellables)
         
         playerHeroConfiguration
-            .items
-            .$helmet
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.playerHeroConfiguration)
-                self.updateItemsAttributes(for: self.playerHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        playerHeroConfiguration
-            .items
-            .$gloves
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.playerHeroConfiguration)
-                self.updateItemsAttributes(for: self.playerHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        playerHeroConfiguration
-            .items
-            .$shoes
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.playerHeroConfiguration)
-                self.updateItemsAttributes(for: self.playerHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        playerHeroConfiguration
-            .items
-            .$upperBody
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.playerHeroConfiguration)
-                self.updateItemsAttributes(for: self.playerHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        playerHeroConfiguration
-            .items
-            .$bottomBody
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.playerHeroConfiguration)
-                self.updateItemsAttributes(for: self.playerHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        playerHeroConfiguration
-            .items
-            .$shirt
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.playerHeroConfiguration)
-                self.updateItemsAttributes(for: self.playerHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        playerHeroConfiguration
-            .items
-            .$ring
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.playerHeroConfiguration)
-                self.updateItemsAttributes(for: self.playerHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        playerHeroConfiguration
-            .items
-            .$necklace
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.playerHeroConfiguration)
-                self.updateItemsAttributes(for: self.playerHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        playerHeroConfiguration
-            .items
-            .$earrings
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.playerHeroConfiguration)
-                self.updateItemsAttributes(for: self.playerHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        playerHeroConfiguration
-            .items
-            .$handsUse
-            .sink { [weak self] helmet in
+            .$items
+            .sink { [weak self] items in
                 guard let self = self else { return }
                 self.updateItemsArmor(for: self.playerHeroConfiguration)
                 self.updateItemsAttributes(for: self.playerHeroConfiguration)
@@ -228,105 +135,13 @@ public final class BattleSetupViewModel {
             .store(in: &cancellables)
         
         botHeroConfiguration
-            .items
-            .$helmet
-            .sink { [weak self] helmet in
+            .$items
+            .sink { [weak self] items in
                 guard let self = self else { return }
                 self.updateItemsArmor(for: self.botHeroConfiguration)
                 self.updateItemsAttributes(for: self.botHeroConfiguration)
             }
             .store(in: &cancellables)
-        
-        botHeroConfiguration
-            .items
-            .$gloves
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.botHeroConfiguration)
-                self.updateItemsAttributes(for: self.botHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        botHeroConfiguration
-            .items
-            .$shoes
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.botHeroConfiguration)
-                self.updateItemsAttributes(for: self.botHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        botHeroConfiguration
-            .items
-            .$upperBody
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.botHeroConfiguration)
-                self.updateItemsAttributes(for: self.botHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        botHeroConfiguration
-            .items
-            .$bottomBody
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.botHeroConfiguration)
-                self.updateItemsAttributes(for: self.botHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        botHeroConfiguration
-            .items
-            .$shirt
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.botHeroConfiguration)
-                self.updateItemsAttributes(for: self.botHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        botHeroConfiguration
-            .items
-            .$ring
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.botHeroConfiguration)
-                self.updateItemsAttributes(for: self.botHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        botHeroConfiguration
-            .items
-            .$necklace
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.botHeroConfiguration)
-                self.updateItemsAttributes(for: self.botHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        botHeroConfiguration
-            .items
-            .$earrings
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.botHeroConfiguration)
-                self.updateItemsAttributes(for: self.botHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
-        botHeroConfiguration
-            .items
-            .$handsUse
-            .sink { [weak self] helmet in
-                guard let self = self else { return }
-                self.updateItemsArmor(for: self.botHeroConfiguration)
-                self.updateItemsAttributes(for: self.botHeroConfiguration)
-            }
-            .store(in: &cancellables)
-        
     }
     
     private func updateFightStyleAttributes(for configuration: HeroConfiguration, level: Int16, fightStyle: FightStyle?) {
