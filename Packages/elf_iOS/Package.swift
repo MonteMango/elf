@@ -24,8 +24,5 @@ let package = Package(
         .target(
             name: "elf_iOS",
             dependencies: ["elf_UIKit", "elf_Kit"]),
-        .testTarget(
-            name: "elf_iOSTests",
-            dependencies: ["elf_iOS"]),
     ]
 )

@@ -19,8 +19,5 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "elf_UIKit"),
-        .testTarget(
-            name: "elf_UIKitTests",
-            dependencies: ["elf_UIKit"]),
     ]
 )
