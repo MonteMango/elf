@@ -13,19 +13,19 @@ internal final class SelectFightStyleStackView: NiblessStackView {
     // MARK: UI Controls
     
     internal lazy var dodgeButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .selectFightStyle)
+        let button = ElfButton(buttonStyle: .battleSetupSelectFightStyle)
         button.imageView?.image = UIImage(named: "fightStyle_dodge")
         return button
     }()
     
     internal lazy var critButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .selectFightStyle)
+        let button = ElfButton(buttonStyle: .battleSetupSelectFightStyle)
         button.imageView?.image = UIImage(named: "fightStyle_crit")
         return button
     }()
     
     internal lazy var defButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .selectFightStyle)
+        let button = ElfButton(buttonStyle: .battleSetupSelectFightStyle)
         button.imageView?.image = UIImage(named: "fightStyle_def")
         return button
     }()

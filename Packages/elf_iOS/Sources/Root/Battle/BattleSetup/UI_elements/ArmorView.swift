@@ -167,5 +167,4 @@ internal final class ArmorView: NiblessView {
             bottomArmorLabel.centerYAnchor.constraint(equalTo: bottomArmorImageView.centerYAnchor),
         ])
     }
-    
 }

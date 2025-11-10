@@ -52,12 +52,19 @@ internal final class ElfBattleDependencyContainer {
     
     // MARK: BattleFight
     
-    internal func makeBattleFightViewController() -> BattleFightViewController {
-        return BattleFightViewController(viewModel: makeBattleFightViewModel())
+    internal func makeBattleFightViewController(userHeroConfiguration: HeroConfiguration, enemyHeroConfiguration: HeroConfiguration) -> BattleFightViewController {
+        return BattleFightViewController(viewModel: makeBattleFightViewModel(
+            userHeroConfiguration: userHeroConfiguration,
+            enemyHeroConfiguration: enemyHeroConfiguration
+        ))
     }
     
-    internal func makeBattleFightViewModel() -> BattleFightViewModel {
-        return BattleFightViewModel()
+    internal func makeBattleFightViewModel(userHeroConfiguration: HeroConfiguration, enemyHeroConfiguration: HeroConfiguration) -> BattleFightViewModel {
+        return BattleFightViewModel(
+            userHeroConfiguration: userHeroConfiguration,
+            enemyHeroConfiguration: enemyHeroConfiguration,
+            battleViewStateDelegate: AnyViewStateDelegate<BattleViewState>(sharedBattleViewModel)
+        )
     }
     
     // MARK: SelectHeroItem

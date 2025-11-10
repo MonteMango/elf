@@ -16,7 +16,7 @@ internal final class HeroLevelView: NiblessView {
     // MARK: UI Controls
     
     internal lazy var minusButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .selectLevel, centerText: "-")
+        let button = ElfButton(buttonStyle: .battleSetupSelectLevel, centerText: "-")
         return button
     }()
     
@@ -26,7 +26,7 @@ internal final class HeroLevelView: NiblessView {
     }()
     
     internal lazy var plusButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .selectLevel, centerText: "+")
+        let button = ElfButton(buttonStyle: .battleSetupSelectLevel, centerText: "+")
         return button
     }()
     

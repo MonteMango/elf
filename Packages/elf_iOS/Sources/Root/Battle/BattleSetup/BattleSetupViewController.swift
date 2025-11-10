@@ -54,6 +54,8 @@ internal final class BattleSetupViewController: NiblessViewController {
         
         bindArmor(configuration: viewModel.playerHeroConfiguration, armorView: screenView.userHeroItemsView.armorView)
         bindArmor(configuration: viewModel.botHeroConfiguration, armorView: screenView.botHeroItemsView.armorView)
+        
+        bindFightButton(userFightStylePublisher: viewModel.playerHeroConfiguration.$fightStyleAttributes, enemyFightStylePublisher: viewModel.botHeroConfiguration.$fightStyleAttributes, fightButton: screenView.fightButton)
     }
     
     private func bindLevel(_ publisher: Published<Int16>.Publisher, to levelView: HeroLevelView) {
@@ -130,10 +132,23 @@ internal final class BattleSetupViewController: NiblessViewController {
             .store(in: &cancellables)
     }
     
+    private func bindFightButton(
+        userFightStylePublisher: Published<HeroAttributes?>.Publisher,
+        enemyFightStylePublisher: Published<HeroAttributes?>.Publisher,
+        fightButton: ElfButton
+    ) {
+        Publishers.CombineLatest(userFightStylePublisher, enemyFightStylePublisher)
+            .map { $0 != nil && $1 != nil }
+            .receive(on: DispatchQueue.main)
+            .assign(to: \.isEnabled, on: fightButton)
+            .store(in: &cancellables)
+    }
+    
     // MARK: Actions
     
     private func setupActions() {
         screenView.closeButton.addTarget(viewModel, action: #selector(viewModel.closeButtonAction), for: .touchUpInside)
+        screenView.fightButton.addTarget(viewModel, action: #selector(viewModel.fightButtonAction), for: .touchUpInside)
         
         setupLevelActions(for: screenView.userLevelView, heroType: .player)
         setupLevelActions(for: screenView.botLevelView, heroType: .bot)

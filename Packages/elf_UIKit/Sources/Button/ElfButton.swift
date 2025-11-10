@@ -51,14 +51,14 @@ public final class ElfButton: UIControl {
         case .actionButton:
             addCenterLabel(labelStyle: .actionTitleButton, text: centerText)
             
-        // Battle
-        case .selectFightStyle:
+        // BattleSetup
+        case .battleSetupSelectFightStyle:
             addCenterImageView(centerImage)
-        case .selectLevel:
+        case .battleSetupSelectLevel:
             addCenterLabel(labelStyle: .battleLevelLabel, text: centerText)
-        case .item:
+        case .battleSetupItem:
             addCenterImageView(centerImage)
-        case .jewelryItem:
+        case .battleSetupJewelryItem:
             addCenterImageView(centerImage)
         
         // SelectItem
@@ -66,6 +66,12 @@ public final class ElfButton: UIControl {
             addLeftImageRightLabel(image: leftImage, labelStyle: .actionTitleButton, text: "Equip")
         case .selectItemPrevNextAttribute:
             addCenterLabel(labelStyle: .battleLevelLabel, text: centerText)
+            
+        // BattleFight
+        case .battleIttem:
+            addCenterImageView(centerImage)
+        case .battleJewelryItem:
+            addCenterImageView(centerImage)
         }
     }
     

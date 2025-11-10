@@ -53,9 +53,16 @@ public final class ElfAppDependencyContainer {
             return battleDependencyContainer.makeSelectHeroItemViewController(currentHeroItemId: currentHeroItemId, heroType: heroType, heroItemType: heroItemType)
         }
         
+        let battleFightItemViewControllerFactory = { (user: HeroConfiguration, enemy: HeroConfiguration) in
+            return battleDependencyContainer.makeBattleFightViewController(
+                userHeroConfiguration: user,
+                enemyHeroConfiguration: enemy)
+        }
+        
         return BattleContainerViewController(viewModel: battleViewModel,
                                              battleSetupViewController: battleDependencyContainer.makeBattleSetupViewController(), 
-                                             selectHeroItemViewControllerFactory: selectHeroItemViewControllerFactory)
+                                             selectHeroItemViewControllerFactory: selectHeroItemViewControllerFactory,
+                                             battleFightItemViewControllerFactory: battleFightItemViewControllerFactory)
     }
     
     private func makeBattleViewModel() -> BattleViewModel {

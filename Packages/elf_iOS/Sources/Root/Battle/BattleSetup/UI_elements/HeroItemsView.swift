@@ -17,25 +17,25 @@ internal final class HeroItemsView: NiblessView {
     // Left
     
     internal lazy var helmetItemButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .item)
+        let button = ElfButton(buttonStyle: .battleSetupItem)
         button.tag = HeroItemButtonType.helmet.rawValue
         return button
     }()
     
     internal lazy var glovesItemButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .item)
+        let button = ElfButton(buttonStyle: .battleSetupItem)
         button.tag = HeroItemButtonType.gloves.rawValue
         return button
     }()
     
     internal lazy var shoesItemButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .item)
+        let button = ElfButton(buttonStyle: .battleSetupItem)
         button.tag = HeroItemButtonType.shoes.rawValue
         return button
     }()
     
     internal lazy var weaponPrimaryItemButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .item)
+        let button = ElfButton(buttonStyle: .battleSetupItem)
         button.tag = HeroItemButtonType.weaponPrimary.rawValue
         return button
     }()
@@ -43,19 +43,19 @@ internal final class HeroItemsView: NiblessView {
     // Right
     
     internal lazy var upperBodyItemButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .item)
+        let button = ElfButton(buttonStyle: .battleSetupItem)
         button.tag = HeroItemButtonType.upperBody.rawValue
         return button
     }()
     
     internal lazy var bottomBodyItemButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .item)
+        let button = ElfButton(buttonStyle: .battleSetupItem)
         button.tag = HeroItemButtonType.bottomBody.rawValue
         return button
     }()
     
     internal lazy var shirtItemButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .item)
+        let button = ElfButton(buttonStyle: .battleSetupItem)
         button.tag = HeroItemButtonType.shirt.rawValue
         return button
     }()
@@ -70,7 +70,7 @@ internal final class HeroItemsView: NiblessView {
     }()
     
     internal lazy var weaponScondaryItemButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .item)
+        let button = ElfButton(buttonStyle: .battleSetupItem)
         button.tag = HeroItemButtonType.weaponSecondary.rawValue
         return button
     }()
@@ -78,19 +78,19 @@ internal final class HeroItemsView: NiblessView {
     //  Center
     
     internal lazy var ringItemButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .jewelryItem)
+        let button = ElfButton(buttonStyle: .battleSetupJewelryItem)
         button.tag = HeroItemButtonType.ring.rawValue
         return button
     }()
     
     internal lazy var necklaceItemButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .jewelryItem)
+        let button = ElfButton(buttonStyle: .battleSetupJewelryItem)
         button.tag = HeroItemButtonType.necklace.rawValue
         return button
     }()
     
     internal lazy var earringsItemButton: ElfButton = {
-        let button = ElfButton(buttonStyle: .jewelryItem)
+        let button = ElfButton(buttonStyle: .battleSetupJewelryItem)
         button.tag = HeroItemButtonType.earrings.rawValue
         return button
     }()

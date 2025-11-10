@@ -90,6 +90,11 @@ public final class BattleSetupViewModel {
         rootViewStateDelegate.setViewState(.menu)
     }
     
+    @objc
+    public func fightButtonAction() {
+        battleViewStateDelegate.setViewState(.fight(user: playerHeroConfiguration, enemy: botHeroConfiguration))
+    }
+    
     // MARK: Private Methods
     
     private func setupBindings() {

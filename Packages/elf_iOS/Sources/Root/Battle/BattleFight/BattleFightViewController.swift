@@ -29,9 +29,14 @@ internal final class BattleFightViewController: NiblessViewController {
     internal override func viewDidLoad() {
         super.viewDidLoad()
         setupBindings()
+        setupActions()
     }
     
     private func setupBindings() {
         
+    }
+    
+    private func setupActions() {
+        screenView.closeButton.addTarget(viewModel, action: #selector(viewModel.closeButtonAction), for: .touchUpInside)
     }
 }
