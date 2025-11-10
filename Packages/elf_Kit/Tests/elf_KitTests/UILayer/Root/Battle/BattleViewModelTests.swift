@@ -30,8 +30,15 @@ final class BattleViewModelTests: XCTestCase {
     }
 
     func testSetViewStateUpdatesState() {
-        viewModel.setViewState(.fight)
-        XCTAssertEqual(viewModel.viewState, .fight)
+        let userHero = HeroConfiguration()
+        let enemyHero = HeroConfiguration()
+        viewModel.setViewState(.fight(user: userHero, enemy: enemyHero))
+
+        if case .fight = viewModel.viewState {
+            XCTAssertTrue(true)
+        } else {
+            XCTFail("Expected viewState to be .fight")
+        }
     }
 
     func testPublishedViewStateEmitsOnChange() {
@@ -43,17 +50,24 @@ final class BattleViewModelTests: XCTestCase {
             .dropFirst() // пропускаем .setup
             .sink { state in
                 receivedStates.append(state)
-                if state == .fight {
+                if case .fight = state {
                     expectation.fulfill()
                 }
             }
             .store(in: &cancellables)
 
-        viewModel.setViewState(.fight)
+        let userHero = HeroConfiguration()
+        let enemyHero = HeroConfiguration()
+        viewModel.setViewState(.fight(user: userHero, enemy: enemyHero))
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(receivedStates, [.fight])
+        XCTAssertEqual(receivedStates.count, 1)
+        if case .fight = receivedStates.first {
+            XCTAssertTrue(true)
+        } else {
+            XCTFail("Expected first received state to be .fight")
+        }
     }
 }
 
