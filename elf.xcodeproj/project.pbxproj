@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0993F1FD2EC2994000B568F3 /* ElfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0993F1FC2EC2993700B568F3 /* ElfApp.swift */; };
 		09A8CD622BE13E3100DDC851 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A8CD612BE13E3100DDC851 /* AppDelegate.swift */; };
 		09A8CD642BE13E3100DDC851 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A8CD632BE13E3100DDC851 /* SceneDelegate.swift */; };
 		09A8CD6B2BE13E3300DDC851 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 09A8CD6A2BE13E3300DDC851 /* Assets.xcassets */; };
@@ -16,6 +17,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0993F1FC2EC2993700B568F3 /* ElfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElfApp.swift; sourceTree = "<group>"; };
+		0993F2002EC5063100B568F3 /* elf_SwiftUI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = elf_SwiftUI; path = Packages/elf_SwiftUI; sourceTree = "<group>"; };
 		09A8CD5E2BE13E3100DDC851 /* elf.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = elf.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		09A8CD612BE13E3100DDC851 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		09A8CD632BE13E3100DDC851 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -47,6 +50,7 @@
 				09AFC6C22E203CB500C0C2A8 /* elf_Kit_Tests.xctestplan */,
 				09A8CD602BE13E3100DDC851 /* elf */,
 				09A8CD912BE13E7000DDC851 /* elf_iOS */,
+				0993F2002EC5063100B568F3 /* elf_SwiftUI */,
 				09A8CD922BE13E9000DDC851 /* elf_UIKit */,
 				09A8CD932BE13EB300DDC851 /* elf_Kit */,
 				09A8CD5F2BE13E3100DDC851 /* Products */,
@@ -65,6 +69,7 @@
 		09A8CD602BE13E3100DDC851 /* elf */ = {
 			isa = PBXGroup;
 			children = (
+				0993F1FC2EC2993700B568F3 /* ElfApp.swift */,
 				09A8CD612BE13E3100DDC851 /* AppDelegate.swift */,
 				09A8CD632BE13E3100DDC851 /* SceneDelegate.swift */,
 				09A8CD6C2BE13E3300DDC851 /* LaunchScreen.storyboard */,
@@ -166,6 +171,7 @@
 			files = (
 				09A8CD622BE13E3100DDC851 /* AppDelegate.swift in Sources */,
 				09A8CD642BE13E3100DDC851 /* SceneDelegate.swift in Sources */,
+				0993F1FD2EC2994000B568F3 /* ElfApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,7 +327,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -354,7 +360,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
