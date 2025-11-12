@@ -15,8 +15,8 @@ let package = Package(
             targets: ["elf_iOS"]),
     ],
     dependencies: [
-        .package(path: "elf_UIKit"),
-        .package(path: "elf_Kit")
+        .package(path: "../elf_UIKit"),
+        .package(path: "../elf_Kit")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.

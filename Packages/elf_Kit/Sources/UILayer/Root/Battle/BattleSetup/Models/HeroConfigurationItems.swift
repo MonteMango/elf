@@ -14,10 +14,12 @@ public struct HeroConfigurationItems {
     public var upperBody: ElfDefenseItem? = nil
     public var bottomBody: ElfDefenseItem? = nil
     public var shirt: ElfRobeItem? = nil
-    
+
     public var ring: ElfJewelryItem? = nil
     public var necklace: ElfJewelryItem? = nil
     public var earrings: ElfJewelryItem? = nil
-    
+
     public var handsUse: HoldInHandsWeapon = .noWeapon
+
+    public init() {}
 }

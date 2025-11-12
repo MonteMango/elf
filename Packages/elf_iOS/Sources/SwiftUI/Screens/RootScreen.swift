@@ -5,18 +5,24 @@
 //  Created by Vitalii Lytvynov on 12.11.25.
 //
 
+import elf_Kit
 import SwiftUI
 
 public struct RootScreen: View {
-    
-    @State private var navigationManager = AppNavigationManager.shared
-    
-    public init() { }
-    
+
+    @State private var navigationManager = AppNavigationManager()
+    @State private var dependencyContainer = NewElfAppDependencyContainer()
+
+    public init() {}
+
     public var body: some View {
-        MainMenuScreen()
-            .withNavigation()
-            .environment(\.navigationManager, navigationManager)
+        NavigationContainer(
+            navigationManager: navigationManager,
+            dependencyContainer: dependencyContainer
+        ) {
+            MainMenuScreen()
+        }
+        .environment(\.navigationManager, navigationManager)
     }
 }
 

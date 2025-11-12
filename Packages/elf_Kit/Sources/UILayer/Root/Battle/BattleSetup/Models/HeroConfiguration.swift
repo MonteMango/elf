@@ -9,11 +9,11 @@ import Combine
 import Foundation
 
 public final class HeroConfiguration: ObservableObject {
-    
+
     @Published public var level: Int16 = 1
-    
+
     @Published public var fightStyle: FightStyle? = nil
-    
+
     @Published public var fightStyleAttributes: HeroAttributes? = nil
     @Published public var levelRandomAttributes: HeroAttributes? = nil
     @Published public var itemsAttributes: HeroAttributes? = nil
@@ -24,7 +24,9 @@ public final class HeroConfiguration: ObservableObject {
         .rightHand: 0,
         .legs: 0
     ]
-    
+
     @Published public var items: HeroConfigurationItems = HeroConfigurationItems()
     @Published public var minMaxStrengthDamage: (minDmg: Int16, maxDmg: Int16)? = nil
+
+    public init() {}
 }

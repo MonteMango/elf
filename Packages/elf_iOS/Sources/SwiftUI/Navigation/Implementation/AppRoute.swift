@@ -1,29 +1,35 @@
 //
 //  AppRoute.swift
-//  elf_SwiftUI
+//  elf_iOS
 //
 //  Created by Vitalii Lytvynov on 12.11.25.
 //
 
+import elf_Kit
 import SwiftUI
 
-// MARK: - Navigation Routes
-public enum AppRoute: Route {
-    
-    case mainMenu
-    
-    case battleSetup
-    case battleFight
-    
+// MARK: - View Mapping Extension
+
+extension AppRoute {
+
     @ViewBuilder
-    public func view() -> some View {
+    public func view(
+        container: NewElfAppDependencyContainer,
+        navigationManager: AppNavigationManager
+    ) -> some View {
         switch self {
         case .mainMenu:
             MainMenuScreen()
         case .battleSetup:
-            BattleSetupScreen()
-        case .battleFight:
-            BattleFightScreen()
+            let viewModel = container.makeBattleSetupViewModel(navigationManager: navigationManager)
+            BattleSetupScreen(viewModel: viewModel)
+        case .battleFight(let user, let enemy):
+            let viewModel = container.makeBattleFightViewModel(
+                userHeroConfiguration: user,
+                enemyHeroConfiguration: enemy,
+                navigationManager: navigationManager
+            )
+            BattleFightScreen(viewModel: viewModel)
         }
     }
 }

@@ -5,23 +5,26 @@
 //  Created by Vitalii Lytvynov on 12.11.25.
 //
 
+import elf_Kit
 import SwiftUI
 
 internal struct BattleFightScreen: View {
-    @Environment(\.navigationManager) private var navigationManager
+    @State private var viewModel: NewBattleFightViewModel
 
-    internal init() {}
+    internal init(viewModel: NewBattleFightViewModel) {
+        self.viewModel = viewModel
+    }
 
     internal var body: some View {
         VStack(spacing: 30) {
             Text("BattleFightScreen")
 
             Button("Back") {
-                navigationManager.pop()
+                viewModel.backButtonAction()
             }
 
             Button("Back to Main") {
-                navigationManager.popToRoot()
+                viewModel.backToMainButtonAction()
             }
         }
     }

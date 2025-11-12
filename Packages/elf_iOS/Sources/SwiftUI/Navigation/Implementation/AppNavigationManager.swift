@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 12.11.25.
 //
 
+import elf_Kit
 import SwiftUI
 
 // MARK: - Navigation Manager
@@ -13,8 +14,7 @@ public final class AppNavigationManager {
 
     public var stack: [AppRoute] = []
 
-    public static let shared = AppNavigationManager()
-    private init() {}
+    public init() {}
 
     public func push(_ route: AppRoute) {
         stack.append(route)
@@ -40,5 +40,34 @@ public final class AppNavigationManager {
 
     public func replaceStack(with routes: [AppRoute]) {
         stack = routes
+    }
+}
+
+// MARK: - NavigationManaging Conformance
+extension AppNavigationManager: NavigationManaging {
+
+    public func push(_ route: any Route) {
+        guard let appRoute = route as? AppRoute else {
+            assertionFailure("Route must be of type AppRoute")
+            return
+        }
+        push(appRoute)
+    }
+
+    public func replace(with route: any Route) {
+        guard let appRoute = route as? AppRoute else {
+            assertionFailure("Route must be of type AppRoute")
+            return
+        }
+        replace(with: appRoute)
+    }
+
+    public func replaceStack(with routes: [any Route]) {
+        let appRoutes = routes.compactMap { $0 as? AppRoute }
+        guard appRoutes.count == routes.count else {
+            assertionFailure("All routes must be of type AppRoute")
+            return
+        }
+        replaceStack(with: appRoutes)
     }
 }

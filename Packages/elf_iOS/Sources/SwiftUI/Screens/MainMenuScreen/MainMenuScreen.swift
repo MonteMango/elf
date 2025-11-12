@@ -5,18 +5,21 @@
 //  Created by Vitalii Lytvynov on 10.11.25.
 //
 
+import elf_Kit
 import SwiftUI
 
-internal struct MainMenuScreen: View {
+public struct MainMenuScreen: View {
     @Environment(\.navigationManager) private var navigationManager
-    
-    internal var body: some View {
+
+    public init() {}
+
+    public var body: some View {
         VStack(spacing: 30) {
             Button("Start game") {
                 print("Main menu")
             }
             Button("Battle") {
-                navigationManager.push(.battleSetup)
+                navigationManager.push(AppRoute.battleSetup)
             }
         }
     }
@@ -24,5 +27,5 @@ internal struct MainMenuScreen: View {
 
 #Preview {
     MainMenuScreen()
-        .environment(AppNavigationManager.shared)
+        .environment(\.navigationManager, AppNavigationManager())
 }

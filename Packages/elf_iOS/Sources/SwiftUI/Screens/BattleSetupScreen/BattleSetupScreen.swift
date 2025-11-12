@@ -5,23 +5,26 @@
 //  Created by Vitalii Lytvynov on 12.11.25.
 //
 
+import elf_Kit
 import SwiftUI
 
 internal struct BattleSetupScreen: View {
-    @Environment(\.navigationManager) private var navigationManager
+    @State private var viewModel: NewBattleSetupViewModel
 
-    internal init() {}
+    internal init(viewModel: NewBattleSetupViewModel) {
+        self.viewModel = viewModel
+    }
 
     internal var body: some View {
         VStack(spacing: 30) {
             Text("BattleSetupScreen")
 
             Button("Fight") {
-                navigationManager.push(.battleFight)
+                viewModel.fightButtonAction()
             }
 
             Button("Back") {
-                navigationManager.pop()
+                viewModel.backButtonAction()
             }
         }
     }

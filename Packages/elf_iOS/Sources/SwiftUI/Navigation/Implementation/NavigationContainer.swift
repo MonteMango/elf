@@ -5,17 +5,25 @@
 //  Created by Vitalii Lytvynov on 12.11.25.
 //
 
+import elf_Kit
 import SwiftUI
 
 // MARK: - Navigation Container
 public struct NavigationContainer<Content: View>: View {
-    @Environment(\.navigationManager) private var navigationManager
+    @Bindable private var navigationManager: AppNavigationManager
+    private let dependencyContainer: NewElfAppDependencyContainer
     private let rootView: Content
 
-    public init(@ViewBuilder rootView: () -> Content) {
+    public init(
+        navigationManager: AppNavigationManager,
+        dependencyContainer: NewElfAppDependencyContainer,
+        @ViewBuilder rootView: () -> Content
+    ) {
+        self.navigationManager = navigationManager
+        self.dependencyContainer = dependencyContainer
         self.rootView = rootView()
     }
-    
+
     public var body: some View {
         ZStack {
             if navigationManager.stack.isEmpty {
@@ -25,20 +33,14 @@ public struct NavigationContainer<Content: View>: View {
                     .id("root")
             } else if let currentRoute = navigationManager.stack.last {
                 // Show only the last (current) screen from stack
-                currentRoute.view()
-                    .transition(.opacity)
-                    .id(currentRoute)
+                currentRoute.view(
+                    container: dependencyContainer,
+                    navigationManager: navigationManager
+                )
+                .transition(.opacity)
+                .id(currentRoute)
             }
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: navigationManager.stack.count)
-    }
-}
-
-// MARK: - Extension
-public extension View {
-    func withNavigation() -> some View {
-        NavigationContainer {
-            self
-        }
     }
 }
