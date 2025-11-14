@@ -29,6 +29,12 @@ public final class ElfWeaponValidator: WeaponValidator {
             return updatedItems
         }
 
+        // Pass-through for other slots (only weapons and shields need validation)
+        guard slot == .weapons || slot == .shields else {
+            updatedItems[slot] = itemId
+            return updatedItems
+        }
+
         // Get the item being selected
         guard let item = await itemsRepository.getHeroItem(itemId) else {
             return currentItems
