@@ -18,6 +18,7 @@ public final class NewBattleSetupViewModel {
     private let attributeService: AttributeService
     private let armorService: ArmorService
     private let damageService: DamageService
+    private let weaponValidator: WeaponValidator
 
     // MARK: - State
 
@@ -25,21 +26,37 @@ public final class NewBattleSetupViewModel {
     public var playerLevel: Int16 = 1 {
         didSet { schedulePlayerUpdate() }
     }
+    
     public var playerFightStyle: FightStyle? {
         didSet { schedulePlayerUpdate() }
     }
+    
     public var playerFightStyleAttributes: HeroAttributes?
     public var playerLevelRandomAttributes: HeroAttributes?
+
+    public var playerSelectedItems: [HeroItemType: UUID?] = [:] {
+        didSet { checkPlayerTwoHandedWeapon() }
+    }
+
+    public var playerTwoHandedWeaponId: UUID?
 
     // Bot properties
     public var botLevel: Int16 = 1 {
         didSet { scheduleBotUpdate() }
     }
+    
     public var botFightStyle: FightStyle? {
         didSet { scheduleBotUpdate() }
     }
+    
     public var botFightStyleAttributes: HeroAttributes?
     public var botLevelRandomAttributes: HeroAttributes?
+
+    public var botSelectedItems: [HeroItemType: UUID?] = [:] {
+        didSet { checkBotTwoHandedWeapon() }
+    }
+
+    public var botTwoHandedWeaponId: UUID?
 
     // MARK: - Computed Properties
 
@@ -79,6 +96,8 @@ public final class NewBattleSetupViewModel {
 
     private var playerUpdateTask: Task<Void, Never>?
     private var botUpdateTask: Task<Void, Never>?
+    private var playerTwoHandedWeaponTask: Task<Void, Never>?
+    private var botTwoHandedWeaponTask: Task<Void, Never>?
 
     // MARK: - Initialization
 
@@ -87,13 +106,15 @@ public final class NewBattleSetupViewModel {
         itemsRepository: ItemsRepository,
         attributeService: AttributeService,
         armorService: ArmorService,
-        damageService: DamageService
+        damageService: DamageService,
+        weaponValidator: WeaponValidator
     ) {
         self.navigationManager = navigationManager
         self.itemsRepository = itemsRepository
         self.attributeService = attributeService
         self.armorService = armorService
         self.damageService = damageService
+        self.weaponValidator = weaponValidator
     }
 
     // MARK: - Actions
@@ -104,27 +125,74 @@ public final class NewBattleSetupViewModel {
 
     public func fightButtonAction() {
         // TODO: Navigation to battleFight - will be implemented later
-        print("User lvl: \(playerLevel)")
-        print("User FightStyle: \(playerFightStyle)")
-        print("User FightStyle Attrs: \(playerFightStyleAttributes)")
-        print("User Level Attrs: \(playerLevelRandomAttributes)")
-
-        print("Bot lvl: \(botLevel)")
-        print("Bot FightStyle: \(botFightStyle)")
-        print("Bot FightStyle Attrs: \(botFightStyleAttributes)")
-        print("Bot Level Attrs: \(botLevelRandomAttributes)")
     }
 
     public func handlePlayerItemSelection(itemType: HeroItemType) {
-        // TODO: Implement item selection modal
-        print("Player item tapped: \(itemType)")
-        navigationManager.presentModal(AppRoute.testModal)
+        handleItemSelection(for: .player, itemType: itemType)
     }
 
     public func handleBotItemSelection(itemType: HeroItemType) {
-        // TODO: Implement item selection modal
-        print("Bot item tapped: \(itemType)")
-        navigationManager.presentModal(AppRoute.testModal)
+        handleItemSelection(for: .bot, itemType: itemType)
+    }
+
+    private func handleItemSelection(for heroType: HeroType, itemType: HeroItemType) {
+        let currentItemId = getCurrentItemId(for: heroType, itemType: itemType)
+
+        navigationManager.presentModal(
+            AppRoute.selectHeroItem(
+                heroType: heroType,
+                heroItemType: itemType,
+                currentItemId: currentItemId,
+                onItemSelected: { [weak self] selectedItemId in
+                    self?.updateSelectedItems(
+                        for: heroType,
+                        itemType: itemType,
+                        selectedItemId: selectedItemId
+                    )
+                }
+            )
+        )
+    }
+
+    private func updateSelectedItems(for heroType: HeroType, itemType: HeroItemType, selectedItemId: UUID?) {
+        if requiresValidation(itemType) {
+            Task { @MainActor in
+                let currentItems = heroType == .player ? self.playerSelectedItems : self.botSelectedItems
+                let validatedItems = await self.weaponValidator.validateAndResolve(
+                    selecting: selectedItemId,
+                    for: itemType,
+                    currentItems: currentItems
+                )
+
+                switch heroType {
+                case .player:
+                    self.playerSelectedItems = validatedItems
+                case .bot:
+                    self.botSelectedItems = validatedItems
+                }
+            }
+        } else {
+            // Other items don't need validation
+            switch heroType {
+            case .player:
+                self.playerSelectedItems[itemType] = selectedItemId
+            case .bot:
+                self.botSelectedItems[itemType] = selectedItemId
+            }
+        }
+    }
+
+    private func requiresValidation(_ itemType: HeroItemType) -> Bool {
+        return itemType == .weapons || itemType == .shields
+    }
+
+    private func getCurrentItemId(for heroType: HeroType, itemType: HeroItemType) -> UUID? {
+        switch heroType {
+        case .player:
+            return playerSelectedItems[itemType] ?? nil
+        case .bot:
+            return botSelectedItems[itemType] ?? nil
+        }
     }
 
     // MARK: - Player Updates
@@ -167,7 +235,7 @@ public final class NewBattleSetupViewModel {
                     for: currentLevel
                 )
 
-                let (fsAttrs, lrAttrs) = try await (fightStyleAttrs, levelRandomAttrs)
+                let (fsAttrs, lrAttrs) = await (fightStyleAttrs, levelRandomAttrs)
 
                 // Final validation before updating UI
                 guard !Task.isCancelled,
@@ -230,7 +298,7 @@ public final class NewBattleSetupViewModel {
                     for: currentLevel
                 )
 
-                let (fsAttrs, lrAttrs) = try await (fightStyleAttrs, levelRandomAttrs)
+                let (fsAttrs, lrAttrs) = await (fightStyleAttrs, levelRandomAttrs)
 
                 // Final validation before updating UI
                 guard !Task.isCancelled,
@@ -250,6 +318,80 @@ public final class NewBattleSetupViewModel {
                 // Handle other errors
                 print("Error updating bot attributes: \(error)")
             }
+        }
+    }
+
+    // MARK: - Two-Handed Weapon Checks
+
+    private func checkPlayerTwoHandedWeapon() {
+        // Cancel previous task
+        playerTwoHandedWeaponTask?.cancel()
+
+        // Capture current weapon ID for validation
+        let currentWeaponId = playerSelectedItems[.weapons] ?? nil
+
+        playerTwoHandedWeaponTask = Task { @MainActor in
+            // Check if cancelled during task creation
+            guard !Task.isCancelled else { return }
+
+            // Validate weapon ID hasn't changed
+            guard playerSelectedItems[.weapons] == currentWeaponId else {
+                return  // Value changed - this task is outdated
+            }
+
+            // Get weapon item
+            guard let weaponId = currentWeaponId,
+                  let item = await itemsRepository.getHeroItem(weaponId),
+                  let weapon = item as? WeaponItem else {
+                // No weapon or not a weapon item
+                playerTwoHandedWeaponId = nil
+                return
+            }
+
+            // Final validation before updating
+            guard !Task.isCancelled,
+                  playerSelectedItems[.weapons] == currentWeaponId else {
+                return  // Value changed during fetch
+            }
+
+            // Safe to update
+            playerTwoHandedWeaponId = weapon.handUse == .both ? weapon.id : nil
+        }
+    }
+
+    private func checkBotTwoHandedWeapon() {
+        // Cancel previous task
+        botTwoHandedWeaponTask?.cancel()
+
+        // Capture current weapon ID for validation
+        let currentWeaponId = botSelectedItems[.weapons] ?? nil
+
+        botTwoHandedWeaponTask = Task { @MainActor in
+            // Check if cancelled during task creation
+            guard !Task.isCancelled else { return }
+
+            // Validate weapon ID hasn't changed
+            guard botSelectedItems[.weapons] == currentWeaponId else {
+                return  // Value changed - this task is outdated
+            }
+
+            // Get weapon item
+            guard let weaponId = currentWeaponId,
+                  let item = await itemsRepository.getHeroItem(weaponId),
+                  let weapon = item as? WeaponItem else {
+                // No weapon or not a weapon item
+                botTwoHandedWeaponId = nil
+                return
+            }
+
+            // Final validation before updating
+            guard !Task.isCancelled,
+                  botSelectedItems[.weapons] == currentWeaponId else {
+                return  // Value changed during fetch
+            }
+
+            // Safe to update
+            botTwoHandedWeaponId = weapon.handUse == .both ? weapon.id : nil
         }
     }
 }

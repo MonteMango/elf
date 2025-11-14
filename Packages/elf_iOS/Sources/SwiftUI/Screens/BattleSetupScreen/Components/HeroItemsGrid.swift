@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import UIKit
 import elf_Kit
 
 struct HeroItemsGrid: View {
-    @Binding var selectedItems: [HeroItemType: Item?]
+    @Binding var selectedItems: [HeroItemType: UUID?]
     @Binding var armorValues: [BodyPart: Int16]
     let isSecondaryWeaponEnabled: Bool
+    let twoHandedWeaponId: UUID?
     let onItemTap: (HeroItemType) -> Void
 
     var body: some View {
@@ -44,12 +46,31 @@ struct HeroItemsGrid: View {
                 itemButton(for: .upperBody)
                 itemButton(for: .bottomBody)
                 itemButton(for: .shirt)
-                ZStack {
-                    itemButton(for: .shields) // Secondary weapon
-                    if !isSecondaryWeaponEnabled {
+                shieldsSlot
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var shieldsSlot: some View {
+        ZStack {
+            // Check if two-handed weapon is equipped
+            if let weaponId = twoHandedWeaponId {
+                // Show two-handed weapon in shields slot with dark overlay
+                Button(action: { handleItemTap(.shields) }) {
+                    ZStack {
+                        itemImage(uuid: weaponId, size: 30)
                         Color.black.opacity(0.4)
                             .allowsHitTesting(false)
                     }
+                }
+                .buttonStyle(ItemButtonStyle())
+            } else {
+                // Normal shields slot
+                itemButton(for: .shields)
+                if !isSecondaryWeaponEnabled {
+                    Color.black.opacity(0.4)
+                        .allowsHitTesting(false)
                 }
             }
         }
@@ -58,12 +79,9 @@ struct HeroItemsGrid: View {
     @ViewBuilder
     private func itemButton(for itemType: HeroItemType) -> some View {
         Button(action: { handleItemTap(itemType) }) {
-            if let optionalItem = selectedItems[itemType], optionalItem != nil {
-                Image(systemName: iconName(for: itemType))
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 30, height: 30)
-                    .foregroundColor(.white)
+            if let itemId = selectedItems[itemType], let uuid = itemId {
+                // Show real item image
+                itemImage(uuid: uuid, size: 30)
             } else {
                 Color.clear
             }
@@ -74,17 +92,34 @@ struct HeroItemsGrid: View {
     @ViewBuilder
     private func jewelryButton(for itemType: HeroItemType) -> some View {
         Button(action: { handleItemTap(itemType) }) {
-            if let optionalItem = selectedItems[itemType], optionalItem != nil {
-                Image(systemName: iconName(for: itemType))
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 20, height: 20)
-                    .foregroundColor(.white)
+            if let itemId = selectedItems[itemType], let uuid = itemId {
+                // Show real jewelry image
+                itemImage(uuid: uuid, size: 20)
             } else {
                 Color.clear
             }
         }
         .buttonStyle(JewelryButtonStyle())
+    }
+
+    @ViewBuilder
+    private func itemImage(uuid: UUID, size: CGFloat) -> some View {
+        let imageName = uuid.uuidString.lowercased()
+
+        if UIImage(named: imageName) != nil {
+            // Real item image exists
+            Image(imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: size, height: size)
+        } else {
+            // Fallback placeholder for missing image
+            Image(systemName: "photo.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: size, height: size)
+                .foregroundColor(.gray.opacity(0.5))
+        }
     }
 
     private func handleItemTap(_ itemType: HeroItemType) {
@@ -138,6 +173,7 @@ struct HeroItemsGrid_Previews: PreviewProvider {
                         .rightHand: 8
                     ]),
                     isSecondaryWeaponEnabled: true,
+                    twoHandedWeaponId: nil,
                     onItemTap: { itemType in print("Preview tapped: \(itemType)") }
                 )
             }
@@ -159,6 +195,7 @@ struct HeroItemsGrid_Previews: PreviewProvider {
                         .rightHand: 5
                     ]),
                     isSecondaryWeaponEnabled: false,
+                    twoHandedWeaponId: nil,
                     onItemTap: { itemType in print("Preview tapped: \(itemType)") }
                 )
             }

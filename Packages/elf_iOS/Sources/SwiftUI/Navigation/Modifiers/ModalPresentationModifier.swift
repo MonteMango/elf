@@ -2,7 +2,7 @@
 //  ModalPresentationModifier.swift
 //  elf_iOS
 //
-//  Created by Claude Code on 14.11.25.
+//  Created by Vitalii Lytvynov on 14.11.25.
 //
 
 import SwiftUI

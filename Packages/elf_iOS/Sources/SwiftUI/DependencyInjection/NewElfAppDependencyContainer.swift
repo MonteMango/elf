@@ -18,6 +18,7 @@ public final class NewElfAppDependencyContainer {
     public let attributeService: AttributeService
     public let armorService: ArmorService
     public let damageService: DamageService
+    public let weaponValidator: WeaponValidator
 
     // MARK: - Initialization
 
@@ -27,6 +28,7 @@ public final class NewElfAppDependencyContainer {
         self.attributeService = ElfAttributeService(itemsRepository: self.itemsRepository)
         self.armorService = ElfArmorService(itemsRepository: self.itemsRepository)
         self.damageService = ElfDamageService()
+        self.weaponValidator = ElfWeaponValidator(itemsRepository: self.itemsRepository)
     }
 
     // MARK: - ViewModel Factories
@@ -37,7 +39,8 @@ public final class NewElfAppDependencyContainer {
             itemsRepository: self.itemsRepository,
             attributeService: self.attributeService,
             armorService: self.armorService,
-            damageService: self.damageService
+            damageService: self.damageService,
+            weaponValidator: self.weaponValidator
         )
     }
 
@@ -57,6 +60,23 @@ public final class NewElfAppDependencyContainer {
         return MainMenuViewModel(
             navigationManager: navigationManager,
             itemsRepository: self.itemsRepository
+        )
+    }
+
+    public func makeSelectHeroItemViewModel(
+        heroType: HeroType,
+        heroItemType: HeroItemType,
+        currentItemId: UUID?,
+        navigationManager: any NavigationManaging,
+        onItemSelected: @escaping (UUID?) -> Void
+    ) -> NewSelectHeroItemViewModel {
+        return NewSelectHeroItemViewModel(
+            heroType: heroType,
+            heroItemType: heroItemType,
+            currentItemId: currentItemId,
+            navigationManager: navigationManager,
+            itemsRepository: self.itemsRepository,
+            onItemSelected: onItemSelected
         )
     }
 }

@@ -31,8 +31,15 @@ extension AppRoute {
                 navigationManager: navigationManager
             )
             BattleFightScreen(viewModel: viewModel)
-        case .testModal:
-            TestModalScreen(navigationManager: navigationManager)
+        case .selectHeroItem(let heroType, let heroItemType, let currentId, let callback):
+            let viewModel = container.makeSelectHeroItemViewModel(
+                heroType: heroType,
+                heroItemType: heroItemType,
+                currentItemId: currentId,
+                navigationManager: navigationManager,
+                onItemSelected: callback
+            )
+            SelectHeroItemScreen(viewModel: viewModel)
         }
     }
 }

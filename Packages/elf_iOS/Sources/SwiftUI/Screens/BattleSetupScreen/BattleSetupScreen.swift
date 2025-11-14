@@ -11,10 +11,8 @@ import SwiftUI
 internal struct BattleSetupScreen: View {
     @State private var viewModel: NewBattleSetupViewModel
 
-    // Local state for items (not bound to ViewModel)
-    @State private var playerSelectedItems: [HeroItemType: Item?] = [:]
+    // Local state for armor values only (items now in ViewModel)
     @State private var playerArmorValues: [BodyPart: Int16] = [:]
-    @State private var botSelectedItems: [HeroItemType: Item?] = [:]
     @State private var botArmorValues: [BodyPart: Int16] = [:]
 
     internal init(viewModel: NewBattleSetupViewModel) {
@@ -102,11 +100,12 @@ internal struct BattleSetupScreen: View {
 
             // Items and Attributes Section
             HStack(alignment: .bottom, spacing: 15) {
-                // Items Grid (local state, not synced with ViewModel)
+                // Items Grid (bound to ViewModel)
                 HeroItemsGrid(
-                    selectedItems: $playerSelectedItems,
+                    selectedItems: $viewModel.playerSelectedItems,
                     armorValues: $playerArmorValues,
                     isSecondaryWeaponEnabled: true,
+                    twoHandedWeaponId: viewModel.playerTwoHandedWeaponId,
                     onItemTap: viewModel.handlePlayerItemSelection
                 )
                 .frame(width: 200)
@@ -156,11 +155,12 @@ internal struct BattleSetupScreen: View {
                     damageRange: nil   // TODO: implement damage calculation later
                 )
 
-                // Items Grid (local state, not synced with ViewModel)
+                // Items Grid (bound to ViewModel)
                 HeroItemsGrid(
-                    selectedItems: $botSelectedItems,
+                    selectedItems: $viewModel.botSelectedItems,
                     armorValues: $botArmorValues,
                     isSecondaryWeaponEnabled: true,
+                    twoHandedWeaponId: viewModel.botTwoHandedWeaponId,
                     onItemTap: viewModel.handleBotItemSelection
                 )
                 .frame(width: 200)
@@ -183,7 +183,8 @@ internal struct BattleSetupScreen: View {
             itemsRepository: itemsRepository,
             attributeService: ElfAttributeService(itemsRepository: itemsRepository),
             armorService: ElfArmorService(itemsRepository: itemsRepository),
-            damageService: ElfDamageService()
+            damageService: ElfDamageService(),
+            weaponValidator: ElfWeaponValidator(itemsRepository: itemsRepository)
         )
     )
 }
