@@ -12,6 +12,7 @@ struct HeroItemsGrid: View {
     @Binding var selectedItems: [HeroItemType: Item?]
     @Binding var armorValues: [BodyPart: Int16]
     let isSecondaryWeaponEnabled: Bool
+    let onItemTap: (HeroItemType) -> Void
 
     var body: some View {
         HStack(alignment: .bottom, spacing: BattleSetupConstants.Spacing.itemGridSpacing) {
@@ -87,8 +88,7 @@ struct HeroItemsGrid: View {
     }
 
     private func handleItemTap(_ itemType: HeroItemType) {
-        // Placeholder for item selection logic
-        print("Item tapped: \(itemType)")
+        onItemTap(itemType)
     }
 
     private func iconName(for itemType: HeroItemType) -> String {
@@ -137,7 +137,8 @@ struct HeroItemsGrid_Previews: PreviewProvider {
                         .leftHand: 8,
                         .rightHand: 8
                     ]),
-                    isSecondaryWeaponEnabled: true
+                    isSecondaryWeaponEnabled: true,
+                    onItemTap: { itemType in print("Preview tapped: \(itemType)") }
                 )
             }
             .padding()
@@ -157,7 +158,8 @@ struct HeroItemsGrid_Previews: PreviewProvider {
                         .leftHand: 5,
                         .rightHand: 5
                     ]),
-                    isSecondaryWeaponEnabled: false
+                    isSecondaryWeaponEnabled: false,
+                    onItemTap: { itemType in print("Preview tapped: \(itemType)") }
                 )
             }
             .padding()

@@ -16,6 +16,8 @@ public enum AppRoute: Route {
 
     case battleSetup
     case battleFight(user: HeroConfiguration, enemy: HeroConfiguration)
+
+    case testModal
 }
 
 // MARK: - Hashable
@@ -31,6 +33,8 @@ extension AppRoute: Hashable {
         case (.battleFight(let lUser, let lEnemy), .battleFight(let rUser, let rEnemy)):
             return ObjectIdentifier(lUser) == ObjectIdentifier(rUser) &&
                    ObjectIdentifier(lEnemy) == ObjectIdentifier(rEnemy)
+        case (.testModal, .testModal):
+            return true
         default:
             return false
         }
@@ -46,6 +50,8 @@ extension AppRoute: Hashable {
             hasher.combine("battleFight")
             hasher.combine(ObjectIdentifier(user))
             hasher.combine(ObjectIdentifier(enemy))
+        case .testModal:
+            hasher.combine("testModal")
         }
     }
 }

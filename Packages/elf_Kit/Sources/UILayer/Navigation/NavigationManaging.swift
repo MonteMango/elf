@@ -38,4 +38,11 @@ public protocol NavigationManaging {
     /// Replaces the entire navigation stack with new routes
     /// - Parameter routes: The routes to replace the stack with
     func replaceStack(with routes: [any Route])
+
+    /// Presents a route modally
+    /// - Parameter route: The route to present modally
+    func presentModal(_ route: any Route)
+
+    /// Dismisses the currently presented modal route
+    func dismissModal()
 }

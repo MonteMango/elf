@@ -115,6 +115,18 @@ public final class NewBattleSetupViewModel {
         print("Bot Level Attrs: \(botLevelRandomAttributes)")
     }
 
+    public func handlePlayerItemSelection(itemType: HeroItemType) {
+        // TODO: Implement item selection modal
+        print("Player item tapped: \(itemType)")
+        navigationManager.presentModal(AppRoute.testModal)
+    }
+
+    public func handleBotItemSelection(itemType: HeroItemType) {
+        // TODO: Implement item selection modal
+        print("Bot item tapped: \(itemType)")
+        navigationManager.presentModal(AppRoute.testModal)
+    }
+
     // MARK: - Player Updates
 
     private func schedulePlayerUpdate() {

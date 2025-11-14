@@ -31,6 +31,8 @@ extension AppRoute {
                 navigationManager: navigationManager
             )
             BattleFightScreen(viewModel: viewModel)
+        case .testModal:
+            TestModalScreen(navigationManager: navigationManager)
         }
     }
 }

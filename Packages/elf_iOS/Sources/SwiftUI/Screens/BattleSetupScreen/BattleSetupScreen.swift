@@ -106,7 +106,8 @@ internal struct BattleSetupScreen: View {
                 HeroItemsGrid(
                     selectedItems: $playerSelectedItems,
                     armorValues: $playerArmorValues,
-                    isSecondaryWeaponEnabled: true
+                    isSecondaryWeaponEnabled: true,
+                    onItemTap: viewModel.handlePlayerItemSelection
                 )
                 .frame(width: 200)
 
@@ -159,7 +160,8 @@ internal struct BattleSetupScreen: View {
                 HeroItemsGrid(
                     selectedItems: $botSelectedItems,
                     armorValues: $botArmorValues,
-                    isSecondaryWeaponEnabled: true
+                    isSecondaryWeaponEnabled: true,
+                    onItemTap: viewModel.handleBotItemSelection
                 )
                 .frame(width: 200)
             }

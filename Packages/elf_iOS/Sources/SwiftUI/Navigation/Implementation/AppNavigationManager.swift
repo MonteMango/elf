@@ -13,6 +13,7 @@ import SwiftUI
 public final class AppNavigationManager {
 
     public var stack: [AppRoute] = []
+    public var presentedModalRoute: AppRoute? = nil
 
     public init() {}
 
@@ -40,6 +41,14 @@ public final class AppNavigationManager {
 
     public func replaceStack(with routes: [AppRoute]) {
         stack = routes
+    }
+
+    public func presentModal(_ route: AppRoute) {
+        presentedModalRoute = route
+    }
+
+    public func dismissModal() {
+        presentedModalRoute = nil
     }
 }
 
@@ -69,5 +78,13 @@ extension AppNavigationManager: NavigationManaging {
             return
         }
         replaceStack(with: appRoutes)
+    }
+
+    public func presentModal(_ route: any Route) {
+        guard let appRoute = route as? AppRoute else {
+            assertionFailure("Route must be of type AppRoute")
+            return
+        }
+        presentModal(appRoute)
     }
 }
