@@ -19,7 +19,8 @@ extension AppRoute {
     ) -> some View {
         switch self {
         case .mainMenu:
-            MainMenuScreen()
+            let viewModel = container.makeMainMenuViewModel(navigationManager: navigationManager)
+            MainMenuScreen(viewModel: viewModel)
         case .battleSetup:
             let viewModel = container.makeBattleSetupViewModel(navigationManager: navigationManager)
             BattleSetupScreen(viewModel: viewModel)

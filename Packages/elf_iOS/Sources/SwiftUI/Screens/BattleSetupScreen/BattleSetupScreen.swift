@@ -10,13 +10,15 @@ import SwiftUI
 
 internal struct BattleSetupScreen: View {
     @State private var viewModel: NewBattleSetupViewModel
-    @ObservedObject private var playerConfig: HeroConfiguration
-    @ObservedObject private var botConfig: HeroConfiguration
+
+    // Local state for items (not bound to ViewModel)
+    @State private var playerSelectedItems: [HeroItemType: Item?] = [:]
+    @State private var playerArmorValues: [BodyPart: Int16] = [:]
+    @State private var botSelectedItems: [HeroItemType: Item?] = [:]
+    @State private var botArmorValues: [BodyPart: Int16] = [:]
 
     internal init(viewModel: NewBattleSetupViewModel) {
         self._viewModel = State(initialValue: viewModel)
-        self._playerConfig = ObservedObject(wrappedValue: viewModel.playerHeroConfiguration)
-        self._botConfig = ObservedObject(wrappedValue: viewModel.botHeroConfiguration)
     }
 
     internal var body: some View {
@@ -35,7 +37,6 @@ internal struct BattleSetupScreen: View {
                             Rectangle()
                                 .fill(BattleSetupConstants.Colors.separatorLine)
                                 .frame(width: BattleSetupConstants.Sizing.separatorWidth)
-                                .padding(.vertical, 20)
 
                             // Bot panel (right)
                             botPanel
@@ -90,33 +91,33 @@ internal struct BattleSetupScreen: View {
                         .font(BattleSetupConstants.Fonts.labelFont)
                         .foregroundColor(.white)
 
-                    FightStyleSelector(selectedFightStyle: $playerConfig.fightStyle)
+                    FightStyleSelector(selectedFightStyle: $viewModel.playerFightStyle)
                 }
 
                 Spacer()
 
                 // Level (Right)
-                LevelSelector(level: $playerConfig.level)
+                LevelSelector(level: $viewModel.playerLevel)
             }
 
             // Items and Attributes Section
-            HStack(alignment: .top, spacing: 15) {
-                // Items Grid
+            HStack(alignment: .bottom, spacing: 15) {
+                // Items Grid (local state, not synced with ViewModel)
                 HeroItemsGrid(
-                    selectedItems: playerItemsBinding,
-                    armorValues: $playerConfig.itemsArmor,
-                    isSecondaryWeaponEnabled: playerSecondaryWeaponEnabled
+                    selectedItems: $playerSelectedItems,
+                    armorValues: $playerArmorValues,
+                    isSecondaryWeaponEnabled: true
                 )
                 .frame(width: 200)
 
                 // Attributes Panel
                 AttributesPanel(
                     alignment: .leading,
-                    attributes: playerTotalAttributes,
-                    fightStyleAttrs: playerConfig.fightStyleAttributes,
-                    levelAttrs: playerConfig.levelRandomAttributes,
-                    itemsAttrs: playerConfig.itemsAttributes,
-                    damageRange: playerConfig.minMaxStrengthDamage
+                    attributes: viewModel.playerTotalAttributes,
+                    fightStyleAttrs: viewModel.playerFightStyleAttributes,
+                    levelAttrs: viewModel.playerLevelRandomAttributes,
+                    itemsAttrs: nil,  // TODO: implement items later
+                    damageRange: nil   // TODO: implement damage calculation later
                 )
             }
         }
@@ -128,7 +129,7 @@ internal struct BattleSetupScreen: View {
             // Level and Fight Style Section (Horizontal, reversed order)
             HStack(alignment: .top, spacing: 20) {
                 // Level (Left)
-                LevelSelector(level: $botConfig.level)
+                LevelSelector(level: $viewModel.botLevel)
 
                 Spacer()
 
@@ -138,117 +139,49 @@ internal struct BattleSetupScreen: View {
                         .font(BattleSetupConstants.Fonts.labelFont)
                         .foregroundColor(.white)
 
-                    FightStyleSelector(selectedFightStyle: $botConfig.fightStyle)
+                    FightStyleSelector(selectedFightStyle: $viewModel.botFightStyle)
                 }
             }
 
             // Items and Attributes Section
-            HStack(alignment: .top, spacing: 15) {
+            HStack(alignment: .bottom, spacing: 15) {
                 // Attributes Panel
                 AttributesPanel(
                     alignment: .trailing,
-                    attributes: botTotalAttributes,
-                    fightStyleAttrs: botConfig.fightStyleAttributes,
-                    levelAttrs: botConfig.levelRandomAttributes,
-                    itemsAttrs: botConfig.itemsAttributes,
-                    damageRange: botConfig.minMaxStrengthDamage
+                    attributes: viewModel.botTotalAttributes,
+                    fightStyleAttrs: viewModel.botFightStyleAttributes,
+                    levelAttrs: viewModel.botLevelRandomAttributes,
+                    itemsAttrs: nil,  // TODO: implement items later
+                    damageRange: nil   // TODO: implement damage calculation later
                 )
 
-                // Items Grid
+                // Items Grid (local state, not synced with ViewModel)
                 HeroItemsGrid(
-                    selectedItems: botItemsBinding,
-                    armorValues: $botConfig.itemsArmor,
-                    isSecondaryWeaponEnabled: botSecondaryWeaponEnabled
+                    selectedItems: $botSelectedItems,
+                    armorValues: $botArmorValues,
+                    isSecondaryWeaponEnabled: true
                 )
                 .frame(width: 200)
             }
         }
     }
+}
 
-    // MARK: - Computed Properties
+#Preview {
+    let itemsRepository = ElfItemsRepository(dataLoader: ElfDataLoader())
 
-    // Player
-    private var playerTotalAttributes: HeroAttributes? {
-        calculateTotalAttributes(
-            fightStyle: playerConfig.fightStyleAttributes,
-            level: playerConfig.levelRandomAttributes,
-            items: playerConfig.itemsAttributes
+    // Load items asynchronously
+    Task {
+        try? await itemsRepository.loadHeroItems()
+    }
+
+    return BattleSetupScreen(
+        viewModel: NewBattleSetupViewModel(
+            navigationManager: AppNavigationManager(),
+            itemsRepository: itemsRepository,
+            attributeService: ElfAttributeService(itemsRepository: itemsRepository),
+            armorService: ElfArmorService(itemsRepository: itemsRepository),
+            damageService: ElfDamageService()
         )
-    }
-
-    private var playerItemsBinding: Binding<[HeroItemType: Item?]> {
-        Binding(
-            get: { self.convertToItemsDict(self.playerConfig.items) },
-            set: { _ in }
-        )
-    }
-
-    private var playerSecondaryWeaponEnabled: Bool {
-        if case .twoHandsWeapon = playerConfig.items.handsUse {
-            return false
-        }
-        return true
-    }
-
-    // Bot
-    private var botTotalAttributes: HeroAttributes? {
-        calculateTotalAttributes(
-            fightStyle: botConfig.fightStyleAttributes,
-            level: botConfig.levelRandomAttributes,
-            items: botConfig.itemsAttributes
-        )
-    }
-
-    private var botItemsBinding: Binding<[HeroItemType: Item?]> {
-        Binding(
-            get: { self.convertToItemsDict(self.botConfig.items) },
-            set: { _ in }
-        )
-    }
-
-    private var botSecondaryWeaponEnabled: Bool {
-        if case .twoHandsWeapon = botConfig.items.handsUse {
-            return false
-        }
-        return true
-    }
-
-    // MARK: - Helper Methods
-
-    private func calculateTotalAttributes(
-        fightStyle: HeroAttributes?,
-        level: HeroAttributes?,
-        items: HeroAttributes?
-    ) -> HeroAttributes? {
-        guard let fightStyle = fightStyle,
-              let level = level,
-              let items = items else {
-            return nil
-        }
-
-        return HeroAttributes(
-            hitPoints: fightStyle.hitPoints + level.hitPoints + items.hitPoints,
-            manaPoints: fightStyle.manaPoints + level.manaPoints + items.manaPoints,
-            agility: fightStyle.agility + level.agility + items.agility,
-            strength: fightStyle.strength + level.strength + items.strength,
-            power: fightStyle.power + level.power + items.power,
-            instinct: fightStyle.instinct + level.instinct + items.instinct
-        )
-    }
-
-    private func convertToItemsDict(_ configItems: HeroConfigurationItems) -> [HeroItemType: Item?] {
-        var dict: [HeroItemType: Item?] = [:]
-
-        dict[.helmet] = configItems.helmet?.item
-        dict[.gloves] = configItems.gloves?.item
-        dict[.shoes] = configItems.shoes?.item
-        dict[.upperBody] = configItems.upperBody?.item
-        dict[.bottomBody] = configItems.bottomBody?.item
-        dict[.shirt] = configItems.shirt?.item
-        dict[.ring] = configItems.ring?.item
-        dict[.necklace] = configItems.necklace?.item
-        dict[.earrings] = configItems.earrings?.item
-
-        return dict
-    }
+    )
 }

@@ -9,23 +9,36 @@ import elf_Kit
 import SwiftUI
 
 public struct MainMenuScreen: View {
-    @Environment(\.navigationManager) private var navigationManager
+    @State private var viewModel: MainMenuViewModel
 
-    public init() {}
+    public init(viewModel: MainMenuViewModel) {
+        self._viewModel = State(initialValue: viewModel)
+    }
 
     public var body: some View {
         VStack(spacing: 30) {
             Button("Start game") {
-                print("Main menu")
+                viewModel.startGameAction()
             }
             Button("Battle") {
-                navigationManager.push(AppRoute.battleSetup)
+                viewModel.battleAction()
+            }
+
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .multilineTextAlignment(.center)
+                    .padding()
             }
         }
     }
 }
 
 #Preview {
-    MainMenuScreen()
-        .environment(\.navigationManager, AppNavigationManager())
+    MainMenuScreen(
+        viewModel: MainMenuViewModel(
+            navigationManager: AppNavigationManager(),
+            itemsRepository: ElfItemsRepository(dataLoader: ElfDataLoader())
+        )
+    )
 }

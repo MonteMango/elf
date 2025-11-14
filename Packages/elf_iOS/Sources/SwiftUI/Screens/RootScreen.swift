@@ -20,7 +20,8 @@ public struct RootScreen: View {
             navigationManager: navigationManager,
             dependencyContainer: dependencyContainer
         ) {
-            MainMenuScreen()
+            let viewModel = dependencyContainer.makeMainMenuViewModel(navigationManager: navigationManager)
+            MainMenuScreen(viewModel: viewModel)
         }
         .environment(\.navigationManager, navigationManager)
     }

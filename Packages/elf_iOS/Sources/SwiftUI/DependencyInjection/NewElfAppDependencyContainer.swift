@@ -52,4 +52,11 @@ public final class NewElfAppDependencyContainer {
             navigationManager: navigationManager
         )
     }
+
+    public func makeMainMenuViewModel(navigationManager: any NavigationManaging) -> MainMenuViewModel {
+        return MainMenuViewModel(
+            navigationManager: navigationManager,
+            itemsRepository: self.itemsRepository
+        )
+    }
 }
