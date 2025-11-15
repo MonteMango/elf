@@ -11,7 +11,7 @@ public final class DefenseItem: Item, HasPhysicalDefense, Decodable {
     public let id: UUID
     public let title: String
     public let tier: Int16
-    public var isUnique: Bool?
+    public let isUnique: Bool?
     
     public let strength: Int16?
     public let agility: Int16?

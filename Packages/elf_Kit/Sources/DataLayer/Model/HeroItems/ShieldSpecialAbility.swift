@@ -5,7 +5,7 @@
 //  Created by Vitalii Lytvynov on 25.04.25.
 //
 
-public enum ShieldSpecialAbility: Decodable {
+public enum ShieldSpecialAbility: Decodable, Sendable {
     case antiCrit(probability: Float)
     
     private enum CodingKeys: String, CodingKey {

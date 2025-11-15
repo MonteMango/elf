@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class WeaponItem: Item {
+public final class WeaponItem: Item {
     public let id: UUID
     public let title: String
     public let tier: Int16

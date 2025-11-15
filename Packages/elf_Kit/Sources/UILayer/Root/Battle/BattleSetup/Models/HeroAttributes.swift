@@ -5,7 +5,7 @@
 //  Created by Vitalii Lytvynov on 31.10.24.
 //
 
-public struct HeroAttributes {
+public struct HeroAttributes: Sendable {
     public var hitPoints: Int16 = 0
     public var manaPoints: Int16 = 0
     public var agility: Int16 = 0

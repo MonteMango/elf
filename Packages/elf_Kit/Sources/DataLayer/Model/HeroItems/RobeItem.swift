@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class RobeItem: Item {
+public final class RobeItem: Item {
     public let id: UUID
     public let title: String
     public let tier: Int16

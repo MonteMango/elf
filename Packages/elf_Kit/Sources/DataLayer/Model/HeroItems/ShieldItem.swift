@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class ShieldItem: Item, HasPhysicalDefense, Decodable {
+public final class ShieldItem: Item, HasPhysicalDefense, Decodable {
     
     public let id: UUID
     public let title: String

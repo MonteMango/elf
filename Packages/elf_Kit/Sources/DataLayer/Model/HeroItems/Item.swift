@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol Item: Decodable {
+public protocol Item: Decodable, Sendable {
     var id: UUID { get }
     var title: String { get }
     var tier: Int16 { get }

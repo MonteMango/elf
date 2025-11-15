@@ -5,7 +5,7 @@
 //  Created by Vitalii Lytvynov on 21.04.25.
 //
 
-public enum WeaponSpecialAbility: Decodable {
+public enum WeaponSpecialAbility: Decodable, Sendable {
     case passThroughBlock(probability: Float)
     case antiDodge(probability: Float)
     
