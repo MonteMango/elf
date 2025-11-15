@@ -50,11 +50,13 @@ public final class BattleSetupViewModel {
     public var playerFightStyleAttributes: HeroAttributes?
     public var playerLevelRandomAttributes: HeroAttributes?
     public var playerItemsAttributes: HeroAttributes?
+    public var playerArmorValues: [BodyPart: Int16] = [:]
 
     public var playerSelectedItems: [HeroItemType: UUID?] = [:] {
         didSet {
             checkPlayerTwoHandedWeapon()
             schedulePlayerItemsAttributesUpdate()
+            schedulePlayerArmorUpdate()
         }
     }
 
@@ -72,11 +74,13 @@ public final class BattleSetupViewModel {
     public var botFightStyleAttributes: HeroAttributes?
     public var botLevelRandomAttributes: HeroAttributes?
     public var botItemsAttributes: HeroAttributes?
+    public var botArmorValues: [BodyPart: Int16] = [:]
 
     public var botSelectedItems: [HeroItemType: UUID?] = [:] {
         didSet {
             checkBotTwoHandedWeapon()
             scheduleBotItemsAttributesUpdate()
+            scheduleBotArmorUpdate()
         }
     }
 
@@ -128,6 +132,8 @@ public final class BattleSetupViewModel {
     private var botTwoHandedWeaponTask: Task<Void, Never>?
     private var playerItemsAttributesTask: Task<Void, Never>?
     private var botItemsAttributesTask: Task<Void, Never>?
+    private var playerArmorTask: Task<Void, Never>?
+    private var botArmorTask: Task<Void, Never>?
 
     // MARK: - Initialization
 
@@ -493,6 +499,74 @@ public final class BattleSetupViewModel {
 
             // Safe to update
             botItemsAttributes = itemsAttrs
+        }
+    }
+
+    // MARK: - Armor Updates
+
+    private func schedulePlayerArmorUpdate() {
+        // Cancel previous task
+        playerArmorTask?.cancel()
+
+        // Capture current items for validation
+        let currentItems = playerSelectedItems
+
+        playerArmorTask = Task { @MainActor in
+            // Check if cancelled during task creation
+            guard !Task.isCancelled else { return }
+
+            // Validate items haven't changed
+            guard playerSelectedItems == currentItems else {
+                return  // Items changed - this task is outdated
+            }
+
+            // Extract non-nil UUIDs from items dictionary
+            let itemIds = currentItems.values.compactMap { $0 }
+
+            // Fetch armor values
+            let armorValues = await armorService.getAllItemsArmor(for: itemIds)
+
+            // Final validation before updating
+            guard !Task.isCancelled,
+                  playerSelectedItems == currentItems else {
+                return  // Items changed during fetch
+            }
+
+            // Safe to update
+            playerArmorValues = armorValues
+        }
+    }
+
+    private func scheduleBotArmorUpdate() {
+        // Cancel previous task
+        botArmorTask?.cancel()
+
+        // Capture current items for validation
+        let currentItems = botSelectedItems
+
+        botArmorTask = Task { @MainActor in
+            // Check if cancelled during task creation
+            guard !Task.isCancelled else { return }
+
+            // Validate items haven't changed
+            guard botSelectedItems == currentItems else {
+                return  // Items changed - this task is outdated
+            }
+
+            // Extract non-nil UUIDs from items dictionary
+            let itemIds = currentItems.values.compactMap { $0 }
+
+            // Fetch armor values
+            let armorValues = await armorService.getAllItemsArmor(for: itemIds)
+
+            // Final validation before updating
+            guard !Task.isCancelled,
+                  botSelectedItems == currentItems else {
+                return  // Items changed during fetch
+            }
+
+            // Safe to update
+            botArmorValues = armorValues
         }
     }
 }

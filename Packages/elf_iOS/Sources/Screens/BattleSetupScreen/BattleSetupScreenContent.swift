@@ -14,10 +14,6 @@ internal struct BattleSetupScreenContent: View {
     @Environment(ElfAppDependencyContainer.self) private var container
     @State private var viewModel: BattleSetupViewModel
 
-    // Local state for armor values only (items now in ViewModel)
-    @State private var playerArmorValues: [BodyPart: Int16] = [:]
-    @State private var botArmorValues: [BodyPart: Int16] = [:]
-
     internal init(viewModel: BattleSetupViewModel) {
         self._viewModel = State(initialValue: viewModel)
     }
@@ -119,7 +115,7 @@ internal struct BattleSetupScreenContent: View {
                 // Items Grid (bound to ViewModel)
                 HeroItemsGrid(
                     selectedItems: $viewModel.playerSelectedItems,
-                    armorValues: $playerArmorValues,
+                    armorValues: $viewModel.playerArmorValues,
                     isSecondaryWeaponEnabled: true,
                     twoHandedWeaponId: viewModel.playerTwoHandedWeaponId,
                     onItemTap: viewModel.handlePlayerItemSelection
@@ -174,7 +170,7 @@ internal struct BattleSetupScreenContent: View {
                 // Items Grid (bound to ViewModel)
                 HeroItemsGrid(
                     selectedItems: $viewModel.botSelectedItems,
-                    armorValues: $botArmorValues,
+                    armorValues: $viewModel.botArmorValues,
                     isSecondaryWeaponEnabled: true,
                     twoHandedWeaponId: viewModel.botTwoHandedWeaponId,
                     onItemTap: viewModel.handleBotItemSelection
