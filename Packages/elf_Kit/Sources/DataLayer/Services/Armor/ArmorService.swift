@@ -7,6 +7,6 @@
 
 import Foundation
 
-public protocol ArmorService {
+public protocol ArmorService: Sendable {
     func getAllItemsArmor(for itemIds: [UUID]) async -> [BodyPart: Int16]
 }

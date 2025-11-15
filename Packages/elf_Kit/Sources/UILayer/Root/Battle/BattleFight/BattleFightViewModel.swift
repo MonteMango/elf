@@ -1,25 +1,35 @@
 //
 //  BattleFightViewModel.swift
+//  elf_Kit
 //
-//
-//  Created by Vitalii Lytvynov on 28.08.24.
+//  Created by Vitalii Lytvynov on 12.11.25.
 //
 
 import Foundation
 
+@Observable
 public final class BattleFightViewModel {
-    
-    private let battleViewStateDelegate: AnyViewStateDelegate<BattleViewState>
-    
+
+    // MARK: - State
+
+    public let userHeroConfiguration: HeroConfiguration
+    public let enemyHeroConfiguration: HeroConfiguration
+    public var battleEnded: Bool = false
+
+    // MARK: - Initialization
+
     public init(
         userHeroConfiguration: HeroConfiguration,
-        enemyHeroConfiguration: HeroConfiguration,
-        battleViewStateDelegate: AnyViewStateDelegate<BattleViewState>) {
-        self.battleViewStateDelegate = battleViewStateDelegate
+        enemyHeroConfiguration: HeroConfiguration
+    ) {
+        self.userHeroConfiguration = userHeroConfiguration
+        self.enemyHeroConfiguration = enemyHeroConfiguration
     }
-    
-    @objc
-    public func closeButtonAction() {
-        battleViewStateDelegate.setViewState(.setup)
+
+    // MARK: - Actions
+
+    public func finishBattle() {
+        // When battle logic is implemented, call this to trigger navigation
+        battleEnded = true
     }
 }

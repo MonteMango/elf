@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol AttributeService {
+public protocol AttributeService: Sendable {
     
     func getAllFightStyleAttributes(for fightStyle: FightStyle, at level: Int16) async -> HeroAttributes
     

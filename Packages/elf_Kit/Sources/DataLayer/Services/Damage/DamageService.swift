@@ -7,6 +7,6 @@
 
 import Foundation
 
-public protocol DamageService {
+public protocol DamageService: Sendable {
     func getMinMaxStrengthDamage(_ strengthAttribute: Int16) async -> (minDmg: Int16, maxDmg: Int16)?
 }

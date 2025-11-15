@@ -1,83 +1,104 @@
 //
 //  SelectHeroItemViewModel.swift
+//  elf_Kit
 //
-//
-//  Created by Vitalii Lytvynov on 20.09.24.
+//  Created by Vitalii Lytvynov on 14.11.25.
 //
 
-import Combine
 import Foundation
 
+@Observable
+@MainActor
 public final class SelectHeroItemViewModel {
-    
-    private let battleViewStateDelegate: AnyViewStateDelegate<BattleViewState>
+
+    // MARK: - Dependencies
+
     private let itemsRepository: ItemsRepository
-    
-    private var cancellables = Set<AnyCancellable>()
-    
-    public private(set) var currentHeroItemId: UUID?
-    public private(set) var heroType: HeroType
-    public private(set) var heroItemType: HeroItemType
-    
-    @Published public private(set) var heroItems: HeroItems?
-    @Published public private(set) var selectedHeroItemId: UUID?
-    
-    public let selectedHeroItem = PassthroughSubject<(HeroType, HeroItemType, UUID?), Never>()
-    
+
+    // MARK: - Input
+
+    public let heroType: HeroType
+    public let heroItemType: HeroItemType
+    public let currentItemId: UUID?
+
+    // MARK: - State
+
+    public var availableItems: [Item] = []
+    public var selectedItemId: UUID?
+    public var isLoading: Bool = false
+
+    // MARK: - Initialization
+
     public init(
-        currentHeroItemId: UUID?,
         heroType: HeroType,
         heroItemType: HeroItemType,
-        battleViewStateDelegate: AnyViewStateDelegate<BattleViewState>,
+        currentItemId: UUID?,
         itemsRepository: ItemsRepository
     ) {
-        self.currentHeroItemId = currentHeroItemId
         self.heroType = heroType
         self.heroItemType = heroItemType
-        self.battleViewStateDelegate = battleViewStateDelegate
+        self.currentItemId = currentItemId
         self.itemsRepository = itemsRepository
-        
-        itemsRepository.heroItemsPublisher
-                    .receive(on: DispatchQueue.main)
-                    .assign(to: \.heroItems, on: self)
-                    .store(in: &cancellables)
+        self.selectedItemId = currentItemId
+
+        Task {
+            await loadItems()
+        }
     }
-    
-    // MARK: Methods
-    
-    public func didSelectItem(itemId: UUID?) {
-        selectedHeroItemId = itemId
+
+    // MARK: - Actions
+
+    public func selectItem(_ itemId: UUID?) {
+        selectedItemId = itemId
     }
-    
-    // Функция для фильтрации элементов на основе выбранного типа HeroItemType
-    public func filterItems(for type: HeroItemType, in heroItems: HeroItems) -> [Item] {
-        let itemsMap: [HeroItemType: [Item]] = [
-            .helmet: heroItems.helmets,
-            .gloves: heroItems.gloves,
-            .shoes: heroItems.shoes,
-            .upperBody: heroItems.upperBodies,
-            .bottomBody: heroItems.bottomBodies,
-            .shirt: heroItems.robes,
-            .weapons: heroItems.weapons,
-            .shields: heroItems.shields + heroItems.weapons.filter({ $0.handUse == .secondary }),
-            .ring: heroItems.rings,
-            .necklace: heroItems.necklaces,
-            .earrings: heroItems.earrings
-        ]
-        
-        return itemsMap[type] ?? []
+
+    // MARK: - Private Methods
+
+    private func loadItems() async {
+        isLoading = true
+        defer { isLoading = false }
+
+        // Get hero items from repository
+        guard let heroItems = itemsRepository.heroItems else {
+            // Try to load if not available
+            do {
+                try await itemsRepository.loadHeroItems()
+                guard let items = itemsRepository.heroItems else { return }
+                availableItems = filterItems(for: heroItemType, in: items)
+            } catch {
+                print("Error loading hero items: \(error)")
+            }
+            return
+        }
+
+        availableItems = filterItems(for: heroItemType, in: heroItems)
     }
-    
-    // MARK: Actions
-    
-    @objc
-    public func closeButtonAction() {
-        battleViewStateDelegate.setViewState(.setup)
-    }
-    
-    @objc
-    public func equipButtonAction() {
-        selectedHeroItem.send((heroType, heroItemType, self.selectedHeroItemId))
-        battleViewStateDelegate.setViewState(.setup)
+
+    private func filterItems(for type: HeroItemType, in heroItems: HeroItems) -> [Item] {
+        switch type {
+        case .helmet:
+            return heroItems.helmets
+        case .gloves:
+            return heroItems.gloves
+        case .shoes:
+            return heroItems.shoes
+        case .upperBody:
+            return heroItems.upperBodies
+        case .bottomBody:
+            return heroItems.bottomBodies
+        case .shirt:
+            return heroItems.robes
+        case .weapons:
+            return heroItems.weapons
+        case .shields:
+            // Shields include both shield items and weapons with secondary hand use
+            return heroItems.shields + heroItems.weapons.filter { $0.handUse == .secondary }
+        case .ring:
+            return heroItems.rings
+        case .necklace:
+            return heroItems.necklaces
+        case .earrings:
+            return heroItems.earrings
+        }
     }
 }

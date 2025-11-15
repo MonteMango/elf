@@ -38,3 +38,6 @@ public final class ElfArmorService: ArmorService {
         return armorPoints
     }
 }
+
+// MARK: - Sendable Conformance
+extension ElfArmorService: @unchecked Sendable {}

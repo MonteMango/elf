@@ -8,11 +8,11 @@
 import Foundation
 
 @Observable
+@MainActor
 public final class MainMenuViewModel {
 
     // MARK: - Dependencies
 
-    private let navigationManager: any NavigationManaging
     private let itemsRepository: ItemsRepository
 
     // MARK: - State
@@ -21,28 +21,13 @@ public final class MainMenuViewModel {
 
     // MARK: - Initialization
 
-    public init(
-        navigationManager: any NavigationManaging,
-        itemsRepository: ItemsRepository
-    ) {
-        self.navigationManager = navigationManager
+    public init(itemsRepository: ItemsRepository) {
         self.itemsRepository = itemsRepository
 
         // Load items on initialization
         Task {
             await loadItems()
         }
-    }
-
-    // MARK: - Actions
-
-    public func startGameAction() {
-        // TODO: Implement start game navigation
-        print("Start game action")
-    }
-
-    public func battleAction() {
-        navigationManager.push(AppRoute.battleSetup)
     }
 
     // MARK: - Private Methods

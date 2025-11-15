@@ -8,7 +8,7 @@
 import Foundation
 
 /// Service for validating and resolving weapon/shield combinations
-public protocol WeaponValidator {
+public protocol WeaponValidator: Sendable {
 
     /// Validates item selection and resolves conflicts with currently equipped items
     /// - Parameters:

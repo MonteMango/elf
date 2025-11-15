@@ -129,3 +129,6 @@ public final class ElfAttributeService: AttributeService {
         return updatedAttributes
     }
 }
+
+// MARK: - Sendable Conformance
+extension ElfAttributeService: @unchecked Sendable {}

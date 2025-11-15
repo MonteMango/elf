@@ -8,7 +8,7 @@
 import Combine
 import Foundation
 
-public protocol ItemsRepository {
+public protocol ItemsRepository: Sendable {
     
     var heroItems: HeroItems? { get }
     var heroItemsPublisher: AnyPublisher<HeroItems?, Never> { get }

@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "elf_iOS",
     platforms: [
-            .iOS(.v17)
+            .iOS(.v18)
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -15,7 +15,7 @@ let package = Package(
             targets: ["elf_iOS"]),
     ],
     dependencies: [
-        .package(path: "../elf_UIKit"),
+        .package(path: "../elf_SwiftUI"),
         .package(path: "../elf_Kit")
     ],
     targets: [
@@ -23,6 +23,6 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "elf_iOS",
-            dependencies: ["elf_UIKit", "elf_Kit"]),
+            dependencies: ["elf_SwiftUI", "elf_Kit"]),
     ]
 )

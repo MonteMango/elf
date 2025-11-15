@@ -25,3 +25,6 @@ public final class ElfDamageService: DamageService {
         return (minDmg: minDmg, maxDmg: maxDmg)
     }
 }
+
+// MARK: - Sendable Conformance
+extension ElfDamageService: @unchecked Sendable {}

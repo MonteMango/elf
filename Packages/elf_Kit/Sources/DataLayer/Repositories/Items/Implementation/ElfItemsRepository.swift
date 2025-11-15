@@ -63,5 +63,7 @@ public final class ElfItemsRepository: ItemsRepository {
     public func getHeroItem(_ id: UUID) async -> Item? {
         return heroItemLookup[id]
     }
-    
 }
+
+// MARK: - Sendable Conformance
+extension ElfItemsRepository: @unchecked Sendable {}

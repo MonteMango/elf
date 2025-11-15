@@ -235,3 +235,6 @@ public final class ElfWeaponValidator: WeaponValidator {
         return updatedItems
     }
 }
+
+// MARK: - Sendable Conformance
+extension ElfWeaponValidator: @unchecked Sendable {}
