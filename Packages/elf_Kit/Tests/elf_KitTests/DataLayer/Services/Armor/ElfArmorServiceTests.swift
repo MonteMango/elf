@@ -62,9 +62,9 @@ final class ElfArmorServiceTests: XCTestCase {
     // MARK: - Фейковый репозиторий
 
     final class FakeItemsRepository: ItemsRepository {
-        var items: [UUID: Item] = [:]
-        
-        var heroItems: HeroItems? = nil
+        nonisolated(unsafe) var items: [UUID: Item] = [:]
+
+        nonisolated(unsafe) var heroItems: HeroItems? = nil
         var heroItemsPublisher: AnyPublisher<HeroItems?, Never> {
             Just(heroItems).eraseToAnyPublisher()
         }

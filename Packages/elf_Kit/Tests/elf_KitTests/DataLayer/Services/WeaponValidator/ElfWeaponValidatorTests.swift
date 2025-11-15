@@ -58,9 +58,9 @@ final class ElfWeaponValidatorTests: XCTestCase {
     // MARK: - Fake Repository
 
     final class FakeItemsRepository: ItemsRepository {
-        var items: [UUID: Item] = [:]
+        nonisolated(unsafe) var items: [UUID: Item] = [:]
 
-        var heroItems: HeroItems? = nil
+        nonisolated(unsafe) var heroItems: HeroItems? = nil
         var heroItemsPublisher: AnyPublisher<HeroItems?, Never> {
             Just(heroItems).eraseToAnyPublisher()
         }
