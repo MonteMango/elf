@@ -116,7 +116,7 @@ internal struct BattleSetupScreen: View {
                     attributes: viewModel.playerTotalAttributes,
                     fightStyleAttrs: viewModel.playerFightStyleAttributes,
                     levelAttrs: viewModel.playerLevelRandomAttributes,
-                    itemsAttrs: nil,  // TODO: implement items later
+                    itemsAttrs: viewModel.playerItemsAttributes,
                     damageRange: nil   // TODO: implement damage calculation later
                 )
             }
@@ -151,7 +151,7 @@ internal struct BattleSetupScreen: View {
                     attributes: viewModel.botTotalAttributes,
                     fightStyleAttrs: viewModel.botFightStyleAttributes,
                     levelAttrs: viewModel.botLevelRandomAttributes,
-                    itemsAttrs: nil,  // TODO: implement items later
+                    itemsAttrs: viewModel.botItemsAttributes,
                     damageRange: nil   // TODO: implement damage calculation later
                 )
 

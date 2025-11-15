@@ -33,9 +33,13 @@ public final class NewBattleSetupViewModel {
     
     public var playerFightStyleAttributes: HeroAttributes?
     public var playerLevelRandomAttributes: HeroAttributes?
+    public var playerItemsAttributes: HeroAttributes?
 
     public var playerSelectedItems: [HeroItemType: UUID?] = [:] {
-        didSet { checkPlayerTwoHandedWeapon() }
+        didSet {
+            checkPlayerTwoHandedWeapon()
+            schedulePlayerItemsAttributesUpdate()
+        }
     }
 
     public var playerTwoHandedWeaponId: UUID?
@@ -51,9 +55,13 @@ public final class NewBattleSetupViewModel {
     
     public var botFightStyleAttributes: HeroAttributes?
     public var botLevelRandomAttributes: HeroAttributes?
+    public var botItemsAttributes: HeroAttributes?
 
     public var botSelectedItems: [HeroItemType: UUID?] = [:] {
-        didSet { checkBotTwoHandedWeapon() }
+        didSet {
+            checkBotTwoHandedWeapon()
+            scheduleBotItemsAttributesUpdate()
+        }
     }
 
     public var botTwoHandedWeaponId: UUID?
@@ -66,13 +74,15 @@ public final class NewBattleSetupViewModel {
             return nil
         }
 
+        let items = playerItemsAttributes ?? HeroAttributes()
+
         return HeroAttributes(
-            hitPoints: fightStyle.hitPoints + level.hitPoints,
-            manaPoints: fightStyle.manaPoints + level.manaPoints,
-            agility: fightStyle.agility + level.agility,
-            strength: fightStyle.strength + level.strength,
-            power: fightStyle.power + level.power,
-            instinct: fightStyle.instinct + level.instinct
+            hitPoints: fightStyle.hitPoints + level.hitPoints + items.hitPoints,
+            manaPoints: fightStyle.manaPoints + level.manaPoints + items.manaPoints,
+            agility: fightStyle.agility + level.agility + items.agility,
+            strength: fightStyle.strength + level.strength + items.strength,
+            power: fightStyle.power + level.power + items.power,
+            instinct: fightStyle.instinct + level.instinct + items.instinct
         )
     }
 
@@ -82,13 +92,15 @@ public final class NewBattleSetupViewModel {
             return nil
         }
 
+        let items = botItemsAttributes ?? HeroAttributes()
+
         return HeroAttributes(
-            hitPoints: fightStyle.hitPoints + level.hitPoints,
-            manaPoints: fightStyle.manaPoints + level.manaPoints,
-            agility: fightStyle.agility + level.agility,
-            strength: fightStyle.strength + level.strength,
-            power: fightStyle.power + level.power,
-            instinct: fightStyle.instinct + level.instinct
+            hitPoints: fightStyle.hitPoints + level.hitPoints + items.hitPoints,
+            manaPoints: fightStyle.manaPoints + level.manaPoints + items.manaPoints,
+            agility: fightStyle.agility + level.agility + items.agility,
+            strength: fightStyle.strength + level.strength + items.strength,
+            power: fightStyle.power + level.power + items.power,
+            instinct: fightStyle.instinct + level.instinct + items.instinct
         )
     }
 
@@ -98,6 +110,8 @@ public final class NewBattleSetupViewModel {
     private var botUpdateTask: Task<Void, Never>?
     private var playerTwoHandedWeaponTask: Task<Void, Never>?
     private var botTwoHandedWeaponTask: Task<Void, Never>?
+    private var playerItemsAttributesTask: Task<Void, Never>?
+    private var botItemsAttributesTask: Task<Void, Never>?
 
     // MARK: - Initialization
 
@@ -392,6 +406,74 @@ public final class NewBattleSetupViewModel {
 
             // Safe to update
             botTwoHandedWeaponId = weapon.handUse == .both ? weapon.id : nil
+        }
+    }
+
+    // MARK: - Items Attributes Updates
+
+    private func schedulePlayerItemsAttributesUpdate() {
+        // Cancel previous task
+        playerItemsAttributesTask?.cancel()
+
+        // Capture current items for validation
+        let currentItems = playerSelectedItems
+
+        playerItemsAttributesTask = Task { @MainActor in
+            // Check if cancelled during task creation
+            guard !Task.isCancelled else { return }
+
+            // Validate items haven't changed
+            guard playerSelectedItems == currentItems else {
+                return  // Items changed - this task is outdated
+            }
+
+            // Extract non-nil UUIDs from items dictionary
+            let itemIds = currentItems.values.compactMap { $0 }
+
+            // Fetch items attributes
+            let itemsAttrs = await attributeService.getAllItemsAttrbutes(for: itemIds)
+
+            // Final validation before updating
+            guard !Task.isCancelled,
+                  playerSelectedItems == currentItems else {
+                return  // Items changed during fetch
+            }
+
+            // Safe to update
+            playerItemsAttributes = itemsAttrs
+        }
+    }
+
+    private func scheduleBotItemsAttributesUpdate() {
+        // Cancel previous task
+        botItemsAttributesTask?.cancel()
+
+        // Capture current items for validation
+        let currentItems = botSelectedItems
+
+        botItemsAttributesTask = Task { @MainActor in
+            // Check if cancelled during task creation
+            guard !Task.isCancelled else { return }
+
+            // Validate items haven't changed
+            guard botSelectedItems == currentItems else {
+                return  // Items changed - this task is outdated
+            }
+
+            // Extract non-nil UUIDs from items dictionary
+            let itemIds = currentItems.values.compactMap { $0 }
+
+            // Fetch items attributes
+            let itemsAttrs = await attributeService.getAllItemsAttrbutes(for: itemIds)
+
+            // Final validation before updating
+            guard !Task.isCancelled,
+                  botSelectedItems == currentItems else {
+                return  // Items changed during fetch
+            }
+
+            // Safe to update
+            botItemsAttributes = itemsAttrs
         }
     }
 }
