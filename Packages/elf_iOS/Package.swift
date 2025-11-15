@@ -23,6 +23,9 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "elf_iOS",
-            dependencies: ["elf_SwiftUI", "elf_Kit"]),
+            dependencies: ["elf_SwiftUI", "elf_Kit"],
+            swiftSettings: [
+                .enableUpcomingFeature("StrictConcurrency")
+            ]),
     ]
 )
