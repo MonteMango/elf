@@ -14,10 +14,16 @@ internal struct SelectHeroItemScreenContent: View {
     @State private var viewModel: SelectHeroItemViewModel
 
     private let heroItemType: HeroItemType
+    private let onEquip: (UUID?) -> Void
 
-    internal init(viewModel: SelectHeroItemViewModel, heroItemType: HeroItemType) {
+    internal init(
+        viewModel: SelectHeroItemViewModel,
+        heroItemType: HeroItemType,
+        onEquip: @escaping (UUID?) -> Void
+    ) {
         self._viewModel = State(initialValue: viewModel)
         self.heroItemType = heroItemType
+        self.onEquip = onEquip
     }
 
     internal var body: some View {
@@ -70,7 +76,7 @@ internal struct SelectHeroItemScreenContent: View {
         .overlay(alignment: .bottomTrailing) {
             // Equip button
             Button(action: {
-                // TODO: Implement item selection callback to BattleSetupViewModel
+                onEquip(viewModel.selectedItemId)
                 dismiss()
             }) {
                 Text("EQUIP")

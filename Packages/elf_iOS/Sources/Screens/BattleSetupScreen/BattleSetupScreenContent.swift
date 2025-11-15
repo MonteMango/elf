@@ -81,7 +81,14 @@ internal struct BattleSetupScreenContent: View {
             SelectHeroItemScreen(
                 heroType: state.heroType,
                 heroItemType: state.itemType,
-                currentItemId: state.currentItemId
+                currentItemId: state.currentItemId,
+                onEquip: { selectedItemId in
+                    viewModel.equipItem(
+                        for: state.heroType,
+                        itemType: state.itemType,
+                        selectedItemId: selectedItemId
+                    )
+                }
             )
         }
         .interactiveDismissDisabled(true)

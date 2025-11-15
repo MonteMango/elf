@@ -165,9 +165,17 @@ public final class BattleSetupViewModel {
         )
     }
 
+    // MARK: - Public API
+
+    public func equipItem(for heroType: HeroType, itemType: HeroItemType, selectedItemId: UUID?) {
+        updateSelectedItems(for: heroType, itemType: itemType, selectedItemId: selectedItemId)
+    }
+
+    // MARK: - Private Methods
+
     private func updateSelectedItems(for heroType: HeroType, itemType: HeroItemType, selectedItemId: UUID?) {
         if requiresValidation(itemType) {
-            Task { @MainActor in
+            Task {
                 let currentItems = heroType == .player ? self.playerSelectedItems : self.botSelectedItems
                 let validatedItems = await self.weaponValidator.validateAndResolve(
                     selecting: selectedItemId,
@@ -345,6 +353,12 @@ public final class BattleSetupViewModel {
         // Capture current weapon ID for validation
         let currentWeaponId = playerSelectedItems[.weapons] ?? nil
 
+        // Immediately clear if no weapon selected
+        guard let weaponId = currentWeaponId else {
+            playerTwoHandedWeaponId = nil
+            return
+        }
+
         playerTwoHandedWeaponTask = Task { @MainActor in
             // Check if cancelled during task creation
             guard !Task.isCancelled else { return }
@@ -355,8 +369,7 @@ public final class BattleSetupViewModel {
             }
 
             // Get weapon item
-            guard let weaponId = currentWeaponId,
-                  let item = await itemsRepository.getHeroItem(weaponId),
+            guard let item = await itemsRepository.getHeroItem(weaponId),
                   let weapon = item as? WeaponItem else {
                 // No weapon or not a weapon item
                 playerTwoHandedWeaponId = nil
@@ -381,6 +394,12 @@ public final class BattleSetupViewModel {
         // Capture current weapon ID for validation
         let currentWeaponId = botSelectedItems[.weapons] ?? nil
 
+        // Immediately clear if no weapon selected
+        guard let weaponId = currentWeaponId else {
+            botTwoHandedWeaponId = nil
+            return
+        }
+
         botTwoHandedWeaponTask = Task { @MainActor in
             // Check if cancelled during task creation
             guard !Task.isCancelled else { return }
@@ -391,8 +410,7 @@ public final class BattleSetupViewModel {
             }
 
             // Get weapon item
-            guard let weaponId = currentWeaponId,
-                  let item = await itemsRepository.getHeroItem(weaponId),
+            guard let item = await itemsRepository.getHeroItem(weaponId),
                   let weapon = item as? WeaponItem else {
                 // No weapon or not a weapon item
                 botTwoHandedWeaponId = nil

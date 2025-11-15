@@ -15,11 +15,18 @@ internal struct SelectHeroItemScreen: View {
     private let heroType: HeroType
     private let heroItemType: HeroItemType
     private let currentItemId: UUID?
+    private let onEquip: (UUID?) -> Void
 
-    internal init(heroType: HeroType, heroItemType: HeroItemType, currentItemId: UUID?) {
+    internal init(
+        heroType: HeroType,
+        heroItemType: HeroItemType,
+        currentItemId: UUID?,
+        onEquip: @escaping (UUID?) -> Void
+    ) {
         self.heroType = heroType
         self.heroItemType = heroItemType
         self.currentItemId = currentItemId
+        self.onEquip = onEquip
     }
 
     internal var body: some View {
@@ -29,7 +36,8 @@ internal struct SelectHeroItemScreen: View {
                 heroItemType: heroItemType,
                 currentItemId: currentItemId
             ),
-            heroItemType: heroItemType
+            heroItemType: heroItemType,
+            onEquip: onEquip
         )
     }
 }
