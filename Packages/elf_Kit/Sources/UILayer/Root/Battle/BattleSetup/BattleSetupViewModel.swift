@@ -51,12 +51,15 @@ public final class BattleSetupViewModel {
     public var playerLevelRandomAttributes: HeroAttributes?
     public var playerItemsAttributes: HeroAttributes?
     public var playerArmorValues: [BodyPart: Int16] = [:]
+    public var playerLeftHandDamage: (minDmg: Int16, maxDmg: Int16)?
+    public var playerRightHandDamage: (minDmg: Int16, maxDmg: Int16)?
 
     public var playerSelectedItems: [HeroItemType: UUID?] = [:] {
         didSet {
             checkPlayerTwoHandedWeapon()
             schedulePlayerItemsAttributesUpdate()
             schedulePlayerArmorUpdate()
+            schedulePlayerDamageUpdate()
         }
     }
 
@@ -75,12 +78,15 @@ public final class BattleSetupViewModel {
     public var botLevelRandomAttributes: HeroAttributes?
     public var botItemsAttributes: HeroAttributes?
     public var botArmorValues: [BodyPart: Int16] = [:]
+    public var botLeftHandDamage: (minDmg: Int16, maxDmg: Int16)?
+    public var botRightHandDamage: (minDmg: Int16, maxDmg: Int16)?
 
     public var botSelectedItems: [HeroItemType: UUID?] = [:] {
         didSet {
             checkBotTwoHandedWeapon()
             scheduleBotItemsAttributesUpdate()
             scheduleBotArmorUpdate()
+            scheduleBotDamageUpdate()
         }
     }
 
@@ -134,6 +140,8 @@ public final class BattleSetupViewModel {
     private var botItemsAttributesTask: Task<Void, Never>?
     private var playerArmorTask: Task<Void, Never>?
     private var botArmorTask: Task<Void, Never>?
+    private var playerDamageTask: Task<Void, Never>?
+    private var botDamageTask: Task<Void, Never>?
 
     // MARK: - Initialization
 
@@ -567,6 +575,116 @@ public final class BattleSetupViewModel {
 
             // Safe to update
             botArmorValues = armorValues
+        }
+    }
+
+    // MARK: - Damage Updates
+
+    private func schedulePlayerDamageUpdate() {
+        // Cancel previous task
+        playerDamageTask?.cancel()
+
+        // Capture current items for validation
+        let currentItems = playerSelectedItems
+
+        playerDamageTask = Task { @MainActor in
+            // Check if cancelled during task creation
+            guard !Task.isCancelled else { return }
+
+            // Validate items haven't changed
+            guard playerSelectedItems == currentItems else {
+                return  // Items changed - this task is outdated
+            }
+
+            // Get weapon IDs
+            let primaryWeaponId = currentItems[.weapons] ?? nil
+            let secondaryWeaponId = currentItems[.shields] ?? nil
+
+            // Calculate damage for each hand
+            let rightHandDamage: (minDmg: Int16, maxDmg: Int16)?
+            let leftHandDamage: (minDmg: Int16, maxDmg: Int16)?
+
+            // Check if primary weapon is two-handed
+            var isTwoHanded = false
+            if let weaponId = primaryWeaponId,
+               let item = await itemsRepository.getHeroItem(weaponId),
+               let weapon = item as? WeaponItem {
+                isTwoHanded = weapon.handUse == .both
+            }
+
+            if isTwoHanded {
+                // Two-handed weapon: damage only in right hand, left hand is 0-0
+                rightHandDamage = await damageService.getWeaponDamage(weaponId: primaryWeaponId)
+                leftHandDamage = (minDmg: 0, maxDmg: 0)
+            } else {
+                // Single weapons: calculate separately for each hand
+                rightHandDamage = await damageService.getWeaponDamage(weaponId: primaryWeaponId)
+                leftHandDamage = await damageService.getWeaponDamage(weaponId: secondaryWeaponId)
+            }
+
+            // Final validation before updating
+            guard !Task.isCancelled,
+                  playerSelectedItems == currentItems else {
+                return  // Items changed during fetch
+            }
+
+            // Safe to update
+            playerRightHandDamage = rightHandDamage
+            playerLeftHandDamage = leftHandDamage
+        }
+    }
+
+    private func scheduleBotDamageUpdate() {
+        // Cancel previous task
+        botDamageTask?.cancel()
+
+        // Capture current items for validation
+        let currentItems = botSelectedItems
+
+        botDamageTask = Task { @MainActor in
+            // Check if cancelled during task creation
+            guard !Task.isCancelled else { return }
+
+            // Validate items haven't changed
+            guard botSelectedItems == currentItems else {
+                return  // Items changed - this task is outdated
+            }
+
+            // Get weapon IDs
+            let primaryWeaponId = currentItems[.weapons] ?? nil
+            let secondaryWeaponId = currentItems[.shields] ?? nil
+
+            // Calculate damage for each hand
+            let rightHandDamage: (minDmg: Int16, maxDmg: Int16)?
+            let leftHandDamage: (minDmg: Int16, maxDmg: Int16)?
+
+            // Check if primary weapon is two-handed
+            var isTwoHanded = false
+            if let weaponId = primaryWeaponId,
+               let item = await itemsRepository.getHeroItem(weaponId),
+               let weapon = item as? WeaponItem {
+                isTwoHanded = weapon.handUse == .both
+            }
+
+            if isTwoHanded {
+                // Two-handed weapon: damage only in right hand, left hand is 0-0
+                rightHandDamage = await damageService.getWeaponDamage(weaponId: primaryWeaponId)
+                leftHandDamage = (minDmg: 0, maxDmg: 0)
+            } else {
+                // Single weapons: calculate separately for each hand
+                rightHandDamage = await damageService.getWeaponDamage(weaponId: primaryWeaponId)
+                leftHandDamage = await damageService.getWeaponDamage(weaponId: secondaryWeaponId)
+            }
+
+            // Final validation before updating
+            guard !Task.isCancelled,
+                  botSelectedItems == currentItems else {
+                return  // Items changed during fetch
+            }
+
+            // Safe to update
+            botRightHandDamage = rightHandDamage
+            botLeftHandDamage = leftHandDamage
         }
     }
 }

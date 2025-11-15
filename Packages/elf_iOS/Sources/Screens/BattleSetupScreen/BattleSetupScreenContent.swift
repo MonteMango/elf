@@ -22,7 +22,7 @@ internal struct BattleSetupScreenContent: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            VStack(spacing: 30) {
+            VStack(spacing: 20) {
                 // Player and Bot panels
                 HStack(alignment: .top, spacing: 0) {
                     // Player panel (left)
@@ -69,10 +69,12 @@ internal struct BattleSetupScreenContent: View {
                     }
                 }
                 .padding(.horizontal)
-                .padding(.bottom, 30)
             }
-            .padding(.top, 60)
+            .padding(.top)
+            .padding(.bottom)
         }
+        .safeAreaInset(edge: .top) { Color.clear.frame(height: 0) }
+        .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 0) }
         .sheet(item: $viewModel.presentedItemSelector) { state in
             SelectHeroItemScreen(
                 heroType: state.heroType,
@@ -129,7 +131,8 @@ internal struct BattleSetupScreenContent: View {
                     fightStyleAttrs: viewModel.playerFightStyleAttributes,
                     levelAttrs: viewModel.playerLevelRandomAttributes,
                     itemsAttrs: viewModel.playerItemsAttributes,
-                    damageRange: nil   // TODO: implement damage calculation later
+                    leftHandDamage: viewModel.playerLeftHandDamage,
+                    rightHandDamage: viewModel.playerRightHandDamage
                 )
             }
         }
@@ -164,7 +167,8 @@ internal struct BattleSetupScreenContent: View {
                     fightStyleAttrs: viewModel.botFightStyleAttributes,
                     levelAttrs: viewModel.botLevelRandomAttributes,
                     itemsAttrs: viewModel.botItemsAttributes,
-                    damageRange: nil   // TODO: implement damage calculation later
+                    leftHandDamage: viewModel.botLeftHandDamage,
+                    rightHandDamage: viewModel.botRightHandDamage
                 )
 
                 // Items Grid (bound to ViewModel)

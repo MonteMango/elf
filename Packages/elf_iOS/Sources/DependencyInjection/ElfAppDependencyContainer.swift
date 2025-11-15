@@ -27,7 +27,7 @@ public final class ElfAppDependencyContainer {
         self.itemsRepository = ElfItemsRepository(dataLoader: self.dataLoader)
         self.attributeService = ElfAttributeService(itemsRepository: self.itemsRepository)
         self.armorService = ElfArmorService(itemsRepository: self.itemsRepository)
-        self.damageService = ElfDamageService()
+        self.damageService = ElfDamageService(itemsRepository: self.itemsRepository)
         self.weaponValidator = ElfWeaponValidator(itemsRepository: self.itemsRepository)
     }
 

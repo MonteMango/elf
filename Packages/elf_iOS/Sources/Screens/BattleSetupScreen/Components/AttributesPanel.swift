@@ -19,7 +19,8 @@ struct AttributesPanel: View {
     let fightStyleAttrs: HeroAttributes?
     let levelAttrs: HeroAttributes?
     let itemsAttrs: HeroAttributes?
-    let damageRange: (minDmg: Int16, maxDmg: Int16)?
+    let leftHandDamage: (minDmg: Int16, maxDmg: Int16)?
+    let rightHandDamage: (minDmg: Int16, maxDmg: Int16)?
 
     // MARK: - Body
 
@@ -66,54 +67,48 @@ struct AttributesPanel: View {
                 )
             )
 
-            Spacer()
-                .frame(height: BattleSetupConstants.Spacing.sectionVerticalSpacing)
-
             // Group 2: Attack attributes
-            if let damageRange = damageRange {
-                HStack(spacing: 8) {
-                    if alignment == .leading {
-                        Text("Att 1")
-                            .font(BattleSetupConstants.Fonts.labelFont)
-                            .foregroundColor(.white)
-                        Spacer()
-                        Text("\(damageRange.minDmg)-\(damageRange.maxDmg)")
-                            .font(BattleSetupConstants.Fonts.attributeTotal)
-                            .foregroundColor(BattleSetupConstants.Colors.attributeTotalText)
-                    } else {
-                        Text("\(damageRange.minDmg)-\(damageRange.maxDmg)")
-                            .font(BattleSetupConstants.Fonts.attributeTotal)
-                            .foregroundColor(BattleSetupConstants.Colors.attributeTotalText)
-                        Spacer()
-                        Text("Att 1")
-                            .font(BattleSetupConstants.Fonts.labelFont)
-                            .foregroundColor(.white)
-                    }
-                }
-
-                HStack(spacing: 8) {
-                    if alignment == .leading {
-                        Text("Att 2")
-                            .font(BattleSetupConstants.Fonts.labelFont)
-                            .foregroundColor(.white)
-                        Spacer()
-                        Text("0-0")
-                            .font(BattleSetupConstants.Fonts.attributeTotal)
-                            .foregroundColor(BattleSetupConstants.Colors.attributeTotalText)
-                    } else {
-                        Text("0-0")
-                            .font(BattleSetupConstants.Fonts.attributeTotal)
-                            .foregroundColor(BattleSetupConstants.Colors.attributeTotalText)
-                        Spacer()
-                        Text("Att 2")
-                            .font(BattleSetupConstants.Fonts.labelFont)
-                            .foregroundColor(.white)
-                    }
+            // Att 1 - Right hand
+            HStack(spacing: 8) {
+                if alignment == .leading {
+                    Text("Att 1")
+                        .font(BattleSetupConstants.Fonts.labelFont)
+                        .foregroundColor(.white)
+                    Spacer()
+                    Text("\(rightHandDamage?.minDmg ?? 0)-\(rightHandDamage?.maxDmg ?? 0)")
+                        .font(BattleSetupConstants.Fonts.attributeTotal)
+                        .foregroundColor(BattleSetupConstants.Colors.attributeTotalText)
+                } else {
+                    Text("\(rightHandDamage?.minDmg ?? 0)-\(rightHandDamage?.maxDmg ?? 0)")
+                        .font(BattleSetupConstants.Fonts.attributeTotal)
+                        .foregroundColor(BattleSetupConstants.Colors.attributeTotalText)
+                    Spacer()
+                    Text("Att 1")
+                        .font(BattleSetupConstants.Fonts.labelFont)
+                        .foregroundColor(.white)
                 }
             }
 
-            Spacer()
-                .frame(height: BattleSetupConstants.Spacing.sectionVerticalSpacing)
+            // Att 2 - Left hand
+            HStack(spacing: 8) {
+                if alignment == .leading {
+                    Text("Att 2")
+                        .font(BattleSetupConstants.Fonts.labelFont)
+                        .foregroundColor(.white)
+                    Spacer()
+                    Text("\(leftHandDamage?.minDmg ?? 0)-\(leftHandDamage?.maxDmg ?? 0)")
+                        .font(BattleSetupConstants.Fonts.attributeTotal)
+                        .foregroundColor(BattleSetupConstants.Colors.attributeTotalText)
+                } else {
+                    Text("\(leftHandDamage?.minDmg ?? 0)-\(leftHandDamage?.maxDmg ?? 0)")
+                        .font(BattleSetupConstants.Fonts.attributeTotal)
+                        .foregroundColor(BattleSetupConstants.Colors.attributeTotalText)
+                    Spacer()
+                    Text("Att 2")
+                        .font(BattleSetupConstants.Fonts.labelFont)
+                        .foregroundColor(.white)
+                }
+            }
 
             // Group 3: Resource attributes
             attributeRow(
@@ -207,7 +202,8 @@ struct AttributesPanel_Previews: PreviewProvider {
                         fightStyleAttrs: mockFightStyle,
                         levelAttrs: mockLevel,
                         itemsAttrs: mockItems,
-                        damageRange: (minDmg: 15, maxDmg: 30)
+                        leftHandDamage: (minDmg: 5, maxDmg: 12),
+                        rightHandDamage: (minDmg: 15, maxDmg: 30)
                     )
                 }
                 .padding()
@@ -226,7 +222,8 @@ struct AttributesPanel_Previews: PreviewProvider {
                         fightStyleAttrs: mockFightStyle,
                         levelAttrs: mockLevel,
                         itemsAttrs: mockItems,
-                        damageRange: (minDmg: 12, maxDmg: 25)
+                        leftHandDamage: (minDmg: 8, maxDmg: 18),
+                        rightHandDamage: (minDmg: 12, maxDmg: 25)
                     )
                 }
                 .padding()
