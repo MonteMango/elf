@@ -19,6 +19,7 @@ public final class ElfAppDependencyContainer {
     public let armorService: ArmorService
     public let damageService: DamageService
     public let weaponValidator: WeaponValidator
+    public let elfHeroBuilder: ElfHeroBuilder
 
     // MARK: - Initialization
 
@@ -29,6 +30,7 @@ public final class ElfAppDependencyContainer {
         self.armorService = ElfArmorService(itemsRepository: self.itemsRepository)
         self.damageService = ElfDamageService(itemsRepository: self.itemsRepository)
         self.weaponValidator = ElfWeaponValidator(itemsRepository: self.itemsRepository)
+        self.elfHeroBuilder = ElfElfHeroBuilder(itemsRepository: self.itemsRepository)
     }
 
     // MARK: - ViewModel Factories
@@ -40,18 +42,13 @@ public final class ElfAppDependencyContainer {
             attributeService: self.attributeService,
             armorService: self.armorService,
             damageService: self.damageService,
-            weaponValidator: self.weaponValidator
+            weaponValidator: self.weaponValidator,
+            elfHeroBuilder: self.elfHeroBuilder
         )
     }
 
-    public func makeBattleFightViewModel(
-        userHeroConfiguration: HeroConfiguration,
-        enemyHeroConfiguration: HeroConfiguration
-    ) -> BattleFightViewModel {
-        return BattleFightViewModel(
-            userHeroConfiguration: userHeroConfiguration,
-            enemyHeroConfiguration: enemyHeroConfiguration
-        )
+    public func makeBattleFightViewModel(battle: Battle) -> BattleFightViewModel {
+        return BattleFightViewModel(battle: battle)
     }
 
     @MainActor

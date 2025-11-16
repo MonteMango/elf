@@ -11,20 +11,11 @@ import SwiftUI
 internal struct BattleFightScreen: View {
     @Environment(ElfAppDependencyContainer.self) private var container
 
-    private let userConfiguration: HeroConfiguration
-    private let enemyConfiguration: HeroConfiguration
-
-    internal init(userConfiguration: HeroConfiguration, enemyConfiguration: HeroConfiguration) {
-        self.userConfiguration = userConfiguration
-        self.enemyConfiguration = enemyConfiguration
-    }
+    let battle: Battle
 
     internal var body: some View {
         BattleFightScreenContent(
-            viewModel: container.makeBattleFightViewModel(
-                userHeroConfiguration: userConfiguration,
-                enemyHeroConfiguration: enemyConfiguration
-            )
+            viewModel: container.makeBattleFightViewModel(battle: battle)
         )
     }
 }

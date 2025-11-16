@@ -12,18 +12,13 @@ public final class BattleFightViewModel {
 
     // MARK: - State
 
-    public let userHeroConfiguration: HeroConfiguration
-    public let enemyHeroConfiguration: HeroConfiguration
+    public var battle: Battle
     public var battleEnded: Bool = false
 
     // MARK: - Initialization
 
-    public init(
-        userHeroConfiguration: HeroConfiguration,
-        enemyHeroConfiguration: HeroConfiguration
-    ) {
-        self.userHeroConfiguration = userHeroConfiguration
-        self.enemyHeroConfiguration = enemyHeroConfiguration
+    public init(battle: Battle) {
+        self.battle = battle
     }
 
     // MARK: - Actions

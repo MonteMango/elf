@@ -57,8 +57,14 @@ internal struct BattleSetupScreenContent: View {
                         Spacer()
                     }
 
-                    // Battle button (centered) - TODO: add validation
-                    NavigationLink(value: AppRoute.battleFight(user: HeroConfiguration(), enemy: HeroConfiguration())) {
+                    // Battle button (centered)
+                    Button(action: {
+                        Task {
+                            if let battle = await viewModel.startBattle() {
+                                router.navigationPath.append(AppRoute.battleFight(battle))
+                            }
+                        }
+                    }) {
                         Text("BATTLE")
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.white)

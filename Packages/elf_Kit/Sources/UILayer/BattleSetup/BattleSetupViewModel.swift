@@ -33,6 +33,7 @@ public final class BattleSetupViewModel {
     private let armorService: ArmorService
     private let damageService: DamageService
     private let weaponValidator: WeaponValidator
+    private let elfHeroBuilder: ElfHeroBuilder
 
     // MARK: - State
 
@@ -150,13 +151,15 @@ public final class BattleSetupViewModel {
         attributeService: AttributeService,
         armorService: ArmorService,
         damageService: DamageService,
-        weaponValidator: WeaponValidator
+        weaponValidator: WeaponValidator,
+        elfHeroBuilder: ElfHeroBuilder
     ) {
         self.itemsRepository = itemsRepository
         self.attributeService = attributeService
         self.armorService = armorService
         self.damageService = damageService
         self.weaponValidator = weaponValidator
+        self.elfHeroBuilder = elfHeroBuilder
     }
 
     // MARK: - Actions
@@ -686,5 +689,49 @@ public final class BattleSetupViewModel {
             botRightHandDamage = rightHandDamage
             botLeftHandDamage = leftHandDamage
         }
+    }
+
+    // MARK: - Battle Creation
+
+    /// Create a Battle instance from current player and bot configurations
+    /// - Returns: Battle instance or nil if validation fails
+    public func startBattle() async -> Battle? {
+        // Validate player configuration
+        guard let playerFightStyleAttrs = playerFightStyleAttributes,
+              let playerLevelAttrs = playerLevelRandomAttributes else {
+            return nil
+        }
+
+        // Validate bot configuration
+        guard let botFightStyleAttrs = botFightStyleAttributes,
+              let botLevelAttrs = botLevelRandomAttributes else {
+            return nil
+        }
+
+        // Build ElfHero for player
+        guard let playerHero = await elfHeroBuilder.buildElfHero(
+            level: playerLevel,
+            fightStyleAttributes: playerFightStyleAttrs,
+            randomLevelAttributes: playerLevelAttrs,
+            selectedItems: playerSelectedItems
+        ) else {
+            return nil
+        }
+
+        // Build ElfHero for bot
+        guard let botHero = await elfHeroBuilder.buildElfHero(
+            level: botLevel,
+            fightStyleAttributes: botFightStyleAttrs,
+            randomLevelAttributes: botLevelAttrs,
+            selectedItems: botSelectedItems
+        ) else {
+            return nil
+        }
+
+        // Create and return Battle
+        return Battle(
+            leftTeam: [playerHero],
+            rightTeam: [botHero]
+        )
     }
 }

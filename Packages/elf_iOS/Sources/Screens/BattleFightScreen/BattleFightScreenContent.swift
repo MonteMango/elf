@@ -19,8 +19,6 @@ internal struct BattleFightScreenContent: View {
     internal var body: some View {
         VStack(spacing: 30) {
             Text("BattleFightScreen")
-            Text("User: \(viewModel.userHeroConfiguration.level)")
-            Text("Enemy: \(viewModel.enemyHeroConfiguration.level)")
         }
         .onChange(of: viewModel.battleEnded) { _, ended in
             if ended {
