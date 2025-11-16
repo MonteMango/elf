@@ -15,10 +15,238 @@ public final class BattleFightViewModel {
     public var battle: Battle
     public var battleEnded: Bool = false
 
+    // MARK: - Round State
+
+    public var currentRoundNumber: Int {
+        return battle.currentRound
+    }
+
+    // MARK: - Player State (Left Team - First Hero)
+
+    public var playerHero: ElfHero {
+        return battle.leftTeam[0]
+    }
+
+    public var playerCurrentHP: Int
+    public var playerMaxHP: Int
+
+    public var playerAttackPoints: Set<BodyPart> = []
+    public var playerDefensePoints: Set<BodyPart> = []
+
+    // MARK: - Bot State (Right Team - First Hero)
+
+    public var botHero: ElfHero {
+        return battle.rightTeam[0]
+    }
+
+    public var botCurrentHP: Int
+    public var botMaxHP: Int
+
+    public var botAttackPoints: Set<BodyPart> = []
+    public var botDefensePoints: Set<BodyPart> = []
+
+    // MARK: - Round Results
+
+    public var playerLastRoundResults: [BodyPart: PointStatus] = [:]
+    public var botLastRoundResults: [BodyPart: PointStatus] = [:]
+
     // MARK: - Initialization
 
     public init(battle: Battle) {
         self.battle = battle
+
+        // Initialize HP values from heroes
+        let player = battle.leftTeam[0]
+        let bot = battle.rightTeam[0]
+
+        let playerMaxHPValue = Int(player.fightStyleAttributes.hitPoints + player.randomLevelAttributes.hitPoints)
+        let botMaxHPValue = Int(bot.fightStyleAttributes.hitPoints + bot.randomLevelAttributes.hitPoints)
+
+        self.playerMaxHP = playerMaxHPValue
+        self.playerCurrentHP = playerMaxHPValue
+
+        self.botMaxHP = botMaxHPValue
+        self.botCurrentHP = botMaxHPValue
+    }
+
+    // MARK: - Player Actions
+
+    public func togglePlayerAttackPoint(_ bodyPart: BodyPart) {
+        let maxAttackPoints = playerHero.atackPointsAmount
+
+        if playerAttackPoints.contains(bodyPart) {
+            // Deselect
+            playerAttackPoints.remove(bodyPart)
+        } else {
+            // Select if not at limit
+            if playerAttackPoints.count < maxAttackPoints {
+                playerAttackPoints.insert(bodyPart)
+            }
+        }
+    }
+
+    public func togglePlayerDefensePoint(_ bodyPart: BodyPart) {
+        let maxDefensePoints = playerHero.defensePointsAmount
+
+        if playerDefensePoints.contains(bodyPart) {
+            // Deselect
+            playerDefensePoints.remove(bodyPart)
+        } else {
+            // Select if not at limit
+            if playerDefensePoints.count < maxDefensePoints {
+                playerDefensePoints.insert(bodyPart)
+            }
+        }
+    }
+
+    // MARK: - Round Execution
+
+    public func executeFightRound() {
+        // Validate player selections
+        guard playerAttackPoints.count == playerHero.atackPointsAmount else {
+            return
+        }
+        guard playerDefensePoints.count == playerHero.defensePointsAmount else {
+            return
+        }
+
+        // Generate random bot selections
+        generateBotActions()
+
+        // Calculate round results (MVP: simplified without actual damage calculation)
+        let playerResults = calculatePointStatus(
+            attackingPoints: botAttackPoints,
+            defendingPoints: playerDefensePoints
+        )
+
+        let botResults = calculatePointStatus(
+            attackingPoints: playerAttackPoints,
+            defendingPoints: botDefensePoints
+        )
+
+        // Store results
+        playerLastRoundResults = playerResults
+        botLastRoundResults = botResults
+
+        // Calculate damage (MVP: simplified)
+        let playerDamage = calculateTotalDamage(from: playerResults)
+        let botDamage = calculateTotalDamage(from: botResults)
+
+        // Update HP
+        playerCurrentHP = max(0, playerCurrentHP - playerDamage)
+        botCurrentHP = max(0, botCurrentHP - botDamage)
+
+        // Create round log entry
+        let roundLog = RoundLog(
+            roundNumber: currentRoundNumber,
+            action: [
+                playerHero: BattleRoundAction(
+                    attackPoints: Array(playerAttackPoints),
+                    defensePoints: Array(playerDefensePoints)
+                ),
+                botHero: BattleRoundAction(
+                    attackPoints: Array(botAttackPoints),
+                    defensePoints: Array(botDefensePoints)
+                )
+            ],
+            duels: [(playerHero, botHero)],
+            calculatedPreResults: [:], // MVP: empty
+            results: [
+                playerHero: BattleRoundResult(
+                    pointStatus: playerResults,
+                    oldHP: playerCurrentHP + playerDamage
+                ),
+                botHero: BattleRoundResult(
+                    pointStatus: botResults,
+                    oldHP: botCurrentHP + botDamage
+                )
+            ]
+        )
+
+        // Add to battle log
+        battle.roundLog.append(roundLog)
+
+        // Clear selections for next round
+        playerAttackPoints.removeAll()
+        playerDefensePoints.removeAll()
+        botAttackPoints.removeAll()
+        botDefensePoints.removeAll()
+
+        // Check if battle ended
+        if playerCurrentHP <= 0 || botCurrentHP <= 0 {
+            battleEnded = true
+        }
+    }
+
+    // MARK: - Private Helper Methods
+
+    private func generateBotActions() {
+        // MVP: Random selection for bot
+        let allBodyParts: [BodyPart] = [.head, .body, .leftHand, .rightHand, .legs]
+
+        // Random attack points
+        let maxAttackPoints = botHero.atackPointsAmount
+        botAttackPoints = Set(allBodyParts.shuffled().prefix(maxAttackPoints))
+
+        // Random defense points
+        let maxDefensePoints = botHero.defensePointsAmount
+        botDefensePoints = Set(allBodyParts.shuffled().prefix(maxDefensePoints))
+    }
+
+    private func calculatePointStatus(
+        attackingPoints: Set<BodyPart>,
+        defendingPoints: Set<BodyPart>
+    ) -> [BodyPart: PointStatus] {
+        var results: [BodyPart: PointStatus] = [:]
+
+        let allBodyParts: [BodyPart] = [.head, .body, .leftHand, .rightHand, .legs]
+
+        for bodyPart in allBodyParts {
+            let isAttacked = attackingPoints.contains(bodyPart)
+            let isDefended = defendingPoints.contains(bodyPart)
+
+            if isAttacked && isDefended {
+                results[bodyPart] = .blocked
+            } else if isAttacked && !isDefended {
+                // MVP: simplified damage (10 per hit, no weapon/armor calculation)
+                results[bodyPart] = .hit(damage: 10)
+            } else if !isAttacked && isDefended {
+                results[bodyPart] = .nothing
+            } else {
+                results[bodyPart] = .nothing
+            }
+        }
+
+        return results
+    }
+
+    private func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) -> Int {
+        var totalDamage = 0
+
+        for (_, status) in pointStatus {
+            switch status {
+            case .hit(let damage), .critHit(let damage):
+                totalDamage += damage
+            case .blocked, .dodged, .nothing:
+                break
+            }
+        }
+
+        return totalDamage
+    }
+
+    // MARK: - Public Helper Methods
+
+    public func getWinner() -> String? {
+        guard battleEnded else { return nil }
+
+        if playerCurrentHP > 0 {
+            return "Player"
+        } else if botCurrentHP > 0 {
+            return "Bot"
+        } else {
+            return "Draw"
+        }
     }
 
     // MARK: - Actions
