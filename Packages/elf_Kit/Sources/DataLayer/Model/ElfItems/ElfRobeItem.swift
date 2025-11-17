@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class ElfRobeItem: ElfItem, Hashable, Equatable {
+public final class ElfRobeItem: ElfItem, Hashable, Equatable, @unchecked Sendable {
     public let id: UUID
     public let item: Item
 

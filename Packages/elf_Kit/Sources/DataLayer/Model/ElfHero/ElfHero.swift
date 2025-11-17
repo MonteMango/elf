@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ElfHero: Hashable, Equatable {
+public struct ElfHero: Hashable, Equatable, Sendable {
     public let id: UUID
     public let level: Int
 
