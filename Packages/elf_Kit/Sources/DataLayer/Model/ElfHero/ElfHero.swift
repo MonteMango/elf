@@ -36,6 +36,9 @@ public struct ElfHero: Hashable, Equatable {
     public let necklaceElfItem: ElfJewelryItem?
     public let earringsElfItem: ElfJewelryItem?
 
+    // Armor values per body part
+    public let armorValues: [BodyPart: Int16]
+
     // MARK: - Initializer
 
     public init(
@@ -54,7 +57,8 @@ public struct ElfHero: Hashable, Equatable {
         shieldElfItem: ElfShieldItem? = nil,
         ringElfItem: ElfJewelryItem? = nil,
         necklaceElfItem: ElfJewelryItem? = nil,
-        earringsElfItem: ElfJewelryItem? = nil
+        earringsElfItem: ElfJewelryItem? = nil,
+        armorValues: [BodyPart: Int16] = [:]
     ) {
         self.id = id
         self.level = level
@@ -72,6 +76,7 @@ public struct ElfHero: Hashable, Equatable {
         self.ringElfItem = ringElfItem
         self.necklaceElfItem = necklaceElfItem
         self.earringsElfItem = earringsElfItem
+        self.armorValues = armorValues
     }
 
     // MARK: - Computed Properties

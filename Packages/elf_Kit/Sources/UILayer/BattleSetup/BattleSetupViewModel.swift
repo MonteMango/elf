@@ -144,6 +144,141 @@ public final class BattleSetupViewModel {
     private var playerDamageTask: Task<Void, Never>?
     private var botDamageTask: Task<Void, Never>?
 
+    // MARK: - Hero Type Accessors
+
+    private func level(for heroType: HeroType) -> Int16 {
+        heroType == .player ? playerLevel : botLevel
+    }
+
+    private func fightStyle(for heroType: HeroType) -> FightStyle? {
+        heroType == .player ? playerFightStyle : botFightStyle
+    }
+
+    private func fightStyleAttributes(for heroType: HeroType) -> HeroAttributes? {
+        heroType == .player ? playerFightStyleAttributes : botFightStyleAttributes
+    }
+
+    private func setFightStyleAttributes(_ attrs: HeroAttributes?, for heroType: HeroType) {
+        if heroType == .player {
+            playerFightStyleAttributes = attrs
+        } else {
+            botFightStyleAttributes = attrs
+        }
+    }
+
+    private func setLevelRandomAttributes(_ attrs: HeroAttributes?, for heroType: HeroType) {
+        if heroType == .player {
+            playerLevelRandomAttributes = attrs
+        } else {
+            botLevelRandomAttributes = attrs
+        }
+    }
+
+    private func selectedItems(for heroType: HeroType) -> [HeroItemType: UUID?] {
+        heroType == .player ? playerSelectedItems : botSelectedItems
+    }
+
+    private func setTwoHandedWeaponId(_ id: UUID?, for heroType: HeroType) {
+        if heroType == .player {
+            playerTwoHandedWeaponId = id
+        } else {
+            botTwoHandedWeaponId = id
+        }
+    }
+
+    private func setItemsAttributes(_ attrs: HeroAttributes?, for heroType: HeroType) {
+        if heroType == .player {
+            playerItemsAttributes = attrs
+        } else {
+            botItemsAttributes = attrs
+        }
+    }
+
+    private func setArmorValues(_ values: [BodyPart: Int16], for heroType: HeroType) {
+        if heroType == .player {
+            playerArmorValues = values
+        } else {
+            botArmorValues = values
+        }
+    }
+
+    private func setLeftHandDamage(_ damage: (minDmg: Int16, maxDmg: Int16)?, for heroType: HeroType) {
+        if heroType == .player {
+            playerLeftHandDamage = damage
+        } else {
+            botLeftHandDamage = damage
+        }
+    }
+
+    private func setRightHandDamage(_ damage: (minDmg: Int16, maxDmg: Int16)?, for heroType: HeroType) {
+        if heroType == .player {
+            playerRightHandDamage = damage
+        } else {
+            botRightHandDamage = damage
+        }
+    }
+
+    // Task accessors
+    private func updateTask(for heroType: HeroType) -> Task<Void, Never>? {
+        heroType == .player ? playerUpdateTask : botUpdateTask
+    }
+
+    private func setUpdateTask(_ task: Task<Void, Never>?, for heroType: HeroType) {
+        if heroType == .player {
+            playerUpdateTask = task
+        } else {
+            botUpdateTask = task
+        }
+    }
+
+    private func twoHandedWeaponTask(for heroType: HeroType) -> Task<Void, Never>? {
+        heroType == .player ? playerTwoHandedWeaponTask : botTwoHandedWeaponTask
+    }
+
+    private func setTwoHandedWeaponTask(_ task: Task<Void, Never>?, for heroType: HeroType) {
+        if heroType == .player {
+            playerTwoHandedWeaponTask = task
+        } else {
+            botTwoHandedWeaponTask = task
+        }
+    }
+
+    private func itemsAttributesTask(for heroType: HeroType) -> Task<Void, Never>? {
+        heroType == .player ? playerItemsAttributesTask : botItemsAttributesTask
+    }
+
+    private func setItemsAttributesTask(_ task: Task<Void, Never>?, for heroType: HeroType) {
+        if heroType == .player {
+            playerItemsAttributesTask = task
+        } else {
+            botItemsAttributesTask = task
+        }
+    }
+
+    private func armorTask(for heroType: HeroType) -> Task<Void, Never>? {
+        heroType == .player ? playerArmorTask : botArmorTask
+    }
+
+    private func setArmorTask(_ task: Task<Void, Never>?, for heroType: HeroType) {
+        if heroType == .player {
+            playerArmorTask = task
+        } else {
+            botArmorTask = task
+        }
+    }
+
+    private func damageTask(for heroType: HeroType) -> Task<Void, Never>? {
+        heroType == .player ? playerDamageTask : botDamageTask
+    }
+
+    private func setDamageTask(_ task: Task<Void, Never>?, for heroType: HeroType) {
+        if heroType == .player {
+            playerDamageTask = task
+        } else {
+            botDamageTask = task
+        }
+    }
+
     // MARK: - Initialization
 
     public init(
@@ -231,24 +366,24 @@ public final class BattleSetupViewModel {
         }
     }
 
-    // MARK: - Player Updates
+    // MARK: - Generic Attribute Updates
 
-    private func schedulePlayerUpdate() {
+    private func scheduleAttributesUpdate(for heroType: HeroType) {
         // Cancel previous task
-        playerUpdateTask?.cancel()
+        updateTask(for: heroType)?.cancel()
 
         // Capture current values for validation
-        let currentLevel = playerLevel
-        let currentStyle = playerFightStyle
+        let currentLevel = level(for: heroType)
+        let currentStyle = fightStyle(for: heroType)
 
         guard let fightStyle = currentStyle else {
             // Clear attributes if no fight style selected
-            playerFightStyleAttributes = nil
-            playerLevelRandomAttributes = nil
+            setFightStyleAttributes(nil, for: heroType)
+            setLevelRandomAttributes(nil, for: heroType)
             return
         }
 
-        playerUpdateTask = Task { @MainActor in
+        let task = Task {
             do {
                 // Debounce: Wait 250ms
                 try await Task.sleep(for: .milliseconds(250))
@@ -257,14 +392,13 @@ public final class BattleSetupViewModel {
                 guard !Task.isCancelled else { return }
 
                 // Validate values haven't changed during debounce
-                guard self.playerLevel == currentLevel,
-                      self.playerFightStyle == currentStyle else {
+                guard level(for: heroType) == currentLevel,
+                      self.fightStyle(for: heroType) == currentStyle else {
                     return  // Values changed - this task is outdated
                 }
 
                 // Fetch attributes in parallel
-                // Capture service to avoid actor isolation issues with async let
-                let service = self.attributeService
+                let service = attributeService
                 async let fightStyleAttrs = service.getAllFightStyleAttributes(
                     for: fightStyle,
                     at: currentLevel
@@ -277,111 +411,58 @@ public final class BattleSetupViewModel {
 
                 // Final validation before updating UI
                 guard !Task.isCancelled,
-                      self.playerLevel == currentLevel,
-                      self.playerFightStyle == currentStyle else {
+                      level(for: heroType) == currentLevel,
+                      self.fightStyle(for: heroType) == currentStyle else {
                     return  // Values changed during fetch
                 }
 
                 // Safe to update
-                self.playerFightStyleAttributes = fsAttrs
-                self.playerLevelRandomAttributes = lrAttrs
+                setFightStyleAttributes(fsAttrs, for: heroType)
+                setLevelRandomAttributes(lrAttrs, for: heroType)
 
             } catch is CancellationError {
                 // Task was cancelled - this is expected
                 return
             } catch {
                 // Handle other errors
-                print("Error updating player attributes: \(error)")
+                print("Error updating \(heroType) attributes: \(error)")
             }
         }
+
+        setUpdateTask(task, for: heroType)
     }
 
-    // MARK: - Bot Updates
+    // MARK: - Player/Bot Wrapper Methods
+
+    private func schedulePlayerUpdate() {
+        scheduleAttributesUpdate(for: .player)
+    }
 
     private func scheduleBotUpdate() {
-        // Cancel previous task
-        botUpdateTask?.cancel()
-
-        // Capture current values for validation
-        let currentLevel = botLevel
-        let currentStyle = botFightStyle
-
-        guard let fightStyle = currentStyle else {
-            // Clear attributes if no fight style selected
-            botFightStyleAttributes = nil
-            botLevelRandomAttributes = nil
-            return
-        }
-
-        botUpdateTask = Task { @MainActor in
-            do {
-                // Debounce: Wait 250ms
-                try await Task.sleep(for: .milliseconds(250))
-
-                // Check if cancelled during sleep
-                guard !Task.isCancelled else { return }
-
-                // Validate values haven't changed during debounce
-                guard self.botLevel == currentLevel,
-                      self.botFightStyle == currentStyle else {
-                    return  // Values changed - this task is outdated
-                }
-
-                // Fetch attributes in parallel
-                // Capture service to avoid actor isolation issues with async let
-                let service = self.attributeService
-                async let fightStyleAttrs = service.getAllFightStyleAttributes(
-                    for: fightStyle,
-                    at: currentLevel
-                )
-                async let levelRandomAttrs = service.getAllRandomLevelAttributes(
-                    for: currentLevel
-                )
-
-                let (fsAttrs, lrAttrs) = await (fightStyleAttrs, levelRandomAttrs)
-
-                // Final validation before updating UI
-                guard !Task.isCancelled,
-                      self.botLevel == currentLevel,
-                      self.botFightStyle == currentStyle else {
-                    return  // Values changed during fetch
-                }
-
-                // Safe to update
-                self.botFightStyleAttributes = fsAttrs
-                self.botLevelRandomAttributes = lrAttrs
-
-            } catch is CancellationError {
-                // Task was cancelled - this is expected
-                return
-            } catch {
-                // Handle other errors
-                print("Error updating bot attributes: \(error)")
-            }
-        }
+        scheduleAttributesUpdate(for: .bot)
     }
 
     // MARK: - Two-Handed Weapon Checks
 
-    private func checkPlayerTwoHandedWeapon() {
+    private func checkTwoHandedWeapon(for heroType: HeroType) {
         // Cancel previous task
-        playerTwoHandedWeaponTask?.cancel()
+        twoHandedWeaponTask(for: heroType)?.cancel()
 
         // Capture current weapon ID for validation
-        let currentWeaponId = playerSelectedItems[.weapons] ?? nil
+        let currentWeaponId = selectedItems(for: heroType)[.weapons] ?? nil
 
         // Immediately clear if no weapon selected
         guard let weaponId = currentWeaponId else {
-            playerTwoHandedWeaponId = nil
+            setTwoHandedWeaponId(nil, for: heroType)
             return
         }
 
-        playerTwoHandedWeaponTask = Task { @MainActor in
+        let task = Task {
             // Check if cancelled during task creation
             guard !Task.isCancelled else { return }
 
             // Validate weapon ID hasn't changed
-            guard playerSelectedItems[.weapons] == currentWeaponId else {
+            guard selectedItems(for: heroType)[.weapons] == currentWeaponId else {
                 return  // Value changed - this task is outdated
             }
 
@@ -389,77 +470,46 @@ public final class BattleSetupViewModel {
             guard let item = await itemsRepository.getHeroItem(weaponId),
                   let weapon = item as? WeaponItem else {
                 // No weapon or not a weapon item
-                playerTwoHandedWeaponId = nil
+                setTwoHandedWeaponId(nil, for: heroType)
                 return
             }
 
             // Final validation before updating
             guard !Task.isCancelled,
-                  playerSelectedItems[.weapons] == currentWeaponId else {
+                  selectedItems(for: heroType)[.weapons] == currentWeaponId else {
                 return  // Value changed during fetch
             }
 
             // Safe to update
-            playerTwoHandedWeaponId = weapon.handUse == .both ? weapon.id : nil
+            setTwoHandedWeaponId(weapon.handUse == .both ? weapon.id : nil, for: heroType)
         }
+
+        setTwoHandedWeaponTask(task, for: heroType)
+    }
+
+    private func checkPlayerTwoHandedWeapon() {
+        checkTwoHandedWeapon(for: .player)
     }
 
     private func checkBotTwoHandedWeapon() {
-        // Cancel previous task
-        botTwoHandedWeaponTask?.cancel()
-
-        // Capture current weapon ID for validation
-        let currentWeaponId = botSelectedItems[.weapons] ?? nil
-
-        // Immediately clear if no weapon selected
-        guard let weaponId = currentWeaponId else {
-            botTwoHandedWeaponId = nil
-            return
-        }
-
-        botTwoHandedWeaponTask = Task { @MainActor in
-            // Check if cancelled during task creation
-            guard !Task.isCancelled else { return }
-
-            // Validate weapon ID hasn't changed
-            guard botSelectedItems[.weapons] == currentWeaponId else {
-                return  // Value changed - this task is outdated
-            }
-
-            // Get weapon item
-            guard let item = await itemsRepository.getHeroItem(weaponId),
-                  let weapon = item as? WeaponItem else {
-                // No weapon or not a weapon item
-                botTwoHandedWeaponId = nil
-                return
-            }
-
-            // Final validation before updating
-            guard !Task.isCancelled,
-                  botSelectedItems[.weapons] == currentWeaponId else {
-                return  // Value changed during fetch
-            }
-
-            // Safe to update
-            botTwoHandedWeaponId = weapon.handUse == .both ? weapon.id : nil
-        }
+        checkTwoHandedWeapon(for: .bot)
     }
 
     // MARK: - Items Attributes Updates
 
-    private func schedulePlayerItemsAttributesUpdate() {
+    private func scheduleItemsAttributesUpdate(for heroType: HeroType) {
         // Cancel previous task
-        playerItemsAttributesTask?.cancel()
+        itemsAttributesTask(for: heroType)?.cancel()
 
         // Capture current items for validation
-        let currentItems = playerSelectedItems
+        let currentItems = selectedItems(for: heroType)
 
-        playerItemsAttributesTask = Task { @MainActor in
+        let task = Task {
             // Check if cancelled during task creation
             guard !Task.isCancelled else { return }
 
             // Validate items haven't changed
-            guard playerSelectedItems == currentItems else {
+            guard selectedItems(for: heroType) == currentItems else {
                 return  // Items changed - this task is outdated
             }
 
@@ -471,63 +521,40 @@ public final class BattleSetupViewModel {
 
             // Final validation before updating
             guard !Task.isCancelled,
-                  playerSelectedItems == currentItems else {
+                  selectedItems(for: heroType) == currentItems else {
                 return  // Items changed during fetch
             }
 
             // Safe to update
-            playerItemsAttributes = itemsAttrs
+            setItemsAttributes(itemsAttrs, for: heroType)
         }
+
+        setItemsAttributesTask(task, for: heroType)
+    }
+
+    private func schedulePlayerItemsAttributesUpdate() {
+        scheduleItemsAttributesUpdate(for: .player)
     }
 
     private func scheduleBotItemsAttributesUpdate() {
-        // Cancel previous task
-        botItemsAttributesTask?.cancel()
-
-        // Capture current items for validation
-        let currentItems = botSelectedItems
-
-        botItemsAttributesTask = Task { @MainActor in
-            // Check if cancelled during task creation
-            guard !Task.isCancelled else { return }
-
-            // Validate items haven't changed
-            guard botSelectedItems == currentItems else {
-                return  // Items changed - this task is outdated
-            }
-
-            // Extract non-nil UUIDs from items dictionary
-            let itemIds = currentItems.values.compactMap { $0 }
-
-            // Fetch items attributes
-            let itemsAttrs = await attributeService.getAllItemsAttrbutes(for: itemIds)
-
-            // Final validation before updating
-            guard !Task.isCancelled,
-                  botSelectedItems == currentItems else {
-                return  // Items changed during fetch
-            }
-
-            // Safe to update
-            botItemsAttributes = itemsAttrs
-        }
+        scheduleItemsAttributesUpdate(for: .bot)
     }
 
     // MARK: - Armor Updates
 
-    private func schedulePlayerArmorUpdate() {
+    private func scheduleArmorUpdate(for heroType: HeroType) {
         // Cancel previous task
-        playerArmorTask?.cancel()
+        armorTask(for: heroType)?.cancel()
 
         // Capture current items for validation
-        let currentItems = playerSelectedItems
+        let currentItems = selectedItems(for: heroType)
 
-        playerArmorTask = Task { @MainActor in
+        let task = Task {
             // Check if cancelled during task creation
             guard !Task.isCancelled else { return }
 
             // Validate items haven't changed
-            guard playerSelectedItems == currentItems else {
+            guard selectedItems(for: heroType) == currentItems else {
                 return  // Items changed - this task is outdated
             }
 
@@ -539,63 +566,40 @@ public final class BattleSetupViewModel {
 
             // Final validation before updating
             guard !Task.isCancelled,
-                  playerSelectedItems == currentItems else {
+                  selectedItems(for: heroType) == currentItems else {
                 return  // Items changed during fetch
             }
 
             // Safe to update
-            playerArmorValues = armorValues
+            setArmorValues(armorValues, for: heroType)
         }
+
+        setArmorTask(task, for: heroType)
+    }
+
+    private func schedulePlayerArmorUpdate() {
+        scheduleArmorUpdate(for: .player)
     }
 
     private func scheduleBotArmorUpdate() {
-        // Cancel previous task
-        botArmorTask?.cancel()
-
-        // Capture current items for validation
-        let currentItems = botSelectedItems
-
-        botArmorTask = Task { @MainActor in
-            // Check if cancelled during task creation
-            guard !Task.isCancelled else { return }
-
-            // Validate items haven't changed
-            guard botSelectedItems == currentItems else {
-                return  // Items changed - this task is outdated
-            }
-
-            // Extract non-nil UUIDs from items dictionary
-            let itemIds = currentItems.values.compactMap { $0 }
-
-            // Fetch armor values
-            let armorValues = await armorService.getAllItemsArmor(for: itemIds)
-
-            // Final validation before updating
-            guard !Task.isCancelled,
-                  botSelectedItems == currentItems else {
-                return  // Items changed during fetch
-            }
-
-            // Safe to update
-            botArmorValues = armorValues
-        }
+        scheduleArmorUpdate(for: .bot)
     }
 
     // MARK: - Damage Updates
 
-    private func schedulePlayerDamageUpdate() {
+    private func scheduleDamageUpdate(for heroType: HeroType) {
         // Cancel previous task
-        playerDamageTask?.cancel()
+        damageTask(for: heroType)?.cancel()
 
         // Capture current items for validation
-        let currentItems = playerSelectedItems
+        let currentItems = selectedItems(for: heroType)
 
-        playerDamageTask = Task { @MainActor in
+        let task = Task {
             // Check if cancelled during task creation
             guard !Task.isCancelled else { return }
 
             // Validate items haven't changed
-            guard playerSelectedItems == currentItems else {
+            guard selectedItems(for: heroType) == currentItems else {
                 return  // Items changed - this task is outdated
             }
 
@@ -627,68 +631,24 @@ public final class BattleSetupViewModel {
 
             // Final validation before updating
             guard !Task.isCancelled,
-                  playerSelectedItems == currentItems else {
+                  selectedItems(for: heroType) == currentItems else {
                 return  // Items changed during fetch
             }
 
             // Safe to update
-            playerRightHandDamage = rightHandDamage
-            playerLeftHandDamage = leftHandDamage
+            setRightHandDamage(rightHandDamage, for: heroType)
+            setLeftHandDamage(leftHandDamage, for: heroType)
         }
+
+        setDamageTask(task, for: heroType)
+    }
+
+    private func schedulePlayerDamageUpdate() {
+        scheduleDamageUpdate(for: .player)
     }
 
     private func scheduleBotDamageUpdate() {
-        // Cancel previous task
-        botDamageTask?.cancel()
-
-        // Capture current items for validation
-        let currentItems = botSelectedItems
-
-        botDamageTask = Task { @MainActor in
-            // Check if cancelled during task creation
-            guard !Task.isCancelled else { return }
-
-            // Validate items haven't changed
-            guard botSelectedItems == currentItems else {
-                return  // Items changed - this task is outdated
-            }
-
-            // Get weapon IDs
-            let primaryWeaponId = currentItems[.weapons] ?? nil
-            let secondaryWeaponId = currentItems[.shields] ?? nil
-
-            // Calculate damage for each hand
-            let rightHandDamage: (minDmg: Int16, maxDmg: Int16)?
-            let leftHandDamage: (minDmg: Int16, maxDmg: Int16)?
-
-            // Check if primary weapon is two-handed
-            var isTwoHanded = false
-            if let weaponId = primaryWeaponId,
-               let item = await itemsRepository.getHeroItem(weaponId),
-               let weapon = item as? WeaponItem {
-                isTwoHanded = weapon.handUse == .both
-            }
-
-            if isTwoHanded {
-                // Two-handed weapon: damage only in right hand, left hand is 0-0
-                rightHandDamage = await damageService.getWeaponDamage(weaponId: primaryWeaponId)
-                leftHandDamage = (minDmg: 0, maxDmg: 0)
-            } else {
-                // Single weapons: calculate separately for each hand
-                rightHandDamage = await damageService.getWeaponDamage(weaponId: primaryWeaponId)
-                leftHandDamage = await damageService.getWeaponDamage(weaponId: secondaryWeaponId)
-            }
-
-            // Final validation before updating
-            guard !Task.isCancelled,
-                  botSelectedItems == currentItems else {
-                return  // Items changed during fetch
-            }
-
-            // Safe to update
-            botRightHandDamage = rightHandDamage
-            botLeftHandDamage = leftHandDamage
-        }
+        scheduleDamageUpdate(for: .bot)
     }
 
     // MARK: - Battle Creation

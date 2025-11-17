@@ -8,11 +8,14 @@
 import Foundation
 
 public protocol AttributeService: Sendable {
-    
+
     func getAllFightStyleAttributes(for fightStyle: FightStyle, at level: Int16) async -> HeroAttributes
-    
+
     func getRandomLevelAttributes() async -> HeroAttributes
     func getAllRandomLevelAttributes(for level: Int16) async -> HeroAttributes
-    
+
     func getAllItemsAttrbutes(for itemIds: [UUID]) async -> HeroAttributes
+
+    /// Calculate total hit points from multiple attribute sources
+    func calculateTotalHP(from attributes: [HeroAttributes]) -> Int
 }

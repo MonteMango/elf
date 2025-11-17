@@ -10,9 +10,11 @@ import Foundation
 public final class ElfElfHeroBuilder: ElfHeroBuilder {
 
     private let itemsRepository: ItemsRepository
+    private let armorService: ArmorService
 
-    public init(itemsRepository: ItemsRepository) {
+    public init(itemsRepository: ItemsRepository, armorService: ArmorService) {
         self.itemsRepository = itemsRepository
+        self.armorService = armorService
     }
 
     public func buildElfHero(
@@ -70,6 +72,19 @@ public final class ElfElfHeroBuilder: ElfHeroBuilder {
             shield = await convertToElfShieldItem(selectedItems[.shields] ?? nil)
         }
 
+        // Collect all equipped item IDs for armor calculation
+        var equippedItemIds: [UUID] = []
+        if let id = selectedItems[.helmet] ?? nil { equippedItemIds.append(id) }
+        if let id = selectedItems[.gloves] ?? nil { equippedItemIds.append(id) }
+        if let id = selectedItems[.shoes] ?? nil { equippedItemIds.append(id) }
+        if let id = selectedItems[.upperBody] ?? nil { equippedItemIds.append(id) }
+        if let id = selectedItems[.bottomBody] ?? nil { equippedItemIds.append(id) }
+        if let id = selectedItems[.shirt] ?? nil { equippedItemIds.append(id) }
+        if let id = selectedItems[.shields] ?? nil { equippedItemIds.append(id) }
+
+        // Calculate armor values using ArmorService
+        let armorValues = await armorService.getAllItemsArmor(for: equippedItemIds)
+
         // Build the ElfHero
         let elfHero = ElfHero(
             level: Int(level),
@@ -86,7 +101,8 @@ public final class ElfElfHeroBuilder: ElfHeroBuilder {
             shieldElfItem: shield,
             ringElfItem: ringItem,
             necklaceElfItem: necklaceItem,
-            earringsElfItem: earringsItem
+            earringsElfItem: earringsItem,
+            armorValues: armorValues
         )
 
         return elfHero

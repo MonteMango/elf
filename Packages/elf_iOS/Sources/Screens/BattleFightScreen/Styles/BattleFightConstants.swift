@@ -41,30 +41,42 @@ enum BattleFightConstants {
     // MARK: - Sizing
     enum Sizing {
         // Hero display
-        static let heroImageSize: CGFloat = 100
-        static let itemIconSize: CGFloat = 25
+        static let heroImageSize: CGFloat = 150
+        static let itemIconSize: CGFloat = 30
+        static let hpBarWidth: CGFloat = 150
 
         // HP bar
-        static let hpBarHeight: CGFloat = 20
-        static let hpBarCornerRadius: CGFloat = 10
+        static let hpBarHeight: CGFloat = 24
+        static let hpBarCornerRadius: CGFloat = 12
 
-        // Checkboxes
-        static let checkboxSize: CGFloat = 30
-        static let checkboxCornerRadius: CGFloat = 5
+        // Checkboxes (for BodyPointSelector)
+        static let checkboxSize: CGFloat = 45
         static let checkboxBorderWidth: CGFloat = 2
+        static let checkboxSpacing: CGFloat = 10
+        static let bodySelectorWidth: CGFloat = 180
+        static let bodySelectorHeight: CGFloat = 250
 
         // Result dots
-        static let resultDotSize: CGFloat = 8
+        static let resultDotSize: CGFloat = 10
+
+        // Battle item icons (smaller than setup screen)
+        static let battleItemSize: CGFloat = 20
+        static let battleJewelrySize: CGFloat = 15
+        static let itemGridSpacing: CGFloat = 2
 
         // Buttons
-        static let fightButtonWidth: CGFloat = 200
-        static let fightButtonHeight: CGFloat = 50
-        static let closeButtonSize: CGFloat = 40
+        static let fightButtonWidth: CGFloat = 250
+        static let fightButtonHeight: CGFloat = 60
+        static let closeButtonSize: CGFloat = 44
 
         // Spacing
-        static let roundNumberTopPadding: CGFloat = 20
-        static let heroPanelSpacing: CGFloat = 30
-        static let itemSpacing: CGFloat = 5
+        static let roundNumberTopPadding: CGFloat = 16
+        static let horizontalPadding: CGFloat = 20
+        static let sectionSpacing: CGFloat = 40
+        static let fightButtonBottomPadding: CGFloat = 30
+
+        // Separator
+        static let separatorWidth: CGFloat = 2
     }
 
     // MARK: - Fonts
@@ -73,6 +85,7 @@ enum BattleFightConstants {
         static let hpText = Font.system(size: 14, weight: .semibold)
         static let fightButton = Font.system(size: 18, weight: .bold)
         static let sectionLabel = Font.system(size: 14, weight: .medium)
+        static let resultStatusText = Font.system(size: 12, weight: .bold)
     }
 
     // MARK: - Point Status Color Mapping
