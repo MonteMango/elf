@@ -78,7 +78,7 @@ public struct BattleRoundResult {
     }
 }
 
-public enum PointStatus {
+public enum PointStatus: Sendable {
     case blocked
     case hit(damage: Int) // here is totalDamage
     case critHit(damage: Int) // here is totalDamage (when crit happaned)

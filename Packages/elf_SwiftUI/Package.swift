@@ -21,7 +21,8 @@ let package = Package(
         .target(
             name: "elf_SwiftUI",
             swiftSettings: [
-                .enableUpcomingFeature("StrictConcurrency")
+                .enableUpcomingFeature("StrictConcurrency"),
+                .enableExperimentalFeature("DebugDescriptionMacro")
             ]
         ),
 
