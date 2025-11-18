@@ -57,6 +57,7 @@ public final class ElfAppDependencyContainer {
         )
     }
 
+    @MainActor
     public func makeBattleFightViewModel(battle: Battle) -> BattleFightViewModel {
         return BattleFightViewModel(
             battle: battle,

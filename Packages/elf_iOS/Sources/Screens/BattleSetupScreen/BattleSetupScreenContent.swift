@@ -109,23 +109,29 @@ internal struct BattleSetupScreenContent: View {
                         .font(BattleSetupConstants.Fonts.labelFont)
                         .foregroundColor(.white)
 
-                    FightStyleSelector(selectedFightStyle: $viewModel.playerFightStyle)
+                    FightStyleSelector(selectedFightStyle: $viewModel.playerState.fightStyle)
+                        .onChange(of: viewModel.playerState.fightStyle) { _, newValue in
+                            viewModel.updatePlayerFightStyle(newValue)
+                        }
                 }
 
                 Spacer()
 
                 // Level (Right)
-                LevelSelector(level: $viewModel.playerLevel)
+                LevelSelector(level: $viewModel.playerState.level)
+                    .onChange(of: viewModel.playerState.level) { _, newValue in
+                        viewModel.updatePlayerLevel(newValue)
+                    }
             }
 
             // Items and Attributes Section
             HStack(alignment: .bottom, spacing: 15) {
                 // Items Grid (bound to ViewModel)
                 HeroItemsGrid(
-                    selectedItems: $viewModel.playerSelectedItems,
-                    armorValues: $viewModel.playerArmorValues,
+                    selectedItems: $viewModel.playerState.selectedItems,
+                    armorValues: $viewModel.playerState.armorValues,
                     isSecondaryWeaponEnabled: true,
-                    twoHandedWeaponId: viewModel.playerTwoHandedWeaponId,
+                    twoHandedWeaponId: viewModel.playerState.twoHandedWeaponId,
                     onItemTap: viewModel.handlePlayerItemSelection
                 )
                 .frame(width: 200)
@@ -133,12 +139,12 @@ internal struct BattleSetupScreenContent: View {
                 // Attributes Panel
                 AttributesPanel(
                     alignment: .leading,
-                    attributes: viewModel.playerTotalAttributes,
-                    fightStyleAttrs: viewModel.playerFightStyleAttributes,
-                    levelAttrs: viewModel.playerLevelRandomAttributes,
-                    itemsAttrs: viewModel.playerItemsAttributes,
-                    leftHandDamage: viewModel.playerLeftHandDamage,
-                    rightHandDamage: viewModel.playerRightHandDamage
+                    attributes: viewModel.playerState.totalAttributes,
+                    fightStyleAttrs: viewModel.playerState.fightStyleAttributes,
+                    levelAttrs: viewModel.playerState.levelRandomAttributes,
+                    itemsAttrs: viewModel.playerState.itemsAttributes,
+                    leftHandDamage: viewModel.playerState.leftHandDamage,
+                    rightHandDamage: viewModel.playerState.rightHandDamage
                 )
             }
         }
@@ -150,7 +156,10 @@ internal struct BattleSetupScreenContent: View {
             // Level and Fight Style Section (Horizontal, reversed order)
             HStack(alignment: .top, spacing: 20) {
                 // Level (Left)
-                LevelSelector(level: $viewModel.botLevel)
+                LevelSelector(level: $viewModel.botState.level)
+                    .onChange(of: viewModel.botState.level) { _, newValue in
+                        viewModel.updateBotLevel(newValue)
+                    }
 
                 Spacer()
 
@@ -160,7 +169,10 @@ internal struct BattleSetupScreenContent: View {
                         .font(BattleSetupConstants.Fonts.labelFont)
                         .foregroundColor(.white)
 
-                    FightStyleSelector(selectedFightStyle: $viewModel.botFightStyle)
+                    FightStyleSelector(selectedFightStyle: $viewModel.botState.fightStyle)
+                        .onChange(of: viewModel.botState.fightStyle) { _, newValue in
+                            viewModel.updateBotFightStyle(newValue)
+                        }
                 }
             }
 
@@ -169,20 +181,20 @@ internal struct BattleSetupScreenContent: View {
                 // Attributes Panel
                 AttributesPanel(
                     alignment: .trailing,
-                    attributes: viewModel.botTotalAttributes,
-                    fightStyleAttrs: viewModel.botFightStyleAttributes,
-                    levelAttrs: viewModel.botLevelRandomAttributes,
-                    itemsAttrs: viewModel.botItemsAttributes,
-                    leftHandDamage: viewModel.botLeftHandDamage,
-                    rightHandDamage: viewModel.botRightHandDamage
+                    attributes: viewModel.botState.totalAttributes,
+                    fightStyleAttrs: viewModel.botState.fightStyleAttributes,
+                    levelAttrs: viewModel.botState.levelRandomAttributes,
+                    itemsAttrs: viewModel.botState.itemsAttributes,
+                    leftHandDamage: viewModel.botState.leftHandDamage,
+                    rightHandDamage: viewModel.botState.rightHandDamage
                 )
 
                 // Items Grid (bound to ViewModel)
                 HeroItemsGrid(
-                    selectedItems: $viewModel.botSelectedItems,
-                    armorValues: $viewModel.botArmorValues,
+                    selectedItems: $viewModel.botState.selectedItems,
+                    armorValues: $viewModel.botState.armorValues,
                     isSecondaryWeaponEnabled: true,
-                    twoHandedWeaponId: viewModel.botTwoHandedWeaponId,
+                    twoHandedWeaponId: viewModel.botState.twoHandedWeaponId,
                     onItemTap: viewModel.handleBotItemSelection
                 )
                 .frame(width: 200)

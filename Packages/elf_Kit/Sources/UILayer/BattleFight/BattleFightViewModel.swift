@@ -8,6 +8,7 @@
 import Foundation
 
 @Observable
+@MainActor
 public final class BattleFightViewModel {
 
     // MARK: - Dependencies

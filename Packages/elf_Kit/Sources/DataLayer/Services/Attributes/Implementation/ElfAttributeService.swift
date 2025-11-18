@@ -83,17 +83,28 @@ public final class ElfAttributeService: AttributeService {
     }
     
     public func getAllRandomLevelAttributes(for level: Int16) async -> HeroAttributes {
-        var totalAttributes = HeroAttributes()
-        for _ in 1...level {
-            let attributes = await getRandomLevelAttributes()
-            totalAttributes.hitPoints += attributes.hitPoints
-            totalAttributes.manaPoints += attributes.manaPoints
-            totalAttributes.agility += attributes.agility
-            totalAttributes.strength += attributes.strength
-            totalAttributes.power += attributes.power
-            totalAttributes.instinct += attributes.instinct
+        // Use TaskGroup to generate attributes in parallel for better performance
+        return await withTaskGroup(of: HeroAttributes.self) { group in
+            // Create tasks for each level
+            for _ in 1...level {
+                group.addTask {
+                    await self.getRandomLevelAttributes()
+                }
+            }
+
+            // Aggregate all results
+            var totalAttributes = HeroAttributes()
+            for await attributes in group {
+                totalAttributes.hitPoints += attributes.hitPoints
+                totalAttributes.manaPoints += attributes.manaPoints
+                totalAttributes.agility += attributes.agility
+                totalAttributes.strength += attributes.strength
+                totalAttributes.power += attributes.power
+                totalAttributes.instinct += attributes.instinct
+            }
+
+            return totalAttributes
         }
-        return totalAttributes
     }
     
     public func getAllItemsAttrbutes(for itemIds: [UUID]) async -> HeroAttributes {

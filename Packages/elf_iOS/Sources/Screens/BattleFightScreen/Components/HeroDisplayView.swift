@@ -279,6 +279,8 @@ fileprivate final class MockDefenseItem: Item {
     let instinct: Int16? = 5
     let hitPoints: Int16? = 10
     let manaPoints: Int16? = 10
+
+    enum CodingKeys: CodingKey {}
 }
 
 fileprivate final class MockWeaponItem: Item {
@@ -292,6 +294,8 @@ fileprivate final class MockWeaponItem: Item {
     let instinct: Int16? = 5
     let hitPoints: Int16? = 0
     let manaPoints: Int16? = 0
+
+    enum CodingKeys: CodingKey {}
 }
 
 struct HeroDisplayView_Previews: PreviewProvider {
