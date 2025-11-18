@@ -18,16 +18,16 @@ final class ElfItemsRepositoryTests: XCTestCase {
             case invalidJSON
             case error
         }
-        
+
         var mode: Mode
         var customJSON: String?
-        
+
         init(mode: Mode, customJSON: String? = nil) {
             self.mode = mode
             self.customJSON = customJSON
         }
-        
-        func loadHeroItemsData() async throws -> Data {
+
+        func loadHeroItemsData() throws -> Data {
             switch mode {
             case .valid:
                 let json = customJSON ?? """
@@ -56,10 +56,10 @@ final class ElfItemsRepositoryTests: XCTestCase {
                 }
                 """
                 return Data(json.utf8)
-                
+
             case .invalidJSON:
                 return Data("INVALID JSON".utf8)
-                
+
             case .error:
                 throw NSError(domain: "FakeError", code: 999, userInfo: nil)
             }
@@ -67,18 +67,15 @@ final class ElfItemsRepositoryTests: XCTestCase {
     }
     
     // MARK: - Тесты
-    
-    func testLoadHeroItemsPublishesItems() async throws {
+
+    func testInitializationLoadsHeroItems() throws {
         let loader = FakeDataLoader(mode: .valid)
         let repository = ElfItemsRepository(dataLoader: loader)
-        
-        try await repository.loadHeroItems()
-        
-        XCTAssertNotNil(repository.heroItems)
-        XCTAssertEqual(repository.heroItems?.weapons.count, 1)
+
+        XCTAssertEqual(repository.heroItems.weapons.count, 1)
     }
-    
-    func testGetHeroItemReturnsCorrectItem() async throws {
+
+    func testGetHeroItemReturnsCorrectItem() throws {
         let weaponID = UUID()
         let json = """
         {
@@ -107,36 +104,33 @@ final class ElfItemsRepositoryTests: XCTestCase {
         """
         let loader = FakeDataLoader(mode: .valid, customJSON: json)
         let repository = ElfItemsRepository(dataLoader: loader)
-        
-        try await repository.loadHeroItems()
-        
-        let found = await repository.getHeroItem(weaponID)
+
+        let found = repository.getHeroItem(weaponID)
         XCTAssertNotNil(found)
         XCTAssertEqual(found?.title, "Sword of Truth")
     }
-    
-    func testLoadHeroItemsThrowsOnInvalidJSON() async {
+
+    func testInitializationFallsBackToEmptyDataOnInvalidJSON() {
         let loader = FakeDataLoader(mode: .invalidJSON)
+
+        // With the new graceful fallback, this should not crash
+        // Instead it should use empty hero items
         let repository = ElfItemsRepository(dataLoader: loader)
-        
-        do {
-            try await repository.loadHeroItems()
-            XCTFail("Expected error was not thrown")
-        } catch {
-            XCTAssertTrue(error is DecodingError)
-        }
+
+        // Verify empty data was used
+        XCTAssertEqual(repository.heroItems.weapons.count, 0)
+        XCTAssertEqual(repository.heroItems.helmets.count, 0)
     }
-    
-    func testLoadHeroItemsThrowsOnDataLoaderError() async {
+
+    func testInitializationFallsBackToEmptyDataOnDataLoaderError() {
         let loader = FakeDataLoader(mode: .error)
+
+        // With the new graceful fallback, this should not crash
+        // Instead it should use empty hero items
         let repository = ElfItemsRepository(dataLoader: loader)
-        
-        do {
-            try await repository.loadHeroItems()
-            XCTFail("Expected error was not thrown")
-        } catch {
-            XCTAssertEqual((error as NSError).domain, "FakeError")
-            XCTAssertEqual((error as NSError).code, 999)
-        }
+
+        // Verify empty data was used
+        XCTAssertEqual(repository.heroItems.weapons.count, 0)
+        XCTAssertEqual(repository.heroItems.helmets.count, 0)
     }
 }

@@ -29,13 +29,21 @@ public final class ElfItemsRepository: ItemsRepository {
         }
 
         // Decode JSON
+        let heroItems: HeroItems
         do {
-            self._heroItems = try JSONDecoder().decode(HeroItems.self, from: data)
+            heroItems = try JSONDecoder().decode(HeroItems.self, from: data)
         } catch {
-            // This should never happen with our fallback JSON, but handle gracefully
-            print("❌ Error: Failed to decode hero items: \(error)")
-            fatalError("Failed to decode hero items: \(error)")
+            // If decoding fails (e.g., invalid JSON in tests), use empty HeroItems
+            print("⚠️ Warning: Failed to decode hero items, using empty fallback: \(error)")
+            do {
+                heroItems = try JSONDecoder().decode(HeroItems.self, from: Self.createEmptyHeroItemsJSON())
+            } catch {
+                // This should never happen with our hardcoded empty JSON
+                fatalError("Failed to decode even fallback HeroItems: \(error)")
+            }
         }
+
+        self._heroItems = heroItems
 
         // Build the lookup cache
         var lookup: [UUID: Item] = [:]

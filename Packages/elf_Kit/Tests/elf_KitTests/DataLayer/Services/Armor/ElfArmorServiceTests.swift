@@ -63,15 +63,27 @@ final class ElfArmorServiceTests: XCTestCase {
 
     final class FakeItemsRepository: ItemsRepository {
         nonisolated(unsafe) var items: [UUID: Item] = [:]
+        nonisolated(unsafe) var heroItems: HeroItems
 
-        nonisolated(unsafe) var heroItems: HeroItems? = nil
-        var heroItemsPublisher: AnyPublisher<HeroItems?, Never> {
-            Just(heroItems).eraseToAnyPublisher()
+        init() {
+            // Create empty HeroItems for testing
+            self.heroItems = HeroItems(
+                version: "1.0.0-test",
+                helmets: [],
+                gloves: [],
+                shoes: [],
+                upperBodies: [],
+                bottomBodies: [],
+                robes: [],
+                weapons: [],
+                shields: [],
+                rings: [],
+                necklaces: [],
+                earrings: []
+            )
         }
 
-        func loadHeroItems() async throws { }
-        
-        func getHeroItem(_ id: UUID) async -> Item? {
+        func getHeroItem(_ id: UUID) -> Item? {
             return items[id]
         }
     }
@@ -100,7 +112,7 @@ final class ElfArmorServiceTests: XCTestCase {
         XCTAssertEqual(result[.rightHand], 0)
         XCTAssertEqual(result[.legs], 0)
     }
-    
+
     func testMultipleItemsAddArmorTogether() async throws {
         let id1 = UUID()
         let id2 = UUID()

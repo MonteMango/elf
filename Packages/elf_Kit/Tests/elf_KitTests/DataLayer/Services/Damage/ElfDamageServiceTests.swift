@@ -23,14 +23,27 @@ final class ElfDamageServiceTests: XCTestCase {
     // Фейковый репозиторий
     final class FakeItemsRepository: ItemsRepository {
         nonisolated(unsafe) var items: [UUID: Item] = [:]
-        nonisolated(unsafe) var heroItems: HeroItems? = nil
-        var heroItemsPublisher: AnyPublisher<HeroItems?, Never> {
-            Just(heroItems).eraseToAnyPublisher()
+        nonisolated(unsafe) var heroItems: HeroItems
+
+        init() {
+            // Create empty HeroItems for testing
+            self.heroItems = HeroItems(
+                version: "1.0.0-test",
+                helmets: [],
+                gloves: [],
+                shoes: [],
+                upperBodies: [],
+                bottomBodies: [],
+                robes: [],
+                weapons: [],
+                shields: [],
+                rings: [],
+                necklaces: [],
+                earrings: []
+            )
         }
 
-        func loadHeroItems() async throws {}
-
-        func getHeroItem(_ id: UUID) async -> Item? {
+        func getHeroItem(_ id: UUID) -> Item? {
             return items[id]
         }
     }
@@ -41,39 +54,39 @@ final class ElfDamageServiceTests: XCTestCase {
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
         let service = ElfDamageService(itemsRepository: repository, distributionStrategy: strategy)
-        
+
         // when
         let result = await service.getMinMaxStrengthDamage(10)
-        
+
         // then
         XCTAssertEqual(result?.minDmg, 3)
         XCTAssertEqual(result?.maxDmg, 6)
     }
-    
+
     func testReturnsNilWhenValuesIsEmpty() async throws {
         // given
         let distribution = DamageDistribution(values: [], weights: [])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
         let service = ElfDamageService(itemsRepository: repository, distributionStrategy: strategy)
-        
+
         // when
         let result = await service.getMinMaxStrengthDamage(10)
-        
+
         // then
         XCTAssertNil(result)
     }
-    
+
     func testWorksWithSingleValue() async throws {
         // given
         let distribution = DamageDistribution(values: [5], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
         let service = ElfDamageService(itemsRepository: repository, distributionStrategy: strategy)
-        
+
         // when
         let result = await service.getMinMaxStrengthDamage(3)
-        
+
         // then
         XCTAssertEqual(result?.minDmg, 5)
         XCTAssertEqual(result?.maxDmg, 5)
