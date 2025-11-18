@@ -15,30 +15,10 @@ public final class MainMenuViewModel {
 
     private let itemsRepository: ItemsRepository
 
-    // MARK: - State
-
-    public var errorMessage: String?
-
     // MARK: - Initialization
 
     public init(itemsRepository: ItemsRepository) {
         self.itemsRepository = itemsRepository
-
-        // Load items on initialization
-        Task {
-            await loadItems()
-        }
-    }
-
-    // MARK: - Private Methods
-
-    private func loadItems() async {
-        errorMessage = nil
-
-        do {
-            try await itemsRepository.loadHeroItems()
-        } catch {
-            errorMessage = "Failed to load items: \(error.localizedDescription)"
-        }
+        // Items are already loaded in DI container initialization
     }
 }

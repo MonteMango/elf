@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct HeroItems: Decodable {
+public struct HeroItems: Decodable, Sendable {
     public let version: String
     
     public let helmets: [DefenseItem]

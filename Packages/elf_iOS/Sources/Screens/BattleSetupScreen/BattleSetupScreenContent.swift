@@ -94,6 +94,7 @@ internal struct BattleSetupScreenContent: View {
                     )
                 }
             )
+            .environment(container)
         }
         .interactiveDismissDisabled(true)
     }
@@ -204,13 +205,14 @@ internal struct BattleSetupScreenContent: View {
 }
 
 #Preview {
+    @Previewable @State var router = AppRouter()
     let container = ElfAppDependencyContainer()
 
-    NavigationStack {
+    NavigationStack(path: $router.navigationPath) {
         BattleSetupScreenContent(
             viewModel: container.makeBattleSetupViewModel()
         )
-        .environment(AppRouter())
         .environment(container)
+        .environment(router)
     }
 }

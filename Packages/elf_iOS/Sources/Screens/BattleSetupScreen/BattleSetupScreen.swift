@@ -21,9 +21,12 @@ internal struct BattleSetupScreen: View {
 }
 
 #Preview {
-    NavigationStack {
+    @Previewable @State var router = AppRouter()
+    let container = ElfAppDependencyContainer()
+
+    NavigationStack(path: $router.navigationPath) {
         BattleSetupScreen()
-            .environment(AppRouter())
-            .environment(ElfAppDependencyContainer())
+            .environment(container)
+            .environment(router)
     }
 }

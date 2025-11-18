@@ -107,3 +107,19 @@ internal struct SelectHeroItemScreenContent: View {
         }
     }
 }
+
+#Preview {
+    let container = ElfAppDependencyContainer()
+
+    SelectHeroItemScreenContent(
+        viewModel: container.makeSelectHeroItemViewModel(
+            heroType: .player,
+            heroItemType: .weapons,
+            currentItemId: nil
+        ),
+        heroItemType: .weapons,
+        onEquip: { itemId in
+            print("Selected item: \(itemId?.uuidString ?? "none")")
+        }
+    )
+}

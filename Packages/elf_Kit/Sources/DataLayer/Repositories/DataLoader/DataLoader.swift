@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol DataLoader {
-    func loadHeroItemsData() async throws -> Data
+    func loadHeroItemsData() throws -> Data
 }

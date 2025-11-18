@@ -58,19 +58,8 @@ public final class SelectHeroItemViewModel {
         isLoading = true
         defer { isLoading = false }
 
-        // Get hero items from repository
-        guard let heroItems = itemsRepository.heroItems else {
-            // Try to load if not available
-            do {
-                try await itemsRepository.loadHeroItems()
-                guard let items = itemsRepository.heroItems else { return }
-                availableItems = filterItems(for: heroItemType, in: items)
-            } catch {
-                print("Error loading hero items: \(error)")
-            }
-            return
-        }
-
+        // Get hero items from repository (synchronously loaded at init)
+        let heroItems = itemsRepository.heroItems
         availableItems = filterItems(for: heroItemType, in: heroItems)
     }
 

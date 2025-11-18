@@ -183,6 +183,7 @@ internal struct BattleFightScreenContent: View {
 
 // MARK: - Preview
 
+#if DEBUG
 struct BattleFightScreenContent_Previews: PreviewProvider {
     static var previews: some View {
         let mockPlayerHero = ElfHero(
@@ -254,25 +255,15 @@ struct BattleFightScreenContent_Previews: PreviewProvider {
             rightTeam: [mockBotHero]
         )
 
-        // Mock services for preview
-        let mockItemsRepository = ElfItemsRepository(dataLoader: ElfDataLoader())
-        let mockAttributeService = ElfAttributeService(itemsRepository: mockItemsRepository)
-        let mockDamageService = ElfDamageService(itemsRepository: mockItemsRepository)
-        let mockBotAI = RandomBotAI()
-        let mockCombatCalculator = BasicCombatCalculator(damageService: mockDamageService)
-        let mockBattleLogger = DefaultBattleLogger()
+        let container = ElfAppDependencyContainer()
 
-        let mockViewModel = BattleFightViewModel(
-            battle: mockBattle,
-            attributeService: mockAttributeService,
-            damageService: mockDamageService,
-            botAI: mockBotAI,
-            combatCalculator: mockCombatCalculator,
-            battleLogger: mockBattleLogger
-        )
-
-        BattleFightScreenContent(viewModel: mockViewModel)
+        NavigationStack {
+            BattleFightScreenContent(
+                viewModel: container.makeBattleFightViewModel(battle: mockBattle)
+            )
             .environment(AppRouter())
-            .previewDisplayName("Battle Fight Screen")
+        }
+        .previewDisplayName("Battle Fight Screen")
     }
 }
+#endif

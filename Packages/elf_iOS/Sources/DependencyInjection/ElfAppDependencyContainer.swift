@@ -13,7 +13,6 @@ public final class ElfAppDependencyContainer {
 
     // MARK: - Long-lived dependencies
 
-    public let dataLoader: DataLoader
     public let itemsRepository: ItemsRepository
     public let attributeService: AttributeService
     public let armorService: ArmorService
@@ -29,13 +28,14 @@ public final class ElfAppDependencyContainer {
     // MARK: - Initialization
 
     public init() {
-        self.dataLoader = ElfDataLoader()
-        self.itemsRepository = ElfItemsRepository(dataLoader: self.dataLoader)
-        self.attributeService = ElfAttributeService(itemsRepository: self.itemsRepository)
-        self.armorService = ElfArmorService(itemsRepository: self.itemsRepository)
-        self.damageService = ElfDamageService(itemsRepository: self.itemsRepository)
-        self.weaponValidator = ElfWeaponValidator(itemsRepository: self.itemsRepository)
-        self.elfHeroBuilder = ElfElfHeroBuilder(itemsRepository: self.itemsRepository, armorService: self.armorService)
+        let itemsRepository = ElfItemsRepository()
+
+        self.itemsRepository = itemsRepository
+        self.attributeService = ElfAttributeService(itemsRepository: itemsRepository)
+        self.armorService = ElfArmorService(itemsRepository: itemsRepository)
+        self.damageService = ElfDamageService(itemsRepository: itemsRepository)
+        self.weaponValidator = ElfWeaponValidator(itemsRepository: itemsRepository)
+        self.elfHeroBuilder = ElfElfHeroBuilder(itemsRepository: itemsRepository, armorService: self.armorService)
 
         // Initialize battle services
         self.botAI = RandomBotAI()

@@ -110,7 +110,7 @@ public final class ElfAttributeService: AttributeService {
     public func getAllItemsAttrbutes(for itemIds: [UUID]) async -> HeroAttributes {
         var aggregatedAttributes = HeroAttributes()
         for itemId in itemIds {
-            if let item = await itemsRepository.getHeroItem(itemId) {
+            if let item = itemsRepository.getHeroItem(itemId) {
                 aggregatedAttributes = aggregateItemAttributes(item: item, existingAttributes: aggregatedAttributes)
             }
         }

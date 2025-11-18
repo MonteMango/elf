@@ -25,7 +25,7 @@ public final class ElfArmorService: ArmorService {
            ]
         
         for id in itemIds {
-            guard let item = await itemsRepository.getHeroItem(id),
+            guard let item = itemsRepository.getHeroItem(id),
                   let defenseItem = item as? HasPhysicalDefense else {
                 continue
             }

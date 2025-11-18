@@ -21,21 +21,18 @@ internal struct MainMenuScreenContent: View {
                 Text("Battle")
             }
             .buttonStyle(.borderedProminent)
-
-            if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-                    .foregroundColor(.red)
-                    .multilineTextAlignment(.center)
-                    .padding()
-            }
         }
     }
 }
 
 #Preview {
-    MainMenuScreenContent(
-        viewModel: MainMenuViewModel(
-            itemsRepository: ElfItemsRepository(dataLoader: ElfDataLoader())
+    @Previewable @State var router = AppRouter()
+    let container = ElfAppDependencyContainer()
+
+    NavigationStack(path: $router.navigationPath) {
+        MainMenuScreenContent(
+            viewModel: container.makeMainMenuViewModel()
         )
-    )
+        .environment(router)
+    }
 }

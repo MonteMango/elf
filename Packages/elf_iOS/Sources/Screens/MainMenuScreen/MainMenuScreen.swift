@@ -19,8 +19,3 @@ public struct MainMenuScreen: View {
         )
     }
 }
-
-#Preview {
-    MainMenuScreen()
-        .environment(ElfAppDependencyContainer())
-}
