@@ -11,17 +11,25 @@ public final class BasicCombatCalculator: CombatCalculator {
 
     private let damageService: DamageService
     private let dodgeService: DodgeService
+    private let debugLogger: DebugBattleLogger
 
-    public init(damageService: DamageService, dodgeService: DodgeService) {
+    public init(
+        damageService: DamageService,
+        dodgeService: DodgeService,
+        debugLogger: DebugBattleLogger
+    ) {
         self.damageService = damageService
         self.dodgeService = dodgeService
+        self.debugLogger = debugLogger
     }
 
     public func calculatePointStatus(
         attackingPoints: Set<BodyPart>,
         defendingPoints: Set<BodyPart>,
         attacker: ElfHero,
-        defender: ElfHero
+        defender: ElfHero,
+        attackerName: String = "Attacker",
+        defenderName: String = "Defender"
     ) async -> [BodyPart: PointStatus] {
         var results: [BodyPart: PointStatus] = [:]
         let allBodyParts: [BodyPart] = [.head, .body, .leftHand, .rightHand, .legs]
@@ -40,17 +48,84 @@ public final class BasicCombatCalculator: CombatCalculator {
                 let critChance = max(0, min(100, Int(attackerPower) - Int(defenderInstinct)))
                 let critRoll = Int.random(in: 1...100)
 
-                if critRoll <= critChance {
+                let isCrit = critRoll <= critChance
+                let multiplier = isCrit ? 2.0 : 1.0
+
+                // Log crit check
+                debugLogger.logCritCheck(
+                    attacker: attackerName,
+                    power: attackerPower,
+                    defenderInstinct: defenderInstinct,
+                    critChance: critChance,
+                    roll: critRoll,
+                    isCrit: isCrit,
+                    multiplier: multiplier
+                )
+
+                if isCrit {
                     // Crit breaks the block
+                    let strengthDistribution = await damageService.getStrengthDamageDistribution(totalStrength)
                     let strengthDamage = await damageService.getRandomStrengthDamage(totalStrength)
                     let weaponDamage = await damageService.getRandomWeaponDamage(weaponId: attacker.rightHandWeaponElfItem?.id)
-                    let baseDamage = Double(strengthDamage + weaponDamage)
-                    let defenderArmor = defender.armorValues[bodyPart] ?? 0
-                    let finalDamage = max(0, Int(baseDamage * 2.0) - Int(defenderArmor))
-                    results[bodyPart] = .critHit(damage: finalDamage)
+
+                    // Log strength damage
+                    debugLogger.logStrengthDamage(
+                        hero: attackerName,
+                        strength: totalStrength,
+                        distribution: strengthDistribution.distribution,
+                        weights: strengthDistribution.weights,
+                        selectedValue: strengthDamage
+                    )
+
+                    // Log weapon damage
+                    if let weapon = attacker.rightHandWeaponElfItem {
+                        let weaponDamageRange = await damageService.getWeaponDamage(weaponId: weapon.id) ?? (minDmg: 0, maxDmg: 0)
+                        debugLogger.logWeaponDamage(
+                            hero: attackerName,
+                            hand: "right",
+                            weaponName: weapon.item.title,
+                            minDamage: weaponDamageRange.minDmg,
+                            maxDamage: weaponDamageRange.maxDmg,
+                            selectedValue: weaponDamage
+                        )
+                    }
+
+                    let baseDamage = Int(strengthDamage + weaponDamage)
+                    let defenderArmor = Int(defender.armorValues[bodyPart] ?? 0)
+                    let finalDamage = max(0, Int(Double(baseDamage) * multiplier) - defenderArmor)
+
+                    let finalStatus = PointStatus.critHit(damage: finalDamage)
+                    results[bodyPart] = finalStatus
+
+                    // Log body part calculation
+                    debugLogger.logBodyPartCalculation(
+                        attacker: attackerName,
+                        defender: defenderName,
+                        bodyPart: bodyPart,
+                        isAttacked: isAttacked,
+                        isDefended: isDefended,
+                        baseDamage: baseDamage,
+                        armor: defenderArmor,
+                        finalDamage: finalDamage,
+                        finalStatus: finalStatus
+                    )
                 } else {
                     // Block succeeded
-                    results[bodyPart] = .blocked
+                    let finalStatus = PointStatus.blocked
+                    results[bodyPart] = finalStatus
+
+                    // Log body part calculation
+                    debugLogger.logBodyPartCalculation(
+                        attacker: attackerName,
+                        defender: defenderName,
+                        bodyPart: bodyPart,
+                        isAttacked: isAttacked,
+                        isDefended: isDefended,
+                        baseDamage: nil,
+                        armor: nil,
+                        finalDamage: nil,
+                        finalStatus: finalStatus
+                    )
                 }
 
             } else if isAttacked && !isDefended {
@@ -64,9 +139,31 @@ public final class BasicCombatCalculator: CombatCalculator {
                     instinct: attackerInstinct
                 )
 
+                // Log dodge calculation
+                debugLogger.logDodgeCalculation(
+                    defender: defenderName,
+                    result: dodgeResult,
+                    agility: defenderAgility,
+                    instinct: attackerInstinct
+                )
+
                 if dodgeResult.success {
                     // Dodged
-                    results[bodyPart] = .dodged
+                    let finalStatus = PointStatus.dodged
+                    results[bodyPart] = finalStatus
+
+                    // Log body part calculation
+                    debugLogger.logBodyPartCalculation(
+                        attacker: attackerName,
+                        defender: defenderName,
+                        bodyPart: bodyPart,
+                        isAttacked: isAttacked,
+                        isDefended: isDefended,
+                        baseDamage: nil,
+                        armor: nil,
+                        finalDamage: nil,
+                        finalStatus: finalStatus
+                    )
                 } else {
                     // Not dodged - check for crit
                     let attackerPower = attacker.fightStyleAttributes.power + attacker.randomLevelAttributes.power
@@ -74,24 +171,104 @@ public final class BasicCombatCalculator: CombatCalculator {
                     let critChance = max(0, min(100, Int(attackerPower) - Int(defenderInstinct)))
                     let critRoll = Int.random(in: 1...100)
 
+                    let isCrit = critRoll <= critChance
+                    let multiplier = isCrit ? 1.5 : 1.0
+
+                    // Log crit check
+                    debugLogger.logCritCheck(
+                        attacker: attackerName,
+                        power: attackerPower,
+                        defenderInstinct: defenderInstinct,
+                        critChance: critChance,
+                        roll: critRoll,
+                        isCrit: isCrit,
+                        multiplier: multiplier
+                    )
+
+                    let strengthDistribution = await damageService.getStrengthDamageDistribution(totalStrength)
                     let strengthDamage = await damageService.getRandomStrengthDamage(totalStrength)
                     let weaponDamage = await damageService.getRandomWeaponDamage(weaponId: attacker.rightHandWeaponElfItem?.id)
-                    let baseDamage = strengthDamage + weaponDamage
-                    let defenderArmor = defender.armorValues[bodyPart] ?? 0
 
-                    if critRoll <= critChance {
+                    // Log strength damage
+                    debugLogger.logStrengthDamage(
+                        hero: attackerName,
+                        strength: totalStrength,
+                        distribution: strengthDistribution.distribution,
+                        weights: strengthDistribution.weights,
+                        selectedValue: strengthDamage
+                    )
+
+                    // Log weapon damage
+                    if let weapon = attacker.rightHandWeaponElfItem {
+                        let weaponDamageRange = await damageService.getWeaponDamage(weaponId: weapon.id) ?? (minDmg: 0, maxDmg: 0)
+                        debugLogger.logWeaponDamage(
+                            hero: attackerName,
+                            hand: "right",
+                            weaponName: weapon.item.title,
+                            minDamage: weaponDamageRange.minDmg,
+                            maxDamage: weaponDamageRange.maxDmg,
+                            selectedValue: weaponDamage
+                        )
+                    }
+
+                    let baseDamage = Int(strengthDamage + weaponDamage)
+                    let defenderArmor = Int(defender.armorValues[bodyPart] ?? 0)
+
+                    if isCrit {
                         // Critical hit
-                        let finalDamage = max(0, Int(Double(baseDamage) * 1.5) - Int(defenderArmor))
-                        results[bodyPart] = .critHit(damage: finalDamage)
+                        let finalDamage = max(0, Int(Double(baseDamage) * multiplier) - defenderArmor)
+                        let finalStatus = PointStatus.critHit(damage: finalDamage)
+                        results[bodyPart] = finalStatus
+
+                        // Log body part calculation
+                        debugLogger.logBodyPartCalculation(
+                            attacker: attackerName,
+                            defender: defenderName,
+                            bodyPart: bodyPart,
+                            isAttacked: isAttacked,
+                            isDefended: isDefended,
+                            baseDamage: baseDamage,
+                            armor: defenderArmor,
+                            finalDamage: finalDamage,
+                            finalStatus: finalStatus
+                        )
                     } else {
                         // Normal hit
-                        let finalDamage = max(0, Int(baseDamage) - Int(defenderArmor))
-                        results[bodyPart] = .hit(damage: finalDamage)
+                        let finalDamage = max(0, baseDamage - defenderArmor)
+                        let finalStatus = PointStatus.hit(damage: finalDamage)
+                        results[bodyPart] = finalStatus
+
+                        // Log body part calculation
+                        debugLogger.logBodyPartCalculation(
+                            attacker: attackerName,
+                            defender: defenderName,
+                            bodyPart: bodyPart,
+                            isAttacked: isAttacked,
+                            isDefended: isDefended,
+                            baseDamage: baseDamage,
+                            armor: defenderArmor,
+                            finalDamage: finalDamage,
+                            finalStatus: finalStatus
+                        )
                     }
                 }
 
             } else {
-                results[bodyPart] = .nothing
+                let finalStatus = PointStatus.nothing
+                results[bodyPart] = finalStatus
+
+                // Log body part calculation
+                debugLogger.logBodyPartCalculation(
+                    attacker: attackerName,
+                    defender: defenderName,
+                    bodyPart: bodyPart,
+                    isAttacked: isAttacked,
+                    isDefended: isDefended,
+                    baseDamage: nil,
+                    armor: nil,
+                    finalDamage: nil,
+                    finalStatus: finalStatus
+                )
             }
         }
 

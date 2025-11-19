@@ -25,6 +25,7 @@ public final class ElfAppDependencyContainer {
     public let botAI: BotAIService
     public let combatCalculator: CombatCalculator
     public let battleLogger: BattleLogger
+    public let debugBattleLogger: DebugBattleLogger
 
     // MARK: - Initialization
 
@@ -34,7 +35,27 @@ public final class ElfAppDependencyContainer {
         self.itemsRepository = itemsRepository
         self.attributeService = ElfAttributeService(itemsRepository: itemsRepository)
         self.armorService = ElfArmorService(itemsRepository: itemsRepository)
-        self.damageService = ElfDamageService(itemsRepository: itemsRepository)
+
+        // Initialize debug logger based on build configuration
+        #if DEBUG
+        // Configure which categories to log in debug builds
+        let debugLogCategories: Set<DebugBattleLogCategory> = [
+//            .roundStart,
+//            .strengthDamage,
+//            .weaponDamage,
+            .dodgeCalculation,
+//            .critCheck,
+//            .bodyPartCalculation,
+//            .roundEnd
+        ]
+        self.debugBattleLogger = ConsoleDebugBattleLogger(categories: debugLogCategories)
+        #else
+        self.debugBattleLogger = NoOpDebugBattleLogger()
+        #endif
+
+        self.damageService = ElfDamageService(
+            itemsRepository: itemsRepository
+        )
 
         // Initialize dodge service with distribution strategy
         let dodgeDistributionStrategy = ElfDodgeDistributionStrategy()
@@ -47,7 +68,8 @@ public final class ElfAppDependencyContainer {
         self.botAI = RandomBotAI()
         self.combatCalculator = BasicCombatCalculator(
             damageService: self.damageService,
-            dodgeService: self.dodgeService
+            dodgeService: self.dodgeService,
+            debugLogger: self.debugBattleLogger
         )
         self.battleLogger = DefaultBattleLogger()
     }
@@ -74,7 +96,8 @@ public final class ElfAppDependencyContainer {
             damageService: self.damageService,
             botAI: self.botAI,
             combatCalculator: self.combatCalculator,
-            battleLogger: self.battleLogger
+            battleLogger: self.battleLogger,
+            debugLogger: self.debugBattleLogger
         )
     }
 

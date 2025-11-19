@@ -18,6 +18,7 @@ public final class BattleFightViewModel {
     private let botAI: BotAIService
     private let combatCalculator: CombatCalculator
     private let battleLogger: BattleLogger
+    private let debugLogger: DebugBattleLogger
 
     // MARK: - State
 
@@ -67,7 +68,8 @@ public final class BattleFightViewModel {
         damageService: DamageService,
         botAI: BotAIService,
         combatCalculator: CombatCalculator,
-        battleLogger: BattleLogger
+        battleLogger: BattleLogger,
+        debugLogger: DebugBattleLogger
     ) {
         self.battle = battle
         self.attributeService = attributeService
@@ -75,6 +77,7 @@ public final class BattleFightViewModel {
         self.botAI = botAI
         self.combatCalculator = combatCalculator
         self.battleLogger = battleLogger
+        self.debugLogger = debugLogger
 
         // Initialize HP values from heroes using service
         let player = battle.leftTeam[0]
@@ -141,19 +144,34 @@ public final class BattleFightViewModel {
         botAttackPoints = botAI.selectAttackPoints(for: botHero)
         botDefensePoints = botAI.selectDefensePoints(for: botHero)
 
+        // Log round start
+        debugLogger.logRoundStart(
+            roundNumber: currentRoundNumber,
+            player: playerHero,
+            bot: botHero,
+            playerAttack: Array(playerAttackPoints),
+            playerDefense: Array(playerDefensePoints),
+            botAttack: Array(botAttackPoints),
+            botDefense: Array(botDefensePoints)
+        )
+
         // Calculate round results using CombatCalculator
         let playerResults = await combatCalculator.calculatePointStatus(
             attackingPoints: botAttackPoints,
             defendingPoints: playerDefensePoints,
             attacker: botHero,
-            defender: playerHero
+            defender: playerHero,
+            attackerName: "Bot",
+            defenderName: "Player"
         )
 
         let botResults = await combatCalculator.calculatePointStatus(
             attackingPoints: playerAttackPoints,
             defendingPoints: botDefensePoints,
             attacker: playerHero,
-            defender: botHero
+            defender: botHero,
+            attackerName: "Player",
+            defenderName: "Bot"
         )
 
         // Store results
@@ -187,6 +205,17 @@ public final class BattleFightViewModel {
 
         // Add to battle log
         battle.roundLog.append(roundLog)
+
+        // Log round end
+        debugLogger.logRoundEnd(
+            roundNumber: currentRoundNumber,
+            playerOldHP: playerOldHP,
+            playerNewHP: playerCurrentHP,
+            botOldHP: botOldHP,
+            botNewHP: botCurrentHP,
+            playerResults: playerResults,
+            botResults: botResults
+        )
 
         // Clear selections for next round
         playerAttackPoints.removeAll()

@@ -53,7 +53,10 @@ final class ElfDamageServiceTests: XCTestCase {
         let distribution = DamageDistribution(values: [3, 4, 5, 6], weights: [1, 2, 2, 1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
-        let service = ElfDamageService(itemsRepository: repository, distributionStrategy: strategy)
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
 
         // when
         let result = await service.getMinMaxStrengthDamage(10)
@@ -68,7 +71,10 @@ final class ElfDamageServiceTests: XCTestCase {
         let distribution = DamageDistribution(values: [], weights: [])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
-        let service = ElfDamageService(itemsRepository: repository, distributionStrategy: strategy)
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
 
         // when
         let result = await service.getMinMaxStrengthDamage(10)
@@ -82,7 +88,10 @@ final class ElfDamageServiceTests: XCTestCase {
         let distribution = DamageDistribution(values: [5], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
-        let service = ElfDamageService(itemsRepository: repository, distributionStrategy: strategy)
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
 
         // when
         let result = await service.getMinMaxStrengthDamage(3)

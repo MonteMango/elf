@@ -30,6 +30,11 @@ public final class ElfDamageService: DamageService {
         return (minDmg: minDmg, maxDmg: maxDmg)
     }
 
+    public func getStrengthDamageDistribution(_ strengthAttribute: Int16) async -> (distribution: [Int16], weights: [Int]) {
+        let dmgStrengthDistribution = distributionStrategy.distribution(for: strengthAttribute)
+        return (distribution: dmgStrengthDistribution.values, weights: dmgStrengthDistribution.weights)
+    }
+
     public func getWeaponDamage(weaponId: UUID?) async -> (minDmg: Int16, maxDmg: Int16)? {
         // No weapon equipped
         guard let weaponId = weaponId else {
