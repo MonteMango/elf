@@ -18,6 +18,7 @@ public final class ElfAppDependencyContainer {
     public let armorService: ArmorService
     public let damageService: DamageService
     public let dodgeService: DodgeService
+    public let critService: CritService
     public let weaponValidator: WeaponValidator
     public let elfHeroBuilder: ElfHeroBuilder
 
@@ -43,8 +44,8 @@ public final class ElfAppDependencyContainer {
 //            .roundStart,
 //            .strengthDamage,
 //            .weaponDamage,
-            .dodgeCalculation,
-//            .critCheck,
+//            .dodgeCalculation,
+            .critCalculation,
 //            .bodyPartCalculation,
 //            .roundEnd
         ]
@@ -61,6 +62,10 @@ public final class ElfAppDependencyContainer {
         let dodgeDistributionStrategy = ElfDodgeDistributionStrategy()
         self.dodgeService = ElfDodgeService(distributionStrategy: dodgeDistributionStrategy)
 
+        // Initialize crit service with distribution strategy
+        let critDistributionStrategy = ElfCritDistributionStrategy()
+        self.critService = ElfCritService(distributionStrategy: critDistributionStrategy)
+
         self.weaponValidator = ElfWeaponValidator(itemsRepository: itemsRepository)
         self.elfHeroBuilder = ElfElfHeroBuilder(itemsRepository: itemsRepository, armorService: self.armorService)
 
@@ -69,6 +74,7 @@ public final class ElfAppDependencyContainer {
         self.combatCalculator = BasicCombatCalculator(
             damageService: self.damageService,
             dodgeService: self.dodgeService,
+            critService: self.critService,
             debugLogger: self.debugBattleLogger
         )
         self.battleLogger = DefaultBattleLogger()

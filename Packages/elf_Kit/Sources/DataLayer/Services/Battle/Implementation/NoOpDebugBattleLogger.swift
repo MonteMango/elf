@@ -57,14 +57,11 @@ public final class NoOpDebugBattleLogger: DebugBattleLogger {
         // No-op
     }
 
-    public func logCritCheck(
+    public func logCritCalculation(
         attacker: String,
+        result: CritCalculationResult,
         power: Int16,
-        defenderInstinct: Int16,
-        critChance: Int,
-        roll: Int,
-        isCrit: Bool,
-        multiplier: Double
+        instinct: Int16
     ) {
         // No-op
     }

@@ -33,8 +33,8 @@ public enum DebugBattleLogCategory: Sendable {
     /// Log dodge chance calculations with two-stage system details
     case dodgeCalculation
 
-    /// Log critical hit chance calculations
-    case critCheck
+    /// Log critical hit calculations with three-stage system details
+    case critCalculation
 
     /// Log individual body part combat calculations
     case bodyPartCalculation

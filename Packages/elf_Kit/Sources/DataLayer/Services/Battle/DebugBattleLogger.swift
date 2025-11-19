@@ -86,24 +86,18 @@ public protocol DebugBattleLogger: Sendable {
         instinct: Int16
     )
 
-    /// Logs critical hit check
+    /// Logs critical hit calculation with three stages
     ///
     /// - Parameters:
     ///   - attacker: Attacker name ("Player" or "Bot")
+    ///   - result: Complete crit calculation result with all intermediate values
     ///   - power: Attacker's total power
-    ///   - defenderInstinct: Defender's total instinct
-    ///   - critChance: Calculated crit chance (0-100)
-    ///   - roll: Random roll result (1-100)
-    ///   - isCrit: Whether crit succeeded
-    ///   - multiplier: Damage multiplier applied (1.5 or 2.0)
-    func logCritCheck(
+    ///   - instinct: Defender's total instinct
+    func logCritCalculation(
         attacker: String,
+        result: CritCalculationResult,
         power: Int16,
-        defenderInstinct: Int16,
-        critChance: Int,
-        roll: Int,
-        isCrit: Bool,
-        multiplier: Double
+        instinct: Int16
     )
 
     /// Logs body part calculation summary

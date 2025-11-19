@@ -131,25 +131,59 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         }
     }
 
-    public func logCritCheck(
+    public func logCritCalculation(
         attacker: String,
+        result: CritCalculationResult,
         power: Int16,
-        defenderInstinct: Int16,
-        critChance: Int,
-        roll: Int,
-        isCrit: Bool,
-        multiplier: Double
+        instinct: Int16
     ) {
-        guard categories.contains(.critCheck) else { return }
+        guard categories.contains(.critCalculation) else { return }
 
-        print("  💥 \(attacker) CRIT CHECK:")
-        print("    Power: \(power), Defender Instinct: \(defenderInstinct)")
-        print("    Crit Chance: \(critChance)% (power - instinct, clamped 0-100)")
-        print("    Roll: \(roll)/100")
-        if isCrit {
-            print("    → 💥 CRITICAL HIT! (x\(multiplier) damage)")
+        print("  💥 \(attacker) CRIT CALCULATION:")
+        print("    Power: \(power), Defender Instinct: \(instinct)")
+
+        let dist = result.distribution
+        print("    Distribution:")
+        print("      Min: \(dist.minimumChance)%, Max: \(dist.maximumChance)%")
+
+        if dist.hasRange {
+            print("      Range: \(dist.rangeValues)")
+            print("      Weights: \(dist.rangeWeights)")
         } else {
-            print("    → Normal hit")
+            print("      No range (min >= max)")
+        }
+
+        print("    Stage 1 (Select Chance):")
+        print("      Roll: \(result.stage1Roll)/100")
+        if result.stage1Roll <= 40 {
+            print("      → Selected MINIMUM (\(result.selectedChance)%) [40% probability]")
+        } else {
+            print("      → Selected from RANGE (\(result.selectedChance)%) [60% probability]")
+        }
+
+        print("    Stage 2 (Success Check):")
+        if let stage2Roll = result.stage2Roll {
+            let comparison = stage2Roll <= result.selectedChance ? "≤" : ">"
+            print("      Roll: \(stage2Roll) \(comparison) \(result.selectedChance)")
+            print("      → \(result.success ? "✅ CRIT SUCCESS" : "❌ CRIT FAILED")")
+        } else {
+            if result.selectedChance < 0 {
+                print("      → ❌ AUTO-FAIL (negative chance)")
+            } else {
+                print("      → ✅ AUTO-SUCCESS (100+% chance)")
+            }
+        }
+
+        if result.success {
+            print("    Stage 3 (Multiplier Selection):")
+            let multDist = result.multiplierDistribution
+            print("      Available: \(multDist.values) with weights \(multDist.weights)")
+            if let multRoll = result.multiplierRoll {
+                print("      Roll: \(multRoll)/\(multDist.totalWeight)")
+            }
+            print("      → Selected: x\(result.selectedMultiplier)")
+        } else {
+            print("    Stage 3: Skipped (crit failed, multiplier = 1.0)")
         }
     }
 

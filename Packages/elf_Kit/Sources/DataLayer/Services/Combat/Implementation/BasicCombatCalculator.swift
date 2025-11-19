@@ -11,15 +11,18 @@ public final class BasicCombatCalculator: CombatCalculator {
 
     private let damageService: DamageService
     private let dodgeService: DodgeService
+    private let critService: CritService
     private let debugLogger: DebugBattleLogger
 
     public init(
         damageService: DamageService,
         dodgeService: DodgeService,
+        critService: CritService,
         debugLogger: DebugBattleLogger
     ) {
         self.damageService = damageService
         self.dodgeService = dodgeService
+        self.critService = critService
         self.debugLogger = debugLogger
     }
 
@@ -45,24 +48,18 @@ public final class BasicCombatCalculator: CombatCalculator {
                 // Case 1: Attack meets Defense - Check if crit breaks the block
                 let attackerPower = attacker.fightStyleAttributes.power + attacker.randomLevelAttributes.power
                 let defenderInstinct = defender.fightStyleAttributes.instinct + defender.randomLevelAttributes.instinct
-                let critChance = max(0, min(100, Int(attackerPower) - Int(defenderInstinct)))
-                let critRoll = Int.random(in: 1...100)
 
-                let isCrit = critRoll <= critChance
-                let multiplier = isCrit ? 2.0 : 1.0
+                let critResult = critService.calculateCrit(power: attackerPower, instinct: defenderInstinct)
 
-                // Log crit check
-                debugLogger.logCritCheck(
+                // Log crit calculation
+                debugLogger.logCritCalculation(
                     attacker: attackerName,
+                    result: critResult,
                     power: attackerPower,
-                    defenderInstinct: defenderInstinct,
-                    critChance: critChance,
-                    roll: critRoll,
-                    isCrit: isCrit,
-                    multiplier: multiplier
+                    instinct: defenderInstinct
                 )
 
-                if isCrit {
+                if critResult.success {
                     // Crit breaks the block
                     let strengthDistribution = await damageService.getStrengthDamageDistribution(totalStrength)
                     let strengthDamage = await damageService.getRandomStrengthDamage(totalStrength)
@@ -92,7 +89,7 @@ public final class BasicCombatCalculator: CombatCalculator {
 
                     let baseDamage = Int(strengthDamage + weaponDamage)
                     let defenderArmor = Int(defender.armorValues[bodyPart] ?? 0)
-                    let finalDamage = max(0, Int(Double(baseDamage) * multiplier) - defenderArmor)
+                    let finalDamage = max(0, Int(Double(baseDamage) * critResult.selectedMultiplier) - defenderArmor)
 
                     let finalStatus = PointStatus.critHit(damage: finalDamage)
                     results[bodyPart] = finalStatus
@@ -168,21 +165,15 @@ public final class BasicCombatCalculator: CombatCalculator {
                     // Not dodged - check for crit
                     let attackerPower = attacker.fightStyleAttributes.power + attacker.randomLevelAttributes.power
                     let defenderInstinct = defender.fightStyleAttributes.instinct + defender.randomLevelAttributes.instinct
-                    let critChance = max(0, min(100, Int(attackerPower) - Int(defenderInstinct)))
-                    let critRoll = Int.random(in: 1...100)
 
-                    let isCrit = critRoll <= critChance
-                    let multiplier = isCrit ? 1.5 : 1.0
+                    let critResult = critService.calculateCrit(power: attackerPower, instinct: defenderInstinct)
 
-                    // Log crit check
-                    debugLogger.logCritCheck(
+                    // Log crit calculation
+                    debugLogger.logCritCalculation(
                         attacker: attackerName,
+                        result: critResult,
                         power: attackerPower,
-                        defenderInstinct: defenderInstinct,
-                        critChance: critChance,
-                        roll: critRoll,
-                        isCrit: isCrit,
-                        multiplier: multiplier
+                        instinct: defenderInstinct
                     )
 
                     let strengthDistribution = await damageService.getStrengthDamageDistribution(totalStrength)
@@ -214,9 +205,9 @@ public final class BasicCombatCalculator: CombatCalculator {
                     let baseDamage = Int(strengthDamage + weaponDamage)
                     let defenderArmor = Int(defender.armorValues[bodyPart] ?? 0)
 
-                    if isCrit {
+                    if critResult.success {
                         // Critical hit
-                        let finalDamage = max(0, Int(Double(baseDamage) * multiplier) - defenderArmor)
+                        let finalDamage = max(0, Int(Double(baseDamage) * critResult.selectedMultiplier) - defenderArmor)
                         let finalStatus = PointStatus.critHit(damage: finalDamage)
                         results[bodyPart] = finalStatus
 
