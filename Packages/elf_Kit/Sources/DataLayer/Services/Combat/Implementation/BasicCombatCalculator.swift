@@ -10,9 +10,11 @@ import Foundation
 public final class BasicCombatCalculator: CombatCalculator {
 
     private let damageService: DamageService
+    private let dodgeService: DodgeService
 
-    public init(damageService: DamageService) {
+    public init(damageService: DamageService, dodgeService: DodgeService) {
         self.damageService = damageService
+        self.dodgeService = dodgeService
     }
 
     public func calculatePointStatus(
@@ -55,10 +57,14 @@ public final class BasicCombatCalculator: CombatCalculator {
                 // Case 2: Attack without Defense - Check dodge first, then crit
                 let defenderAgility = defender.fightStyleAttributes.agility + defender.randomLevelAttributes.agility
                 let attackerInstinct = attacker.fightStyleAttributes.instinct + attacker.randomLevelAttributes.instinct
-                let dodgeChance = max(0, min(100, Int(defenderAgility) - Int(attackerInstinct)))
-                let dodgeRoll = Int.random(in: 1...100)
 
-                if dodgeRoll <= dodgeChance {
+                // Use two-stage dodge calculation system
+                let dodgeResult = dodgeService.calculateDodge(
+                    agility: defenderAgility,
+                    instinct: attackerInstinct
+                )
+
+                if dodgeResult.success {
                     // Dodged
                     results[bodyPart] = .dodged
                 } else {

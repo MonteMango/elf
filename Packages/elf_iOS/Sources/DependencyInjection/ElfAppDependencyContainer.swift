@@ -17,6 +17,7 @@ public final class ElfAppDependencyContainer {
     public let attributeService: AttributeService
     public let armorService: ArmorService
     public let damageService: DamageService
+    public let dodgeService: DodgeService
     public let weaponValidator: WeaponValidator
     public let elfHeroBuilder: ElfHeroBuilder
 
@@ -34,12 +35,20 @@ public final class ElfAppDependencyContainer {
         self.attributeService = ElfAttributeService(itemsRepository: itemsRepository)
         self.armorService = ElfArmorService(itemsRepository: itemsRepository)
         self.damageService = ElfDamageService(itemsRepository: itemsRepository)
+
+        // Initialize dodge service with distribution strategy
+        let dodgeDistributionStrategy = ElfDodgeDistributionStrategy()
+        self.dodgeService = ElfDodgeService(distributionStrategy: dodgeDistributionStrategy)
+
         self.weaponValidator = ElfWeaponValidator(itemsRepository: itemsRepository)
         self.elfHeroBuilder = ElfElfHeroBuilder(itemsRepository: itemsRepository, armorService: self.armorService)
 
         // Initialize battle services
         self.botAI = RandomBotAI()
-        self.combatCalculator = BasicCombatCalculator(damageService: self.damageService)
+        self.combatCalculator = BasicCombatCalculator(
+            damageService: self.damageService,
+            dodgeService: self.dodgeService
+        )
         self.battleLogger = DefaultBattleLogger()
     }
 
