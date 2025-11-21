@@ -1,5 +1,5 @@
 //
-//  RandomBotAI.swift
+//  ElfRandomBotAI.swift
 //  elf_Kit
 //
 //  Created by Vitalii Lytvynov on 04.05.25.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class RandomBotAI: BotAIService {
+public final class ElfRandomBotAI: BotAIService {
 
     public init() {}
 
@@ -25,4 +25,4 @@ public final class RandomBotAI: BotAIService {
 }
 
 // MARK: - Sendable Conformance
-extension RandomBotAI: @unchecked Sendable {}
+extension ElfRandomBotAI: @unchecked Sendable {}

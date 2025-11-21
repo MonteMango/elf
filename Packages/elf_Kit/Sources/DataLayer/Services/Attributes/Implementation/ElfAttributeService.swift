@@ -22,32 +22,32 @@ public final class ElfAttributeService: AttributeService {
         switch fightStyle {
         case .crit:
             var attributes = HeroAttributes()
-            attributes.hitPoints = 100
+            attributes.hitPoints = 80
             attributes.manaPoints = 20
             attributes.agility = 0
-            attributes.instinct = 2 * level
+            attributes.instinct = 1 * level
             attributes.power = 4 * level
-            attributes.strength = 0
+            attributes.strength = 1 * level
             return attributes
             
         case .def:
             var attributes = HeroAttributes()
-            attributes.hitPoints = 100 + (5 * level)
+            attributes.hitPoints = 80 + (2 * level)
             attributes.manaPoints = 20
             attributes.agility = 0
-            attributes.instinct = 3 * level
+            attributes.instinct = 2 * level
             attributes.power = 0
             attributes.strength = 2 * level
             return attributes
             
         case .dodge:
             var attributes = HeroAttributes()
-            attributes.hitPoints = 100
+            attributes.hitPoints = 80
             attributes.manaPoints = 20
             attributes.agility = 4 * level
-            attributes.instinct = 2 * level
+            attributes.instinct = 1 * level
             attributes.power = 0
-            attributes.strength = 0
+            attributes.strength = 1 * level
             return attributes
         }
     }
@@ -61,9 +61,9 @@ public final class ElfAttributeService: AttributeService {
 
             switch attribute {
             case "hitPoints":
-                attributes.hitPoints += 5
+                attributes.hitPoints += 3
             case "manaPoints":
-                attributes.manaPoints += 5
+                attributes.manaPoints += 3
             case "agility":
                 attributes.agility += 1
             case "strength":
@@ -83,31 +83,22 @@ public final class ElfAttributeService: AttributeService {
     }
     
     public func getAllRandomLevelAttributes(for level: Int16) async -> HeroAttributes {
-        // Use TaskGroup to generate attributes in parallel for better performance
-        return await withTaskGroup(of: HeroAttributes.self) { group in
-            // Create tasks for each level
-            for _ in 1...level {
-                group.addTask {
-                    await self.getRandomLevelAttributes()
-                }
-            }
-
-            // Aggregate all results
-            var totalAttributes = HeroAttributes()
-            for await attributes in group {
-                totalAttributes.hitPoints += attributes.hitPoints
-                totalAttributes.manaPoints += attributes.manaPoints
-                totalAttributes.agility += attributes.agility
-                totalAttributes.strength += attributes.strength
-                totalAttributes.power += attributes.power
-                totalAttributes.instinct += attributes.instinct
-            }
-
-            return totalAttributes
+        // Sequential execution - getRandomLevelAttributes is a lightweight operation
+        // No benefit from parallelization, avoids thread overhead
+        var totalAttributes = HeroAttributes()
+        for _ in 1...level {
+            let attributes = await getRandomLevelAttributes()
+            totalAttributes.hitPoints += attributes.hitPoints
+            totalAttributes.manaPoints += attributes.manaPoints
+            totalAttributes.agility += attributes.agility
+            totalAttributes.strength += attributes.strength
+            totalAttributes.power += attributes.power
+            totalAttributes.instinct += attributes.instinct
         }
+        return totalAttributes
     }
     
-    public func getAllItemsAttrbutes(for itemIds: [UUID]) async -> HeroAttributes {
+    public func getAllItemsAttributes(for itemIds: [UUID]) async -> HeroAttributes {
         var aggregatedAttributes = HeroAttributes()
         for itemId in itemIds {
             if let item = itemsRepository.getHeroItem(itemId) {

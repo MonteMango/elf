@@ -92,14 +92,21 @@ public final class BattleSetupViewModel {
 
     // MARK: - Private State
 
-    // Note: Using nonisolated(unsafe) instead of nonisolated because @Observable macro
-    // makes these mutable stored properties, and nonisolated cannot be applied to mutable
-    // stored properties. This is safe because Task.cancel() is thread-safe and we only
-    // access these properties for cancellation in deinit.
-    nonisolated(unsafe) private var playerAttributesTask: Task<Void, Never>?
-    nonisolated(unsafe) private var botAttributesTask: Task<Void, Never>?
-    nonisolated(unsafe) private var playerEquipmentTask: Task<Void, Never>?
-    nonisolated(unsafe) private var botEquipmentTask: Task<Void, Never>?
+    // Task properties for background work cancellation
+    //
+    // Using nonisolated(unsafe) because:
+    // 1. @Observable macro makes these mutable stored properties
+    // 2. nonisolated cannot be applied to mutable stored properties
+    //
+    // Thread safety justification:
+    // - Task.cancel() is thread-safe by design
+    // - deinit only calls cancel(), which is safe even if racing with setters
+    // - Setters (setAttributesTask, setEquipmentTask) are @MainActor isolated
+    // - Potential race: deinit vs setter - acceptable because cancel() is idempotent
+    private nonisolated(unsafe) var playerAttributesTask: Task<Void, Never>?
+    private nonisolated(unsafe) var botAttributesTask: Task<Void, Never>?
+    private nonisolated(unsafe) var playerEquipmentTask: Task<Void, Never>?
+    private nonisolated(unsafe) var botEquipmentTask: Task<Void, Never>?
 
     // MARK: - Hero Type Accessors
 
@@ -384,7 +391,7 @@ public final class BattleSetupViewModel {
                 let secondaryWeaponId = currentItems[.shields] ?? nil
 
                 // Fetch all data in parallel
-                async let itemsAttrs = attributeService.getAllItemsAttrbutes(for: itemIds)
+                async let itemsAttrs = attributeService.getAllItemsAttributes(for: itemIds)
                 async let armorValues = armorService.getAllItemsArmor(for: itemIds)
 
                 // Check two-handed weapon and calculate damage

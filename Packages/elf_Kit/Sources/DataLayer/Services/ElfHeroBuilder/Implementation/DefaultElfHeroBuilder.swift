@@ -1,5 +1,5 @@
 //
-//  ElfElfHeroBuilder.swift
+//  DefaultElfHeroBuilder.swift
 //  elf_Kit
 //
 //  Created by Vitalii Lytvynov on 16.11.25.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class ElfElfHeroBuilder: ElfHeroBuilder {
+public final class DefaultElfHeroBuilder: ElfHeroBuilder {
 
     private let itemsRepository: ItemsRepository
     private let armorService: ArmorService

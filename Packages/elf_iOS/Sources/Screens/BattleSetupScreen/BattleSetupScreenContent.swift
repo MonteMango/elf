@@ -42,7 +42,7 @@ internal struct BattleSetupScreenContent: View {
                 }
                 .padding(.horizontal)
 
-                // Bottom row with close and battle buttons
+                // Bottom row with close, battle, and autobattle buttons
                 ZStack {
                     // Close button (bottom left)
                     HStack {
@@ -72,6 +72,48 @@ internal struct BattleSetupScreenContent: View {
                             .frame(height: 50)
                             .background(Color.orange)
                             .cornerRadius(8)
+                    }
+
+                    // Auto battle buttons (bottom right)
+                    HStack {
+                        Spacer()
+                        HStack(spacing: 8) {
+                            // 100 Auto Battle button
+                            Button(action: {
+                                Task {
+                                    guard let battle = await viewModel.startBattle() else {
+                                        return
+                                    }
+                                    router.navigationPath.append(AppRoute.multiBattleResult(battle))
+                                }
+                            }) {
+                                Text("1000x")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .frame(width: 50)
+                                    .frame(height: 44)
+                                    .background(Color.purple)
+                                    .cornerRadius(8)
+                            }
+
+                            // AutoBattle button
+                            Button(action: {
+                                Task {
+                                    guard let battle = await viewModel.startBattle() else {
+                                        return
+                                    }
+                                    router.navigationPath.append(AppRoute.autoBattleResult(battle))
+                                }
+                            }) {
+                                Text("1x")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .frame(width: 50)
+                                    .frame(height: 44)
+                                    .background(Color.green)
+                                    .cornerRadius(8)
+                            }
+                        }
                     }
                 }
                 .padding(.horizontal)

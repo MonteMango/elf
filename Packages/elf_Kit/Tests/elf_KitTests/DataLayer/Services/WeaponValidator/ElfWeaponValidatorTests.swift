@@ -82,6 +82,10 @@ final class ElfWeaponValidatorTests: XCTestCase {
         func getHeroItem(_ id: UUID) -> Item? {
             return items[id]
         }
+
+        func getItems(for type: HeroItemType) -> [Item] {
+            return []
+        }
     }
 
     // MARK: - Category A: Basic Operations

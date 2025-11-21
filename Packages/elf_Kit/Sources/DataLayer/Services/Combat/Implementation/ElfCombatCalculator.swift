@@ -1,5 +1,5 @@
 //
-//  BasicCombatCalculator.swift
+//  ElfCombatCalculator.swift
 //  elf_Kit
 //
 //  Created by Vitalii Lytvynov on 04.05.25.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class BasicCombatCalculator: CombatCalculator {
+public final class ElfCombatCalculator: CombatCalculator {
 
     private let damageService: DamageService
     private let dodgeService: DodgeService
@@ -48,8 +48,9 @@ public final class BasicCombatCalculator: CombatCalculator {
                 // Case 1: Attack meets Defense - Check if crit breaks the block
                 let attackerPower = attacker.fightStyleAttributes.power + attacker.randomLevelAttributes.power
                 let defenderInstinct = defender.fightStyleAttributes.instinct + defender.randomLevelAttributes.instinct
+                let defenderAgility = defender.fightStyleAttributes.agility + defender.randomLevelAttributes.agility
 
-                let critResult = critService.calculateCrit(power: attackerPower, instinct: defenderInstinct)
+                let critResult = critService.calculateCrit(power: attackerPower, instinct: defenderInstinct, defenderAgility: defenderAgility)
 
                 // Log crit calculation
                 debugLogger.logCritCalculation(
@@ -87,12 +88,19 @@ public final class BasicCombatCalculator: CombatCalculator {
                         )
                     }
 
-                    let baseDamage = Int(strengthDamage + weaponDamage)
                     let defenderArmor = Int(defender.armorValues[bodyPart] ?? 0)
-                    let finalDamage = max(0, Int(Double(baseDamage) * critResult.selectedMultiplier) - defenderArmor)
 
-                    let finalStatus = PointStatus.critHit(damage: finalDamage)
+                    let finalStatus = PointStatus.critHit(
+                        weaponDamage: Int(weaponDamage),
+                        strengthDamage: Int(strengthDamage),
+                        defenderArmor: defenderArmor,
+                        multiplier: critResult.selectedMultiplier
+                    )
                     results[bodyPart] = finalStatus
+
+                    // Calculate for logging
+                    let baseDamage = Int(strengthDamage + weaponDamage)
+                    let finalDamage = max(0, Int(Double(baseDamage) * critResult.selectedMultiplier) - defenderArmor)
 
                     // Log body part calculation
                     debugLogger.logBodyPartCalculation(
@@ -107,8 +115,8 @@ public final class BasicCombatCalculator: CombatCalculator {
                         finalStatus: finalStatus
                     )
                 } else {
-                    // Block succeeded
-                    let finalStatus = PointStatus.blocked
+                    // Block succeeded (crit failed to break block)
+                    let finalStatus = PointStatus.blocked(wasCrit: false)
                     results[bodyPart] = finalStatus
 
                     // Log body part calculation
@@ -145,8 +153,12 @@ public final class BasicCombatCalculator: CombatCalculator {
                 )
 
                 if dodgeResult.success {
-                    // Dodged
-                    let finalStatus = PointStatus.dodged
+                    // Dodged - calculate crit for statistics only
+                    let attackerPower = attacker.fightStyleAttributes.power + attacker.randomLevelAttributes.power
+                    let defenderInstinct = defender.fightStyleAttributes.instinct + defender.randomLevelAttributes.instinct
+                    let critResult = critService.calculateCrit(power: attackerPower, instinct: defenderInstinct, defenderAgility: defenderAgility)
+
+                    let finalStatus = PointStatus.dodged(wasCrit: critResult.success)
                     results[bodyPart] = finalStatus
 
                     // Log body part calculation
@@ -166,7 +178,7 @@ public final class BasicCombatCalculator: CombatCalculator {
                     let attackerPower = attacker.fightStyleAttributes.power + attacker.randomLevelAttributes.power
                     let defenderInstinct = defender.fightStyleAttributes.instinct + defender.randomLevelAttributes.instinct
 
-                    let critResult = critService.calculateCrit(power: attackerPower, instinct: defenderInstinct)
+                    let critResult = critService.calculateCrit(power: attackerPower, instinct: defenderInstinct, defenderAgility: defenderAgility)
 
                     // Log crit calculation
                     debugLogger.logCritCalculation(
@@ -202,14 +214,20 @@ public final class BasicCombatCalculator: CombatCalculator {
                         )
                     }
 
-                    let baseDamage = Int(strengthDamage + weaponDamage)
                     let defenderArmor = Int(defender.armorValues[bodyPart] ?? 0)
 
                     if critResult.success {
                         // Critical hit
-                        let finalDamage = max(0, Int(Double(baseDamage) * critResult.selectedMultiplier) - defenderArmor)
-                        let finalStatus = PointStatus.critHit(damage: finalDamage)
+                        let finalStatus = PointStatus.critHit(
+                            weaponDamage: Int(weaponDamage),
+                            strengthDamage: Int(strengthDamage),
+                            defenderArmor: defenderArmor,
+                            multiplier: critResult.selectedMultiplier
+                        )
                         results[bodyPart] = finalStatus
+
+                        let baseDamage = Int(strengthDamage + weaponDamage)
+                        let finalDamage = max(0, Int(Double(baseDamage) * critResult.selectedMultiplier) - defenderArmor)
 
                         // Log body part calculation
                         debugLogger.logBodyPartCalculation(
@@ -225,9 +243,15 @@ public final class BasicCombatCalculator: CombatCalculator {
                         )
                     } else {
                         // Normal hit
-                        let finalDamage = max(0, baseDamage - defenderArmor)
-                        let finalStatus = PointStatus.hit(damage: finalDamage)
+                        let finalStatus = PointStatus.hit(
+                            weaponDamage: Int(weaponDamage),
+                            strengthDamage: Int(strengthDamage),
+                            defenderArmor: defenderArmor
+                        )
                         results[bodyPart] = finalStatus
+
+                        let baseDamage = Int(strengthDamage + weaponDamage)
+                        let finalDamage = max(0, baseDamage - defenderArmor)
 
                         // Log body part calculation
                         debugLogger.logBodyPartCalculation(
@@ -268,4 +292,4 @@ public final class BasicCombatCalculator: CombatCalculator {
 }
 
 // MARK: - Sendable Conformance
-extension BasicCombatCalculator: @unchecked Sendable {}
+extension ElfCombatCalculator: @unchecked Sendable {}

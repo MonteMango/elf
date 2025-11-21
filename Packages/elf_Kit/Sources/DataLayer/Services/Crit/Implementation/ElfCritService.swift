@@ -9,10 +9,10 @@ import Foundation
 
 /// Default implementation of crit calculation service
 ///
-/// Implements the three-stage probability system:
-/// 1. **Stage 1**: Select crit chance (40% for minimum, 60% triangular for range)
+/// Uses triangular distribution with configurable peak position:
+/// 1. **Stage 1**: Select crit chance from triangular distribution
 /// 2. **Stage 2**: Roll to check crit success (with auto-fail/success edge cases)
-/// 3. **Stage 3**: Select damage multiplier if crit succeeded (1.25/1.5/2.0/3.0)
+/// 3. **Stage 3**: Select damage multiplier from agility-adjusted distribution
 public final class ElfCritService: CritService {
 
     private let distributionStrategy: CritDistributionStrategy
@@ -27,33 +27,39 @@ public final class ElfCritService: CritService {
 
     // MARK: - CritService
 
-    public func calculateCrit(power: Int16, instinct: Int16) -> CritCalculationResult {
+    public func calculateCrit(power: Int16, instinct: Int16, defenderAgility: Int16) -> CritCalculationResult {
         // Get distribution
         let distribution = distributionStrategy.distribution(
             power: power,
             instinct: instinct
         )
 
-        // STAGE 1: Select crit chance from distribution
-        let stage1Roll = Int.random(in: 1...100)
-        let selectedChance = selectCritChance(
-            from: distribution,
-            roll: stage1Roll
-        )
+        // STAGE 1: Select crit chance from triangular distribution
+        let selectedChance = selectCritChance(from: distribution)
 
         // STAGE 2: Check crit success with selected chance
         let (stage2Roll, success) = checkCritSuccess(chance: selectedChance)
 
-        // STAGE 3: Select multiplier (only if crit succeeded)
-        let (multiplierRoll, selectedMultiplier) = selectMultiplier(critSuccess: success)
+        // Calculate adjusted multiplier distribution based on defender's agility
+        let (adjustedDistribution, decreaser) = multiplierDistribution.adjusted(
+            attackerPower: power,
+            defenderAgility: defenderAgility
+        )
+
+        // STAGE 3: Select multiplier from adjusted distribution (only if crit succeeded)
+        let (multiplierRoll, selectedMultiplier) = selectMultiplier(
+            critSuccess: success,
+            from: adjustedDistribution
+        )
 
         return CritCalculationResult(
             distribution: distribution,
-            stage1Roll: stage1Roll,
             selectedChance: selectedChance,
             stage2Roll: stage2Roll,
             success: success,
             multiplierDistribution: multiplierDistribution,
+            adjustedMultiplierDistribution: adjustedDistribution,
+            critMultiplierDecreaser: decreaser,
             multiplierRoll: multiplierRoll,
             selectedMultiplier: selectedMultiplier
         )
@@ -61,35 +67,20 @@ public final class ElfCritService: CritService {
 
     // MARK: - Private Methods
 
-    /// Selects a crit chance from the distribution using the stage 1 roll
+    /// Selects a crit chance from the distribution using weighted random selection
     ///
-    /// **Selection logic**:
-    /// - Roll 1-40 (40%): Return minimum chance
-    /// - Roll 41-100 (60%): Select from range using triangular distribution
+    /// Uses triangular distribution where minimum has highest weight.
     ///
-    /// If no range exists (minimum >= maximum), always returns minimum.
-    ///
-    /// - Parameters:
-    ///   - distribution: The crit distribution
-    ///   - roll: Random roll 1-100
+    /// - Parameter distribution: The crit distribution
     /// - Returns: Selected crit chance
-    private func selectCritChance(
-        from distribution: CritDistribution,
-        roll: Int
-    ) -> Int16 {
-        // 40% chance for minimum
-        if roll <= 40 {
-            return distribution.minimumChance
-        }
-
-        // No range → always minimum (shouldn't happen with roll > 40, but handle gracefully)
-        guard distribution.hasRange else {
-            return distribution.minimumChance
-        }
-
-        // 60% probability distributed triangularly over range values
+    private func selectCritChance(from distribution: CritDistribution) -> Int16 {
         // Use weighted random selection
         let totalWeight = distribution.rangeWeights.reduce(0, +)
+
+        guard totalWeight > 0 else {
+            return distribution.minimumChance
+        }
+
         let weightedRoll = Int.random(in: 0..<totalWeight)
 
         var cumulativeWeight = 0
@@ -100,14 +91,14 @@ public final class ElfCritService: CritService {
             }
         }
 
-        // Fallback (should never reach, but handle gracefully)
+        // Fallback (should never reach)
         return distribution.rangeValues.last ?? distribution.minimumChance
     }
 
     /// Checks if crit succeeds with the selected chance
     ///
     /// **Logic**:
-    /// - Chance < 0: Auto-fail (no roll needed)
+    /// - Chance <= 0: Auto-fail (no roll needed)
     /// - Chance >= 100: Auto-success (no roll needed)
     /// - Otherwise: Roll 1-100, succeed if roll <= chance
     ///
@@ -116,8 +107,8 @@ public final class ElfCritService: CritService {
     private func checkCritSuccess(chance: Int16) -> (roll: Int?, success: Bool) {
         let chanceInt = Int(chance)
 
-        // Auto-fail for negative chances
-        if chanceInt < 0 {
+        // Auto-fail for zero or negative chances
+        if chanceInt <= 0 {
             return (nil, false)
         }
 
@@ -132,37 +123,39 @@ public final class ElfCritService: CritService {
         return (roll, success)
     }
 
-    /// Selects damage multiplier if crit succeeded
+    /// Selects damage multiplier from the given distribution if crit succeeded
     ///
-    /// **Multiplier distribution**:
-    /// - 1.25x → 40% (weight 4)
-    /// - 1.5x → 30% (weight 3)
-    /// - 2.0x → 20% (weight 2)
-    /// - 3.0x → 10% (weight 1)
-    ///
+    /// Uses weighted random selection from the adjusted distribution.
     /// If crit failed, returns (nil, 1.0)
     ///
-    /// - Parameter critSuccess: Whether the crit succeeded in stage 2
+    /// - Parameters:
+    ///   - critSuccess: Whether the crit succeeded in stage 2
+    ///   - distribution: The (possibly adjusted) multiplier distribution to select from
     /// - Returns: Tuple of (multiplierRoll, selectedMultiplier). Roll is nil if crit failed.
-    private func selectMultiplier(critSuccess: Bool) -> (roll: Int?, multiplier: Double) {
+    private func selectMultiplier(critSuccess: Bool, from distribution: CritMultiplierDistribution) -> (roll: Int?, multiplier: Double) {
         guard critSuccess else {
             return (nil, 1.0)
         }
 
-        // Use weighted random selection
-        let totalWeight = multiplierDistribution.totalWeight
+        // Use weighted random selection from adjusted distribution
+        let totalWeight = distribution.totalWeight
+
+        guard totalWeight > 0 else {
+            return (nil, 1.0)
+        }
+
         let roll = Int.random(in: 0..<totalWeight)
 
         var cumulativeWeight = 0
-        for (index, weight) in multiplierDistribution.weights.enumerated() {
+        for (index, weight) in distribution.weights.enumerated() {
             cumulativeWeight += weight
             if roll < cumulativeWeight {
-                return (roll, multiplierDistribution.values[index])
+                return (roll, distribution.values[index])
             }
         }
 
         // Fallback (should never reach)
-        return (roll, multiplierDistribution.values.last ?? 1.0)
+        return (roll, distribution.values.last ?? 1.0)
     }
 }
 

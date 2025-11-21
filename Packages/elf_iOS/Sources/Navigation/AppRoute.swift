@@ -17,6 +17,8 @@ public enum AppRoute {
 
     case battleSetup
     case battleFight(Battle)
+    case autoBattleResult(Battle)
+    case multiBattleResult(Battle)
 }
 
 // MARK: - Hashable
@@ -31,6 +33,10 @@ extension AppRoute: Hashable {
             return true
         case (.battleFight(let lhsBattle), .battleFight(let rhsBattle)):
             return lhsBattle.id == rhsBattle.id
+        case (.autoBattleResult(let lhsBattle), .autoBattleResult(let rhsBattle)):
+            return lhsBattle.id == rhsBattle.id
+        case (.multiBattleResult(let lhsBattle), .multiBattleResult(let rhsBattle)):
+            return lhsBattle.id == rhsBattle.id
         default:
             return false
         }
@@ -44,6 +50,12 @@ extension AppRoute: Hashable {
             hasher.combine("battleSetup")
         case .battleFight(let battle):
             hasher.combine("battleFight")
+            hasher.combine(battle.id)
+        case .autoBattleResult(let battle):
+            hasher.combine("autoBattleResult")
+            hasher.combine(battle.id)
+        case .multiBattleResult(let battle):
+            hasher.combine("multiBattleResult")
             hasher.combine(battle.id)
         }
     }
@@ -63,6 +75,10 @@ extension AppRoute {
             BattleSetupScreen()
         case .battleFight(let battle):
             BattleFightScreen(battle: battle)
+        case .autoBattleResult(let battle):
+            AutoBattleResultScreen(battle: battle)
+        case .multiBattleResult(let battle):
+            MultiBattleResultScreen(battle: battle)
         }
     }
 }

@@ -94,9 +94,15 @@ public final class ElfDamageService: DamageService {
 
         for (_, status) in pointStatus {
             switch status {
-            case .hit(let damage), .critHit(let damage):
+            case .hit(let weaponDamage, let strengthDamage, let defenderArmor):
+                let damage = max(0, weaponDamage + strengthDamage - defenderArmor)
+                totalDamage += damage
+            case .critHit(let weaponDamage, let strengthDamage, let defenderArmor, let multiplier):
+                let baseDamage = weaponDamage + strengthDamage
+                let damage = max(0, Int(Double(baseDamage) * multiplier) - defenderArmor)
                 totalDamage += damage
             case .blocked, .dodged, .nothing:
+                // No damage for blocked, dodged, or nothing
                 break
             }
         }

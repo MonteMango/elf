@@ -58,36 +58,7 @@ public final class SelectHeroItemViewModel {
         isLoading = true
         defer { isLoading = false }
 
-        // Get hero items from repository (synchronously loaded at init)
-        let heroItems = itemsRepository.heroItems
-        availableItems = filterItems(for: heroItemType, in: heroItems)
-    }
-
-    private func filterItems(for type: HeroItemType, in heroItems: HeroItems) -> [Item] {
-        switch type {
-        case .helmet:
-            return heroItems.helmets
-        case .gloves:
-            return heroItems.gloves
-        case .shoes:
-            return heroItems.shoes
-        case .upperBody:
-            return heroItems.upperBodies
-        case .bottomBody:
-            return heroItems.bottomBodies
-        case .shirt:
-            return heroItems.robes
-        case .weapons:
-            return heroItems.weapons
-        case .shields:
-            // Shields include both shield items and weapons with secondary hand use
-            return heroItems.shields + heroItems.weapons.filter { $0.handUse == .secondary }
-        case .ring:
-            return heroItems.rings
-        case .necklace:
-            return heroItems.necklaces
-        case .earrings:
-            return heroItems.earrings
-        }
+        // Get items from repository using the new getItems method
+        availableItems = itemsRepository.getItems(for: heroItemType)
     }
 }

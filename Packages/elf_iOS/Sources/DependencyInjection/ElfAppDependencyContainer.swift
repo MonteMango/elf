@@ -27,6 +27,8 @@ public final class ElfAppDependencyContainer {
     public let combatCalculator: CombatCalculator
     public let battleLogger: BattleLogger
     public let debugBattleLogger: DebugBattleLogger
+    public let statisticsParser: BattleStatisticsParser
+    public let battleSimulationService: BattleSimulationService
 
     // MARK: - Initialization
 
@@ -45,7 +47,7 @@ public final class ElfAppDependencyContainer {
 //            .strengthDamage,
 //            .weaponDamage,
 //            .dodgeCalculation,
-            .critCalculation,
+//            .critCalculation,
 //            .bodyPartCalculation,
 //            .roundEnd
         ]
@@ -67,17 +69,25 @@ public final class ElfAppDependencyContainer {
         self.critService = ElfCritService(distributionStrategy: critDistributionStrategy)
 
         self.weaponValidator = ElfWeaponValidator(itemsRepository: itemsRepository)
-        self.elfHeroBuilder = ElfElfHeroBuilder(itemsRepository: itemsRepository, armorService: self.armorService)
+        self.elfHeroBuilder = DefaultElfHeroBuilder(itemsRepository: itemsRepository, armorService: self.armorService)
 
         // Initialize battle services
-        self.botAI = RandomBotAI()
-        self.combatCalculator = BasicCombatCalculator(
+        self.botAI = ElfRandomBotAI()
+        self.combatCalculator = ElfCombatCalculator(
             damageService: self.damageService,
             dodgeService: self.dodgeService,
             critService: self.critService,
             debugLogger: self.debugBattleLogger
         )
-        self.battleLogger = DefaultBattleLogger()
+        self.battleLogger = ElfBattleLogger()
+        self.statisticsParser = ElfBattleStatisticsParser()
+        self.battleSimulationService = ElfBattleSimulationService(
+            attributeService: self.attributeService,
+            botAI: self.botAI,
+            combatCalculator: self.combatCalculator,
+            damageService: self.damageService,
+            statisticsParser: self.statisticsParser
+        )
     }
 
     // MARK: - ViewModel Factories
@@ -104,6 +114,26 @@ public final class ElfAppDependencyContainer {
             combatCalculator: self.combatCalculator,
             battleLogger: self.battleLogger,
             debugLogger: self.debugBattleLogger
+        )
+    }
+
+    @MainActor
+    public func makeAutoBattleViewModel(battle: Battle) -> AutoBattleViewModel {
+        return AutoBattleViewModel(
+            battle: battle,
+            attributeService: self.attributeService,
+            botAI: self.botAI,
+            combatCalculator: self.combatCalculator,
+            damageService: self.damageService,
+            statisticsParser: self.statisticsParser
+        )
+    }
+
+    @MainActor
+    public func makeMultiBattleViewModel(battle: Battle) -> MultiBattleViewModel {
+        return MultiBattleViewModel(
+            battle: battle,
+            battleSimulationService: self.battleSimulationService
         )
     }
 

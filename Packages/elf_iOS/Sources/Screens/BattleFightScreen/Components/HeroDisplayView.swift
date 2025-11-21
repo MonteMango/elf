@@ -231,9 +231,12 @@ struct HeroDisplayView: View {
         switch status {
         case .dodged:
             return "dodge"
-        case .hit(let damage):
+        case .hit(let weaponDamage, let strengthDamage, let defenderArmor):
+            let damage = max(0, weaponDamage + strengthDamage - defenderArmor)
             return "\(damage)"
-        case .critHit(let damage):
+        case .critHit(let weaponDamage, let strengthDamage, let defenderArmor, let multiplier):
+            let baseDamage = weaponDamage + strengthDamage - defenderArmor
+            let damage = max(0, Int(Double(baseDamage) * multiplier))
             return "crit \(damage)"
         case .blocked:
             return "block"
@@ -384,11 +387,11 @@ struct HeroDisplayView_Previews: PreviewProvider {
                 currentHP: 120,
                 maxHP: 150,
                 roundResults: [
-                    .head: .blocked,
-                    .body: .hit(damage: 10),
+                    .head: .blocked(wasCrit: false),
+                    .body: .hit(weaponDamage: 8, strengthDamage: 5, defenderArmor: 3),
                     .leftHand: .nothing,
-                    .rightHand: .critHit(damage: 20),
-                    .legs: .dodged
+                    .rightHand: .critHit(weaponDamage: 12, strengthDamage: 8, defenderArmor: 0, multiplier: 2.0),
+                    .legs: .dodged(wasCrit: false)
                 ]
             )
             .frame(width: 150)
@@ -399,10 +402,10 @@ struct HeroDisplayView_Previews: PreviewProvider {
                 currentHP: 180,
                 maxHP: 225,
                 roundResults: [
-                    .head: .hit(damage: 5),
-                    .body: .blocked,
-                    .leftHand: .dodged,
-                    .rightHand: .critHit(damage: 25),
+                    .head: .hit(weaponDamage: 4, strengthDamage: 3, defenderArmor: 2),
+                    .body: .blocked(wasCrit: false),
+                    .leftHand: .dodged(wasCrit: true),
+                    .rightHand: .critHit(weaponDamage: 15, strengthDamage: 10, defenderArmor: 0, multiplier: 1.5),
                     .legs: .nothing
                 ]
             )

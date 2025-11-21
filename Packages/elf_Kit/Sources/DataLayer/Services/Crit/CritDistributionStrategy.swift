@@ -21,11 +21,12 @@ public protocol CritDistributionStrategy: Sendable {
     /// **Formula**:
     /// - Minimum = power - instinct (can be negative)
     /// - Maximum = power (cap at 100)
-    /// - Range = (minimum + 1)...maximum
+    /// - Range = minimum...maximum (inclusive)
     ///
-    /// **Probability split**:
-    /// - Minimum: 40% probability
-    /// - Range: 60% total, distributed triangularly
+    /// **Triangular distribution**:
+    /// - Minimum has highest weight
+    /// - Maximum has lowest weight
+    /// - Weights: [n, n-1, n-2, ..., 2, 1]
     ///
     /// - Parameters:
     ///   - power: Attacker's total power attribute

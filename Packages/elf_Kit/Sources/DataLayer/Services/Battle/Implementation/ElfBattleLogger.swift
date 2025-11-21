@@ -1,5 +1,5 @@
 //
-//  DefaultBattleLogger.swift
+//  ElfBattleLogger.swift
 //  elf_Kit
 //
 //  Created by Vitalii Lytvynov on 04.05.25.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class DefaultBattleLogger: BattleLogger {
+public final class ElfBattleLogger: BattleLogger {
 
     public init() {}
 
@@ -21,8 +21,8 @@ public final class DefaultBattleLogger: BattleLogger {
         botResults: [BodyPart: PointStatus],
         playerOldHP: Int,
         botOldHP: Int
-    ) -> RoundLog {
-        return RoundLog(
+    ) -> ManualBattleRoundLog {
+        return ManualBattleRoundLog(
             roundNumber: roundNumber,
             action: [
                 playerHero: BattleRoundAction(
@@ -51,4 +51,4 @@ public final class DefaultBattleLogger: BattleLogger {
 }
 
 // MARK: - Sendable Conformance
-extension DefaultBattleLogger: @unchecked Sendable {}
+extension ElfBattleLogger: @unchecked Sendable {}

@@ -77,6 +77,34 @@ public final class ElfItemsRepository: ItemsRepository {
         return heroItemLookup[id]
     }
 
+    public func getItems(for type: HeroItemType) -> [Item] {
+        switch type {
+        case .helmet:
+            return _heroItems.helmets
+        case .gloves:
+            return _heroItems.gloves
+        case .shoes:
+            return _heroItems.shoes
+        case .upperBody:
+            return _heroItems.upperBodies
+        case .bottomBody:
+            return _heroItems.bottomBodies
+        case .shirt:
+            return _heroItems.robes
+        case .weapons:
+            return _heroItems.weapons
+        case .shields:
+            // Shields include both shield items and weapons with secondary hand use
+            return _heroItems.shields + _heroItems.weapons.filter { $0.handUse == .secondary }
+        case .ring:
+            return _heroItems.rings
+        case .necklace:
+            return _heroItems.necklaces
+        case .earrings:
+            return _heroItems.earrings
+        }
+    }
+
     // MARK: - Private Helpers
 
     private static func createEmptyHeroItemsJSON() -> Data {

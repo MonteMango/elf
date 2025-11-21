@@ -7,16 +7,19 @@
 
 import Foundation
 
-/// Default implementation of dodge distribution strategy using triangular distribution
+/// Default implementation of dodge distribution strategy using tent/triangular distribution
 ///
 /// **Algorithm**:
 /// 1. Calculate minimum = agility - instinct (can be negative)
 /// 2. Calculate maximum = min(agility, 100) (cap at 100%)
-/// 3. If minimum >= maximum: no range, use only minimum
-/// 4. Otherwise: range = (minimum + 1)...maximum with triangular weights
+/// 3. Generate full range: minimum...maximum with tent-shaped weights
 ///
-/// **Triangular weights**: For range of size N, weights are [N, N-1, N-2, ..., 2, 1]
-/// This creates a linear decrease in probability from values closest to minimum.
+/// **Tent distribution**: Peak position is configurable via `GameMechanicsConstants.dodgePeakPosition`
+/// - peakPosition = 0.0: Peak at maximum (favors higher chances)
+/// - peakPosition = 1.0: Peak at minimum (favors lower chances)
+/// - peakPosition = 0.5: Peak in the middle
+///
+/// **Negative values**: If selected value <= 0, dodge automatically fails.
 public final class ElfDodgeDistributionStrategy: DodgeDistributionStrategy {
 
     public init() {}
@@ -26,34 +29,39 @@ public final class ElfDodgeDistributionStrategy: DodgeDistributionStrategy {
         let instinctInt = Int(instinct)
 
         // Calculate minimum dodge chance (can be negative)
-        let rawMinimum = agilityInt - instinctInt
+        let minimum = agilityInt - instinctInt
 
         // Calculate maximum dodge chance (cap at 100)
         let maximum = min(100, agilityInt)
 
-        // If minimum >= maximum, no range exists
-        // This happens when agility is very high (e.g., agility=110, instinct=10 → min=100, max=100)
-        guard rawMinimum < maximum else {
+        // If minimum >= maximum, only one value exists
+        guard minimum < maximum else {
             return DodgeDistribution(
-                minimumChance: Int16(rawMinimum),
+                minimumChance: Int16(minimum),
                 maximumChance: Int16(maximum),
-                rangeValues: [],
-                rangeWeights: []
+                rangeValues: [Int16(minimum)],
+                rangeWeights: [1]
             )
         }
 
-        // Generate range values: (minimum + 1)...maximum
-        let rangeStart = rawMinimum + 1
-        let rangeEnd = maximum
-        let rangeValues = Array(rangeStart...rangeEnd).map { Int16($0) }
+        // Generate full range values: minimum...maximum (inclusive)
+        let rangeValues = Array(minimum...maximum).map { Int16($0) }
 
-        // Generate triangular weights: [n, n-1, n-2, ..., 2, 1]
-        // where n = range size
+        // Generate tent-shaped weights with configurable peak position
         let rangeSize = rangeValues.count
-        let weights = (0..<rangeSize).map { rangeSize - $0 }
+        let peakPosition = GameMechanicsConstants.dodgePeakPosition
+
+        // Calculate peak index: 0.0 = last index (maximum), 1.0 = first index (minimum)
+        let peakIndex = Int(round(peakPosition * Double(rangeSize - 1)))
+
+        // Generate tent weights: weight = rangeSize - distance from peak
+        let weights = (0..<rangeSize).map { index in
+            let distance = abs(index - peakIndex)
+            return max(1, rangeSize - distance)
+        }
 
         return DodgeDistribution(
-            minimumChance: Int16(rawMinimum),
+            minimumChance: Int16(minimum),
             maximumChance: Int16(maximum),
             rangeValues: rangeValues,
             rangeWeights: weights

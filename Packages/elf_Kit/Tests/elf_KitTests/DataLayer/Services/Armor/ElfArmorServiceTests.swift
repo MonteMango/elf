@@ -86,6 +86,10 @@ final class ElfArmorServiceTests: XCTestCase {
         func getHeroItem(_ id: UUID) -> Item? {
             return items[id]
         }
+
+        func getItems(for type: HeroItemType) -> [Item] {
+            return []
+        }
     }
     
     // MARK: - Тесты

@@ -99,23 +99,18 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         print("    Agility: \(agility), Instinct: \(instinct)")
 
         let dist = result.distribution
-        print("    Distribution:")
+        print("    Distribution (triangular):")
         print("      Min: \(dist.minimumChance)%, Max: \(dist.maximumChance)%")
 
         if dist.hasRange {
             print("      Range: \(dist.rangeValues)")
             print("      Weights: \(dist.rangeWeights)")
         } else {
-            print("      No range (min >= max)")
+            print("      No range")
         }
 
-        print("    Stage 1 (Select Chance):")
-        print("      Roll: \(result.stage1Roll)/100")
-        if result.stage1Roll <= 60 {
-            print("      → Selected MINIMUM (\(result.selectedChance)%) [60% probability]")
-        } else {
-            print("      → Selected from RANGE (\(result.selectedChance)%) [40% probability]")
-        }
+        print("    Stage 1 (Select Chance from triangular distribution):")
+        print("      → Selected: \(result.selectedChance)%")
 
         print("    Stage 2 (Success Check):")
         if let stage2Roll = result.stage2Roll {
@@ -123,8 +118,8 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
             print("      Roll: \(stage2Roll) \(comparison) \(result.selectedChance)")
             print("      → \(result.success ? "✅ DODGE SUCCESS" : "❌ DODGE FAILED")")
         } else {
-            if result.selectedChance < 0 {
-                print("      → ❌ AUTO-FAIL (negative chance)")
+            if result.selectedChance <= 0 {
+                print("      → ❌ AUTO-FAIL (chance <= 0)")
             } else {
                 print("      → ✅ AUTO-SUCCESS (100+% chance)")
             }
@@ -143,23 +138,18 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         print("    Power: \(power), Defender Instinct: \(instinct)")
 
         let dist = result.distribution
-        print("    Distribution:")
+        print("    Distribution (triangular):")
         print("      Min: \(dist.minimumChance)%, Max: \(dist.maximumChance)%")
 
         if dist.hasRange {
             print("      Range: \(dist.rangeValues)")
             print("      Weights: \(dist.rangeWeights)")
         } else {
-            print("      No range (min >= max)")
+            print("      No range")
         }
 
-        print("    Stage 1 (Select Chance):")
-        print("      Roll: \(result.stage1Roll)/100")
-        if result.stage1Roll <= 40 {
-            print("      → Selected MINIMUM (\(result.selectedChance)%) [40% probability]")
-        } else {
-            print("      → Selected from RANGE (\(result.selectedChance)%) [60% probability]")
-        }
+        print("    Stage 1 (Select Chance from triangular distribution):")
+        print("      → Selected: \(result.selectedChance)%")
 
         print("    Stage 2 (Success Check):")
         if let stage2Roll = result.stage2Roll {
@@ -167,8 +157,8 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
             print("      Roll: \(stage2Roll) \(comparison) \(result.selectedChance)")
             print("      → \(result.success ? "✅ CRIT SUCCESS" : "❌ CRIT FAILED")")
         } else {
-            if result.selectedChance < 0 {
-                print("      → ❌ AUTO-FAIL (negative chance)")
+            if result.selectedChance <= 0 {
+                print("      → ❌ AUTO-FAIL (chance <= 0)")
             } else {
                 print("      → ✅ AUTO-SUCCESS (100+% chance)")
             }
@@ -315,10 +305,13 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         switch status {
         case .blocked:
             return "🛡️ BLOCKED"
-        case .hit(let damage):
-            return "💥 HIT (\(damage) damage)"
-        case .critHit(let damage):
-            return "💥💥 CRIT HIT (\(damage) damage)"
+        case .hit(let weaponDamage, let strengthDamage, let defenderArmor):
+            let totalDamage = max(0, weaponDamage + strengthDamage - defenderArmor)
+            return "💥 HIT (\(totalDamage) damage: weapon=\(weaponDamage) str=\(strengthDamage) armor=\(defenderArmor))"
+        case .critHit(let weaponDamage, let strengthDamage, let defenderArmor, let multiplier):
+            let baseDamage = weaponDamage + strengthDamage - defenderArmor
+            let totalDamage = max(0, Int(Double(baseDamage) * multiplier))
+            return "💥💥 CRIT HIT (\(totalDamage) damage: weapon=\(weaponDamage) str=\(strengthDamage) armor=\(defenderArmor) x\(multiplier))"
         case .dodged:
             return "💨 DODGED"
         case .nothing:

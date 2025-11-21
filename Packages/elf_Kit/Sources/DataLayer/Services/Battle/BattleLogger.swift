@@ -30,5 +30,5 @@ public protocol BattleLogger: Sendable {
         botResults: [BodyPart: PointStatus],
         playerOldHP: Int,
         botOldHP: Int
-    ) -> RoundLog
+    ) -> ManualBattleRoundLog
 }

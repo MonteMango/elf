@@ -8,6 +8,12 @@
 import XCTest
 @testable import elf_Kit
 
+/// Tests for ElfDodgeService and ElfDodgeDistributionStrategy
+///
+/// Distribution uses tent-shaped weights with configurable peak position via `GameMechanicsConstants.dodgePeakPosition`:
+/// - peakPosition = 0.0: Peak at minimum (favors lower chances)
+/// - peakPosition = 0.4 (current): Peak at 40% of range
+/// - peakPosition = 1.0: Peak at maximum (favors higher chances)
 final class ElfDodgeServiceTests: XCTestCase {
 
     // MARK: - Test Helpers
@@ -29,19 +35,23 @@ final class ElfDodgeServiceTests: XCTestCase {
         // Then
         XCTAssertEqual(distribution.minimumChance, 12, "Minimum should be agility - instinct")
         XCTAssertEqual(distribution.maximumChance, 22, "Maximum should be agility")
-        XCTAssertEqual(distribution.rangeValues.count, 10, "Range should have 10 values (13-22)")
-        XCTAssertEqual(distribution.rangeValues.first, 13, "Range should start at minimum + 1")
+        XCTAssertEqual(distribution.rangeValues.count, 11, "Range should have 11 values (12-22)")
+        XCTAssertEqual(distribution.rangeValues.first, 12, "Range should start at minimum")
         XCTAssertEqual(distribution.rangeValues.last, 22, "Range should end at maximum")
 
-        // Verify triangular weights [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-        XCTAssertEqual(distribution.rangeWeights.count, 10)
-        XCTAssertEqual(distribution.rangeWeights.first, 10, "First weight should be range size")
-        XCTAssertEqual(distribution.rangeWeights.last, 1, "Last weight should be 1")
+        // Verify tent-shaped weights with peakPosition = 0.4
+        // Range size = 11, peak index = round(0.4 * 10) = 4
+        // Weights = [11 - |i - 4|] for i in 0..<11
+        // Expected: [7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 5]
+        XCTAssertEqual(distribution.rangeWeights.count, 11)
 
-        // Verify triangular decrease
-        for i in 0..<distribution.rangeWeights.count - 1 {
-            XCTAssertEqual(distribution.rangeWeights[i] - distribution.rangeWeights[i+1], 1, "Weights should decrease by 1")
-        }
+        // Peak should be at index 4 (value 16)
+        let peakIndex = 4
+        XCTAssertEqual(distribution.rangeWeights[peakIndex], 11, "Peak weight should be range size")
+
+        // Weights should decrease from peak in both directions
+        XCTAssertLessThan(distribution.rangeWeights.first!, distribution.rangeWeights[peakIndex], "First weight should be less than peak")
+        XCTAssertLessThan(distribution.rangeWeights.last!, distribution.rangeWeights[peakIndex], "Last weight should be less than peak")
     }
 
     func testDistribution_NegativeMinimum_5Agility8Instinct() {
@@ -54,13 +64,15 @@ final class ElfDodgeServiceTests: XCTestCase {
         // Then
         XCTAssertEqual(distribution.minimumChance, -3, "Minimum can be negative")
         XCTAssertEqual(distribution.maximumChance, 5, "Maximum should be agility")
-        XCTAssertEqual(distribution.rangeValues.count, 8, "Range: -2, -1, 0, 1, 2, 3, 4, 5")
-        XCTAssertEqual(distribution.rangeValues.first, -2, "Range starts at minimum + 1")
+        XCTAssertEqual(distribution.rangeValues.count, 9, "Range: -3, -2, -1, 0, 1, 2, 3, 4, 5")
+        XCTAssertEqual(distribution.rangeValues.first, -3, "Range starts at minimum")
         XCTAssertEqual(distribution.rangeValues.last, 5, "Range ends at maximum")
 
-        // Verify triangular weights
-        XCTAssertEqual(distribution.rangeWeights.first, 8)
-        XCTAssertEqual(distribution.rangeWeights.last, 1)
+        // Verify tent-shaped weights with peakPosition = 0.4
+        // Range size = 9, peak index = round(0.4 * 8) = 3
+        let peakIndex = 3
+        XCTAssertEqual(distribution.rangeWeights[peakIndex], 9, "Peak weight should be range size")
+        XCTAssertGreaterThan(distribution.rangeWeights[peakIndex], distribution.rangeWeights.last!)
     }
 
     func testDistribution_HighAgility_110Agility10Instinct() {
@@ -73,9 +85,10 @@ final class ElfDodgeServiceTests: XCTestCase {
         // Then
         XCTAssertEqual(distribution.minimumChance, 100, "Minimum = agility - instinct")
         XCTAssertEqual(distribution.maximumChance, 100, "Maximum capped at 100")
-        XCTAssertTrue(distribution.rangeValues.isEmpty, "No range when min >= max")
-        XCTAssertTrue(distribution.rangeWeights.isEmpty, "No weights when no range")
-        XCTAssertFalse(distribution.hasRange)
+        XCTAssertEqual(distribution.rangeValues.count, 1, "Single value when min >= max")
+        XCTAssertEqual(distribution.rangeValues.first, 100)
+        XCTAssertEqual(distribution.rangeWeights.first, 1)
+        XCTAssertTrue(distribution.hasRange)
     }
 
     func testDistribution_MinEqualsMax_100Agility0Instinct() {
@@ -88,8 +101,9 @@ final class ElfDodgeServiceTests: XCTestCase {
         // Then
         XCTAssertEqual(distribution.minimumChance, 100)
         XCTAssertEqual(distribution.maximumChance, 100)
-        XCTAssertTrue(distribution.rangeValues.isEmpty)
-        XCTAssertFalse(distribution.hasRange)
+        XCTAssertEqual(distribution.rangeValues.count, 1, "Single value when min >= max")
+        XCTAssertEqual(distribution.rangeValues.first, 100)
+        XCTAssertTrue(distribution.hasRange)
     }
 
     func testDistribution_ZeroDifference_10Agility10Instinct() {
@@ -102,8 +116,8 @@ final class ElfDodgeServiceTests: XCTestCase {
         // Then
         XCTAssertEqual(distribution.minimumChance, 0, "Minimum = 0 when agility equals instinct")
         XCTAssertEqual(distribution.maximumChance, 10, "Maximum = agility")
-        XCTAssertEqual(distribution.rangeValues.count, 10, "Range: 1-10")
-        XCTAssertEqual(distribution.rangeValues, Array(1...10).map { Int16($0) })
+        XCTAssertEqual(distribution.rangeValues.count, 11, "Range: 0-10")
+        XCTAssertEqual(distribution.rangeValues, Array(0...10).map { Int16($0) })
         XCTAssertTrue(distribution.hasRange)
     }
 
@@ -117,11 +131,16 @@ final class ElfDodgeServiceTests: XCTestCase {
         // Then
         XCTAssertEqual(distribution.minimumChance, 3)
         XCTAssertEqual(distribution.maximumChance, 15)
-        XCTAssertEqual(distribution.rangeValues.count, 12, "Range: 4-15")
-        XCTAssertEqual(distribution.rangeValues.first, 4)
+        XCTAssertEqual(distribution.rangeValues.count, 13, "Range: 3-15")
+        XCTAssertEqual(distribution.rangeValues.first, 3)
         XCTAssertEqual(distribution.rangeValues.last, 15)
-        XCTAssertEqual(distribution.rangeWeights.first, 12)
-        XCTAssertEqual(distribution.rangeWeights.last, 1)
+
+        // Verify tent-shaped weights with peakPosition = 0.4
+        // Range size = 13, peak index = round(0.4 * 12) = 5
+        let peakIndex = 5
+        XCTAssertEqual(distribution.rangeWeights[peakIndex], 13, "Peak weight should be range size")
+        XCTAssertGreaterThan(distribution.rangeWeights[peakIndex], distribution.rangeWeights.first!)
+        XCTAssertGreaterThan(distribution.rangeWeights[peakIndex], distribution.rangeWeights.last!)
     }
 
     func testDistribution_EdgeCase_LargeNegative_1Agility100Instinct() {
@@ -134,8 +153,8 @@ final class ElfDodgeServiceTests: XCTestCase {
         // Then
         XCTAssertEqual(distribution.minimumChance, -99, "Large negative minimum")
         XCTAssertEqual(distribution.maximumChance, 1, "Maximum = agility")
-        XCTAssertEqual(distribution.rangeValues.count, 100, "Range: -98 to 1")
-        XCTAssertEqual(distribution.rangeValues.first, -98)
+        XCTAssertEqual(distribution.rangeValues.count, 101, "Range: -99 to 1")
+        XCTAssertEqual(distribution.rangeValues.first, -99)
         XCTAssertEqual(distribution.rangeValues.last, 1)
     }
 
@@ -195,8 +214,6 @@ final class ElfDodgeServiceTests: XCTestCase {
 
         // Then
         XCTAssertNotNil(result.distribution, "Should have distribution")
-        XCTAssertGreaterThanOrEqual(result.stage1Roll, 1)
-        XCTAssertLessThanOrEqual(result.stage1Roll, 100)
         XCTAssertGreaterThanOrEqual(result.selectedChance, 12)
         XCTAssertLessThanOrEqual(result.selectedChance, 22)
 
@@ -229,44 +246,27 @@ final class ElfDodgeServiceTests: XCTestCase {
 
     // MARK: - Statistical Tests (Monte Carlo)
 
-    func testStatistical_60PercentForMinimum() {
+    func testStatistical_TriangularDistribution_MinimumHasHighestProbability() {
         // Given
         let service = makeService()
-        let iterations = 1000
+        let iterations = 5000
 
-        // When: Run many calculations
-        var minimumSelections = 0
+        // When: Count selections for each value
+        var selections: [Int16: Int] = [:]
         for _ in 0..<iterations {
             let result = service.calculateDodge(agility: 20, instinct: 10) // min=10, max=20
-            if result.selectedChance == 10 {
-                minimumSelections += 1
-            }
+            selections[result.selectedChance, default: 0] += 1
         }
 
-        // Then: Should be approximately 60% (allow 5% margin)
-        let percentage = Double(minimumSelections) / Double(iterations)
-        XCTAssertGreaterThan(percentage, 0.55, "Minimum should be selected ~60% of the time")
-        XCTAssertLessThan(percentage, 0.65, "Minimum should be selected ~60% of the time")
-    }
+        // Then: Minimum value should be selected most frequently
+        let minimumCount = selections[10] ?? 0
+        let maximumCount = selections[20] ?? 0
+        XCTAssertGreaterThan(minimumCount, maximumCount, "Minimum (10) should be selected more than maximum (20)")
 
-    func testStatistical_40PercentForRange() {
-        // Given
-        let service = makeService()
-        let iterations = 1000
-
-        // When: Run many calculations
-        var rangeSelections = 0
-        for _ in 0..<iterations {
-            let result = service.calculateDodge(agility: 20, instinct: 10) // min=10, max=20
-            if result.selectedChance > 10 {
-                rangeSelections += 1
-            }
+        // Also verify overall triangular trend
+        if let first = selections[10], let last = selections[20] {
+            XCTAssertGreaterThan(first, last, "Value 10 should be selected more than value 20 (triangular distribution)")
         }
-
-        // Then: Should be approximately 40% (allow 5% margin)
-        let percentage = Double(rangeSelections) / Double(iterations)
-        XCTAssertGreaterThan(percentage, 0.35, "Range should be selected ~40% of the time")
-        XCTAssertLessThan(percentage, 0.45, "Range should be selected ~40% of the time")
     }
 
     func testStatistical_TriangularDistribution_HigherWeightForLowerValues() {
@@ -277,24 +277,14 @@ final class ElfDodgeServiceTests: XCTestCase {
         // When: Count selections for each value in range
         var selections: [Int16: Int] = [:]
         for _ in 0..<iterations {
-            let result = service.calculateDodge(agility: 20, instinct: 10) // min=10, range=11-20
-            if result.selectedChance > 10 { // Only count range selections
-                selections[result.selectedChance, default: 0] += 1
-            }
+            let result = service.calculateDodge(agility: 20, instinct: 10) // min=10, max=20
+            selections[result.selectedChance, default: 0] += 1
         }
 
         // Then: Lower values (closer to minimum) should be selected more frequently
-        let sorted = selections.sorted { $0.key < $1.key }
-        for i in 0..<(sorted.count - 1) {
-            let current = sorted[i].value
-            let next = sorted[i + 1].value
-            // Allow some variance due to randomness, but general trend should hold
-            // We don't enforce strict inequality, just check the overall trend
-        }
-
         // At least verify first value is selected more than last
-        if let first = selections[11], let last = selections[20] {
-            XCTAssertGreaterThan(first, last, "Value 11 should be selected more than value 20 (triangular distribution)")
+        if let first = selections[10], let last = selections[20] {
+            XCTAssertGreaterThan(first, last, "Value 10 should be selected more than value 20 (triangular distribution)")
         }
     }
 

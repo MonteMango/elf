@@ -1,4 +1,3 @@
-
 //
 //  ElfAttributeServiceTests.swift
 //  elf_Kit
@@ -10,6 +9,12 @@ import XCTest
 import Combine
 @testable import elf_Kit
 
+/// Tests for ElfAttributeService
+///
+/// Fight style formulas:
+/// - **Crit**: HP=80, Instinct=1*lvl, Power=4*lvl, Strength=1*lvl
+/// - **Dodge**: HP=80, Agility=4*lvl, Instinct=1*lvl, Strength=1*lvl
+/// - **Def**: HP=80+2*lvl, Instinct=2*lvl, Strength=2*lvl
 final class ElfAttributeServiceTests: XCTestCase {
     
     // MARK: - Фейковые зависимости
@@ -38,6 +43,10 @@ final class ElfAttributeServiceTests: XCTestCase {
 
         func getHeroItem(_ id: UUID) -> Item? {
             return items[id]
+        }
+
+        func getItems(for type: HeroItemType) -> [Item] {
+            return []
         }
     }
     
@@ -74,36 +83,36 @@ final class ElfAttributeServiceTests: XCTestCase {
         let service = ElfAttributeService(itemsRepository: FakeItemsRepository())
         let result = await service.getAllFightStyleAttributes(for: .crit, at: 10)
 
-        XCTAssertEqual(result.hitPoints, 100)
+        XCTAssertEqual(result.hitPoints, 80)
         XCTAssertEqual(result.manaPoints, 20)
-        XCTAssertEqual(result.instinct, 20)
-        XCTAssertEqual(result.power, 40)
+        XCTAssertEqual(result.instinct, 10)   // 1 * level
+        XCTAssertEqual(result.power, 40)      // 4 * level
         XCTAssertEqual(result.agility, 0)
-        XCTAssertEqual(result.strength, 0)
+        XCTAssertEqual(result.strength, 10)   // 1 * level
     }
 
     func testFightStyleDodgeAttributesLevel10() async {
         let service = ElfAttributeService(itemsRepository: FakeItemsRepository())
         let result = await service.getAllFightStyleAttributes(for: .dodge, at: 10)
 
-        XCTAssertEqual(result.hitPoints, 100)
+        XCTAssertEqual(result.hitPoints, 80)
         XCTAssertEqual(result.manaPoints, 20)
-        XCTAssertEqual(result.instinct, 20)
+        XCTAssertEqual(result.instinct, 10)   // 1 * level
         XCTAssertEqual(result.power, 0)
-        XCTAssertEqual(result.agility, 40)
-        XCTAssertEqual(result.strength, 0)
+        XCTAssertEqual(result.agility, 40)    // 4 * level
+        XCTAssertEqual(result.strength, 10)   // 1 * level
     }
 
     func testFightStyleDefAttributesLevel10() async {
         let service = ElfAttributeService(itemsRepository: FakeItemsRepository())
         let result = await service.getAllFightStyleAttributes(for: .def, at: 10)
 
-        XCTAssertEqual(result.hitPoints, 150)
+        XCTAssertEqual(result.hitPoints, 100) // 80 + 2*10
         XCTAssertEqual(result.manaPoints, 20)
-        XCTAssertEqual(result.instinct, 30)
+        XCTAssertEqual(result.instinct, 20)   // 2 * level
         XCTAssertEqual(result.power, 0)
-        XCTAssertEqual(result.agility, 00)
-        XCTAssertEqual(result.strength, 20)
+        XCTAssertEqual(result.agility, 0)
+        XCTAssertEqual(result.strength, 20)   // 2 * level
     }
 
     func testRandomLevelAttributesAreDeterministic() async {
@@ -112,8 +121,9 @@ final class ElfAttributeServiceTests: XCTestCase {
 
         let result = await service.getRandomLevelAttributes()
 
-        XCTAssertEqual(result.hitPoints, 5)
-        XCTAssertEqual(result.manaPoints, 5)
+        // 4 attributes assigned: hitPoints(+3), manaPoints(+3), agility(+1), strength(+1)
+        XCTAssertEqual(result.hitPoints, 3)
+        XCTAssertEqual(result.manaPoints, 3)
         XCTAssertEqual(result.agility, 1)
         XCTAssertEqual(result.strength, 1)
         XCTAssertEqual(result.power, 0)
@@ -166,7 +176,7 @@ final class ElfAttributeServiceTests: XCTestCase {
         repo.items = [id1: item1, id2: item2]
 
         let service = ElfAttributeService(itemsRepository: repo)
-        let result = await service.getAllItemsAttrbutes(for: [id1, id2])
+        let result = await service.getAllItemsAttributes(for: [id1, id2])
 
         XCTAssertEqual(result.strength, 1)
         XCTAssertEqual(result.power, 2)

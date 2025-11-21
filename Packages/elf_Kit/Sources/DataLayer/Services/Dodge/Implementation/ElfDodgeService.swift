@@ -9,8 +9,8 @@ import Foundation
 
 /// Default implementation of dodge calculation service
 ///
-/// Implements the two-stage probability system:
-/// 1. **Stage 1**: Select dodge chance (60% for minimum, 40% triangular for range)
+/// Uses triangular distribution where minimum has highest probability:
+/// 1. **Stage 1**: Select dodge chance from triangular distribution
 /// 2. **Stage 2**: Roll to check dodge success (with auto-fail/success edge cases)
 public final class ElfDodgeService: DodgeService {
 
@@ -31,19 +31,14 @@ public final class ElfDodgeService: DodgeService {
             instinct: instinct
         )
 
-        // STAGE 1: Select dodge chance from distribution
-        let stage1Roll = Int.random(in: 1...100)
-        let selectedChance = selectDodgeChance(
-            from: distribution,
-            roll: stage1Roll
-        )
+        // STAGE 1: Select dodge chance from triangular distribution
+        let selectedChance = selectDodgeChance(from: distribution)
 
         // STAGE 2: Check dodge success with selected chance
         let (stage2Roll, success) = checkDodgeSuccess(chance: selectedChance)
 
         return DodgeCalculationResult(
             distribution: distribution,
-            stage1Roll: stage1Roll,
             selectedChance: selectedChance,
             stage2Roll: stage2Roll,
             success: success
@@ -52,35 +47,20 @@ public final class ElfDodgeService: DodgeService {
 
     // MARK: - Private Methods
 
-    /// Selects a dodge chance from the distribution using the stage 1 roll
+    /// Selects a dodge chance from the distribution using weighted random selection
     ///
-    /// **Selection logic**:
-    /// - Roll 1-60 (60%): Return minimum chance
-    /// - Roll 61-100 (40%): Select from range using triangular distribution
+    /// Uses triangular distribution where minimum has highest weight.
     ///
-    /// If no range exists (minimum >= maximum), always returns minimum.
-    ///
-    /// - Parameters:
-    ///   - distribution: The dodge distribution
-    ///   - roll: Random roll 1-100
+    /// - Parameter distribution: The dodge distribution
     /// - Returns: Selected dodge chance
-    private func selectDodgeChance(
-        from distribution: DodgeDistribution,
-        roll: Int
-    ) -> Int16 {
-        // 60% chance for minimum
-        if roll <= 60 {
-            return distribution.minimumChance
-        }
-
-        // No range → always minimum (shouldn't happen with roll > 60, but handle gracefully)
-        guard distribution.hasRange else {
-            return distribution.minimumChance
-        }
-
-        // 40% probability distributed triangularly over range values
-        // Use weighted random selection (same algorithm as ElfDamageService)
+    private func selectDodgeChance(from distribution: DodgeDistribution) -> Int16 {
+        // Use weighted random selection
         let totalWeight = distribution.rangeWeights.reduce(0, +)
+
+        guard totalWeight > 0 else {
+            return distribution.minimumChance
+        }
+
         let weightedRoll = Int.random(in: 0..<totalWeight)
 
         var cumulativeWeight = 0
@@ -91,14 +71,14 @@ public final class ElfDodgeService: DodgeService {
             }
         }
 
-        // Fallback (should never reach, but handle gracefully)
+        // Fallback (should never reach)
         return distribution.rangeValues.last ?? distribution.minimumChance
     }
 
     /// Checks if dodge succeeds with the selected chance
     ///
     /// **Logic**:
-    /// - Chance < 0: Auto-fail (no roll needed)
+    /// - Chance <= 0: Auto-fail (no roll needed)
     /// - Chance >= 100: Auto-success (no roll needed)
     /// - Otherwise: Roll 1-100, succeed if roll <= chance
     ///
@@ -107,8 +87,8 @@ public final class ElfDodgeService: DodgeService {
     private func checkDodgeSuccess(chance: Int16) -> (roll: Int?, success: Bool) {
         let chanceInt = Int(chance)
 
-        // Auto-fail for negative chances
-        if chanceInt < 0 {
+        // Auto-fail for zero or negative chances
+        if chanceInt <= 0 {
             return (nil, false)
         }
 

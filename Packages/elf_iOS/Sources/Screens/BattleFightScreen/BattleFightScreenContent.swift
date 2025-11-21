@@ -35,7 +35,7 @@ internal struct BattleFightScreenContent: View {
                     HStack {
                         Spacer()
                         Button(action: {
-                            router.popToRoot()
+                            router.pop()
                         }) {
                             Image(systemName: "xmark")
                                 .font(.system(size: 20, weight: .bold))
