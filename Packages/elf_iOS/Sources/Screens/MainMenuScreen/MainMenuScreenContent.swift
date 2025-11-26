@@ -17,8 +17,8 @@ internal struct MainMenuScreenContent: View {
 
     internal var body: some View {
         VStack(spacing: 30) {
-            Button("New Game") {
-                // TODO: Implement new game action
+            NavigationLink(value: AppRoute.characterCreation) {
+                Text("New Game")
             }
             .buttonStyle(.borderedProminent)
 

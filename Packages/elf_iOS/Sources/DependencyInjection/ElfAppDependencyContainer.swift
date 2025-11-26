@@ -21,6 +21,8 @@ public final class ElfAppDependencyContainer {
     public let critService: CritService
     public let weaponValidator: WeaponValidator
     public let elfHeroBuilder: ElfHeroBuilder
+    public let fightStyleDescriptionService: FightStyleDescriptionService
+    public let nameSuggestionService: CharacterNameSuggestionService
 
     // Battle services
     public let botAI: BotAIService
@@ -70,6 +72,10 @@ public final class ElfAppDependencyContainer {
 
         self.weaponValidator = ElfWeaponValidator(itemsRepository: itemsRepository)
         self.elfHeroBuilder = DefaultElfHeroBuilder(itemsRepository: itemsRepository, armorService: self.armorService)
+
+        // Initialize character creation services
+        self.fightStyleDescriptionService = DefaultFightStyleDescriptionService()
+        self.nameSuggestionService = DefaultCharacterNameSuggestionService()
 
         // Initialize battle services
         self.botAI = ElfRandomBotAI()
@@ -141,6 +147,20 @@ public final class ElfAppDependencyContainer {
     public func makeMainMenuViewModel() -> MainMenuViewModel {
         return MainMenuViewModel(
             itemsRepository: self.itemsRepository
+        )
+    }
+
+    @MainActor
+    public func makeCharacterCreationViewModel() -> CharacterCreationViewModel {
+        let nameValidator = DefaultCharacterNameValidator()
+        let characterBuilder = DefaultCharacterBuilder()
+
+        return CharacterCreationViewModel(
+            attributeService: self.attributeService,
+            nameValidator: nameValidator,
+            characterBuilder: characterBuilder,
+            fightStyleDescriptionService: self.fightStyleDescriptionService,
+            nameSuggestionService: self.nameSuggestionService
         )
     }
 

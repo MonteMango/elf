@@ -75,4 +75,9 @@ public enum GameMechanicsConstants {
     /// - decreaser = ((36 * 1.5) - 36) / 36 = 18/36 = 0.5
     /// - This means 50% of weights are redistributed from high to low multipliers
     public static let critMultiplierAgilityCoefficient: Double = 1.8
+
+    // MARK: - Character Creation
+
+    /// Starting level for newly created characters
+    public static let startingLevel: Int16 = 1
 }

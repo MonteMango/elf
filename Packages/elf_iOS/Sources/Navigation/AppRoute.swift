@@ -14,6 +14,7 @@ import SwiftUI
 public enum AppRoute {
 
     case mainMenu
+    case characterCreation
 
     case battleSetup
     case battleFight(Battle)
@@ -28,6 +29,8 @@ extension AppRoute: Hashable {
     public static func == (lhs: AppRoute, rhs: AppRoute) -> Bool {
         switch (lhs, rhs) {
         case (.mainMenu, .mainMenu):
+            return true
+        case (.characterCreation, .characterCreation):
             return true
         case (.battleSetup, .battleSetup):
             return true
@@ -46,6 +49,8 @@ extension AppRoute: Hashable {
         switch self {
         case .mainMenu:
             hasher.combine("mainMenu")
+        case .characterCreation:
+            hasher.combine("characterCreation")
         case .battleSetup:
             hasher.combine("battleSetup")
         case .battleFight(let battle):
@@ -71,6 +76,8 @@ extension AppRoute {
         switch self {
         case .mainMenu:
             MainMenuScreen()
+        case .characterCreation:
+            CharacterCreationScreen()
         case .battleSetup:
             BattleSetupScreen()
         case .battleFight(let battle):
