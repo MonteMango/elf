@@ -287,3 +287,11 @@ DerivedData/
 
 ## Gcc Patch
 /*.gcno
+
+
+############################################################
+# Project-specific files                                  #
+############################################################
+
+# Claude Code instruction file
+CLAUDE.md
