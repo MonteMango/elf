@@ -23,24 +23,23 @@ struct ActionPointsBar: View {
                 .font(GameDayConstants.Fonts.apFont)
                 .foregroundColor(GameDayConstants.Colors.secondaryText)
 
-            // Progress bar with text
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    // Background
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(GameDayConstants.Colors.xpBarBackground)
+            // Progress bar with text - uses scaleEffect instead of GeometryReader
+            ZStack(alignment: .leading) {
+                // Background
+                RoundedRectangle(cornerRadius: 15)
+                    .fill(GameDayConstants.Colors.xpBarBackground)
 
-                    // Fill
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(GameDayConstants.Colors.apBarFill)
-                        .frame(width: geometry.size.width * progress)
+                // Fill with clipShape for proper corner radius
+                Rectangle()
+                    .fill(GameDayConstants.Colors.apBarFill)
+                    .scaleEffect(x: progress, y: 1, anchor: .leading)
+                    .clipShape(RoundedRectangle(cornerRadius: 15))
 
-                    // Text overlay
-                    Text("\(current)/\(max)")
-                        .font(GameDayConstants.Fonts.apFont)
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                }
+                // Text overlay
+                Text("\(current)/\(max)")
+                    .font(GameDayConstants.Fonts.apFont)
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
             }
             .frame(height: GameDayConstants.Sizing.apBarHeight)
         }

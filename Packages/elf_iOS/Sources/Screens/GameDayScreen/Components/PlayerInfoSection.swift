@@ -40,21 +40,15 @@ struct PlayerInfoSection: View {
                     .foregroundColor(.gray)
                     .frame(width: labelWidth, alignment: .leading)
 
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        // Background (no corner radius)
-                        Rectangle()
-                            .fill(GameDayConstants.Colors.xpBarBackground)
-                            .frame(height: xpBarHeight)
+                ZStack(alignment: .leading) {
+                    // Background (no corner radius)
+                    Rectangle()
+                        .fill(GameDayConstants.Colors.xpBarBackground)
 
-                        // Fill (no corner radius)
-                        Rectangle()
-                            .fill(GameDayConstants.Colors.xpBarFill)
-                            .frame(
-                                width: geometry.size.width * xpProgress,
-                                height: xpBarHeight
-                            )
-                    }
+                    // Fill (no corner radius) - uses scaleEffect instead of GeometryReader
+                    Rectangle()
+                        .fill(GameDayConstants.Colors.xpBarFill)
+                        .scaleEffect(x: xpProgress, y: 1, anchor: .leading)
                 }
                 .frame(height: xpBarHeight)
             }
