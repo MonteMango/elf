@@ -15,7 +15,7 @@ struct NameInputView: View {
     let onRandomName: () -> Void
     let onNameChanged: () -> Void
 
-    @FocusState private var isTextFieldFocused: Bool
+    var isTextFieldFocused: FocusState<Bool>.Binding
 
     var body: some View {
         StageContainer(safeAreaInsets: safeAreaInsets) { _, safeArea in
@@ -37,7 +37,7 @@ struct NameInputView: View {
                         // Error indicator button - dismisses keyboard
                         if validationError != nil {
                             Button(action: {
-                                isTextFieldFocused = false
+                                isTextFieldFocused.wrappedValue = false
                             }) {
                                 Image(systemName: "exclamationmark.circle.fill")
                                     .font(.title2)
@@ -60,7 +60,7 @@ struct NameInputView: View {
                     .fontWeight(.semibold)
                     .foregroundColor(validationError != nil ? .red : .black)
                     .multilineTextAlignment(.center)
-                    .focused($isTextFieldFocused)
+                    .focused(isTextFieldFocused)
                     .onChange(of: characterName) { _, _ in
                         onNameChanged()
                     }
@@ -92,18 +92,21 @@ struct NameInputView: View {
             .padding(.top, StagePadding.top())
             .contentShape(Rectangle())
             .onTapGesture {
-                isTextFieldFocused = false
+                isTextFieldFocused.wrappedValue = false
             }
         }
     }
 }
 
 #Preview {
+    @Previewable @FocusState var isFocused: Bool
+
     NameInputView(
         characterName: .constant("Asuna Yuuki"),
         validationError: .constant("Name should contains only letter"),
         safeAreaInsets: EdgeInsets(),
         onRandomName: {},
-        onNameChanged: {}
+        onNameChanged: {},
+        isTextFieldFocused: $isFocused
     )
 }

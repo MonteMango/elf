@@ -11,6 +11,7 @@ import SwiftUI
 struct CharacterCreationScreenContent: View {
     @Environment(AppRouter.self) private var router
     @State private var viewModel: CharacterCreationViewModel
+    @FocusState private var isTextFieldFocused: Bool
 
     init(viewModel: CharacterCreationViewModel) {
         self._viewModel = State(initialValue: viewModel)
@@ -76,7 +77,8 @@ struct CharacterCreationScreenContent: View {
                                 },
                                 onNameChanged: {
                                     viewModel.validateName()
-                                }
+                                },
+                                isTextFieldFocused: $isTextFieldFocused
                             )
                             .frame(width: fullWidth, height: fullHeight)
                             .id(2)
@@ -116,6 +118,9 @@ struct CharacterCreationScreenContent: View {
                     .scrollDisabled(true)
                     .scrollTargetBehavior(.paging)
                     .clipped()
+                    .onChange(of: viewModel.currentStage) { _, _ in
+                        isTextFieldFocused = false
+                    }
                 }
                 .ignoresSafeArea(.all, edges: .horizontal)
             }
