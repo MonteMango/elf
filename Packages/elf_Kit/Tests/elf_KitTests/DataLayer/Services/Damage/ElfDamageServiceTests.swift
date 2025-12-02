@@ -5,16 +5,14 @@
 //  Created by Vitalii Lytvynov on 10.07.25.
 //
 
-// MARK: - DISABLED - Tests temporarily disabled for balance tuning
-
-/*
 import XCTest
-import Combine
 @testable import elf_Kit
 
 final class ElfDamageServiceTests: XCTestCase {
 
-    // Фейковая стратегия для предсказуемого поведения
+    // MARK: - Mocks
+
+    /// Fake strategy for predictable behavior
     struct FakeStrategy: StrengthDamageDistributionStrategy {
         let distributionToReturn: DamageDistribution
 
@@ -23,14 +21,12 @@ final class ElfDamageServiceTests: XCTestCase {
         }
     }
 
-    // Фейковый репозиторий
-    final class FakeItemsRepository: ItemsRepository {
+    /// Fake items repository
+    final class FakeItemsRepository: ItemsRepository, @unchecked Sendable {
         nonisolated(unsafe) var items: [UUID: Item] = [:]
-        nonisolated(unsafe) var heroItems: HeroItems
 
-        init() {
-            // Create empty HeroItems for testing
-            self.heroItems = HeroItems(
+        var heroItems: HeroItems {
+            return HeroItems(
                 version: "1.0.0-test",
                 helmets: [],
                 gloves: [],
@@ -55,8 +51,26 @@ final class ElfDamageServiceTests: XCTestCase {
         }
     }
 
-    func testReturnsCorrectMinAndMaxDamage() async throws {
-        // given
+    // MARK: - Test Helpers
+
+    private func makeWeapon(id: UUID, minDamage: Int16, maxDamage: Int16) -> WeaponItem {
+        let json = """
+        {
+            "id": "\(id.uuidString)",
+            "title": "Test Weapon",
+            "tier": 1,
+            "minimumAttackPoint": \(minDamage),
+            "maximumAttackPoint": \(maxDamage),
+            "handUse": "primary"
+        }
+        """
+        return try! JSONDecoder().decode(WeaponItem.self, from: Data(json.utf8))
+    }
+
+    // MARK: - Strength Damage Tests
+
+    func testGetMinMaxStrengthDamage_ReturnsCorrectMinAndMax() async {
+        // Given
         let distribution = DamageDistribution(values: [3, 4, 5, 6], weights: [1, 2, 2, 1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
@@ -65,16 +79,16 @@ final class ElfDamageServiceTests: XCTestCase {
             distributionStrategy: strategy
         )
 
-        // when
+        // When
         let result = await service.getMinMaxStrengthDamage(10)
 
-        // then
+        // Then
         XCTAssertEqual(result?.minDmg, 3)
         XCTAssertEqual(result?.maxDmg, 6)
     }
 
-    func testReturnsNilWhenValuesIsEmpty() async throws {
-        // given
+    func testGetMinMaxStrengthDamage_ReturnsNilWhenValuesIsEmpty() async {
+        // Given
         let distribution = DamageDistribution(values: [], weights: [])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
@@ -83,15 +97,15 @@ final class ElfDamageServiceTests: XCTestCase {
             distributionStrategy: strategy
         )
 
-        // when
+        // When
         let result = await service.getMinMaxStrengthDamage(10)
 
-        // then
+        // Then
         XCTAssertNil(result)
     }
 
-    func testWorksWithSingleValue() async throws {
-        // given
+    func testGetMinMaxStrengthDamage_WorksWithSingleValue() async {
+        // Given
         let distribution = DamageDistribution(values: [5], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
@@ -100,13 +114,282 @@ final class ElfDamageServiceTests: XCTestCase {
             distributionStrategy: strategy
         )
 
-        // when
+        // When
         let result = await service.getMinMaxStrengthDamage(3)
 
-        // then
+        // Then
         XCTAssertEqual(result?.minDmg, 5)
         XCTAssertEqual(result?.maxDmg, 5)
     }
-}
-*/
 
+    func testGetStrengthDamageDistribution_ReturnsCorrectDistribution() async {
+        // Given
+        let distribution = DamageDistribution(values: [1, 2, 3], weights: [10, 20, 10])
+        let strategy = FakeStrategy(distributionToReturn: distribution)
+        let repository = FakeItemsRepository()
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
+
+        // When
+        let result = await service.getStrengthDamageDistribution(10)
+
+        // Then
+        XCTAssertEqual(result.distribution, [1, 2, 3])
+        XCTAssertEqual(result.weights, [10, 20, 10])
+    }
+
+    func testGetRandomStrengthDamage_ReturnsValueInRange() async {
+        // Given
+        let distribution = DamageDistribution(values: [5, 6, 7], weights: [1, 1, 1])
+        let strategy = FakeStrategy(distributionToReturn: distribution)
+        let repository = FakeItemsRepository()
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
+
+        // When: Run multiple times
+        for _ in 0..<50 {
+            let damage = await service.getRandomStrengthDamage(10)
+
+            // Then
+            XCTAssertTrue((5...7).contains(damage), "Damage \(damage) should be in range 5-7")
+        }
+    }
+
+    func testGetRandomStrengthDamage_EmptyDistribution_ReturnsZero() async {
+        // Given
+        let distribution = DamageDistribution(values: [], weights: [])
+        let strategy = FakeStrategy(distributionToReturn: distribution)
+        let repository = FakeItemsRepository()
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
+
+        // When
+        let damage = await service.getRandomStrengthDamage(10)
+
+        // Then
+        XCTAssertEqual(damage, 0)
+    }
+
+    // MARK: - Weapon Damage Tests
+
+    func testGetWeaponDamage_WithValidWeapon_ReturnsCorrectRange() async {
+        // Given
+        let weaponId = UUID()
+        let weapon = makeWeapon(id: weaponId, minDamage: 10, maxDamage: 20)
+        let distribution = DamageDistribution(values: [1], weights: [1])
+        let strategy = FakeStrategy(distributionToReturn: distribution)
+        let repository = FakeItemsRepository()
+        repository.items[weaponId] = weapon
+
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
+
+        // When
+        let result = await service.getWeaponDamage(weaponId: weaponId)
+
+        // Then
+        XCTAssertEqual(result?.minDmg, 10)
+        XCTAssertEqual(result?.maxDmg, 20)
+    }
+
+    func testGetWeaponDamage_WithNilWeaponId_ReturnsZero() async {
+        // Given
+        let distribution = DamageDistribution(values: [1], weights: [1])
+        let strategy = FakeStrategy(distributionToReturn: distribution)
+        let repository = FakeItemsRepository()
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
+
+        // When
+        let result = await service.getWeaponDamage(weaponId: nil)
+
+        // Then
+        XCTAssertEqual(result?.minDmg, 0)
+        XCTAssertEqual(result?.maxDmg, 0)
+    }
+
+    func testGetWeaponDamage_WithNonExistentWeapon_ReturnsZero() async {
+        // Given
+        let distribution = DamageDistribution(values: [1], weights: [1])
+        let strategy = FakeStrategy(distributionToReturn: distribution)
+        let repository = FakeItemsRepository()
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
+
+        // When
+        let result = await service.getWeaponDamage(weaponId: UUID())
+
+        // Then
+        XCTAssertEqual(result?.minDmg, 0)
+        XCTAssertEqual(result?.maxDmg, 0)
+    }
+
+    func testGetRandomWeaponDamage_ReturnsValueInRange() async {
+        // Given
+        let weaponId = UUID()
+        let weapon = makeWeapon(id: weaponId, minDamage: 5, maxDamage: 10)
+        let distribution = DamageDistribution(values: [1], weights: [1])
+        let strategy = FakeStrategy(distributionToReturn: distribution)
+        let repository = FakeItemsRepository()
+        repository.items[weaponId] = weapon
+
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
+
+        // When: Run multiple times
+        for _ in 0..<50 {
+            let damage = await service.getRandomWeaponDamage(weaponId: weaponId)
+
+            // Then
+            XCTAssertTrue((5...10).contains(damage), "Damage \(damage) should be in range 5-10")
+        }
+    }
+
+    // MARK: - Calculate Total Damage Tests
+
+    func testCalculateTotalDamage_Hit_AppliesArmorReduction() {
+        // Given
+        let distribution = DamageDistribution(values: [1], weights: [1])
+        let strategy = FakeStrategy(distributionToReturn: distribution)
+        let repository = FakeItemsRepository()
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
+
+        // Weapon=10, Strength=5, Armor=3 -> 12
+        let pointStatus: [BodyPart: PointStatus] = [
+            .head: .hit(weaponDamage: 10, strengthDamage: 5, defenderArmor: 3)
+        ]
+
+        // When
+        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+
+        // Then
+        XCTAssertEqual(totalDamage, 12)
+    }
+
+    func testCalculateTotalDamage_Hit_MinimumZeroDamage() {
+        // Given
+        let distribution = DamageDistribution(values: [1], weights: [1])
+        let strategy = FakeStrategy(distributionToReturn: distribution)
+        let repository = FakeItemsRepository()
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
+
+        // Weapon=5, Strength=3, Armor=20 -> max(0, 5+3-20) = 0
+        let pointStatus: [BodyPart: PointStatus] = [
+            .head: .hit(weaponDamage: 5, strengthDamage: 3, defenderArmor: 20)
+        ]
+
+        // When
+        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+
+        // Then
+        XCTAssertEqual(totalDamage, 0)
+    }
+
+    func testCalculateTotalDamage_CritHit_AppliesMultiplier() {
+        // Given
+        let distribution = DamageDistribution(values: [1], weights: [1])
+        let strategy = FakeStrategy(distributionToReturn: distribution)
+        let repository = FakeItemsRepository()
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
+
+        // Base=10+5=15, Multiplier=2.0 -> 30, Armor=5 -> 25
+        let pointStatus: [BodyPart: PointStatus] = [
+            .body: .critHit(weaponDamage: 10, strengthDamage: 5, defenderArmor: 5, multiplier: 2.0)
+        ]
+
+        // When
+        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+
+        // Then
+        XCTAssertEqual(totalDamage, 25)
+    }
+
+    func testCalculateTotalDamage_Blocked_NoDamage() {
+        // Given
+        let distribution = DamageDistribution(values: [1], weights: [1])
+        let strategy = FakeStrategy(distributionToReturn: distribution)
+        let repository = FakeItemsRepository()
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
+
+        let pointStatus: [BodyPart: PointStatus] = [
+            .head: .blocked(wasCrit: false)
+        ]
+
+        // When
+        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+
+        // Then
+        XCTAssertEqual(totalDamage, 0)
+    }
+
+    func testCalculateTotalDamage_Dodged_NoDamage() {
+        // Given
+        let distribution = DamageDistribution(values: [1], weights: [1])
+        let strategy = FakeStrategy(distributionToReturn: distribution)
+        let repository = FakeItemsRepository()
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
+
+        let pointStatus: [BodyPart: PointStatus] = [
+            .body: .dodged(wasCrit: true)
+        ]
+
+        // When
+        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+
+        // Then
+        XCTAssertEqual(totalDamage, 0)
+    }
+
+    func testCalculateTotalDamage_Multiple_SumsCorrectly() {
+        // Given
+        let distribution = DamageDistribution(values: [1], weights: [1])
+        let strategy = FakeStrategy(distributionToReturn: distribution)
+        let repository = FakeItemsRepository()
+        let service = ElfDamageService(
+            itemsRepository: repository,
+            distributionStrategy: strategy
+        )
+
+        // Head: 10+5-3=12, Body: 20+10-5=25, Legs: blocked=0
+        let pointStatus: [BodyPart: PointStatus] = [
+            .head: .hit(weaponDamage: 10, strengthDamage: 5, defenderArmor: 3),
+            .body: .hit(weaponDamage: 20, strengthDamage: 10, defenderArmor: 5),
+            .legs: .blocked(wasCrit: false)
+        ]
+
+        // When
+        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+
+        // Then
+        XCTAssertEqual(totalDamage, 37)
+    }
+}
