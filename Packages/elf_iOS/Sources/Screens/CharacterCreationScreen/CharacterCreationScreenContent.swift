@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 struct CharacterCreationScreenContent: View {
@@ -146,15 +147,8 @@ struct CharacterCreationScreenContent: View {
                 }
             }) {
                 Text(buttonText)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .frame(width: 150)
-                    .frame(height: 50)
-                    .background(buttonBackgroundColor)
-                    .cornerRadius(8)
-                    .opacity(isButtonEnabled ? 1.0 : 0.6)
             }
+            .buttonStyle(.elfPrimary(isEnabled: isButtonEnabled))
             .disabled(!isButtonEnabled)
             .padding(.bottom, StagePadding.standard)
         }
@@ -167,13 +161,6 @@ struct CharacterCreationScreenContent: View {
             return "Next"
         }
         return viewModel.isCharacterReady ? "Start" : "Ready"
-    }
-
-    private var buttonBackgroundColor: Color {
-        if viewModel.isLoadingAttributes {
-            return .gray
-        }
-        return (viewModel.canProceedToNextStage || viewModel.isCharacterReady) ? .orange : .gray
     }
 
     private var isButtonEnabled: Bool {

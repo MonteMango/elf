@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 internal struct MainMenuScreenContent: View {
@@ -20,12 +21,12 @@ internal struct MainMenuScreenContent: View {
             NavigationLink(value: AppRoute.characterCreation) {
                 Text("New Game")
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.elfPrimary)
 
             NavigationLink(value: AppRoute.battleSetup) {
                 Text("Battle")
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.elfPrimary)
         }
     }
 }

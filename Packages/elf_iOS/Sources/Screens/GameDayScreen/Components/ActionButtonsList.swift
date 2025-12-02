@@ -5,8 +5,9 @@
 //  Created by Vitalii Lytvynov on 28.11.25.
 //
 
-import SwiftUI
 import elf_Kit
+import elf_SwiftUI
+import SwiftUI
 
 struct ActionButtonsList: View {
     let onAction: (ActionType) -> Void
@@ -27,15 +28,8 @@ struct ActionButtonsList: View {
             onAction(action)
         } label: {
             Text(action.rawValue)
-                .font(GameDayConstants.Fonts.buttonFont)
-                .foregroundColor(GameDayConstants.Colors.actionButtonText)
-                .frame(
-                    width: GameDayConstants.Sizing.actionButtonWidth,
-                    height: GameDayConstants.Sizing.actionButtonHeight
-                )
-                .background(GameDayConstants.Colors.actionButtonBackground)
-                .cornerRadius(GameDayConstants.Sizing.actionButtonCornerRadius)
         }
+        .buttonStyle(.elfPrimary)
     }
 }
 
