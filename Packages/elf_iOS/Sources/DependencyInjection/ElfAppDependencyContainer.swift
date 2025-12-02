@@ -177,4 +177,9 @@ public final class ElfAppDependencyContainer {
             itemsRepository: self.itemsRepository
         )
     }
+
+    @MainActor
+    public func makeGameDayViewModel(character: PlayerCharacter) -> GameDayViewModel {
+        return GameDayViewModel(character: character)
+    }
 }

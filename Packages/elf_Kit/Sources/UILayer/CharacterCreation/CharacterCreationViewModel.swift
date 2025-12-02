@@ -117,6 +117,11 @@ public final class CharacterCreationViewModel {
         self.characterBuilder = characterBuilder
         self.fightStyleDescriptionService = fightStyleDescriptionService
         self.nameSuggestionService = nameSuggestionService
+
+        // Set default fight style in builder (didSet doesn't trigger on initial value)
+        if let style = selectedFightStyle {
+            characterBuilder.setFightStyle(style)
+        }
     }
 
 
@@ -205,6 +210,7 @@ public final class CharacterCreationViewModel {
     public func createCharacter() -> PlayerCharacter? {
         guard let fightAttrs = fightStyleAttributes,
               let randomAttrs = randomLevelAttributes else {
+            print("❌ createCharacter failed: missing attributes")
             return nil
         }
 
@@ -214,9 +220,10 @@ public final class CharacterCreationViewModel {
                 randomLevelAttributes: randomAttrs
             )
             createdCharacter = character
+            print("✅ Character created: \(character.name)")
             return character
         } catch {
-            // Log error if needed
+            print("❌ createCharacter failed: \(error)")
             return nil
         }
     }

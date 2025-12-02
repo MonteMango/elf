@@ -134,10 +134,10 @@ struct CharacterCreationScreenContent: View {
                         await viewModel.finalizeCharacter()
                     }
                 } else {
-                    // Stage 4 after Ready: Start
-                    viewModel.startGame()
-                    // TODO: Navigate to game screen
-                    router.pop()
+                    // Stage 4 after Ready: Start - Navigate to game screen
+                    if let character = viewModel.createdCharacter ?? viewModel.createCharacter() {
+                        router.navigationPath.append(AppRoute.gameDay(character))
+                    }
                 }
             }) {
                 Text(buttonText)
