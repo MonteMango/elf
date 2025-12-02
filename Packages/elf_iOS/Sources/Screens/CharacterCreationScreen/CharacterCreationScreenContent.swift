@@ -141,7 +141,7 @@ struct CharacterCreationScreenContent: View {
                 } else {
                     // Stage 4 after Ready: Start - Navigate to game screen
                     if let character = viewModel.createdCharacter ?? viewModel.createCharacter() {
-                        router.navigationPath.append(AppRoute.gameDay(character))
+                        router.navigate(to: .gameDay(character), removingPrevious: 1)
                     }
                 }
             }) {
