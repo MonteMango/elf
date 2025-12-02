@@ -41,9 +41,9 @@ public final class DefaultElfHeroBuilder: ElfHeroBuilder {
 
         // Determine weapon placement and shield
         // Shield slot can contain either a shield or a second weapon (dual wielding)
-        var leftWeapon: ElfWeaponItem? = nil
-        var rightWeapon: ElfWeaponItem? = nil
-        var shield: ElfShieldItem? = nil
+        var leftWeapon: ElfWeaponItem?
+        var rightWeapon: ElfWeaponItem?
+        var shield: ElfShieldItem?
 
         if let weapon = weaponItem {
             // Check if it's a two-handed weapon

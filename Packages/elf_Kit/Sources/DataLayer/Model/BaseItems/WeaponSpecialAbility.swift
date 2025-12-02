@@ -8,17 +8,17 @@
 public enum WeaponSpecialAbility: Decodable, Sendable {
     case passThroughBlock(probability: Float)
     case antiDodge(probability: Float)
-    
+
     private enum CodingKeys: String, CodingKey {
         case type
         case probability
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(String.self, forKey: .type)
         let probability = try container.decode(Float.self, forKey: .probability)
-        
+
         switch type {
         case "passThroughBlock":
             self = .passThroughBlock(probability: probability)

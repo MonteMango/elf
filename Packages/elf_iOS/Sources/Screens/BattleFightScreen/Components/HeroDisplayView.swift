@@ -5,9 +5,9 @@
 //  Created by Vitalii Lytvynov on 16.11.25.
 //
 
+import elf_Kit
 import SwiftUI
 import UIKit
-import elf_Kit
 
 // MARK: - HeroDisplayView
 
@@ -271,7 +271,7 @@ struct HeroDisplayView: View {
 // MARK: - Preview
 
 // Mock Item classes for preview
-fileprivate final class MockDefenseItem: Item {
+private final class MockDefenseItem: Item {
     let id = UUID()
     let title = "Mock Item"
     let tier: Int16 = 1
@@ -286,7 +286,7 @@ fileprivate final class MockDefenseItem: Item {
     enum CodingKeys: CodingKey {}
 }
 
-fileprivate final class MockWeaponItem: Item {
+private final class MockWeaponItem: Item {
     let id = UUID()
     let title = "Mock Weapon"
     let tier: Int16 = 1

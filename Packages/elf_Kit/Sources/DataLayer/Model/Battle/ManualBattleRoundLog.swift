@@ -8,7 +8,7 @@
 import Foundation
 
 public struct ManualBattleRoundLog: Sendable {
-    public let roundNumber: Int //current round number
+    public let roundNumber: Int // current round number
 
     public var action: [ElfHero: BattleRoundAction] // which actions were made (what attacked, what defended) For each elfHero
     public var duels: [(ElfHero, ElfHero)] // the opponents for current round (could be different in next round)

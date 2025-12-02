@@ -124,7 +124,6 @@ public final class CharacterCreationViewModel {
         }
     }
 
-
     // MARK: - Stage Navigation
 
     /// Move to next stage

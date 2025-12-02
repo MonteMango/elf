@@ -124,7 +124,7 @@ public final class ElfItemsRepository: ItemsRepository {
             "earrings": []
         }
         """
-        return emptyJSON.data(using: .utf8)!
+        return Data(emptyJSON.utf8)
     }
 }
 

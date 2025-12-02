@@ -15,9 +15,9 @@ internal struct GameDayScreenContent: View {
     internal init(viewModel: GameDayViewModel) {
         self._viewModel = State(initialValue: viewModel)
     }
-    
+
     var body: some View {
-        
+
         HStack(spacing: 10) {
               leftNewSection
                   .frame(maxWidth: .infinity)
@@ -29,9 +29,9 @@ internal struct GameDayScreenContent: View {
         .padding(.top, 15)
         .background(Color.white)
     }
-    
+
     // MARK: - Left Section
-    
+
     @ViewBuilder
     private var leftNewSection: some View {
         VStack(spacing: 5) {
@@ -42,9 +42,9 @@ internal struct GameDayScreenContent: View {
                 expToNextLevel: viewModel.expToNextLevel,
                 xpProgress: viewModel.xpProgress
             )
-            
+
             BuffsScrollView(buffs: viewModel.activeBuffs)
-            
+
             HeroSection(
                 imageName: viewModel.characterImageName,
                 equippedItems: viewModel.equippedItems,
@@ -56,12 +56,12 @@ internal struct GameDayScreenContent: View {
                 onEquipmentSlotTapped: viewModel.onEquipmentSlotTapped,
                 onPocketTapped: viewModel.onPocketTapped
             )
-            
+
             // Attributes
             AttributesCompactView(attributes: viewModel.totalAttributes)
         }
     }
-    
+
     // MARK: - Center Section
 
     @ViewBuilder
@@ -75,11 +75,11 @@ internal struct GameDayScreenContent: View {
 
             // Action Buttons
             ActionButtonsList(onAction: viewModel.onActionTapped)
-            
+
             Spacer()
         }
     }
-    
+
     // MARK: - Right Section
 
     @ViewBuilder
@@ -87,14 +87,14 @@ internal struct GameDayScreenContent: View {
         VStack(alignment: .leading, spacing: 20) {
             // Top row: Calendar + Close button
             HStack(spacing: 0) {
-                
+
                 Spacer()
-                
+
                 CalendarSection(
                     currentDay: viewModel.gameState.currentDay,
                     upcomingDays: viewModel.gameState.upcomingDays
                 )
-                
+
                 Spacer()
 
                 CloseButton {

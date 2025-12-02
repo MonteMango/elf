@@ -9,15 +9,15 @@ import Combine
 import Foundation
 
 public final class ElfAttributeService: AttributeService {
-    
+
     private let itemsRepository: ItemsRepository
     private let randomizer: AttributeRandomizer
-    
+
     public init(itemsRepository: ItemsRepository, randomizer: AttributeRandomizer = ElfAttributeRandomizer()) {
         self.itemsRepository = itemsRepository
         self.randomizer = randomizer
     }
-    
+
     public func getAllFightStyleAttributes(for fightStyle: FightStyle, at level: Int16) async -> HeroAttributes {
         switch fightStyle {
         case .crit:
@@ -29,7 +29,7 @@ public final class ElfAttributeService: AttributeService {
             attributes.power = 4 * level
             attributes.strength = 1 * level
             return attributes
-            
+
         case .def:
             var attributes = HeroAttributes()
             attributes.hitPoints = 80 + (2 * level)
@@ -39,7 +39,7 @@ public final class ElfAttributeService: AttributeService {
             attributes.power = 0
             attributes.strength = 2 * level
             return attributes
-            
+
         case .dodge:
             var attributes = HeroAttributes()
             attributes.hitPoints = 80
@@ -51,7 +51,7 @@ public final class ElfAttributeService: AttributeService {
             return attributes
         }
     }
-    
+
     public func getRandomLevelAttributes() async -> HeroAttributes {
         var attributes = HeroAttributes()
         var pointsAssigned = 0
@@ -81,7 +81,7 @@ public final class ElfAttributeService: AttributeService {
 
         return attributes
     }
-    
+
     public func getAllRandomLevelAttributes(for level: Int16) async -> HeroAttributes {
         // Sequential execution - getRandomLevelAttributes is a lightweight operation
         // No benefit from parallelization, avoids thread overhead
@@ -97,7 +97,7 @@ public final class ElfAttributeService: AttributeService {
         }
         return totalAttributes
     }
-    
+
     public func getAllItemsAttributes(for itemIds: [UUID]) async -> HeroAttributes {
         var aggregatedAttributes = HeroAttributes()
         for itemId in itemIds {
@@ -107,7 +107,7 @@ public final class ElfAttributeService: AttributeService {
         }
         return aggregatedAttributes
     }
-    
+
     private func aggregateItemAttributes(item: Item, existingAttributes: HeroAttributes) -> HeroAttributes {
         var updatedAttributes = existingAttributes
         if let strength = item.strength {

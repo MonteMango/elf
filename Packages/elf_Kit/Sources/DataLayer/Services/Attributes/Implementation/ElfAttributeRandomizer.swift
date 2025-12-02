@@ -26,7 +26,7 @@ public final class ElfAttributeRandomizer: AttributeRandomizer {
     public func nextAttribute() -> String {
         let r = Double.random(in: 0..<totalWeight)
         var cumulative: Double = 0
-        
+
         for (attribute, weight) in weightedAttributes {
             cumulative += weight
             if r < cumulative {
@@ -34,7 +34,7 @@ public final class ElfAttributeRandomizer: AttributeRandomizer {
             }
         }
 
-        // fallback (должно быть невозможно, но для безопасности)
-        return weightedAttributes.last!.0
+        // fallback (should be impossible, but for safety return last or default)
+        return weightedAttributes.last?.0 ?? "strength"
     }
 }

@@ -436,7 +436,7 @@ public final class BattleSetupViewModel {
 
         // Check if primary weapon is two-handed
         var isTwoHanded = false
-        var twoHandedWeaponId: UUID? = nil
+        var twoHandedWeaponId: UUID?
 
         if let weaponId = primaryWeaponId,
            let item = itemsRepository.getHeroItem(weaponId),

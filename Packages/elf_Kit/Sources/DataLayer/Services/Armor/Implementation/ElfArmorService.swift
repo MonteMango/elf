@@ -8,13 +8,13 @@
 import Foundation
 
 public final class ElfArmorService: ArmorService {
-    
+
     private let itemsRepository: ItemsRepository
-    
+
     public init(itemsRepository: ItemsRepository) {
         self.itemsRepository = itemsRepository
     }
-    
+
     public func getAllItemsArmor(for itemIds: [UUID]) async -> [BodyPart: Int16] {
         var armorPoints: [BodyPart: Int16] = [
                .head: 0,
@@ -23,7 +23,7 @@ public final class ElfArmorService: ArmorService {
                .rightHand: 0,
                .legs: 0
            ]
-        
+
         for id in itemIds {
             guard let item = itemsRepository.getHeroItem(id),
                   let defenseItem = item as? HasPhysicalDefense else {
@@ -34,7 +34,7 @@ public final class ElfArmorService: ArmorService {
                 armorPoints[bodyPart, default: 0] += defenseItem.physicalDefensePoint
             }
         }
-        
+
         return armorPoints
     }
 }

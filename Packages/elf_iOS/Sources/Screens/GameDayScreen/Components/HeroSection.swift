@@ -5,9 +5,9 @@
 //  Created by Vitalii Lytvynov on 28.11.25.
 //
 
+import elf_Kit
 import SwiftUI
 import UIKit
-import elf_Kit
 
 struct HeroSection: View {
     let imageName: String
@@ -50,7 +50,7 @@ struct HeroSection: View {
                     // Reputation stats (top right)
                     statsLabel(icon: "crown.fill", value: reputation, color: .orange)
                 }
-                
+
                 HStack(alignment: .bottom, spacing: 0) {
                     // Left column: 4 equipment slots
                     VStack(alignment: .leading, spacing: GameDayConstants.Spacing.gridSpacing) {
@@ -59,7 +59,7 @@ struct HeroSection: View {
                         equipmentSlot(for: .bottomBody)
                         equipmentSlot(for: .shoes)
                     }
-                    
+
                     Spacer()
 
                     // Center: 3 jewelry slots (horizontal, centered)
@@ -68,7 +68,7 @@ struct HeroSection: View {
                         equipmentSlot(for: .necklace)
                         equipmentSlot(for: .earrings)
                     }
-                    
+
                     Spacer()
 
                     // Right column: 4 equipment slots

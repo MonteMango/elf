@@ -5,8 +5,8 @@
 //  Created by Vitalii Lytvynov on 14.11.25.
 //
 
-import SwiftUI
 import elf_Kit
+import SwiftUI
 
 internal struct ItemCell: View {
     let item: Item
@@ -71,7 +71,7 @@ internal struct ItemCell: View {
     }
 
     let mockItem = MockItem(
-        id: UUID(uuidString: "898a28b5-7189-4b21-b821-6b67ad2e8269")!,
+        id: UUID(),
         title: "Dragon Helmet",
         tier: 3,
         strength: 15,
@@ -98,7 +98,7 @@ internal struct ItemCell: View {
     }
 
     let mockItem = MockItem(
-        id: UUID(uuidString: "6023cc65-b183-4d41-8742-f1ecb0172942")!,
+        id: UUID(),
         title: "Legendary Helmet",
         tier: 4,
         isUnique: true,

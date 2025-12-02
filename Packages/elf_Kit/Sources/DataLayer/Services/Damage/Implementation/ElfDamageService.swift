@@ -19,7 +19,7 @@ public final class ElfDamageService: DamageService {
         self.itemsRepository = itemsRepository
         self.distributionStrategy = distributionStrategy
     }
-    
+
     public func getMinMaxStrengthDamage(_ strengthAttribute: Int16) async -> (minDmg: Int16, maxDmg: Int16)? {
         let dmgStrengthDistribution = distributionStrategy.distribution(for: strengthAttribute)
         guard
