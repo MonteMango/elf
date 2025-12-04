@@ -17,14 +17,3 @@ struct CharacterCreationScreen: View {
         )
     }
 }
-
-#Preview {
-    @Previewable @State var router = AppRouter()
-    let container = ElfAppDependencyContainer()
-
-    NavigationStack(path: $router.navigationPath) {
-        CharacterCreationScreen()
-            .environment(router)
-            .environment(container)
-    }
-}

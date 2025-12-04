@@ -15,7 +15,7 @@ public enum AppRoute {
 
     case mainMenu
     case characterCreation
-    case gameDay(PlayerCharacter)
+    case gameDay(Game)
 
     case battleSetup
     case battleFight(Battle)
@@ -33,8 +33,8 @@ extension AppRoute: Hashable {
             return true
         case (.characterCreation, .characterCreation):
             return true
-        case (.gameDay(let lhsCharacter), .gameDay(let rhsCharacter)):
-            return lhsCharacter.id == rhsCharacter.id
+        case (.gameDay(let lhsGame), .gameDay(let rhsGame)):
+            return lhsGame.id == rhsGame.id
         case (.battleSetup, .battleSetup):
             return true
         case (.battleFight(let lhsBattle), .battleFight(let rhsBattle)):
@@ -54,9 +54,9 @@ extension AppRoute: Hashable {
             hasher.combine("mainMenu")
         case .characterCreation:
             hasher.combine("characterCreation")
-        case .gameDay(let character):
+        case .gameDay(let game):
             hasher.combine("gameDay")
-            hasher.combine(character.id)
+            hasher.combine(game.id)
         case .battleSetup:
             hasher.combine("battleSetup")
         case .battleFight(let battle):
@@ -84,8 +84,8 @@ extension AppRoute {
             MainMenuScreen()
         case .characterCreation:
             CharacterCreationScreen()
-        case .gameDay(let character):
-            GameDayScreen(character: character)
+        case .gameDay(let game):
+            GameDayScreen(game: game)
         case .battleSetup:
             BattleSetupScreen()
         case .battleFight(let battle):

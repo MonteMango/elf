@@ -18,6 +18,8 @@ public final class CharacterCreationViewModel {
     private let characterBuilder: CharacterBuilder
     private let fightStyleDescriptionService: FightStyleDescriptionService
     private let nameSuggestionService: CharacterNameSuggestionService
+    private let houseService: HouseService
+    private let elfInfoFactory: ElfInfoFactory
 
     // MARK: - Stage State
 
@@ -78,6 +80,9 @@ public final class CharacterCreationViewModel {
     /// Created character (available after Start)
     public var createdCharacter: PlayerCharacter?
 
+    /// Created game with houses (available after finalize)
+    public var createdGame: Game?
+
     // MARK: - Private State
 
     /// Task for loading attributes
@@ -110,13 +115,17 @@ public final class CharacterCreationViewModel {
         nameValidator: CharacterNameValidator,
         characterBuilder: CharacterBuilder,
         fightStyleDescriptionService: FightStyleDescriptionService,
-        nameSuggestionService: CharacterNameSuggestionService
+        nameSuggestionService: CharacterNameSuggestionService,
+        houseService: HouseService,
+        elfInfoFactory: ElfInfoFactory
     ) {
         self.attributeService = attributeService
         self.nameValidator = nameValidator
         self.characterBuilder = characterBuilder
         self.fightStyleDescriptionService = fightStyleDescriptionService
         self.nameSuggestionService = nameSuggestionService
+        self.houseService = houseService
+        self.elfInfoFactory = elfInfoFactory
 
         // Set default fight style in builder (didSet doesn't trigger on initial value)
         if let style = selectedFightStyle {
@@ -201,6 +210,32 @@ public final class CharacterCreationViewModel {
 
         // Generate random attributes
         randomLevelAttributes = await attributeService.getRandomLevelAttributes()
+
+        // Create character and game with houses
+        if let character = createCharacter() {
+            let playerElfInfo = elfInfoFactory.create(from: character)
+            let (houses, houseIndex, memberIndex) = await houseService.createAllHouses(
+                playerElfInfo: playerElfInfo
+            )
+
+            let gameState = GameState(
+                currentDay: GameDay(dayNumber: 1, dayType: .normal),
+                currentActionPoints: 100,
+                maxActionPoints: 100,
+                upcomingDays: [
+                    GameDay(dayNumber: 2, dayType: .dungeon),
+                    GameDay(dayNumber: 3, dayType: .normal),
+                    GameDay(dayNumber: 4, dayType: .houseWar)
+                ]
+            )
+
+            createdGame = Game(
+                houses: houses,
+                gameState: gameState,
+                playerHouseIndex: houseIndex,
+                playerMemberIndex: memberIndex
+            )
+        }
 
         isCharacterReady = true
     }

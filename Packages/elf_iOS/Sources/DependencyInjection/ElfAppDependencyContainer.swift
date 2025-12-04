@@ -23,6 +23,8 @@ public final class ElfAppDependencyContainer {
     public let elfHeroBuilder: ElfHeroBuilder
     public let fightStyleDescriptionService: FightStyleDescriptionService
     public let nameSuggestionService: CharacterNameSuggestionService
+    public let elfInfoFactory: ElfInfoFactory
+    public let houseService: HouseService
 
     // Battle services
     public let botAI: BotAIService
@@ -36,9 +38,12 @@ public final class ElfAppDependencyContainer {
 
     public init() {
         let itemsRepository = ElfItemsRepository()
+        let attributeService = ElfAttributeService(itemsRepository: itemsRepository)
+        let elfInfoFactory = DefaultElfInfoFactory(attributeService: attributeService)
 
         self.itemsRepository = itemsRepository
-        self.attributeService = ElfAttributeService(itemsRepository: itemsRepository)
+        self.attributeService = attributeService
+        self.elfInfoFactory = elfInfoFactory
         self.armorService = ElfArmorService(itemsRepository: itemsRepository)
 
         // Initialize debug logger based on build configuration
@@ -76,6 +81,7 @@ public final class ElfAppDependencyContainer {
         // Initialize character creation services
         self.fightStyleDescriptionService = DefaultFightStyleDescriptionService()
         self.nameSuggestionService = DefaultCharacterNameSuggestionService()
+        self.houseService = DefaultHouseService(elfInfoFactory: elfInfoFactory)
 
         // Initialize battle services
         self.botAI = ElfRandomBotAI()
@@ -160,7 +166,9 @@ public final class ElfAppDependencyContainer {
             nameValidator: nameValidator,
             characterBuilder: characterBuilder,
             fightStyleDescriptionService: self.fightStyleDescriptionService,
-            nameSuggestionService: self.nameSuggestionService
+            nameSuggestionService: self.nameSuggestionService,
+            houseService: self.houseService,
+            elfInfoFactory: self.elfInfoFactory
         )
     }
 
@@ -179,7 +187,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeGameDayViewModel(character: PlayerCharacter) -> GameDayViewModel {
-        return GameDayViewModel(character: character)
+    public func makeGameDayViewModel(game: Game) -> GameDayViewModel {
+        return GameDayViewModel(game: game)
     }
 }

@@ -113,29 +113,8 @@ internal struct GameDayScreenContent: View {
 #Preview {
     @Previewable @State var router = AppRouter()
 
-    let mockCharacter = PlayerCharacter(
-        name: "Asuna Yuuki",
-        appearance: .appearance1,
-        fightStyle: .dodge,
-        fightStyleAttributes: HeroAttributes(
-            hitPoints: 80,
-            manaPoints: 20,
-            agility: 5,
-            strength: 2,
-            power: 1,
-            instinct: 2
-        ),
-        randomLevelAttributes: HeroAttributes(
-            hitPoints: 3,
-            manaPoints: 4,
-            agility: 0,
-            strength: 0,
-            power: 0,
-            instinct: 0
-        )
-    )
-
-    let viewModel = GameDayViewModel(character: mockCharacter)
+    let mockGame = PreviewMockData.createMockGame()
+    let viewModel = GameDayViewModel(game: mockGame)
 
     GameDayScreenContent(viewModel: viewModel)
         .environment(router)

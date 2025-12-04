@@ -16,6 +16,7 @@ struct CharacterSummaryView: View {
     let fightStyleAttributes: HeroAttributes?
     let randomAttributes: HeroAttributes?
     let isCharacterReady: Bool
+    let assignedHouse: House?
     let safeAreaInsets: EdgeInsets
 
     var body: some View {
@@ -25,57 +26,96 @@ struct CharacterSummaryView: View {
             let cardHeight = availableHeight
             let cardWidth = cardHeight * 0.55
 
-            HStack(alignment: .top, spacing: 40) {
-                // Character image
-                if let appearance = appearance {
-                    Image(appearance.imageName)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: cardWidth, height: cardHeight)
-                        .background(Color.white)
-                        .cornerRadius(12)
-                        .shadow(radius: 3)
+            HStack(alignment: .top, spacing: 0) {
+                // House info (left side)
+                if isCharacterReady {
+                    houseInfoView(cardHeight: cardHeight)
+                        .frame(maxWidth: .infinity)
                 }
 
-                // Character info
-                VStack(alignment: .leading, spacing: 10) {
-                    // Name and level
-                    HStack(alignment: .firstTextBaseline) {
-                        Text(name)
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(.black)
-                            .lineLimit(nil)
-
-                        Text("LVL1")
-                            .font(.title3)
-                            .foregroundColor(.gray)
+                HStack(alignment: .top, spacing: 20) {
+                    // Character image
+                    if let appearance = appearance {
+                        Image(appearance.imageName)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: cardWidth, height: cardHeight)
+                            .background(Color.white)
+                            .cornerRadius(12)
+                            .shadow(radius: 3)
                     }
-
-                    // Fight style
-                    if let style = fightStyle {
-                        HStack {
-                            Text("Fight style:")
+                    
+                    // Character info
+                    VStack(alignment: .leading, spacing: 10) {
+                        // Name and level
+                        HStack(alignment: .firstTextBaseline) {
+                            Text(name)
+                                .font(.title)
                                 .fontWeight(.bold)
                                 .foregroundColor(.black)
-                            Text(style.displayName)
-                                .foregroundColor(.black)
+                                .lineLimit(nil)
+                            
+                            Text("LVL1")
+                                .font(.title3)
+                                .foregroundColor(.gray)
                         }
+                        
+                        // Fight style
+                        if let style = fightStyle {
+                            HStack {
+                                Text("Fight style:")
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.black)
+                                Text(style.displayName)
+                                    .foregroundColor(.black)
+                            }
+                        }
+                        
+                        // Attributes
+                        Text("Attributes:")
+                            .fontWeight(.bold)
+                            .foregroundColor(.black)
+                        
+                        attributesView
                     }
-
-                    // Attributes
-                    Text("Attributes:")
-                        .fontWeight(.bold)
-                        .foregroundColor(.black)
-
-                    attributesView
+                }
+                .frame(width: 450)
+                
+                if isCharacterReady {
+                    Spacer()
+                        .frame(maxWidth: .infinity)
                 }
             }
-            .padding(.vertical, padding)
+            .padding(.top, StagePadding.top())
             .padding(.leading, StagePadding.leading(safeArea))
             .padding(.trailing, StagePadding.trailing(safeArea))
+            .padding(.bottom, StagePadding.bottom(safeArea))
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
+    }
+
+    @ViewBuilder
+    private func houseInfoView(cardHeight: CGFloat) -> some View {
+        VStack(spacing: 12) {
+            Text("Your House")
+                .font(.headline)
+                .foregroundColor(.black)
+
+            if let house = assignedHouse {
+                Image(house.logoImageName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 100, height: 100)
+                    .cornerRadius(8)
+
+                Text(house.name)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.black)
+            }
+        }
+        .frame(height: cardHeight, alignment: .top)
+        .padding(.top, 20)
     }
 
     @ViewBuilder
@@ -135,6 +175,7 @@ struct CharacterSummaryView: View {
         ),
         randomAttributes: nil,
         isCharacterReady: false,
+        assignedHouse: nil,
         safeAreaInsets: EdgeInsets()
     )
 }
@@ -161,6 +202,7 @@ struct CharacterSummaryView: View {
             instinct: 0
         ),
         isCharacterReady: true,
+        assignedHouse: nil,
         safeAreaInsets: EdgeInsets()
     )
 }

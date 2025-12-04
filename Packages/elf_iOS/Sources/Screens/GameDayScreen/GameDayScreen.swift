@@ -11,15 +11,15 @@ import SwiftUI
 internal struct GameDayScreen: View {
     @Environment(ElfAppDependencyContainer.self) private var container
 
-    let character: PlayerCharacter
+    let game: Game
 
-    internal init(character: PlayerCharacter) {
-        self.character = character
+    internal init(game: Game) {
+        self.game = game
     }
 
     internal var body: some View {
         GameDayScreenContent(
-            viewModel: container.makeGameDayViewModel(character: character)
+            viewModel: container.makeGameDayViewModel(game: game)
         )
     }
 }

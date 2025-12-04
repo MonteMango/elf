@@ -104,6 +104,7 @@ struct CharacterCreationScreenContent: View {
                                 fightStyleAttributes: viewModel.fightStyleAttributes,
                                 randomAttributes: viewModel.randomLevelAttributes,
                                 isCharacterReady: viewModel.isCharacterReady,
+                                assignedHouse: viewModel.createdGame?.playerHouse,
                                 safeAreaInsets: safeArea
                             )
                             .frame(width: fullWidth, height: fullHeight)
@@ -141,8 +142,8 @@ struct CharacterCreationScreenContent: View {
                     }
                 } else {
                     // Stage 4 after Ready: Start - Navigate to game screen
-                    if let character = viewModel.createdCharacter ?? viewModel.createCharacter() {
-                        router.navigate(to: .gameDay(character), removingPrevious: 1)
+                    if let game = viewModel.createdGame {
+                        router.navigate(to: .gameDay(game), removingPrevious: 1)
                     }
                 }
             }) {

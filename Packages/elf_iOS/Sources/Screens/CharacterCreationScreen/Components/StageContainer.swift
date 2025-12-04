@@ -29,26 +29,22 @@ struct StageContainer<Content: View>: View {
 
 /// Standard padding values for stage views
 enum StagePadding {
-    static let standard: CGFloat = 20
+    static let standard: CGFloat = 10
 
     static func leading(_ safeArea: EdgeInsets) -> CGFloat {
-        standard + safeArea.leading
+         safeArea.leading
     }
 
     static func trailing(_ safeArea: EdgeInsets) -> CGFloat {
-        standard + safeArea.trailing
+         safeArea.trailing
     }
 
     static func top() -> CGFloat {
         standard
     }
 
-    static func bottom() -> CGFloat {
-        standard
-    }
-
     static func bottom(_ safeArea: EdgeInsets) -> CGFloat {
-        standard + safeArea.bottom
+         safeArea.bottom
     }
 }
 
@@ -57,12 +53,12 @@ enum StagePadding {
         VStack {
             Text("Stage Content")
                 .padding(.top, StagePadding.top())
-                .padding(.leading, StagePadding.leading(safeArea))
 
             Spacer()
 
             Text("Size: \(Int(size.width)) x \(Int(size.height))")
-                .padding(.bottom, StagePadding.bottom())
+                .padding(.bottom, StagePadding.bottom(safeArea))
         }
+        .background { Color.pink }
     }
 }
