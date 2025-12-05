@@ -113,10 +113,7 @@ internal struct GameDayScreenContent: View {
 #Preview {
     @Previewable @State var router = AppRouter()
 
-    let mockGame = PreviewMockData.createMockGame()
-    let viewModel = GameDayViewModel(game: mockGame)
-
-    GameDayScreenContent(viewModel: viewModel)
+    GameDayScreenContent(viewModel: PreviewMockData.createMockGameDayViewModel())
         .environment(router)
         .preferredColorScheme(.light)
 }

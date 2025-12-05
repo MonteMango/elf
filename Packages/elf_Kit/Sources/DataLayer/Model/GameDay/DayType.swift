@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 /// Types of game days with different activities
-public enum DayType: Int, CaseIterable, Sendable {
+public enum DayType: Int, CaseIterable, Sendable, Codable {
     case normal = 0
     case dungeon = 1
     case randomEvent = 2

@@ -9,7 +9,7 @@ import Foundation
 
 /// Information about an elf (player or AI)
 /// Used as member of a House
-public struct ElfInfo: Sendable, Equatable, Identifiable {
+public struct ElfInfo: Sendable, Equatable, Identifiable, Codable {
 
     // MARK: - Identity
 

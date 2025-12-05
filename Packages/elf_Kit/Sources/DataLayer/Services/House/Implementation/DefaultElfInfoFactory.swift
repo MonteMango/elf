@@ -25,6 +25,19 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
 
     private let availableFightStyles: [FightStyle] = [.dodge, .crit, .def]
 
+    // MARK: - Starter Equipment
+
+    private let defaultEquipment: [HeroItemType: UUID] = {
+        var equipment: [HeroItemType: UUID] = [:]
+        if let robeId = UUID(uuidString: "55f10623-d3d9-4021-85c6-f52e08058e13") {
+            equipment[.shirt] = robeId
+        }
+        if let spearId = UUID(uuidString: "dfbd2742-5470-4f97-84ea-fb17b5f3a6d2") {
+            equipment[.weapons] = spearId
+        }
+        return equipment
+    }()
+
     // MARK: - Initialization
 
     public init(attributeService: AttributeService) {
@@ -46,7 +59,7 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
             randomLevelAttributes: character.randomLevelAttributes,
             currentHP: character.totalAttributes.hitPoints,
             currentMP: character.totalAttributes.manaPoints,
-            equippedItems: [:],
+            equippedItems: defaultEquipment,
             reputation: 0
         )
     }
@@ -76,7 +89,8 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
             fightStyleAttributes: fightStyleAttributes,
             randomLevelAttributes: randomLevelAttributes,
             currentHP: totalHP,
-            currentMP: totalMP
+            currentMP: totalMP,
+            equippedItems: defaultEquipment
         )
     }
 }

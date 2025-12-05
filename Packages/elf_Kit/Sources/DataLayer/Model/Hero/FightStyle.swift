@@ -5,7 +5,7 @@
 //  Created by Vitalii Lytvynov on 31.10.24.
 //
 
-public enum FightStyle: Sendable {
+public enum FightStyle: String, Sendable, Codable {
     case crit
     case dodge
     case def

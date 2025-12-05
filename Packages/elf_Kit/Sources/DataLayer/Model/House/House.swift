@@ -9,7 +9,7 @@ import Foundation
 
 /// Represents a house in the tournament
 /// Each house has exactly 10 members (elves)
-public struct House: Sendable, Identifiable, Equatable {
+public struct House: Sendable, Identifiable, Equatable, Codable {
 
     // MARK: - Constants
 

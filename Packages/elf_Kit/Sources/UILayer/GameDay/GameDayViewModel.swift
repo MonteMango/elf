@@ -92,12 +92,6 @@ public final class GameDayViewModel {
         self.activeBuffs = []
     }
 
-    /// Convenience initializer from Game (creates DefaultGameService internally)
-    public convenience init(game: Game) {
-        let service = DefaultGameService(game: game)
-        self.init(gameService: service)
-    }
-
     // MARK: - Actions (UI only, no logic yet)
 
     /// Called when an action button is tapped
@@ -128,5 +122,15 @@ public final class GameDayViewModel {
     public func onConfirmActionPoints() {
         // Spend all remaining action points and advance to next day
         gameService.advanceToNextDay()
+
+        // Auto-save after day change
+        Task {
+            try? await gameService.saveGame()
+        }
+    }
+
+    /// Save game (called when app goes to background)
+    public func saveGame() async {
+        try? await gameService.saveGame()
     }
 }

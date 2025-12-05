@@ -8,7 +8,7 @@
 import Foundation
 
 /// Game state containing current day, action points, and upcoming days schedule
-public struct GameState: Sendable {
+public struct GameState: Sendable, Codable, Equatable {
     public var currentDay: GameDay
     public var currentActionPoints: Int
     public var maxActionPoints: Int

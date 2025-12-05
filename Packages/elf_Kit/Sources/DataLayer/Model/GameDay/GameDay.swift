@@ -8,7 +8,7 @@
 import Foundation
 
 /// Represents a single game day
-public struct GameDay: Sendable, Identifiable, Equatable {
+public struct GameDay: Sendable, Identifiable, Equatable, Codable {
     public let id: UUID
     public let dayNumber: Int
     public let dayType: DayType

@@ -5,7 +5,7 @@
 //  Created by Vitalii Lytvynov on 31.10.24.
 //
 
-public enum HeroItemType: Sendable {
+public enum HeroItemType: String, Sendable, Codable {
     case helmet
     case gloves
     case shoes

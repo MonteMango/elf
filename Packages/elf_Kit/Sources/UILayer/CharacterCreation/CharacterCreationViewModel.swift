@@ -20,6 +20,7 @@ public final class CharacterCreationViewModel {
     private let nameSuggestionService: CharacterNameSuggestionService
     private let houseService: HouseService
     private let elfInfoFactory: ElfInfoFactory
+    private let gameRepository: GameRepository?
 
     // MARK: - Stage State
 
@@ -117,7 +118,8 @@ public final class CharacterCreationViewModel {
         fightStyleDescriptionService: FightStyleDescriptionService,
         nameSuggestionService: CharacterNameSuggestionService,
         houseService: HouseService,
-        elfInfoFactory: ElfInfoFactory
+        elfInfoFactory: ElfInfoFactory,
+        gameRepository: GameRepository? = nil
     ) {
         self.attributeService = attributeService
         self.nameValidator = nameValidator
@@ -126,6 +128,7 @@ public final class CharacterCreationViewModel {
         self.nameSuggestionService = nameSuggestionService
         self.houseService = houseService
         self.elfInfoFactory = elfInfoFactory
+        self.gameRepository = gameRepository
 
         // Set default fight style in builder (didSet doesn't trigger on initial value)
         if let style = selectedFightStyle {
@@ -229,12 +232,22 @@ public final class CharacterCreationViewModel {
                 ]
             )
 
-            createdGame = Game(
+            let game = Game(
                 houses: houses,
                 gameState: gameState,
                 playerHouseIndex: houseIndex,
                 playerMemberIndex: memberIndex
             )
+            createdGame = game
+
+            // Auto-save new game
+            if let repository = gameRepository {
+                do {
+                    try await repository.save(game, slotId: SaveSlotInfo.defaultSlotId, playTime: 0)
+                } catch {
+                    print("Failed to save new game: \(error)")
+                }
+            }
         }
 
         isCharacterReady = true

@@ -55,9 +55,9 @@ struct HeroSection: View {
                     // Left column: 4 equipment slots
                     VStack(alignment: .leading, spacing: GameDayConstants.Spacing.gridSpacing) {
                         equipmentSlot(for: .helmet)
-                        equipmentSlot(for: .upperBody)
-                        equipmentSlot(for: .bottomBody)
+                        equipmentSlot(for: .gloves)
                         equipmentSlot(for: .shoes)
+                        equipmentSlot(for: .weapons)
                     }
 
                     Spacer()
@@ -73,9 +73,9 @@ struct HeroSection: View {
 
                     // Right column: 4 equipment slots
                     VStack(alignment: .trailing, spacing: GameDayConstants.Spacing.gridSpacing) {
-                        equipmentSlot(for: .gloves)
+                        equipmentSlot(for: .upperBody)
+                        equipmentSlot(for: .bottomBody)
                         equipmentSlot(for: .shirt)
-                        equipmentSlot(for: .weapons)
                         equipmentSlot(for: .shields)
                     }
                 }

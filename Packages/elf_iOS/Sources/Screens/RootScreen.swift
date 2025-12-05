@@ -11,7 +11,6 @@ import SwiftUI
 public struct RootScreen: View {
 
     @State private var router = AppRouter()
-    @State private var container = ElfAppDependencyContainer()
 
     public init() {}
 
@@ -24,11 +23,9 @@ public struct RootScreen: View {
                         .toolbar(.hidden, for: .navigationBar)
                         .navigationBarTitleDisplayMode(.inline)
                         .navigationTitle("")
-                        .disableSwipeBack()
                 }
         }
         .environment(router)
-        .environment(container)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -36,4 +33,5 @@ public struct RootScreen: View {
 
 #Preview {
     RootScreen()
+        .environment(ElfAppDependencyContainer())
 }

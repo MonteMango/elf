@@ -143,7 +143,7 @@ struct CharacterCreationScreenContent: View {
                 } else {
                     // Stage 4 after Ready: Start - Navigate to game screen
                     if let game = viewModel.createdGame {
-                        router.navigate(to: .gameDay(game), removingPrevious: 1)
+                        router.navigate(to: .gameSession(game, playTime: 0), removingPrevious: 1)
                     }
                 }
             }) {

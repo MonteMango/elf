@@ -1,0 +1,44 @@
+//
+//  GameSaveError.swift
+//  elf_Kit
+//
+//  Created by Vitalii Lytvynov on 04.12.25.
+//
+
+import Foundation
+
+/// Errors that can occur during game save/load operations
+public enum GameSaveError: Error, LocalizedError {
+    case checksumMismatch
+    case unsupportedVersion(Int)
+    case migrationFailed(from: Int, to: Int)
+    case corruptedData
+    case slotNotFound(String)
+    case fileWriteFailed(Error)
+    case fileReadFailed(Error)
+    case encodingFailed(Error)
+    case decodingFailed(Error)
+
+    public var errorDescription: String? {
+        switch self {
+        case .checksumMismatch:
+            return "Save file integrity check failed. The save may have been corrupted or modified."
+        case .unsupportedVersion(let version):
+            return "Save file version \(version) is not supported."
+        case .migrationFailed(let from, let to):
+            return "Failed to migrate save from version \(from) to \(to)."
+        case .corruptedData:
+            return "Save file data is corrupted and cannot be loaded."
+        case .slotNotFound(let slotId):
+            return "Save slot '\(slotId)' was not found."
+        case .fileWriteFailed(let error):
+            return "Failed to write save file: \(error.localizedDescription)"
+        case .fileReadFailed(let error):
+            return "Failed to read save file: \(error.localizedDescription)"
+        case .encodingFailed(let error):
+            return "Failed to encode game data: \(error.localizedDescription)"
+        case .decodingFailed(let error):
+            return "Failed to decode save file: \(error.localizedDescription)"
+        }
+    }
+}

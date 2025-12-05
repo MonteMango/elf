@@ -16,11 +16,25 @@ public final class DefaultGameService: GameService {
     // MARK: - Properties
 
     public private(set) var game: Game
+    public private(set) var playTime: TimeInterval
+
+    // MARK: - Dependencies
+
+    private let gameRepository: GameRepository?
+    private let slotId: String
 
     // MARK: - Initialization
 
-    public init(game: Game) {
+    public init(
+        game: Game,
+        gameRepository: GameRepository? = nil,
+        slotId: String = SaveSlotInfo.defaultSlotId,
+        playTime: TimeInterval = 0
+    ) {
         self.game = game
+        self.gameRepository = gameRepository
+        self.slotId = slotId
+        self.playTime = playTime
     }
 
     // MARK: - Day Management
@@ -211,6 +225,17 @@ public final class DefaultGameService: GameService {
             game.houses[houseIndex].members[memberIndex].expToNextLevel =
                 Int(Double(game.houses[houseIndex].members[memberIndex].expToNextLevel) * 1.2)
         }
+    }
+
+    // MARK: - Persistence
+
+    public func saveGame() async throws {
+        guard let repository = gameRepository else { return }
+        try await repository.save(game, slotId: slotId, playTime: playTime)
+    }
+
+    public func updatePlayTime(_ time: TimeInterval) {
+        playTime = time
     }
 
     // MARK: - Private Helpers

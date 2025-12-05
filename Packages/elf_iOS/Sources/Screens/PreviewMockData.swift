@@ -117,6 +117,16 @@ enum PreviewMockData {
             playerMemberIndex: playerMemberIndex
         )
     }
+
+    @MainActor
+    static func createMockGameService() -> GameService {
+        DefaultGameService(game: createMockGame())
+    }
+
+    @MainActor
+    static func createMockGameDayViewModel() -> GameDayViewModel {
+        GameDayViewModel(gameService: createMockGameService())
+    }
 }
 
 #endif

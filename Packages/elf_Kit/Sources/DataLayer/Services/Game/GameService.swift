@@ -115,4 +115,15 @@ public protocol GameService: AnyObject {
     ///   - memberIndex: Index of the member (0-9)
     ///   - amount: Experience to add
     func addElfExperience(houseIndex: Int, memberIndex: Int, amount: Int)
+
+    // MARK: - Persistence
+
+    /// Saves the current game state
+    func saveGame() async throws
+
+    /// Current play time in seconds
+    var playTime: TimeInterval { get }
+
+    /// Updates play time
+    func updatePlayTime(_ time: TimeInterval)
 }

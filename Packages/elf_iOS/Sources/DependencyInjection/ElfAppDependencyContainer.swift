@@ -25,6 +25,7 @@ public final class ElfAppDependencyContainer {
     public let nameSuggestionService: CharacterNameSuggestionService
     public let elfInfoFactory: ElfInfoFactory
     public let houseService: HouseService
+    public let gameRepository: GameRepository
 
     // Battle services
     public let botAI: BotAIService
@@ -33,6 +34,11 @@ public final class ElfAppDependencyContainer {
     public let debugBattleLogger: DebugBattleLogger
     public let statisticsParser: BattleStatisticsParser
     public let battleSimulationService: BattleSimulationService
+
+    // MARK: - Game Session State
+
+    /// Currently active game service (nil when not in game)
+    public private(set) var activeGameService: GameService?
 
     // MARK: - Initialization
 
@@ -82,6 +88,9 @@ public final class ElfAppDependencyContainer {
         self.fightStyleDescriptionService = DefaultFightStyleDescriptionService()
         self.nameSuggestionService = DefaultCharacterNameSuggestionService()
         self.houseService = DefaultHouseService(elfInfoFactory: elfInfoFactory)
+
+        // Initialize persistence
+        self.gameRepository = FileGameRepository()
 
         // Initialize battle services
         self.botAI = ElfRandomBotAI()
@@ -152,7 +161,8 @@ public final class ElfAppDependencyContainer {
     @MainActor
     public func makeMainMenuViewModel() -> MainMenuViewModel {
         return MainMenuViewModel(
-            itemsRepository: self.itemsRepository
+            itemsRepository: self.itemsRepository,
+            gameRepository: self.gameRepository
         )
     }
 
@@ -168,7 +178,8 @@ public final class ElfAppDependencyContainer {
             fightStyleDescriptionService: self.fightStyleDescriptionService,
             nameSuggestionService: self.nameSuggestionService,
             houseService: self.houseService,
-            elfInfoFactory: self.elfInfoFactory
+            elfInfoFactory: self.elfInfoFactory,
+            gameRepository: self.gameRepository
         )
     }
 
@@ -187,7 +198,28 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeGameDayViewModel(game: Game) -> GameDayViewModel {
-        return GameDayViewModel(game: game)
+    public func makeGameDayViewModel(game: Game, playTime: TimeInterval = 0) -> GameDayViewModel {
+        let gameService = DefaultGameService(
+            game: game,
+            gameRepository: self.gameRepository,
+            playTime: playTime
+        )
+        self.activeGameService = gameService
+        return GameDayViewModel(gameService: gameService)
+    }
+
+    // MARK: - Game Session Management
+
+    /// Clears active game service (called when exiting game)
+    @MainActor
+    public func endGame() {
+        self.activeGameService = nil
+    }
+
+    /// Saves active game if exists (called on app background)
+    @MainActor
+    public func saveActiveGameIfNeeded() async {
+        guard let gameService = activeGameService else { return }
+        try? await gameService.saveGame()
     }
 }

@@ -12,14 +12,16 @@ internal struct GameDayScreen: View {
     @Environment(ElfAppDependencyContainer.self) private var container
 
     let game: Game
+    let playTime: TimeInterval
 
-    internal init(game: Game) {
+    internal init(game: Game, playTime: TimeInterval = 0) {
         self.game = game
+        self.playTime = playTime
     }
 
     internal var body: some View {
         GameDayScreenContent(
-            viewModel: container.makeGameDayViewModel(game: game)
+            viewModel: container.makeGameDayViewModel(game: game, playTime: playTime)
         )
     }
 }
