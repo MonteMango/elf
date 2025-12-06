@@ -172,13 +172,13 @@ public struct GameStateSaveData: Codable, Sendable {
     public let currentDay: GameDaySaveData
     public let currentActionPoints: Int
     public let maxActionPoints: Int
-    public let upcomingDays: [GameDaySaveData]
+    public let calendar: [GameDaySaveData]
 
     public init(from gameState: GameState) {
         self.currentDay = GameDaySaveData(from: gameState.currentDay)
         self.currentActionPoints = gameState.currentActionPoints
         self.maxActionPoints = gameState.maxActionPoints
-        self.upcomingDays = gameState.upcomingDays.map { GameDaySaveData(from: $0) }
+        self.calendar = gameState.calendar.map { GameDaySaveData(from: $0) }
     }
 
     public func toGameState() -> GameState {
@@ -186,7 +186,7 @@ public struct GameStateSaveData: Codable, Sendable {
             currentDay: currentDay.toGameDay(),
             currentActionPoints: currentActionPoints,
             maxActionPoints: maxActionPoints,
-            upcomingDays: upcomingDays.map { $0.toGameDay() }
+            calendar: calendar.map { $0.toGameDay() }
         )
     }
 }

@@ -92,7 +92,13 @@ internal struct GameDayScreenContent: View {
 
                 CalendarSection(
                     currentDay: viewModel.gameState.currentDay,
-                    upcomingDays: viewModel.gameState.upcomingDays
+                    upcomingDays: viewModel.gameState.upcomingDays,
+                    onTap: {
+                        router.navigate(to: .calendar(
+                            calendar: viewModel.gameState.calendar,
+                            currentDayNumber: viewModel.gameState.currentDay.dayNumber
+                        ))
+                    }
                 )
 
                 Spacer()

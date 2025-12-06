@@ -11,6 +11,7 @@ import SwiftUI
 struct CalendarSection: View {
     let currentDay: GameDay
     let upcomingDays: [GameDay]
+    var onTap: (() -> Void)?
 
     private let daySize: CGFloat = 45
     private let layerOffset: CGFloat = 22.5  // daySize / 2
@@ -32,6 +33,10 @@ struct CalendarSection: View {
                 .shadow(color: .black.opacity(0.3), radius: 4, x: 2, y: 2)
         }
         .frame(width: totalWidth, height: daySize, alignment: .leading)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap?()
+        }
     }
 
     private var totalWidth: CGFloat {
@@ -101,7 +106,8 @@ struct CalendarSection: View {
             GameDay(dayNumber: 2, dayType: .dungeon),
             GameDay(dayNumber: 3, dayType: .normal),
             GameDay(dayNumber: 4, dayType: .houseWar)
-        ]
+        ],
+        onTap: { print("Calendar tapped") }
     )
     .padding()
     .background { Color.yellow }

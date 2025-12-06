@@ -99,15 +99,15 @@ enum PreviewMockData {
             houses.append(House(name: template.0, logoImageName: template.1, members: members))
         }
 
+        let calendarService = DefaultCalendarService()
+        let calendar = calendarService.generateFullCalendar()
+        let firstDay = calendar.first ?? GameDay(dayNumber: 1, dayType: .normal)
+
         let gameState = GameState(
-            currentDay: GameDay(dayNumber: 1, dayType: .normal),
+            currentDay: firstDay,
             currentActionPoints: 100,
             maxActionPoints: 100,
-            upcomingDays: [
-                GameDay(dayNumber: 2, dayType: .dungeon),
-                GameDay(dayNumber: 3, dayType: .normal),
-                GameDay(dayNumber: 4, dayType: .houseWar)
-            ]
+            calendar: calendar
         )
 
         return Game(

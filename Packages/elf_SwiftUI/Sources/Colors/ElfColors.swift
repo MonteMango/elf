@@ -30,4 +30,14 @@ public enum ElfColors {
 
     public static let headerBackground = Color(red: 0.7, green: 0.85, blue: 0.95)
     public static let disabledBackground = Color.gray
+
+    // MARK: - Calendar Day Types
+
+    public enum Calendar {
+        public static let normalDay = Color(red: 0.847, green: 0.847, blue: 0.847)      // #D8D8D8
+        public static let dungeonDay = Color(red: 0.851, green: 0.573, blue: 0.886)     // #D992E2
+        public static let eventDay = Color(red: 0.573, green: 0.6, blue: 0.886)         // #9299E2
+        public static let houseWarDay = Color(red: 0.886, green: 0.573, blue: 0.573)    // #E29292
+        public static let unknownDay = Color.white
+    }
 }

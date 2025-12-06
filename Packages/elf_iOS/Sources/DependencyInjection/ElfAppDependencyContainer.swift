@@ -26,6 +26,7 @@ public final class ElfAppDependencyContainer {
     public let elfInfoFactory: ElfInfoFactory
     public let houseService: HouseService
     public let gameRepository: GameRepository
+    public let calendarService: CalendarService
 
     // Battle services
     public let botAI: BotAIService
@@ -91,6 +92,9 @@ public final class ElfAppDependencyContainer {
 
         // Initialize persistence
         self.gameRepository = FileGameRepository()
+
+        // Initialize calendar service
+        self.calendarService = DefaultCalendarService()
 
         // Initialize battle services
         self.botAI = ElfRandomBotAI()
@@ -179,7 +183,8 @@ public final class ElfAppDependencyContainer {
             nameSuggestionService: self.nameSuggestionService,
             houseService: self.houseService,
             elfInfoFactory: self.elfInfoFactory,
-            gameRepository: self.gameRepository
+            gameRepository: self.gameRepository,
+            calendarService: self.calendarService
         )
     }
 

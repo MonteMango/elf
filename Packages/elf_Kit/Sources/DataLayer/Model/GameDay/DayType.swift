@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftUI
 
 /// Types of game days with different activities
 public enum DayType: Int, CaseIterable, Sendable, Codable {
@@ -14,6 +13,7 @@ public enum DayType: Int, CaseIterable, Sendable, Codable {
     case dungeon = 1
     case randomEvent = 2
     case houseWar = 3
+    case unknown = 4
 
     /// Display name for the day type
     public var displayName: String {
@@ -22,16 +22,12 @@ public enum DayType: Int, CaseIterable, Sendable, Codable {
         case .dungeon: return "Dungeon"
         case .randomEvent: return "Event"
         case .houseWar: return "War"
+        case .unknown: return "?"
         }
     }
 
-    /// Background color for calendar display
-    public var backgroundColor: Color {
-        switch self {
-        case .normal: return .gray
-        case .dungeon: return .purple
-        case .randomEvent: return .blue
-        case .houseWar: return .red
-        }
+    /// Symbol to display instead of day number (only for unknown type)
+    public var displaySymbol: String? {
+        self == .unknown ? "?" : nil
     }
 }

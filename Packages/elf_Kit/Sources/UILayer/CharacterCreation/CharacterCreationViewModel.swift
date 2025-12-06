@@ -21,6 +21,7 @@ public final class CharacterCreationViewModel {
     private let houseService: HouseService
     private let elfInfoFactory: ElfInfoFactory
     private let gameRepository: GameRepository?
+    private let calendarService: CalendarService
 
     // MARK: - Stage State
 
@@ -119,7 +120,8 @@ public final class CharacterCreationViewModel {
         nameSuggestionService: CharacterNameSuggestionService,
         houseService: HouseService,
         elfInfoFactory: ElfInfoFactory,
-        gameRepository: GameRepository? = nil
+        gameRepository: GameRepository? = nil,
+        calendarService: CalendarService
     ) {
         self.attributeService = attributeService
         self.nameValidator = nameValidator
@@ -129,6 +131,7 @@ public final class CharacterCreationViewModel {
         self.houseService = houseService
         self.elfInfoFactory = elfInfoFactory
         self.gameRepository = gameRepository
+        self.calendarService = calendarService
 
         // Set default fight style in builder (didSet doesn't trigger on initial value)
         if let style = selectedFightStyle {
@@ -221,15 +224,15 @@ public final class CharacterCreationViewModel {
                 playerElfInfo: playerElfInfo
             )
 
+            // Generate full calendar using CalendarService
+            let calendar = calendarService.generateFullCalendar()
+            let firstDay = calendar.first ?? GameDay(dayNumber: 1, dayType: .normal)
+
             let gameState = GameState(
-                currentDay: GameDay(dayNumber: 1, dayType: .normal),
+                currentDay: firstDay,
                 currentActionPoints: 100,
                 maxActionPoints: 100,
-                upcomingDays: [
-                    GameDay(dayNumber: 2, dayType: .dungeon),
-                    GameDay(dayNumber: 3, dayType: .normal),
-                    GameDay(dayNumber: 4, dayType: .houseWar)
-                ]
+                calendar: calendar
             )
 
             let game = Game(

@@ -25,8 +25,8 @@ public final class AppRouter {
     /// Navigates to a new route while removing specified number of previous routes from the stack
     /// - Parameters:
     ///   - route: The destination route
-    ///   - count: Number of routes to remove before pushing the new one (default: 1)
-    public func navigate(to route: AppRoute, removingPrevious count: Int = 1) {
+    ///   - count: Number of routes to remove before pushing the new one (default: 0)
+    public func navigate(to route: AppRoute, removingPrevious count: Int = 0) {
         let removeCount = min(count, navigationPath.count)
         navigationPath.removeLast(removeCount)
         navigationPath.append(route)

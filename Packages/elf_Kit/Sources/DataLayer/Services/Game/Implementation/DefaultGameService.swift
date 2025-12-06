@@ -40,16 +40,15 @@ public final class DefaultGameService: GameService {
     // MARK: - Day Management
 
     public func advanceToNextDay() {
-        guard !game.gameState.upcomingDays.isEmpty else { return }
+        let currentDayNumber = game.gameState.currentDay.dayNumber
+        let nextDayNumber = currentDayNumber + 1
 
-        let nextDay = game.gameState.upcomingDays.removeFirst()
-        game.gameState.currentDay = nextDay
+        // Find next day in calendar
+        guard let nextDayIndex = game.gameState.calendar.firstIndex(where: { $0.dayNumber == nextDayNumber }) else {
+            return // No more days in calendar (game finished)
+        }
 
-        // Generate new upcoming day
-        let newDayNumber = (game.gameState.upcomingDays.last?.dayNumber ?? nextDay.dayNumber) + 1
-        let newDayType = generateDayType(for: newDayNumber)
-        let newDay = GameDay(dayNumber: newDayNumber, dayType: newDayType)
-        game.gameState.upcomingDays.append(newDay)
+        game.gameState.currentDay = game.gameState.calendar[nextDayIndex]
 
         // Restore action points for new day
         restoreActionPoints()
@@ -236,18 +235,5 @@ public final class DefaultGameService: GameService {
 
     public func updatePlayTime(_ time: TimeInterval) {
         playTime = time
-    }
-
-    // MARK: - Private Helpers
-
-    private func generateDayType(for dayNumber: Int) -> DayType {
-        // Simple pattern: every 4th day is house war, every 3rd is dungeon
-        if dayNumber % 4 == 0 {
-            return .houseWar
-        } else if dayNumber % 3 == 0 {
-            return .dungeon
-        } else {
-            return .normal
-        }
     }
 }
