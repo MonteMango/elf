@@ -18,20 +18,20 @@ import Foundation
 /// - Production builds: Use `NoOpDebugBattleLogger` for zero overhead
 public protocol DebugBattleLogger: Sendable {
 
-    /// Logs the start of a battle round with hero stats and selections
+    /// Logs the start of a battle round with combatant stats and selections
     ///
     /// - Parameters:
     ///   - roundNumber: Current round number
-    ///   - player: Player's hero with all stats
-    ///   - bot: Bot's hero with all stats
+    ///   - playerSnapshot: Player's combatant snapshot with all stats
+    ///   - botSnapshot: Bot's combatant snapshot with all stats
     ///   - playerAttack: Player's selected attack points
     ///   - playerDefense: Player's selected defense points
     ///   - botAttack: Bot's selected attack points
     ///   - botDefense: Bot's selected defense points
     func logRoundStart(
         roundNumber: Int,
-        player: ElfHero,
-        bot: ElfHero,
+        playerSnapshot: CombatantSnapshot,
+        botSnapshot: CombatantSnapshot,
         playerAttack: [BodyPart],
         playerDefense: [BodyPart],
         botAttack: [BodyPart],

@@ -17,6 +17,7 @@ public enum AppRoute {
     case characterCreation
     case gameSession(Game, playTime: TimeInterval)
     case calendar(calendar: [GameDay], currentDayNumber: Int)
+    case hunt
 
     case battleSetup
     case battleFight(Battle)
@@ -38,6 +39,8 @@ extension AppRoute: Hashable {
             return lhsGame.id == rhsGame.id
         case (.calendar(let lhsCalendar, let lhsDay), .calendar(let rhsCalendar, let rhsDay)):
             return lhsCalendar.count == rhsCalendar.count && lhsDay == rhsDay
+        case (.hunt, .hunt):
+            return true
         case (.battleSetup, .battleSetup):
             return true
         case (.battleFight(let lhsBattle), .battleFight(let rhsBattle)):
@@ -63,6 +66,8 @@ extension AppRoute: Hashable {
         case .calendar(_, let currentDayNumber):
             hasher.combine("calendar")
             hasher.combine(currentDayNumber)
+        case .hunt:
+            hasher.combine("hunt")
         case .battleSetup:
             hasher.combine("battleSetup")
         case .battleFight(let battle):
@@ -91,9 +96,11 @@ extension AppRoute {
         case .characterCreation:
             CharacterCreationScreen()
         case .gameSession(let game, let playTime):
-            GameSessionContainer(game: game, playTime: playTime)
+            GameDayScreen(game: game, playTime: playTime)
         case .calendar(let calendar, let currentDayNumber):
             CalendarScreen(calendar: calendar, currentDayNumber: currentDayNumber)
+        case .hunt:
+            HuntScreen()
         case .battleSetup:
             BattleSetupScreen()
         case .battleFight(let battle):

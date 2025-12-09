@@ -17,10 +17,9 @@ struct CalendarScreen: View {
 
     var body: some View {
         CalendarScreenContent(
-            viewModel: CalendarViewModel(
+            viewModel: container.makeCalendarViewModel(
                 calendar: calendar,
-                currentDayNumber: currentDayNumber,
-                daysPerIteration: container.calendarService.daysPerIteration
+                currentDayNumber: currentDayNumber
             )
         )
     }

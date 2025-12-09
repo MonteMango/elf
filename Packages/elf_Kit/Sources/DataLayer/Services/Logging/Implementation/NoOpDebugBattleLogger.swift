@@ -17,8 +17,8 @@ public final class NoOpDebugBattleLogger: DebugBattleLogger {
 
     public func logRoundStart(
         roundNumber: Int,
-        player: ElfHero,
-        bot: ElfHero,
+        playerSnapshot: CombatantSnapshot,
+        botSnapshot: CombatantSnapshot,
         playerAttack: [BodyPart],
         playerDefense: [BodyPart],
         botAttack: [BodyPart],

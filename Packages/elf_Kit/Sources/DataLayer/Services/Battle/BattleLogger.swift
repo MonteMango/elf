@@ -11,8 +11,8 @@ public protocol BattleLogger: Sendable {
     /// Create a round log entry from combat results
     /// - Parameters:
     ///   - roundNumber: Current round number
-    ///   - playerHero: Player's hero
-    ///   - botHero: Bot's hero
+    ///   - playerSnapshot: Player's combatant snapshot
+    ///   - botSnapshot: Bot's combatant snapshot
     ///   - playerActions: Player's selected attack and defense points
     ///   - botActions: Bot's selected attack and defense points
     ///   - playerResults: Combat results for player as defender
@@ -22,8 +22,8 @@ public protocol BattleLogger: Sendable {
     /// - Returns: Round log entry
     func createRoundLog(
         roundNumber: Int,
-        playerHero: ElfHero,
-        botHero: ElfHero,
+        playerSnapshot: CombatantSnapshot,
+        botSnapshot: CombatantSnapshot,
         playerActions: (attack: Set<BodyPart>, defense: Set<BodyPart>),
         botActions: (attack: Set<BodyPart>, defense: Set<BodyPart>),
         playerResults: [BodyPart: PointStatus],

@@ -13,8 +13,8 @@ public final class ElfBattleLogger: BattleLogger {
 
     public func createRoundLog(
         roundNumber: Int,
-        playerHero: ElfHero,
-        botHero: ElfHero,
+        playerSnapshot: CombatantSnapshot,
+        botSnapshot: CombatantSnapshot,
         playerActions: (attack: Set<BodyPart>, defense: Set<BodyPart>),
         botActions: (attack: Set<BodyPart>, defense: Set<BodyPart>),
         playerResults: [BodyPart: PointStatus],
@@ -25,23 +25,23 @@ public final class ElfBattleLogger: BattleLogger {
         return ManualBattleRoundLog(
             roundNumber: roundNumber,
             action: [
-                playerHero: BattleRoundAction(
+                playerSnapshot.id: BattleRoundAction(
                     attackPoints: Array(playerActions.attack),
                     defensePoints: Array(playerActions.defense)
                 ),
-                botHero: BattleRoundAction(
+                botSnapshot.id: BattleRoundAction(
                     attackPoints: Array(botActions.attack),
                     defensePoints: Array(botActions.defense)
                 )
             ],
-            duels: [(playerHero, botHero)],
+            duels: [(playerSnapshot.id, botSnapshot.id)],
             calculatedPreResults: [:], // MVP: empty for now
             results: [
-                playerHero: BattleRoundResult(
+                playerSnapshot.id: BattleRoundResult(
                     pointStatus: playerResults,
                     oldHP: playerOldHP
                 ),
-                botHero: BattleRoundResult(
+                botSnapshot.id: BattleRoundResult(
                     pointStatus: botResults,
                     oldHP: botOldHP
                 )

@@ -10,9 +10,11 @@ import Foundation
 public struct Battle: Sendable, Identifiable {
     public let id: UUID
 
-    // when battle starts there are 2 teams. The values passed as struct and never changed. These are initial information about ElfHero
-    public let leftTeam: [ElfHero]
-    public let rightTeam: [ElfHero]
+    /// Left team combatants (player team). Uses CombatantSnapshot for unified elf/monster handling.
+    public let leftTeam: [CombatantSnapshot]
+
+    /// Right team combatants (opponent team). Uses CombatantSnapshot for unified elf/monster handling.
+    public let rightTeam: [CombatantSnapshot]
 
     public var currentRound: Int {
         // based on roundLog.count + 1
@@ -22,7 +24,11 @@ public struct Battle: Sendable, Identifiable {
     // history of rounds
     public var roundLog: [ManualBattleRoundLog] = []
 
-    public init(id: UUID = UUID(), leftTeam: [ElfHero], rightTeam: [ElfHero]) {
+    public init(
+        id: UUID = UUID(),
+        leftTeam: [CombatantSnapshot],
+        rightTeam: [CombatantSnapshot]
+    ) {
         self.id = id
         self.leftTeam = leftTeam
         self.rightTeam = rightTeam

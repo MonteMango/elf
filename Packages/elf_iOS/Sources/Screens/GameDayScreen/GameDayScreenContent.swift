@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 internal struct GameDayScreenContent: View {
@@ -68,13 +69,27 @@ internal struct GameDayScreenContent: View {
     private var centerSection: some View {
         VStack(spacing: GameDayConstants.Spacing.sectionSpacing) {
             // Action Points Bar
-            ActionPointsBar(
+            elf_SwiftUI.ActionPointsBar(
                 current: viewModel.gameState.currentActionPoints,
-                max: viewModel.gameState.maxActionPoints
+                max: viewModel.gameState.maxActionPoints,
+                label: "Action points",
+                barHeight: GameDayConstants.Sizing.apBarHeight,
+                labelFont: GameDayConstants.Fonts.apFont,
+                barFont: GameDayConstants.Fonts.apFont,
+                labelColor: GameDayConstants.Colors.secondaryText,
+                fillColor: GameDayConstants.Colors.apBarFill,
+                backgroundColor: GameDayConstants.Colors.xpBarBackground
             )
 
             // Action Buttons
-            ActionButtonsList(onAction: viewModel.onActionTapped)
+            ActionButtonsList(onAction: { action in
+                switch action {
+                case .hunt:
+                    router.navigate(to: .hunt)
+                default:
+                    viewModel.onActionTapped(action)
+                }
+            })
 
             Spacer()
         }

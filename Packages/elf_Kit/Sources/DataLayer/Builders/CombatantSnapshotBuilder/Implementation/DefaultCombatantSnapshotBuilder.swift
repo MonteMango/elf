@@ -1,13 +1,13 @@
 //
-//  DefaultElfHeroBuilder.swift
+//  DefaultCombatantSnapshotBuilder.swift
 //  elf_Kit
 //
-//  Created by Vitalii Lytvynov on 16.11.25.
+//  Created by Vitalii Lytvynov on 09.12.25.
 //
 
 import Foundation
 
-public final class DefaultElfHeroBuilder: ElfHeroBuilder {
+public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 
     private let itemsRepository: ItemsRepository
     private let armorService: ArmorService
@@ -17,12 +17,16 @@ public final class DefaultElfHeroBuilder: ElfHeroBuilder {
         self.armorService = armorService
     }
 
-    public func buildElfHero(
+    // MARK: - CombatantSnapshotBuilder
+
+    public func buildSnapshot(
+        name: String,
+        imageName: String,
         level: Int16,
         fightStyleAttributes: HeroAttributes,
         randomLevelAttributes: HeroAttributes,
         selectedItems: [HeroItemType: UUID?]
-    ) async -> ElfHero? {
+    ) async -> CombatantSnapshot? {
 
         // Convert UUID items to Elf*Item types
         let helmetItem = await convertToElfDefenseItem(selectedItems[.helmet] ?? nil)
@@ -40,7 +44,6 @@ public final class DefaultElfHeroBuilder: ElfHeroBuilder {
         let earringsItem = await convertToElfJewelryItem(selectedItems[.earrings] ?? nil)
 
         // Determine weapon placement and shield
-        // Shield slot can contain either a shield or a second weapon (dual wielding)
         var leftWeapon: ElfWeaponItem?
         var rightWeapon: ElfWeaponItem?
         var shield: ElfShieldItem?
@@ -83,29 +86,97 @@ public final class DefaultElfHeroBuilder: ElfHeroBuilder {
         if let id = selectedItems[.shields] ?? nil { equippedItemIds.append(id) }
 
         // Calculate armor values using ArmorService
-        let armorValues = await armorService.getAllItemsArmor(for: equippedItemIds)
+        let armorValuesInt16 = await armorService.getAllItemsArmor(for: equippedItemIds)
+        let armorValues = armorValuesInt16.mapValues { Int($0) }
 
-        // Build the ElfHero
-        let elfHero = ElfHero(
-            level: Int(level),
-            fightStyleAttributes: fightStyleAttributes,
-            randomLevelAttributes: randomLevelAttributes,
-            helmetElfItem: helmetItem,
-            glovesElfItem: glovesItem,
-            shoesElfItem: shoesItem,
-            upperBodyElfItem: upperBodyItem,
-            bottomBodyElfItem: bottomBodyItem,
-            robeElfItem: robeItem,
-            leftHandWeaponElfItem: leftWeapon,
-            rightHandWeaponElfItem: rightWeapon,
-            shieldElfItem: shield,
-            ringElfItem: ringItem,
-            necklaceElfItem: necklaceItem,
-            earringsElfItem: earringsItem,
-            armorValues: armorValues
+        // Aggregate attributes from fight style and random level bonuses
+        let totalStrength = fightStyleAttributes.strength + randomLevelAttributes.strength
+        let totalAgility = fightStyleAttributes.agility + randomLevelAttributes.agility
+        let totalPower = fightStyleAttributes.power + randomLevelAttributes.power
+        let totalIntuition = fightStyleAttributes.instinct + randomLevelAttributes.instinct
+        let totalHP = fightStyleAttributes.hitPoints + randomLevelAttributes.hitPoints
+
+        // Get weapon damage range
+        let weapon = rightWeapon?.item as? WeaponItem
+        let minAttack = Int(weapon?.minimumAttackPoint ?? 0)
+        let maxAttack = Int(weapon?.maximumAttackPoint ?? 0)
+
+        // Calculate attack and defense points
+        let hasLeftWeapon = leftWeapon != nil
+        let hasRightWeapon = rightWeapon != nil
+        let hasShield = shield != nil
+
+        let attackPoints: Int
+        if hasLeftWeapon && hasRightWeapon {
+            attackPoints = 2  // Dual wield
+        } else {
+            attackPoints = 1  // Single weapon or no weapon
+        }
+
+        let defensePoints = hasShield ? 3 : 2  // Base 2, +1 with shield
+
+        // Build the CombatantSnapshot
+        return CombatantSnapshot(
+            sourceId: UUID(),
+            name: name,
+            imageName: imageName,
+            combatantType: .elf,
+            level: level,
+            currentHP: Int(totalHP),
+            maxHP: Int(totalHP),
+            strength: Int(totalStrength),
+            agility: Int(totalAgility),
+            power: Int(totalPower),
+            intuition: Int(totalIntuition),
+            attackPoints: attackPoints,
+            defensePoints: defensePoints,
+            minimumAttack: minAttack,
+            maximumAttack: maxAttack,
+            armorValues: armorValues,
+            helmetItem: helmetItem,
+            glovesItem: glovesItem,
+            shoesItem: shoesItem,
+            upperBodyItem: upperBodyItem,
+            bottomBodyItem: bottomBodyItem,
+            robeItem: robeItem,
+            leftWeaponItem: leftWeapon,
+            rightWeaponItem: rightWeapon,
+            shieldItem: shield,
+            ringItem: ringItem,
+            necklaceItem: necklaceItem,
+            earringsItem: earringsItem
         )
+    }
 
-        return elfHero
+    public func buildSnapshot(from monster: Monster) -> CombatantSnapshot {
+        // Map monster's parts protection to BodyPart keys
+        let armorValues: [BodyPart: Int] = [
+            .head: monster.partsProtection.head,
+            .leftHand: monster.partsProtection.left,
+            .body: monster.partsProtection.center,
+            .rightHand: monster.partsProtection.right,
+            .legs: monster.partsProtection.legs
+        ]
+
+        return CombatantSnapshot(
+            sourceId: monster.id,
+            name: monster.title,
+            imageName: monster.imageName,
+            combatantType: .monster,
+            level: 1,  // Monsters don't have levels, default to 1
+            currentHP: monster.hitPoints,
+            maxHP: monster.hitPoints,
+            strength: monster.strength,
+            agility: monster.agility,
+            power: monster.power,
+            intuition: monster.intuition,
+            attackPoints: monster.attackPoints,
+            defensePoints: monster.defensePoints,
+            minimumAttack: monster.minimumAttack,
+            maximumAttack: monster.maximumAttack,
+            armorValues: armorValues
+            // Equipment is nil for monsters (for now)
+        )
     }
 
     // MARK: - Private Conversion Methods
@@ -150,3 +221,6 @@ public final class DefaultElfHeroBuilder: ElfHeroBuilder {
         return ElfJewelryItem(id: itemId, item: item)
     }
 }
+
+// MARK: - Sendable Conformance
+extension DefaultCombatantSnapshotBuilder: @unchecked Sendable {}

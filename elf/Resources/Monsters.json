@@ -1,0 +1,514 @@
+{
+    "version": "1.0",
+    "upperWorld": {
+        "level1": [
+            {
+                "id": "550E8400-E29B-41D4-A716-446655440001",
+                "title": "Wolf",
+                "imageName": "monster_wolf",
+                "expReward": [
+                    { "amount": 4, "chance": 0.30 },
+                    { "amount": 5, "chance": 0.50 },
+                    { "amount": 6, "chance": 0.20 }
+                ],
+                "minimumAttack": 6,
+                "maximumAttack": 8,
+                "attackPoints": 1,
+                "defensePoints": 2,
+                "hitPoints": 60,
+                "manaPoints": 0,
+                "strength": 1,
+                "agility": 3,
+                "power": 0,
+                "intuition": 1,
+                "partsProtection": {
+                    "head": 1,
+                    "left": 1,
+                    "center": 0,
+                    "right": 1,
+                    "legs": 0
+                },
+                "drops": {
+                    "weapons": [
+                        {
+                            "id": "fa0b6893-6896-4689-a299-b8d271c76b68",
+                            "chance": 0.01
+                        }
+                    ],
+                    "armor": [],
+                    "materials": [
+                        {
+                            "id": "550E8400-E29B-41D4-A716-446655440101",
+                            "chances": [
+                                { "amount": 0, "chance": 0.30 },
+                                { "amount": 1, "chance": 0.50 },
+                                { "amount": 2, "chance": 0.20 }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "550E8400-E29B-41D4-A716-446655440002",
+                "title": "Boar",
+                "imageName": "monster_boar",
+                "expReward": [
+                    { "amount": 4, "chance": 0.30 },
+                    { "amount": 5, "chance": 0.50 },
+                    { "amount": 6, "chance": 0.20 }
+                ],
+                "minimumAttack": 6,
+                "maximumAttack": 8,
+                "attackPoints": 1,
+                "defensePoints": 2,
+                "hitPoints": 60,
+                "manaPoints": 0,
+                "strength": 1,
+                "agility": 0,
+                "power": 3,
+                "intuition": 1,
+                "partsProtection": {
+                    "head": 1,
+                    "left": 1,
+                    "center": 0,
+                    "right": 1,
+                    "legs": 0
+                },
+                "drops": {
+                    "weapons": [
+                        {
+                            "id": "f7a90d1e-7c6f-43d1-8f0f-413b8c6a4280",
+                            "chance": 0.01
+                        }
+                    ],
+                    "armor": [],
+                    "materials": [
+                        {
+                            "id": "550E8400-E29B-41D4-A716-446655440101",
+                            "chances": [
+                                { "amount": 0, "chance": 0.30 },
+                                { "amount": 1, "chance": 0.50 },
+                                { "amount": 2, "chance": 0.20 }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "550E8400-E29B-41D4-A716-446655440003",
+                "title": "Goblin",
+                "imageName": "monster_goblin",
+                "expReward": [
+                    { "amount": 4, "chance": 0.30 },
+                    { "amount": 5, "chance": 0.50 },
+                    { "amount": 6, "chance": 0.20 }
+                ],
+                "minimumAttack": 6,
+                "maximumAttack": 8,
+                "attackPoints": 1,
+                "defensePoints": 2,
+                "hitPoints": 61,
+                "manaPoints": 0,
+                "strength": 2,
+                "agility": 0,
+                "power": 0,
+                "intuition": 2,
+                "partsProtection": {
+                    "head": 1,
+                    "left": 1,
+                    "center": 0,
+                    "right": 1,
+                    "legs": 0
+                },
+                "drops": {
+                    "weapons": [
+                        {
+                            "id": "c4af732e-4912-4f09-aa2b-77b5bcb6fc11",
+                            "chance": 0.01
+                        }
+                    ],
+                    "armor": [],
+                    "materials": [
+                        {
+                            "id": "550E8400-E29B-41D4-A716-446655440101",
+                            "chances": [
+                                { "amount": 0, "chance": 0.30 },
+                                { "amount": 1, "chance": 0.50 },
+                                { "amount": 2, "chance": 0.20 }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ],
+        "level2": [
+            {
+                "id": "550E8400-E29B-41D4-A716-446655440004",
+                "title": "Wolf",
+                "imageName": "monster_wolf",
+                "expReward": [
+                    { "amount": 8, "chance": 0.10 },
+                    { "amount": 9, "chance": 0.20 },
+                    { "amount": 10, "chance": 0.50 },
+                    { "amount": 11, "chance": 0.10 },
+                    { "amount": 12, "chance": 0.10 }
+                ],
+                "minimumAttack": 6,
+                "maximumAttack": 9,
+                "attackPoints": 1,
+                "defensePoints": 2,
+                "hitPoints": 75,
+                "manaPoints": 0,
+                "strength": 2,
+                "agility": 6,
+                "power": 0,
+                "intuition": 2,
+                "partsProtection": {
+                    "head": 2,
+                    "left": 1,
+                    "center": 1,
+                    "right": 1,
+                    "legs": 0
+                },
+                "drops": {
+                    "weapons": [
+                        {
+                            "id": "fa0b6893-6896-4689-a299-b8d271c76b68",
+                            "chance": 0.05
+                        }
+                    ],
+                    "armor": [],
+                    "materials": [
+                        {
+                            "id": "550E8400-E29B-41D4-A716-446655440101",
+                            "chances": [
+                                { "amount": 0, "chance": 0.20 },
+                                { "amount": 1, "chance": 0.30 },
+                                { "amount": 2, "chance": 0.30 },
+                                { "amount": 3, "chance": 0.20 }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "550E8400-E29B-41D4-A716-446655440005",
+                "title": "Boar",
+                "imageName": "monster_boar",
+                "expReward": [
+                    { "amount": 8, "chance": 0.10 },
+                    { "amount": 9, "chance": 0.20 },
+                    { "amount": 10, "chance": 0.50 },
+                    { "amount": 11, "chance": 0.10 },
+                    { "amount": 12, "chance": 0.10 }
+                ],
+                "minimumAttack": 6,
+                "maximumAttack": 8,
+                "attackPoints": 1,
+                "defensePoints": 2,
+                "hitPoints": 80,
+                "manaPoints": 0,
+                "strength": 2,
+                "agility": 0,
+                "power": 6,
+                "intuition": 2,
+                "partsProtection": {
+                    "head": 2,
+                    "left": 1,
+                    "center": 1,
+                    "right": 1,
+                    "legs": 0
+                },
+                "drops": {
+                    "weapons": [
+                        {
+                            "id": "f7a90d1e-7c6f-43d1-8f0f-413b8c6a4280",
+                            "chance": 0.05
+                        }
+                    ],
+                    "armor": [],
+                    "materials": [
+                        {
+                            "id": "550E8400-E29B-41D4-A716-446655440101",
+                            "chances": [
+                                { "amount": 0, "chance": 0.20 },
+                                { "amount": 1, "chance": 0.30 },
+                                { "amount": 2, "chance": 0.30 },
+                                { "amount": 3, "chance": 0.20 }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "550E8400-E29B-41D4-A716-446655440006",
+                "title": "Goblin",
+                "imageName": "monster_goblin",
+                "expReward": [
+                    { "amount": 8, "chance": 0.10 },
+                    { "amount": 9, "chance": 0.20 },
+                    { "amount": 10, "chance": 0.50 },
+                    { "amount": 11, "chance": 0.10 },
+                    { "amount": 12, "chance": 0.10 }
+                ],
+                "minimumAttack": 6,
+                "maximumAttack": 8,
+                "attackPoints": 1,
+                "defensePoints": 2,
+                "hitPoints": 81,
+                "manaPoints": 0,
+                "strength": 3,
+                "agility": 0,
+                "power": 0,
+                "intuition": 4,
+                "partsProtection": {
+                    "head": 2,
+                    "left": 1,
+                    "center": 1,
+                    "right": 1,
+                    "legs": 0
+                },
+                "drops": {
+                    "weapons": [
+                        {
+                            "id": "c4af732e-4912-4f09-aa2b-77b5bcb6fc11",
+                            "chance": 0.05
+                        }
+                    ],
+                    "armor": [],
+                    "materials": [
+                        {
+                            "id": "550E8400-E29B-41D4-A716-446655440101",
+                            "chances": [
+                                { "amount": 0, "chance": 0.20 },
+                                { "amount": 1, "chance": 0.30 },
+                                { "amount": 2, "chance": 0.30 },
+                                { "amount": 3, "chance": 0.20 }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ],
+        "level3": [
+            {
+                "id": "550E8400-E29B-41D4-A716-446655440007",
+                "title": "Wolf",
+                "imageName": "monster_wolf",
+                "expReward": [
+                    { "amount": 14, "chance": 0.30 },
+                    { "amount": 15, "chance": 0.50 },
+                    { "amount": 16, "chance": 0.10 },
+                    { "amount": 17, "chance": 0.10 }
+                ],
+                "minimumAttack": 6,
+                "maximumAttack": 8,
+                "attackPoints": 2,
+                "defensePoints": 2,
+                "hitPoints": 80,
+                "manaPoints": 0,
+                "strength": 3,
+                "agility": 10,
+                "power": 0,
+                "intuition": 3,
+                "partsProtection": {
+                    "head": 2,
+                    "left": 1,
+                    "center": 2,
+                    "right": 1,
+                    "legs": 2
+                },
+                "drops": {
+                    "weapons": [
+                        {
+                            "id": "fa0b6893-6896-4689-a299-b8d271c76b68",
+                            "chance": 0.15
+                        }
+                    ],
+                    "armor": [],
+                    "materials": [
+                        {
+                            "id": "550E8400-E29B-41D4-A716-446655440101",
+                            "chances": [
+                                { "amount": 0, "chance": 0.10 },
+                                { "amount": 1, "chance": 0.20 },
+                                { "amount": 2, "chance": 0.50 },
+                                { "amount": 3, "chance": 0.20 }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "550E8400-E29B-41D4-A716-446655440008",
+                "title": "Boar",
+                "imageName": "monster_boar",
+                "expReward": [
+                    { "amount": 14, "chance": 0.30 },
+                    { "amount": 15, "chance": 0.50 },
+                    { "amount": 16, "chance": 0.10 },
+                    { "amount": 17, "chance": 0.10 }
+                ],
+                "minimumAttack": 7,
+                "maximumAttack": 9,
+                "attackPoints": 1,
+                "defensePoints": 2,
+                "hitPoints": 80,
+                "manaPoints": 0,
+                "strength": 3,
+                "agility": 0,
+                "power": 10,
+                "intuition": 3,
+                "partsProtection": {
+                    "head": 2,
+                    "left": 1,
+                    "center": 2,
+                    "right": 1,
+                    "legs": 2
+                },
+                "drops": {
+                    "weapons": [
+                        {
+                            "id": "f7a90d1e-7c6f-43d1-8f0f-413b8c6a4280",
+                            "chance": 0.15
+                        }
+                    ],
+                    "armor": [],
+                    "materials": [
+                        {
+                            "id": "550E8400-E29B-41D4-A716-446655440101",
+                            "chances": [
+                                { "amount": 0, "chance": 0.10 },
+                                { "amount": 1, "chance": 0.20 },
+                                { "amount": 2, "chance": 0.50 },
+                                { "amount": 3, "chance": 0.20 }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "550E8400-E29B-41D4-A716-446655440009",
+                "title": "Goblin",
+                "imageName": "monster_goblin",
+                "expReward": [
+                    { "amount": 14, "chance": 0.30 },
+                    { "amount": 15, "chance": 0.50 },
+                    { "amount": 16, "chance": 0.10 },
+                    { "amount": 17, "chance": 0.10 }
+                ],
+                "minimumAttack": 7,
+                "maximumAttack": 9,
+                "attackPoints": 1,
+                "defensePoints": 3,
+                "hitPoints": 85,
+                "manaPoints": 0,
+                "strength": 5,
+                "agility": 0,
+                "power": 0,
+                "intuition": 6,
+                "partsProtection": {
+                    "head": 2,
+                    "left": 1,
+                    "center": 2,
+                    "right": 1,
+                    "legs": 2
+                },
+                "drops": {
+                    "weapons": [
+                        {
+                            "id": "c4af732e-4912-4f09-aa2b-77b5bcb6fc11",
+                            "chance": 0.15
+                        }
+                    ],
+                    "armor": [],
+                    "materials": [
+                        {
+                            "id": "550E8400-E29B-41D4-A716-446655440101",
+                            "chances": [
+                                { "amount": 0, "chance": 0.10 },
+                                { "amount": 1, "chance": 0.20 },
+                                { "amount": 2, "chance": 0.50 },
+                                { "amount": 3, "chance": 0.20 }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "middleWorld": {
+        "level1": [
+            {
+                "id": "550E8400-E29B-41D4-A716-446655440010",
+                "title": "Shadow Wolf",
+                "imageName": "monster_wolf",
+                "expReward": [
+                    { "amount": 20, "chance": 0.50 },
+                    { "amount": 25, "chance": 0.50 }
+                ],
+                "minimumAttack": 10,
+                "maximumAttack": 14,
+                "attackPoints": 2,
+                "defensePoints": 2,
+                "hitPoints": 120,
+                "manaPoints": 0,
+                "strength": 8,
+                "agility": 12,
+                "power": 5,
+                "intuition": 6,
+                "partsProtection": {
+                    "head": 3,
+                    "left": 2,
+                    "center": 3,
+                    "right": 2,
+                    "legs": 2
+                },
+                "drops": {
+                    "weapons": [],
+                    "armor": [],
+                    "materials": []
+                }
+            }
+        ],
+        "level2": [],
+        "level3": []
+    },
+    "lowerWorld": {
+        "level1": [
+            {
+                "id": "550E8400-E29B-41D4-A716-446655440011",
+                "title": "Demon Wolf",
+                "imageName": "monster_wolf",
+                "expReward": [
+                    { "amount": 50, "chance": 0.50 },
+                    { "amount": 60, "chance": 0.50 }
+                ],
+                "minimumAttack": 15,
+                "maximumAttack": 20,
+                "attackPoints": 2,
+                "defensePoints": 3,
+                "hitPoints": 200,
+                "manaPoints": 0,
+                "strength": 15,
+                "agility": 20,
+                "power": 10,
+                "intuition": 10,
+                "partsProtection": {
+                    "head": 5,
+                    "left": 4,
+                    "center": 5,
+                    "right": 4,
+                    "legs": 3
+                },
+                "drops": {
+                    "weapons": [],
+                    "armor": [],
+                    "materials": []
+                }
+            }
+        ],
+        "level2": [],
+        "level3": []
+    }
+}

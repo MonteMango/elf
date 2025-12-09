@@ -64,6 +64,30 @@ final class ElfItemsRepositoryTests: XCTestCase {
                 throw NSError(domain: "FakeError", code: 999, userInfo: nil)
             }
         }
+
+        func loadMonstersData() throws -> Data {
+            // Return minimal valid monsters data for tests
+            let json = """
+            {
+              "version": "1.0",
+              "upperWorld": {},
+              "middleWorld": {},
+              "lowerWorld": {}
+            }
+            """
+            return Data(json.utf8)
+        }
+
+        func loadMaterialsData() throws -> Data {
+            // Return minimal valid materials data for tests
+            let json = """
+            {
+              "version": "1.0",
+              "monsters_drop": []
+            }
+            """
+            return Data(json.utf8)
+        }
     }
     
     // MARK: - Тесты

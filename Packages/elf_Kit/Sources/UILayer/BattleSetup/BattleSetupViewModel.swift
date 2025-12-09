@@ -80,11 +80,18 @@ public final class BattleSetupViewModel {
     private let armorService: ArmorService
     private let damageService: DamageService
     private let weaponValidator: WeaponValidator
-    private let elfHeroBuilder: ElfHeroBuilder
+    private let snapshotBuilder: CombatantSnapshotBuilder
+    private let monsterRepository: MonsterRepository
 
     // MARK: - State
 
     public var presentedItemSelector: ItemSelectorState?
+
+    /// Selected opponent type (elf or monster)
+    public var selectedOpponent: OpponentSelection = .elf
+
+    /// All available monsters for the picker
+    public private(set) var allMonsters: [Monster] = []
 
     // Hero configurations
     public var playerState = HeroConfigurationState()
@@ -187,14 +194,31 @@ public final class BattleSetupViewModel {
         armorService: ArmorService,
         damageService: DamageService,
         weaponValidator: WeaponValidator,
-        elfHeroBuilder: ElfHeroBuilder
+        snapshotBuilder: CombatantSnapshotBuilder,
+        monsterRepository: MonsterRepository
     ) {
         self.itemsRepository = itemsRepository
         self.attributeService = attributeService
         self.armorService = armorService
         self.damageService = damageService
         self.weaponValidator = weaponValidator
-        self.elfHeroBuilder = elfHeroBuilder
+        self.snapshotBuilder = snapshotBuilder
+        self.monsterRepository = monsterRepository
+
+        loadAllMonsters()
+    }
+
+    // MARK: - Monster Loading
+
+    private func loadAllMonsters() {
+        var monsters: [Monster] = []
+        for world in [WorldType.upper, WorldType.middle, WorldType.lower] {
+            for level in 1...3 {
+                let worldMonsters = monsterRepository.getMonsters(world: world, level: level)
+                monsters.append(contentsOf: worldMonsters)
+            }
+        }
+        allMonsters = monsters
     }
 
     deinit {
@@ -484,14 +508,10 @@ public final class BattleSetupViewModel {
             return nil
         }
 
-        // Validate bot configuration
-        guard let botFightStyleAttrs = botState.fightStyleAttributes,
-              let botLevelAttrs = botState.levelRandomAttributes else {
-            return nil
-        }
-
-        // Build ElfHero for player
-        guard let playerHero = await elfHeroBuilder.buildElfHero(
+        // Build CombatantSnapshot for player
+        guard let playerSnapshot = await snapshotBuilder.buildSnapshot(
+            name: "Player",
+            imageName: "",
             level: playerState.level,
             fightStyleAttributes: playerFightStyleAttrs,
             randomLevelAttributes: playerLevelAttrs,
@@ -500,20 +520,42 @@ public final class BattleSetupViewModel {
             return nil
         }
 
-        // Build ElfHero for bot
-        guard let botHero = await elfHeroBuilder.buildElfHero(
-            level: botState.level,
-            fightStyleAttributes: botFightStyleAttrs,
-            randomLevelAttributes: botLevelAttrs,
-            selectedItems: botState.selectedItems
-        ) else {
-            return nil
-        }
+        // Handle opponent based on selection
+        switch selectedOpponent {
+        case .elf:
+            // Validate bot configuration for elf opponent
+            guard let botFightStyleAttrs = botState.fightStyleAttributes,
+                  let botLevelAttrs = botState.levelRandomAttributes else {
+                return nil
+            }
 
-        // Create and return Battle
-        return Battle(
-            leftTeam: [playerHero],
-            rightTeam: [botHero]
-        )
+            // Build CombatantSnapshot for bot
+            guard let botSnapshot = await snapshotBuilder.buildSnapshot(
+                name: "Bot",
+                imageName: "",
+                level: botState.level,
+                fightStyleAttributes: botFightStyleAttrs,
+                randomLevelAttributes: botLevelAttrs,
+                selectedItems: botState.selectedItems
+            ) else {
+                return nil
+            }
+
+            // Create Battle with elf opponent
+            return Battle(
+                leftTeam: [playerSnapshot],
+                rightTeam: [botSnapshot]
+            )
+
+        case .monster(let monster):
+            // Build CombatantSnapshot from monster
+            let monsterSnapshot = snapshotBuilder.buildSnapshot(from: monster)
+
+            // Create Battle with monster opponent
+            return Battle(
+                leftTeam: [playerSnapshot],
+                rightTeam: [monsterSnapshot]
+            )
+        }
     }
 }

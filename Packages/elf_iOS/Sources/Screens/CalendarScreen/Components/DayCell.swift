@@ -44,6 +44,7 @@ struct DayCell: View {
             x: 0,
             y: isCurrentDay ? 4 : 0
         )
+        .animation(.easeInOut(duration: 0.2), value: isCurrentDay)
     }
 
     private var displayText: String {

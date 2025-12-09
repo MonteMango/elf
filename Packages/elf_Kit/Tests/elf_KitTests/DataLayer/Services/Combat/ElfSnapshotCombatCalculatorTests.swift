@@ -1,5 +1,5 @@
 //
-//  ElfCombatCalculatorTests.swift
+//  ElfSnapshotCombatCalculatorTests.swift
 //  elf_Kit
 //
 //  Created by Vitalii Lytvynov on 02.12.25.
@@ -8,13 +8,13 @@
 import XCTest
 @testable import elf_Kit
 
-/// Tests for ElfCombatCalculator
+/// Tests for ElfSnapshotCombatCalculator
 ///
 /// Combat logic:
 /// - Attack on defended point: Check crit to break block
 /// - Attack on undefended point: Check dodge, then crit/normal hit
 /// - No attack on point: Nothing status
-final class ElfCombatCalculatorTests: XCTestCase {
+final class ElfSnapshotCombatCalculatorTests: XCTestCase {
 
     // MARK: - Mock Services
 
@@ -109,7 +109,7 @@ final class ElfCombatCalculatorTests: XCTestCase {
 
     /// Mock Debug Logger (no-op)
     final class MockDebugLogger: DebugBattleLogger {
-        func logRoundStart(roundNumber: Int, player: ElfHero, bot: ElfHero, playerAttack: [BodyPart], playerDefense: [BodyPart], botAttack: [BodyPart], botDefense: [BodyPart]) {}
+        func logRoundStart(roundNumber: Int, playerSnapshot: CombatantSnapshot, botSnapshot: CombatantSnapshot, playerAttack: [BodyPart], playerDefense: [BodyPart], botAttack: [BodyPart], botDefense: [BodyPart]) {}
         func logStrengthDamage(hero: String, strength: Int16, distribution: [Int16], weights: [Int], selectedValue: Int16) {}
         func logWeaponDamage(hero: String, hand: String, weaponName: String, minDamage: Int16, maxDamage: Int16, selectedValue: Int16) {}
         func logDodgeCalculation(defender: String, result: DodgeCalculationResult, agility: Int16, instinct: Int16) {}
@@ -125,8 +125,8 @@ final class ElfCombatCalculatorTests: XCTestCase {
     private var mockCritService: MockCritService!
     private var mockLogger: MockDebugLogger!
 
-    private func makeCalculator() -> ElfCombatCalculator {
-        return ElfCombatCalculator(
+    private func makeCalculator() -> ElfSnapshotCombatCalculator {
+        return ElfSnapshotCombatCalculator(
             damageService: mockDamageService,
             dodgeService: mockDodgeService,
             critService: mockCritService,
@@ -134,24 +134,31 @@ final class ElfCombatCalculatorTests: XCTestCase {
         )
     }
 
-    private func makeHero(
-        agility: Int16 = 10,
-        strength: Int16 = 10,
-        power: Int16 = 10,
-        instinct: Int16 = 10,
-        armor: [BodyPart: Int16] = [:]
-    ) -> ElfHero {
-        return ElfHero(
-            level: 1,
-            fightStyleAttributes: HeroAttributes(
-                hitPoints: 100,
-                manaPoints: 50,
-                agility: agility,
-                strength: strength,
-                power: power,
-                instinct: instinct
-            ),
-            randomLevelAttributes: HeroAttributes(),
+    private func makeSnapshot(
+        agility: Int = 10,
+        strength: Int = 10,
+        power: Int = 10,
+        intuition: Int = 10,
+        minimumAttack: Int = 10,
+        maximumAttack: Int = 10,
+        armor: [BodyPart: Int] = [:]
+    ) -> CombatantSnapshot {
+        return CombatantSnapshot(
+            id: UUID(),
+            sourceId: UUID(),
+            name: "Test",
+            imageName: "",
+            combatantType: .elf,
+            currentHP: 100,
+            maxHP: 100,
+            strength: strength,
+            agility: agility,
+            power: power,
+            intuition: intuition,
+            attackPoints: 1,
+            defensePoints: 2,
+            minimumAttack: minimumAttack,
+            maximumAttack: maximumAttack,
             armorValues: armor
         )
     }
@@ -178,17 +185,15 @@ final class ElfCombatCalculatorTests: XCTestCase {
         // Given
         mockCritService.shouldCrit = false
         let calculator = makeCalculator()
-        let attacker = makeHero(power: 20)
-        let defender = makeHero(instinct: 30)
+        let attacker = makeSnapshot(power: 20)
+        let defender = makeSnapshot(intuition: 30)
 
         // When
         let results = await calculator.calculatePointStatus(
             attackingPoints: [.head],
             defendingPoints: [.head],
             attacker: attacker,
-            defender: defender,
-            attackerName: "Attacker",
-            defenderName: "Defender"
+            defender: defender
         )
 
         // Then
@@ -200,19 +205,16 @@ final class ElfCombatCalculatorTests: XCTestCase {
         mockCritService.shouldCrit = true
         mockCritService.critMultiplier = 2.0
         mockDamageService.strengthDamageToReturn = 5
-        mockDamageService.weaponDamageToReturn = 10
         let calculator = makeCalculator()
-        let attacker = makeHero(power: 50)
-        let defender = makeHero(instinct: 10, armor: [.head: 3])
+        let attacker = makeSnapshot(power: 50, minimumAttack: 10, maximumAttack: 10)
+        let defender = makeSnapshot(intuition: 10, armor: [.head: 3])
 
         // When
         let results = await calculator.calculatePointStatus(
             attackingPoints: [.head],
             defendingPoints: [.head],
             attacker: attacker,
-            defender: defender,
-            attackerName: "Attacker",
-            defenderName: "Defender"
+            defender: defender
         )
 
         // Then
@@ -233,17 +235,15 @@ final class ElfCombatCalculatorTests: XCTestCase {
         mockDodgeService.shouldDodge = true
         mockCritService.shouldCrit = false
         let calculator = makeCalculator()
-        let attacker = makeHero()
-        let defender = makeHero(agility: 50)
+        let attacker = makeSnapshot()
+        let defender = makeSnapshot(agility: 50)
 
         // When
         let results = await calculator.calculatePointStatus(
             attackingPoints: [.body],
             defendingPoints: [],
             attacker: attacker,
-            defender: defender,
-            attackerName: "Attacker",
-            defenderName: "Defender"
+            defender: defender
         )
 
         // Then
@@ -255,17 +255,15 @@ final class ElfCombatCalculatorTests: XCTestCase {
         mockDodgeService.shouldDodge = true
         mockCritService.shouldCrit = true
         let calculator = makeCalculator()
-        let attacker = makeHero(power: 80)
-        let defender = makeHero(agility: 50)
+        let attacker = makeSnapshot(power: 80)
+        let defender = makeSnapshot(agility: 50)
 
         // When
         let results = await calculator.calculatePointStatus(
             attackingPoints: [.body],
             defendingPoints: [],
             attacker: attacker,
-            defender: defender,
-            attackerName: "Attacker",
-            defenderName: "Defender"
+            defender: defender
         )
 
         // Then
@@ -277,19 +275,16 @@ final class ElfCombatCalculatorTests: XCTestCase {
         mockDodgeService.shouldDodge = false
         mockCritService.shouldCrit = false
         mockDamageService.strengthDamageToReturn = 6
-        mockDamageService.weaponDamageToReturn = 12
         let calculator = makeCalculator()
-        let attacker = makeHero(strength: 20)
-        let defender = makeHero(armor: [.legs: 5])
+        let attacker = makeSnapshot(strength: 20, minimumAttack: 12, maximumAttack: 12)
+        let defender = makeSnapshot(armor: [.legs: 5])
 
         // When
         let results = await calculator.calculatePointStatus(
             attackingPoints: [.legs],
             defendingPoints: [],
             attacker: attacker,
-            defender: defender,
-            attackerName: "Attacker",
-            defenderName: "Defender"
+            defender: defender
         )
 
         // Then
@@ -308,19 +303,16 @@ final class ElfCombatCalculatorTests: XCTestCase {
         mockCritService.shouldCrit = true
         mockCritService.critMultiplier = 1.5
         mockDamageService.strengthDamageToReturn = 8
-        mockDamageService.weaponDamageToReturn = 15
         let calculator = makeCalculator()
-        let attacker = makeHero(power: 60)
-        let defender = makeHero(armor: [.rightHand: 2])
+        let attacker = makeSnapshot(power: 60, minimumAttack: 15, maximumAttack: 15)
+        let defender = makeSnapshot(armor: [.rightHand: 2])
 
         // When
         let results = await calculator.calculatePointStatus(
             attackingPoints: [.rightHand],
             defendingPoints: [],
             attacker: attacker,
-            defender: defender,
-            attackerName: "Attacker",
-            defenderName: "Defender"
+            defender: defender
         )
 
         // Then
@@ -339,17 +331,15 @@ final class ElfCombatCalculatorTests: XCTestCase {
     func testNoAttackOnPoint_ResultsInNothing() async {
         // Given
         let calculator = makeCalculator()
-        let attacker = makeHero()
-        let defender = makeHero()
+        let attacker = makeSnapshot()
+        let defender = makeSnapshot()
 
         // When
         let results = await calculator.calculatePointStatus(
             attackingPoints: [.head],
             defendingPoints: [.body],
             attacker: attacker,
-            defender: defender,
-            attackerName: "Attacker",
-            defenderName: "Defender"
+            defender: defender
         )
 
         // Then
@@ -366,19 +356,16 @@ final class ElfCombatCalculatorTests: XCTestCase {
         mockDodgeService.shouldDodge = false
         mockCritService.shouldCrit = false
         mockDamageService.strengthDamageToReturn = 5
-        mockDamageService.weaponDamageToReturn = 10
         let calculator = makeCalculator()
-        let attacker = makeHero()
-        let defender = makeHero(armor: [.head: 2, .body: 3])
+        let attacker = makeSnapshot(minimumAttack: 10, maximumAttack: 10)
+        let defender = makeSnapshot(armor: [.head: 2, .body: 3])
 
         // When
         let results = await calculator.calculatePointStatus(
             attackingPoints: [.head, .body],
             defendingPoints: [.body],
             attacker: attacker,
-            defender: defender,
-            attackerName: "Attacker",
-            defenderName: "Defender"
+            defender: defender
         )
 
         // Then
@@ -400,17 +387,15 @@ final class ElfCombatCalculatorTests: XCTestCase {
     func testAllBodyPartsReturnResults() async {
         // Given
         let calculator = makeCalculator()
-        let attacker = makeHero()
-        let defender = makeHero()
+        let attacker = makeSnapshot()
+        let defender = makeSnapshot()
 
         // When
         let results = await calculator.calculatePointStatus(
             attackingPoints: [],
             defendingPoints: [],
             attacker: attacker,
-            defender: defender,
-            attackerName: "Attacker",
-            defenderName: "Defender"
+            defender: defender
         )
 
         // Then: All 5 body parts should have results
@@ -429,19 +414,16 @@ final class ElfCombatCalculatorTests: XCTestCase {
         mockDodgeService.shouldDodge = false
         mockCritService.shouldCrit = false
         mockDamageService.strengthDamageToReturn = 5
-        mockDamageService.weaponDamageToReturn = 10
         let calculator = makeCalculator()
-        let attacker = makeHero()
-        let defender = makeHero(armor: [.head: 8])
+        let attacker = makeSnapshot(minimumAttack: 10, maximumAttack: 10)
+        let defender = makeSnapshot(armor: [.head: 8])
 
         // When
         let results = await calculator.calculatePointStatus(
             attackingPoints: [.head],
             defendingPoints: [],
             attacker: attacker,
-            defender: defender,
-            attackerName: "Attacker",
-            defenderName: "Defender"
+            defender: defender
         )
 
         // Then
@@ -457,17 +439,15 @@ final class ElfCombatCalculatorTests: XCTestCase {
         mockDodgeService.shouldDodge = false
         mockCritService.shouldCrit = false
         let calculator = makeCalculator()
-        let attacker = makeHero()
-        let defender = makeHero(armor: [:]) // No armor
+        let attacker = makeSnapshot()
+        let defender = makeSnapshot(armor: [:]) // No armor
 
         // When
         let results = await calculator.calculatePointStatus(
             attackingPoints: [.body],
             defendingPoints: [],
             attacker: attacker,
-            defender: defender,
-            attackerName: "Attacker",
-            defenderName: "Defender"
+            defender: defender
         )
 
         // Then

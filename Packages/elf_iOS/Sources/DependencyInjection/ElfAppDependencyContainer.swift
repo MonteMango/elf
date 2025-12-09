@@ -20,7 +20,7 @@ public final class ElfAppDependencyContainer {
     public let dodgeService: DodgeService
     public let critService: CritService
     public let weaponValidator: WeaponValidator
-    public let elfHeroBuilder: ElfHeroBuilder
+    public let snapshotBuilder: CombatantSnapshotBuilder
     public let fightStyleDescriptionService: FightStyleDescriptionService
     public let nameSuggestionService: CharacterNameSuggestionService
     public let elfInfoFactory: ElfInfoFactory
@@ -30,11 +30,17 @@ public final class ElfAppDependencyContainer {
 
     // Battle services
     public let botAI: BotAIService
-    public let combatCalculator: CombatCalculator
+    public let snapshotCombatCalculator: SnapshotCombatCalculator
     public let battleLogger: BattleLogger
     public let debugBattleLogger: DebugBattleLogger
     public let statisticsParser: BattleStatisticsParser
     public let battleSimulationService: BattleSimulationService
+    public let combatRoundExecutor: CombatRoundExecutor
+    public let monsterRepository: MonsterRepository
+    public let materialRepository: MaterialRepository
+
+    // Game initialization
+    public let gameInitializationService: GameInitializationService
 
     // MARK: - Game Session State
 
@@ -83,7 +89,10 @@ public final class ElfAppDependencyContainer {
         self.critService = ElfCritService(distributionStrategy: critDistributionStrategy)
 
         self.weaponValidator = ElfWeaponValidator(itemsRepository: itemsRepository)
-        self.elfHeroBuilder = DefaultElfHeroBuilder(itemsRepository: itemsRepository, armorService: self.armorService)
+        self.snapshotBuilder = DefaultCombatantSnapshotBuilder(
+            itemsRepository: itemsRepository,
+            armorService: self.armorService
+        )
 
         // Initialize character creation services
         self.fightStyleDescriptionService = DefaultFightStyleDescriptionService()
@@ -98,7 +107,7 @@ public final class ElfAppDependencyContainer {
 
         // Initialize battle services
         self.botAI = ElfRandomBotAI()
-        self.combatCalculator = ElfCombatCalculator(
+        self.snapshotCombatCalculator = ElfSnapshotCombatCalculator(
             damageService: self.damageService,
             dodgeService: self.dodgeService,
             critService: self.critService,
@@ -107,11 +116,24 @@ public final class ElfAppDependencyContainer {
         self.battleLogger = ElfBattleLogger()
         self.statisticsParser = ElfBattleStatisticsParser()
         self.battleSimulationService = ElfBattleSimulationService(
-            attributeService: self.attributeService,
             botAI: self.botAI,
-            combatCalculator: self.combatCalculator,
+            snapshotCombatCalculator: self.snapshotCombatCalculator,
             damageService: self.damageService,
             statisticsParser: self.statisticsParser
+        )
+        self.combatRoundExecutor = ElfCombatRoundExecutor(
+            snapshotCombatCalculator: self.snapshotCombatCalculator,
+            damageService: self.damageService
+        )
+        self.monsterRepository = ElfMonsterRepository()
+        self.materialRepository = ElfMaterialRepository()
+
+        // Game initialization service
+        self.gameInitializationService = ElfGameInitializationService(
+            houseService: self.houseService,
+            elfInfoFactory: elfInfoFactory,
+            calendarService: self.calendarService,
+            gameRepository: self.gameRepository
         )
     }
 
@@ -125,7 +147,8 @@ public final class ElfAppDependencyContainer {
             armorService: self.armorService,
             damageService: self.damageService,
             weaponValidator: self.weaponValidator,
-            elfHeroBuilder: self.elfHeroBuilder
+            snapshotBuilder: self.snapshotBuilder,
+            monsterRepository: self.monsterRepository
         )
     }
 
@@ -133,10 +156,8 @@ public final class ElfAppDependencyContainer {
     public func makeBattleFightViewModel(battle: Battle) -> BattleFightViewModel {
         return BattleFightViewModel(
             battle: battle,
-            attributeService: self.attributeService,
-            damageService: self.damageService,
             botAI: self.botAI,
-            combatCalculator: self.combatCalculator,
+            combatRoundExecutor: self.combatRoundExecutor,
             battleLogger: self.battleLogger,
             debugLogger: self.debugBattleLogger
         )
@@ -146,9 +167,8 @@ public final class ElfAppDependencyContainer {
     public func makeAutoBattleViewModel(battle: Battle) -> AutoBattleViewModel {
         return AutoBattleViewModel(
             battle: battle,
-            attributeService: self.attributeService,
             botAI: self.botAI,
-            combatCalculator: self.combatCalculator,
+            snapshotCombatCalculator: self.snapshotCombatCalculator,
             damageService: self.damageService,
             statisticsParser: self.statisticsParser
         )
@@ -181,10 +201,7 @@ public final class ElfAppDependencyContainer {
             characterBuilder: characterBuilder,
             fightStyleDescriptionService: self.fightStyleDescriptionService,
             nameSuggestionService: self.nameSuggestionService,
-            houseService: self.houseService,
-            elfInfoFactory: self.elfInfoFactory,
-            gameRepository: self.gameRepository,
-            calendarService: self.calendarService
+            gameInitializationService: self.gameInitializationService
         )
     }
 
@@ -204,6 +221,9 @@ public final class ElfAppDependencyContainer {
 
     @MainActor
     public func makeGameDayViewModel(game: Game, playTime: TimeInterval = 0) -> GameDayViewModel {
+        // Clean up previous game session if exists
+        activeGameService = nil
+
         let gameService = DefaultGameService(
             game: game,
             gameRepository: self.gameRepository,
@@ -213,13 +233,31 @@ public final class ElfAppDependencyContainer {
         return GameDayViewModel(gameService: gameService)
     }
 
-    // MARK: - Game Session Management
-
-    /// Clears active game service (called when exiting game)
     @MainActor
-    public func endGame() {
-        self.activeGameService = nil
+    public func makeHuntViewModel() -> HuntViewModel {
+        guard let gameService = activeGameService else {
+            fatalError("No active game session. HuntViewModel requires an active game.")
+        }
+        return HuntViewModel(
+            gameService: gameService,
+            monsterRepository: self.monsterRepository,
+            materialRepository: self.materialRepository
+        )
     }
+
+    @MainActor
+    public func makeCalendarViewModel(
+        calendar: [GameDay],
+        currentDayNumber: Int
+    ) -> CalendarViewModel {
+        return CalendarViewModel(
+            calendar: calendar,
+            currentDayNumber: currentDayNumber,
+            daysPerIteration: self.calendarService.daysPerIteration
+        )
+    }
+
+    // MARK: - Game Session Management
 
     /// Saves active game if exists (called on app background)
     @MainActor

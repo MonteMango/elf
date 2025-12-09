@@ -134,8 +134,8 @@ public final class MultiBattleViewModel {
         }
 
         // Get bot configurations
-        let bot1Level = battle.leftTeam.first?.level ?? 1
-        let bot2Level = battle.rightTeam.first?.level ?? 1
+        let bot1Level = Int(battle.leftTeam.first?.level ?? 1)
+        let bot2Level = Int(battle.rightTeam.first?.level ?? 1)
 
         // Aggregate statistics
         let bot1Stats = AggregatedBattleStatistics.aggregate(from: allResults, forBot1: true)

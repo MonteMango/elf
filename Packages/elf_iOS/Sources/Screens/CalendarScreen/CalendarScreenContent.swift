@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 struct CalendarScreenContent: View {
@@ -45,15 +46,8 @@ struct CalendarScreenContent: View {
 
             // Back button
             HStack {
-                Button {
+                BackButton {
                     router.pop()
-                } label: {
-                    Image(systemName: "arrow.backward")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                        .frame(width: 44, height: 44)
-                        .background(Color.orange)
                 }
 
                 Spacer()

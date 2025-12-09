@@ -16,10 +16,14 @@ struct GridCalendarView: View {
 
     private let spacing: CGFloat = 4
     private let maxCellSize: CGFloat = 80
+    private let columns: [GridItem]
 
-    private var columns: [GridItem] {
-        Array(
-            repeating: GridItem(.flexible(minimum: 30, maximum: maxCellSize), spacing: spacing),
+    init(calendar: [GameDay], currentDayNumber: Int, daysPerIteration: Int) {
+        self.calendar = calendar
+        self.currentDayNumber = currentDayNumber
+        self.daysPerIteration = daysPerIteration
+        self.columns = Array(
+            repeating: GridItem(.flexible(minimum: 30, maximum: 80), spacing: 4),
             count: daysPerIteration
         )
     }

@@ -15,9 +15,8 @@ public final class AutoBattleViewModel {
     // MARK: - Dependencies
 
     private let battle: Battle
-    private let attributeService: AttributeService
     private let botAI: BotAIService
-    private let combatCalculator: CombatCalculator
+    private let snapshotCombatCalculator: SnapshotCombatCalculator
     private let damageService: DamageService
     private let statisticsParser: BattleStatisticsParser
 
@@ -36,16 +35,14 @@ public final class AutoBattleViewModel {
 
     public init(
         battle: Battle,
-        attributeService: AttributeService,
         botAI: BotAIService,
-        combatCalculator: CombatCalculator,
+        snapshotCombatCalculator: SnapshotCombatCalculator,
         damageService: DamageService,
         statisticsParser: BattleStatisticsParser
     ) {
         self.battle = battle
-        self.attributeService = attributeService
         self.botAI = botAI
-        self.combatCalculator = combatCalculator
+        self.snapshotCombatCalculator = snapshotCombatCalculator
         self.damageService = damageService
         self.statisticsParser = statisticsParser
     }
@@ -57,22 +54,18 @@ public final class AutoBattleViewModel {
         isRunning = true
         progress = 0.0
 
-        guard let bot1 = battle.leftTeam.first, let bot2 = battle.rightTeam.first else {
+        guard let bot1Snapshot = battle.leftTeam.first else {
             isRunning = false
             return
         }
 
-        let bot1MaxHP = attributeService.calculateTotalHP(from: [
-            bot1.fightStyleAttributes,
-            bot1.randomLevelAttributes
-        ])
-        let bot2MaxHP = attributeService.calculateTotalHP(from: [
-            bot2.fightStyleAttributes,
-            bot2.randomLevelAttributes
-        ])
+        guard let bot2Snapshot = battle.rightTeam.first else {
+            isRunning = false
+            return
+        }
 
-        var bot1HP = bot1MaxHP
-        var bot2HP = bot2MaxHP
+        var bot1HP = bot1Snapshot.maxHP
+        var bot2HP = bot2Snapshot.maxHP
         var currentRound = 1
         var roundHistory: [AutoBattleRoundResult] = []
 
@@ -102,31 +95,27 @@ public final class AutoBattleViewModel {
             let roundStartBot2HP = bot2HP
 
             // Bot1 selects attack and defense
-            let bot1Attack = botAI.selectAttackPoints(for: bot1)
-            let bot1Defense = botAI.selectDefensePoints(for: bot1)
+            let bot1Attack = botAI.selectAttackPoints(count: bot1Snapshot.attackPoints)
+            let bot1Defense = botAI.selectDefensePoints(count: bot1Snapshot.defensePoints)
 
             // Bot2 selects attack and defense
-            let bot2Attack = botAI.selectAttackPoints(for: bot2)
-            let bot2Defense = botAI.selectDefensePoints(for: bot2)
+            let bot2Attack = botAI.selectAttackPoints(count: bot2Snapshot.attackPoints)
+            let bot2Defense = botAI.selectDefensePoints(count: bot2Snapshot.defensePoints)
 
             // Calculate bot2 attacking bot1
-            let bot1Results = await combatCalculator.calculatePointStatus(
+            let bot1Results = await snapshotCombatCalculator.calculatePointStatus(
                 attackingPoints: bot2Attack,
                 defendingPoints: bot1Defense,
-                attacker: bot2,
-                defender: bot1,
-                attackerName: "Bot2",
-                defenderName: "Bot1"
+                attacker: bot2Snapshot,
+                defender: bot1Snapshot
             )
 
             // Calculate bot1 attacking bot2
-            let bot2Results = await combatCalculator.calculatePointStatus(
+            let bot2Results = await snapshotCombatCalculator.calculatePointStatus(
                 attackingPoints: bot1Attack,
                 defendingPoints: bot2Defense,
-                attacker: bot1,
-                defender: bot2,
-                attackerName: "Bot1",
-                defenderName: "Bot2"
+                attacker: bot1Snapshot,
+                defender: bot2Snapshot
             )
 
             // Calculate damage

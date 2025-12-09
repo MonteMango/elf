@@ -1,0 +1,10 @@
+{
+    "version": "1.0",
+    "monsters_drop": [
+        {
+            "id": "550E8400-E29B-41D4-A716-446655440101",
+            "title": "Small soul gem",
+            "imageName": "material_monster_soul_gem"
+        }
+    ]
+}

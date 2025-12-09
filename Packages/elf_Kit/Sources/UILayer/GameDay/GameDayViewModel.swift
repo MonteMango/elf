@@ -94,9 +94,9 @@ public final class GameDayViewModel {
 
     // MARK: - Actions (UI only, no logic yet)
 
-    /// Called when an action button is tapped
+    /// Called when an action button is tapped (non-navigation actions only)
     public func onActionTapped(_ action: ActionType) {
-        // UI only - logic will be implemented later
+        // Navigation is handled in View, this is for business logic only
         print("Action tapped: \(action.rawValue)")
     }
 

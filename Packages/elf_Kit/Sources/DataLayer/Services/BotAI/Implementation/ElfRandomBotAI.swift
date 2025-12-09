@@ -9,18 +9,18 @@ import Foundation
 
 public final class ElfRandomBotAI: BotAIService {
 
+    private let allBodyParts: [BodyPart] = [.head, .body, .leftHand, .rightHand, .legs]
+
     public init() {}
 
-    public func selectAttackPoints(for hero: ElfHero) -> Set<BodyPart> {
-        let allBodyParts: [BodyPart] = [.head, .body, .leftHand, .rightHand, .legs]
-        let maxPoints = hero.atackPointsAmount
-        return Set(allBodyParts.shuffled().prefix(maxPoints))
+    // MARK: - BotAIService
+
+    public func selectAttackPoints(count: Int) -> Set<BodyPart> {
+        Set(allBodyParts.shuffled().prefix(count))
     }
 
-    public func selectDefensePoints(for hero: ElfHero) -> Set<BodyPart> {
-        let allBodyParts: [BodyPart] = [.head, .body, .leftHand, .rightHand, .legs]
-        let maxPoints = hero.defensePointsAmount
-        return Set(allBodyParts.shuffled().prefix(maxPoints))
+    public func selectDefensePoints(count: Int) -> Set<BodyPart> {
+        Set(allBodyParts.shuffled().prefix(count))
     }
 }
 

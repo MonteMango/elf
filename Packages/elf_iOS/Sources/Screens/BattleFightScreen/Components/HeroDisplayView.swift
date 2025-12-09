@@ -15,7 +15,7 @@ struct HeroDisplayView: View {
 
     // MARK: - Properties
 
-    let hero: ElfHero
+    let snapshot: CombatantSnapshot
     let currentHP: Int
     let maxHP: Int
     let roundResults: [BodyPart: PointStatus]
@@ -37,12 +37,14 @@ struct HeroDisplayView: View {
                         height: BattleFightConstants.Sizing.heroImageSize
                     )
                     .overlay(
-                        Text("Hero")
+                        Text(snapshot.name)
                             .foregroundColor(.white.opacity(0.5))
                     )
 
-                // Layer 2: Items Grid Overlay
-                itemsGridOverlay
+                // Layer 2: Items Grid Overlay (show if snapshot has equipment)
+                if snapshot.hasEquipment {
+                    itemsGridOverlay
+                }
 
                 // Layer 3: Result Dots Overlay (top layer)
                 resultDotsOverlay
@@ -88,27 +90,27 @@ struct HeroDisplayView: View {
             ZStack {
                 // LEFT column (4 items)
                 VStack(spacing: spacing) {
-                    itemSlot(item: hero.helmetElfItem)
-                    itemSlot(item: hero.glovesElfItem)
-                    itemSlot(item: hero.shoesElfItem)
-                    itemSlot(item: hero.rightHandWeaponElfItem)
+                    itemSlot(item: snapshot.helmetItem)
+                    itemSlot(item: snapshot.glovesItem)
+                    itemSlot(item: snapshot.shoesItem)
+                    itemSlot(item: snapshot.rightWeaponItem)
                 }
                 .position(x: leftColumnX + itemSize / 2, y: height / 2)
 
                 // RIGHT column (4 items)
                 VStack(spacing: spacing) {
-                    itemSlot(item: hero.upperBodyElfItem ?? hero.robeElfItem)
-                    itemSlot(item: hero.bottomBodyElfItem)
+                    itemSlot(item: snapshot.upperBodyItem ?? snapshot.robeItem)
+                    itemSlot(item: snapshot.bottomBodyItem)
                     itemSlot(item: nil) // shirt placeholder
-                    itemSlot(item: hero.shieldElfItem ?? hero.leftHandWeaponElfItem)
+                    itemSlot(item: snapshot.shieldItem ?? snapshot.leftWeaponItem)
                 }
                 .position(x: rightColumnX + itemSize / 2, y: height / 2)
 
                 // CENTER BOTTOM: Jewelry row (3 items)
                 HStack(spacing: spacing) {
-                    jewelrySlot(item: hero.ringElfItem)
-                    jewelrySlot(item: hero.necklaceElfItem)
-                    jewelrySlot(item: hero.earringsElfItem)
+                    jewelrySlot(item: snapshot.ringItem)
+                    jewelrySlot(item: snapshot.necklaceItem)
+                    jewelrySlot(item: snapshot.earringsItem)
                 }
                 .position(x: width / 2, y: height - jewelrySize / 2 - spacing)
             }
@@ -270,120 +272,56 @@ struct HeroDisplayView: View {
 
 // MARK: - Preview
 
-// Mock Item classes for preview
-private final class MockDefenseItem: Item {
-    let id = UUID()
-    let title = "Mock Item"
-    let tier: Int16 = 1
-    let isUnique: Bool? = false
-    let strength: Int16? = 5
-    let agility: Int16? = 5
-    let power: Int16? = 5
-    let instinct: Int16? = 5
-    let hitPoints: Int16? = 10
-    let manaPoints: Int16? = 10
-
-    enum CodingKeys: CodingKey {}
-}
-
-private final class MockWeaponItem: Item {
-    let id = UUID()
-    let title = "Mock Weapon"
-    let tier: Int16 = 1
-    let isUnique: Bool? = false
-    let strength: Int16? = 10
-    let agility: Int16? = 5
-    let power: Int16? = 5
-    let instinct: Int16? = 5
-    let hitPoints: Int16? = 0
-    let manaPoints: Int16? = 0
-
-    enum CodingKeys: CodingKey {}
-}
-
+#if DEBUG
 struct HeroDisplayView_Previews: PreviewProvider {
     static var previews: some View {
-        // Preview 1: Hero without items
-        let mockHeroNoItems = ElfHero(
-            level: 10,
-            fightStyleAttributes: HeroAttributes(
-                hitPoints: 100,
-                manaPoints: 50,
-                agility: 10,
-                strength: 15,
-                power: 12,
-                instinct: 8
-            ),
-            randomLevelAttributes: HeroAttributes(
-                hitPoints: 50,
-                manaPoints: 25,
-                agility: 5,
-                strength: 7,
-                power: 6,
-                instinct: 4
-            ),
-            helmetElfItem: nil,
-            glovesElfItem: nil,
-            shoesElfItem: nil,
-            upperBodyElfItem: nil,
-            bottomBodyElfItem: nil,
-            robeElfItem: nil,
-            leftHandWeaponElfItem: nil,
-            rightHandWeaponElfItem: nil,
-            shieldElfItem: nil,
-            ringElfItem: nil,
-            necklaceElfItem: nil,
-            earringsElfItem: nil
+        // Preview 1: Monster snapshot (no items)
+        let monsterSnapshot = CombatantSnapshot(
+            sourceId: UUID(),
+            name: "Goblin",
+            imageName: "monster_goblin",
+            combatantType: .monster,
+            currentHP: 120,
+            maxHP: 150,
+            strength: 15,
+            agility: 10,
+            power: 12,
+            intuition: 8,
+            attackPoints: 1,
+            defensePoints: 2,
+            minimumAttack: 5,
+            maximumAttack: 10,
+            armorValues: [:]
         )
 
-        // Preview 2: Simulate hero with some equipped items
-        // Note: Creating real Item instances requires decoder, so we'll create a mock ElfDefenseItem
-        let mockDefenseItem = ElfDefenseItem(
-            id: UUID(),
-            item: MockDefenseItem()
-        )
-
-        let mockWeaponItem = ElfWeaponItem(
-            id: UUID(),
-            item: MockWeaponItem(),
-            enchantLevel: 0
-        )
-
-        let mockHeroWithItems = ElfHero(
-            level: 15,
-            fightStyleAttributes: HeroAttributes(
-                hitPoints: 150,
-                manaPoints: 60,
-                agility: 12,
-                strength: 18,
-                power: 14,
-                instinct: 10
-            ),
-            randomLevelAttributes: HeroAttributes(
-                hitPoints: 75,
-                manaPoints: 30,
-                agility: 6,
-                strength: 9,
-                power: 7,
-                instinct: 5
-            ),
-            helmetElfItem: mockDefenseItem,
-            glovesElfItem: mockDefenseItem,
-            shoesElfItem: mockDefenseItem,
-            upperBodyElfItem: mockDefenseItem,
-            bottomBodyElfItem: mockDefenseItem,
-            robeElfItem: nil,
-            leftHandWeaponElfItem: nil,
-            rightHandWeaponElfItem: mockWeaponItem,
-            shieldElfItem: nil,
-            ringElfItem: nil,
-            necklaceElfItem: nil,
-            earringsElfItem: nil
+        // Preview 2: Elf snapshot with equipment
+        let elfSnapshot = CombatantSnapshot(
+            sourceId: UUID(),
+            name: "Elara",
+            imageName: "elf_warrior",
+            combatantType: .elf,
+            currentHP: 180,
+            maxHP: 225,
+            strength: 18,
+            agility: 12,
+            power: 14,
+            intuition: 10,
+            attackPoints: 2,
+            defensePoints: 3,
+            minimumAttack: 8,
+            maximumAttack: 15,
+            armorValues: [
+                .head: 5,
+                .body: 10,
+                .leftHand: 3,
+                .rightHand: 3,
+                .legs: 7
+            ]
         )
 
         HStack(spacing: 30) {
             HeroDisplayView(
-                hero: mockHeroNoItems,
+                snapshot: monsterSnapshot,
                 currentHP: 120,
                 maxHP: 150,
                 roundResults: [
@@ -395,10 +333,10 @@ struct HeroDisplayView_Previews: PreviewProvider {
                 ]
             )
             .frame(width: 150)
-            .previewDisplayName("Hero Display - No Items")
+            .previewDisplayName("Monster Display")
 
             HeroDisplayView(
-                hero: mockHeroWithItems,
+                snapshot: elfSnapshot,
                 currentHP: 180,
                 maxHP: 225,
                 roundResults: [
@@ -410,10 +348,11 @@ struct HeroDisplayView_Previews: PreviewProvider {
                 ]
             )
             .frame(width: 150)
-            .previewDisplayName("Hero Display - With Items")
+            .previewDisplayName("Elf Display")
         }
         .padding()
         .background(Color.black)
         .previewLayout(.sizeThatFits)
     }
 }
+#endif

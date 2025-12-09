@@ -28,8 +28,8 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
 
     public func logRoundStart(
         roundNumber: Int,
-        player: ElfHero,
-        bot: ElfHero,
+        playerSnapshot: CombatantSnapshot,
+        botSnapshot: CombatantSnapshot,
         playerAttack: [BodyPart],
         playerDefense: [BodyPart],
         botAttack: [BodyPart],
@@ -42,14 +42,15 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         print("========================================")
 
         // Player stats
-        print("\n👤 PLAYER:")
-        logHeroStats(player)
+        print("\n👤 PLAYER (\(playerSnapshot.name)):")
+        logCombatantStats(playerSnapshot)
         print("  ⚔️ Attack: \(formatBodyParts(playerAttack))")
         print("  🛡️ Defense: \(formatBodyParts(playerDefense))")
 
         // Bot stats
-        print("\n🤖 BOT:")
-        logHeroStats(bot)
+        let botIcon = botSnapshot.combatantType == .monster ? "👾" : "🤖"
+        print("\n\(botIcon) BOT (\(botSnapshot.name)):")
+        logCombatantStats(botSnapshot)
         print("  ⚔️ Attack: \(formatBodyParts(botAttack))")
         print("  🛡️ Defense: \(formatBodyParts(botDefense))")
         print("")
@@ -248,28 +249,29 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
 
     // MARK: - Private Helpers
 
-    private func logHeroStats(_ hero: ElfHero) {
-        let fightAttrs = hero.fightStyleAttributes
-        let randomAttrs = hero.randomLevelAttributes
-
-        print("  💪 Strength: \(fightAttrs.strength + randomAttrs.strength)")
-        print("  ⚡ Agility: \(fightAttrs.agility + randomAttrs.agility)")
-        print("  🔥 Power: \(fightAttrs.power + randomAttrs.power)")
-        print("  🎯 Instinct: \(fightAttrs.instinct + randomAttrs.instinct)")
+    private func logCombatantStats(_ snapshot: CombatantSnapshot) {
+        print("  💪 Strength: \(snapshot.strength)")
+        print("  ⚡ Agility: \(snapshot.agility)")
+        print("  🔥 Power: \(snapshot.power)")
+        print("  🎯 Intuition: \(snapshot.intuition)")
+        print("  ❤️ HP: \(snapshot.currentHP)/\(snapshot.maxHP)")
 
         print("  🛡️ Armor:", terminator: "")
         for bodyPart in [BodyPart.head, .body, .leftHand, .rightHand, .legs] {
-            let armor = hero.armorValues[bodyPart] ?? 0
+            let armor = snapshot.armorValues[bodyPart] ?? 0
             print(" \(bodyPartName(bodyPart))=\(armor)", terminator: "")
         }
         print("")
 
-        if let leftWeapon = hero.leftHandWeaponElfItem {
+        if let leftWeapon = snapshot.leftWeaponItem {
             print("  ⚔️ Left: \(leftWeapon.item.title)")
         }
-        if let rightWeapon = hero.rightHandWeaponElfItem {
+        if let rightWeapon = snapshot.rightWeaponItem {
             print("  ⚔️ Right: \(rightWeapon.item.title)")
         }
+
+        print("  📊 Attack: \(snapshot.minimumAttack)-\(snapshot.maximumAttack)")
+        print("  🎯 Attack Points: \(snapshot.attackPoints), Defense Points: \(snapshot.defensePoints)")
     }
 
     private func formatBodyParts(_ bodyParts: [BodyPart]) -> String {

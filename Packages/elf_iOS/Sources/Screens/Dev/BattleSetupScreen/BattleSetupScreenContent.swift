@@ -78,7 +78,21 @@ internal struct BattleSetupScreenContent: View {
                     HStack {
                         Spacer()
                         HStack(spacing: 8) {
-                            // 100 Auto Battle button
+                            // Opponent picker
+                            Picker("Opponent", selection: $viewModel.selectedOpponent) {
+                                Text("Elf").tag(OpponentSelection.elf)
+                                ForEach(viewModel.allMonsters, id: \.id) { monster in
+                                    Text(monster.title).tag(OpponentSelection.monster(monster))
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .tint(.white)
+                            .frame(height: 44)
+                            .padding(.horizontal, 8)
+                            .background(Color.blue)
+                            .cornerRadius(8)
+
+                            // 1000x Auto Battle button
                             Button(action: {
                                 Task {
                                     guard let battle = await viewModel.startBattle() else {
@@ -96,7 +110,7 @@ internal struct BattleSetupScreenContent: View {
                                     .cornerRadius(8)
                             }
 
-                            // AutoBattle button
+                            // 1x AutoBattle button
                             Button(action: {
                                 Task {
                                     guard let battle = await viewModel.startBattle() else {

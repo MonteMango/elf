@@ -63,7 +63,7 @@ internal struct BattleFightScreenContent: View {
                             .foregroundColor(.white)
 
                         HeroDisplayView(
-                            hero: viewModel.playerHero,
+                            snapshot: viewModel.playerSnapshot,
                             currentHP: viewModel.playerCurrentHP,
                             maxHP: viewModel.playerMaxHP,
                             roundResults: viewModel.playerLastRoundResults
@@ -78,7 +78,7 @@ internal struct BattleFightScreenContent: View {
                     BodyPointSelector(
                         mode: .defense,
                         selectedPoints: viewModel.playerDefensePoints,
-                        maxPoints: viewModel.playerHero.defensePointsAmount,
+                        maxPoints: viewModel.playerSnapshot.defensePoints,
                         onToggle: { bodyPart in
                             viewModel.togglePlayerDefensePoint(bodyPart)
                         }
@@ -101,7 +101,7 @@ internal struct BattleFightScreenContent: View {
                     BodyPointSelector(
                         mode: .attack,
                         selectedPoints: viewModel.playerAttackPoints,
-                        maxPoints: viewModel.playerHero.atackPointsAmount,
+                        maxPoints: viewModel.playerSnapshot.attackPoints,
                         onToggle: { bodyPart in
                             viewModel.togglePlayerAttackPoint(bodyPart)
                         }
@@ -121,7 +121,7 @@ internal struct BattleFightScreenContent: View {
                             .foregroundColor(.white)
 
                         HeroDisplayView(
-                            hero: viewModel.botHero,
+                            snapshot: viewModel.botSnapshot,
                             currentHP: viewModel.botCurrentHP,
                             maxHP: viewModel.botMaxHP,
                             roundResults: viewModel.botLastRoundResults
@@ -154,12 +154,12 @@ internal struct BattleFightScreenContent: View {
                         .cornerRadius(8)
                 }
                 .disabled(
-                    viewModel.playerAttackPoints.count != viewModel.playerHero.atackPointsAmount ||
-                    viewModel.playerDefensePoints.count != viewModel.playerHero.defensePointsAmount
+                    viewModel.playerAttackPoints.count != viewModel.playerSnapshot.attackPoints ||
+                    viewModel.playerDefensePoints.count != viewModel.playerSnapshot.defensePoints
                 )
                 .opacity(
-                    (viewModel.playerAttackPoints.count == viewModel.playerHero.atackPointsAmount &&
-                     viewModel.playerDefensePoints.count == viewModel.playerHero.defensePointsAmount) ? 1.0 : 0.5
+                    (viewModel.playerAttackPoints.count == viewModel.playerSnapshot.attackPoints &&
+                     viewModel.playerDefensePoints.count == viewModel.playerSnapshot.defensePoints) ? 1.0 : 0.5
                 )
             }
             .safeAreaPadding(.bottom, 0)
@@ -186,73 +186,51 @@ internal struct BattleFightScreenContent: View {
 #if DEBUG
 struct BattleFightScreenContent_Previews: PreviewProvider {
     static var previews: some View {
-        let mockPlayerHero = ElfHero(
-            level: 10,
-            fightStyleAttributes: HeroAttributes(
-                hitPoints: 100,
-                manaPoints: 50,
-                agility: 10,
-                strength: 15,
-                power: 12,
-                instinct: 8
-            ),
-            randomLevelAttributes: HeroAttributes(
-                hitPoints: 50,
-                manaPoints: 25,
-                agility: 5,
-                strength: 7,
-                power: 6,
-                instinct: 4
-            ),
-            helmetElfItem: nil,
-            glovesElfItem: nil,
-            shoesElfItem: nil,
-            upperBodyElfItem: nil,
-            bottomBodyElfItem: nil,
-            robeElfItem: nil,
-            leftHandWeaponElfItem: nil,
-            rightHandWeaponElfItem: nil,
-            shieldElfItem: nil,
-            ringElfItem: nil,
-            necklaceElfItem: nil,
-            earringsElfItem: nil
+        let mockPlayerSnapshot = CombatantSnapshot(
+            sourceId: UUID(),
+            name: "Player Elf",
+            imageName: "elf_player",
+            combatantType: .elf,
+            currentHP: 150,
+            maxHP: 150,
+            strength: 22,
+            agility: 15,
+            power: 18,
+            intuition: 12,
+            attackPoints: 1,
+            defensePoints: 2,
+            minimumAttack: 8,
+            maximumAttack: 15,
+            armorValues: [
+                .head: 5,
+                .body: 10,
+                .leftHand: 3,
+                .rightHand: 3,
+                .legs: 7
+            ]
         )
 
-        let mockBotHero = ElfHero(
-            level: 10,
-            fightStyleAttributes: HeroAttributes(
-                hitPoints: 80,
-                manaPoints: 60,
-                agility: 12,
-                strength: 10,
-                power: 15,
-                instinct: 10
-            ),
-            randomLevelAttributes: HeroAttributes(
-                hitPoints: 40,
-                manaPoints: 30,
-                agility: 6,
-                strength: 5,
-                power: 7,
-                instinct: 5
-            ),
-            helmetElfItem: nil,
-            glovesElfItem: nil,
-            shoesElfItem: nil,
-            upperBodyElfItem: nil,
-            bottomBodyElfItem: nil,
-            robeElfItem: nil,
-            leftHandWeaponElfItem: nil,
-            rightHandWeaponElfItem: nil,
-            shieldElfItem: nil,
-            ringElfItem: nil,
-            necklaceElfItem: nil,
-            earringsElfItem: nil
+        let mockBotSnapshot = CombatantSnapshot(
+            sourceId: UUID(),
+            name: "Goblin",
+            imageName: "monster_goblin",
+            combatantType: .monster,
+            currentHP: 120,
+            maxHP: 120,
+            strength: 15,
+            agility: 18,
+            power: 20,
+            intuition: 15,
+            attackPoints: 1,
+            defensePoints: 2,
+            minimumAttack: 5,
+            maximumAttack: 12,
+            armorValues: [:]
         )
 
         let mockBattle = Battle(
-            leftTeam: [mockPlayerHero],
-            rightTeam: [mockBotHero]
+            leftTeam: [mockPlayerSnapshot],
+            rightTeam: [mockBotSnapshot]
         )
 
         let container = ElfAppDependencyContainer()

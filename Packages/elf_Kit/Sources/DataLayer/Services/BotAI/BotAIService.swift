@@ -8,9 +8,13 @@
 import Foundation
 
 public protocol BotAIService: Sendable {
-    /// Select attack points for bot based on available attack points amount
-    func selectAttackPoints(for hero: ElfHero) -> Set<BodyPart>
+    /// Select attack points based on count
+    /// - Parameter count: Number of attack points to select
+    /// - Returns: Set of body parts to attack
+    func selectAttackPoints(count: Int) -> Set<BodyPart>
 
-    /// Select defense points for bot based on available defense points amount
-    func selectDefensePoints(for hero: ElfHero) -> Set<BodyPart>
+    /// Select defense points based on count
+    /// - Parameter count: Number of defense points to select
+    /// - Returns: Set of body parts to defend
+    func selectDefensePoints(count: Int) -> Set<BodyPart>
 }

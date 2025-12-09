@@ -13,10 +13,8 @@ public final class BattleFightViewModel {
 
     // MARK: - Dependencies
 
-    private let attributeService: AttributeService
-    private let damageService: DamageService
     private let botAI: BotAIService
-    private let combatCalculator: CombatCalculator
+    private let combatRoundExecutor: CombatRoundExecutor
     private let battleLogger: BattleLogger
     private let debugLogger: DebugBattleLogger
 
@@ -31,9 +29,9 @@ public final class BattleFightViewModel {
         return battle.currentRound
     }
 
-    // MARK: - Player State (Left Team - First Hero)
+    // MARK: - Player State (Left Team - First Combatant)
 
-    public var playerHero: ElfHero {
+    public var playerSnapshot: CombatantSnapshot {
         return battle.leftTeam[0]
     }
 
@@ -43,9 +41,9 @@ public final class BattleFightViewModel {
     public var playerAttackPoints: Set<BodyPart> = []
     public var playerDefensePoints: Set<BodyPart> = []
 
-    // MARK: - Bot State (Right Team - First Hero)
+    // MARK: - Bot State (Right Team - First Combatant)
 
-    public var botHero: ElfHero {
+    public var botSnapshot: CombatantSnapshot {
         return battle.rightTeam[0]
     }
 
@@ -64,45 +62,31 @@ public final class BattleFightViewModel {
 
     public init(
         battle: Battle,
-        attributeService: AttributeService,
-        damageService: DamageService,
         botAI: BotAIService,
-        combatCalculator: CombatCalculator,
+        combatRoundExecutor: CombatRoundExecutor,
         battleLogger: BattleLogger,
         debugLogger: DebugBattleLogger
     ) {
         self.battle = battle
-        self.attributeService = attributeService
-        self.damageService = damageService
         self.botAI = botAI
-        self.combatCalculator = combatCalculator
+        self.combatRoundExecutor = combatRoundExecutor
         self.battleLogger = battleLogger
         self.debugLogger = debugLogger
 
-        // Initialize HP values from heroes using service
+        // Initialize HP values from snapshots
         let player = battle.leftTeam[0]
+        self.playerMaxHP = player.maxHP
+        self.playerCurrentHP = player.currentHP
+
         let bot = battle.rightTeam[0]
-
-        let playerMaxHPValue = attributeService.calculateTotalHP(from: [
-            player.fightStyleAttributes,
-            player.randomLevelAttributes
-        ])
-        let botMaxHPValue = attributeService.calculateTotalHP(from: [
-            bot.fightStyleAttributes,
-            bot.randomLevelAttributes
-        ])
-
-        self.playerMaxHP = playerMaxHPValue
-        self.playerCurrentHP = playerMaxHPValue
-
-        self.botMaxHP = botMaxHPValue
-        self.botCurrentHP = botMaxHPValue
+        self.botMaxHP = bot.maxHP
+        self.botCurrentHP = bot.currentHP
     }
 
     // MARK: - Player Actions
 
     public func togglePlayerAttackPoint(_ bodyPart: BodyPart) {
-        let maxAttackPoints = playerHero.atackPointsAmount
+        let maxAttackPoints = playerSnapshot.attackPoints
 
         if playerAttackPoints.contains(bodyPart) {
             // Deselect
@@ -116,7 +100,7 @@ public final class BattleFightViewModel {
     }
 
     public func togglePlayerDefensePoint(_ bodyPart: BodyPart) {
-        let maxDefensePoints = playerHero.defensePointsAmount
+        let maxDefensePoints = playerSnapshot.defensePoints
 
         if playerDefensePoints.contains(bodyPart) {
             // Deselect
@@ -133,77 +117,63 @@ public final class BattleFightViewModel {
 
     public func executeFightRound() async {
         // Validate player selections
-        guard playerAttackPoints.count == playerHero.atackPointsAmount else {
+        guard playerAttackPoints.count == playerSnapshot.attackPoints else {
             return
         }
-        guard playerDefensePoints.count == playerHero.defensePointsAmount else {
+        guard playerDefensePoints.count == playerSnapshot.defensePoints else {
             return
         }
 
         // Generate bot selections using BotAI service
-        botAttackPoints = botAI.selectAttackPoints(for: botHero)
-        botDefensePoints = botAI.selectDefensePoints(for: botHero)
+        botAttackPoints = botAI.selectAttackPoints(count: botSnapshot.attackPoints)
+        botDefensePoints = botAI.selectDefensePoints(count: botSnapshot.defensePoints)
 
         // Log round start
         debugLogger.logRoundStart(
             roundNumber: currentRoundNumber,
-            player: playerHero,
-            bot: botHero,
+            playerSnapshot: playerSnapshot,
+            botSnapshot: botSnapshot,
             playerAttack: Array(playerAttackPoints),
             playerDefense: Array(playerDefensePoints),
             botAttack: Array(botAttackPoints),
             botDefense: Array(botDefensePoints)
         )
 
-        // Calculate round results using CombatCalculator
-        let playerResults = await combatCalculator.calculatePointStatus(
-            attackingPoints: botAttackPoints,
-            defendingPoints: playerDefensePoints,
-            attacker: botHero,
-            defender: playerHero,
-            attackerName: "Bot",
-            defenderName: "Player"
-        )
-
-        let botResults = await combatCalculator.calculatePointStatus(
-            attackingPoints: playerAttackPoints,
-            defendingPoints: botDefensePoints,
-            attacker: playerHero,
-            defender: botHero,
-            attackerName: "Player",
-            defenderName: "Bot"
+        // Execute combat round using CombatRoundExecutor
+        // Snapshots are already in Battle, no need to create them
+        let roundResult = await combatRoundExecutor.executeRound(
+            playerSnapshot: playerSnapshot,
+            botSnapshot: botSnapshot,
+            playerAttackPoints: playerAttackPoints,
+            playerDefensePoints: playerDefensePoints,
+            botAttackPoints: botAttackPoints,
+            botDefensePoints: botDefensePoints
         )
 
         // Store results
-        playerLastRoundResults = playerResults
-        botLastRoundResults = botResults
-
-        // Calculate damage using DamageService
-        let playerDamage = damageService.calculateTotalDamage(from: playerResults)
-        let botDamage = damageService.calculateTotalDamage(from: botResults)
+        playerLastRoundResults = roundResult.playerResults
+        botLastRoundResults = roundResult.botResults
 
         // Store old HP values for logging
         let playerOldHP = playerCurrentHP
         let botOldHP = botCurrentHP
 
         // Update HP
-        playerCurrentHP = max(0, playerCurrentHP - playerDamage)
-        botCurrentHP = max(0, botCurrentHP - botDamage)
+        playerCurrentHP = max(0, playerCurrentHP - roundResult.playerDamageTaken)
+        botCurrentHP = max(0, botCurrentHP - roundResult.botDamageTaken)
 
         // Create round log using BattleLogger
         let roundLog = battleLogger.createRoundLog(
             roundNumber: currentRoundNumber,
-            playerHero: playerHero,
-            botHero: botHero,
+            playerSnapshot: playerSnapshot,
+            botSnapshot: botSnapshot,
             playerActions: (attack: playerAttackPoints, defense: playerDefensePoints),
             botActions: (attack: botAttackPoints, defense: botDefensePoints),
-            playerResults: playerResults,
-            botResults: botResults,
+            playerResults: roundResult.playerResults,
+            botResults: roundResult.botResults,
             playerOldHP: playerOldHP,
             botOldHP: botOldHP
         )
-
-        // Add to battle log
         battle.roundLog.append(roundLog)
 
         // Log round end
@@ -213,8 +183,8 @@ public final class BattleFightViewModel {
             playerNewHP: playerCurrentHP,
             botOldHP: botOldHP,
             botNewHP: botCurrentHP,
-            playerResults: playerResults,
-            botResults: botResults
+            playerResults: roundResult.playerResults,
+            botResults: roundResult.botResults
         )
 
         // Clear selections for next round

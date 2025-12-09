@@ -18,10 +18,7 @@ public final class CharacterCreationViewModel {
     private let characterBuilder: CharacterBuilder
     private let fightStyleDescriptionService: FightStyleDescriptionService
     private let nameSuggestionService: CharacterNameSuggestionService
-    private let houseService: HouseService
-    private let elfInfoFactory: ElfInfoFactory
-    private let gameRepository: GameRepository?
-    private let calendarService: CalendarService
+    private let gameInitializationService: GameInitializationService
 
     // MARK: - Stage State
 
@@ -118,20 +115,14 @@ public final class CharacterCreationViewModel {
         characterBuilder: CharacterBuilder,
         fightStyleDescriptionService: FightStyleDescriptionService,
         nameSuggestionService: CharacterNameSuggestionService,
-        houseService: HouseService,
-        elfInfoFactory: ElfInfoFactory,
-        gameRepository: GameRepository? = nil,
-        calendarService: CalendarService
+        gameInitializationService: GameInitializationService
     ) {
         self.attributeService = attributeService
         self.nameValidator = nameValidator
         self.characterBuilder = characterBuilder
         self.fightStyleDescriptionService = fightStyleDescriptionService
         self.nameSuggestionService = nameSuggestionService
-        self.houseService = houseService
-        self.elfInfoFactory = elfInfoFactory
-        self.gameRepository = gameRepository
-        self.calendarService = calendarService
+        self.gameInitializationService = gameInitializationService
 
         // Set default fight style in builder (didSet doesn't trigger on initial value)
         if let style = selectedFightStyle {
@@ -217,43 +208,21 @@ public final class CharacterCreationViewModel {
         // Generate random attributes
         randomLevelAttributes = await attributeService.getRandomLevelAttributes()
 
-        // Create character and game with houses
-        if let character = createCharacter() {
-            let playerElfInfo = elfInfoFactory.create(from: character)
-            let (houses, houseIndex, memberIndex) = await houseService.createAllHouses(
-                playerElfInfo: playerElfInfo
+        // Create character and game using GameInitializationService
+        guard let character = createCharacter(),
+              let fightAttrs = fightStyleAttributes,
+              let randomAttrs = randomLevelAttributes else { return }
+
+        do {
+            createdGame = try await gameInitializationService.createNewGame(
+                playerCharacter: character,
+                fightStyleAttributes: fightAttrs,
+                randomLevelAttributes: randomAttrs
             )
-
-            // Generate full calendar using CalendarService
-            let calendar = calendarService.generateFullCalendar()
-            let firstDay = calendar.first ?? GameDay(dayNumber: 1, dayType: .normal)
-
-            let gameState = GameState(
-                currentDay: firstDay,
-                currentActionPoints: 100,
-                maxActionPoints: 100,
-                calendar: calendar
-            )
-
-            let game = Game(
-                houses: houses,
-                gameState: gameState,
-                playerHouseIndex: houseIndex,
-                playerMemberIndex: memberIndex
-            )
-            createdGame = game
-
-            // Auto-save new game
-            if let repository = gameRepository {
-                do {
-                    try await repository.save(game, slotId: SaveSlotInfo.defaultSlotId, playTime: 0)
-                } catch {
-                    print("Failed to save new game: \(error)")
-                }
-            }
+            isCharacterReady = true
+        } catch {
+            print("Failed to create game: \(error)")
         }
-
-        isCharacterReady = true
     }
 
     /// Create and return the final character using builder
