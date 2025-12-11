@@ -31,6 +31,21 @@ public enum ElfColors {
     public static let headerBackground = Color(red: 0.7, green: 0.85, blue: 0.95)
     public static let disabledBackground = Color.gray
 
+    // MARK: - Stats Colors
+
+    public static let hp = Color.green
+    public static let mana = Color.blue
+    public static let reputation = Color.orange
+
+    // MARK: - Attribute Colors
+
+    public enum Attributes {
+        public static let strength = Color(red: 0.545, green: 0.361, blue: 0.965)   // #8B5CF6 Purple
+        public static let agility = Color(red: 0.078, green: 0.722, blue: 0.651)    // #14B8A6 Teal
+        public static let power = Color(red: 0.863, green: 0.149, blue: 0.149)      // #DC2626 Crimson
+        public static let instinct = Color(red: 0.388, green: 0.400, blue: 0.945)   // #6366F1 Indigo
+    }
+
     // MARK: - Calendar Day Types
 
     public enum Calendar {

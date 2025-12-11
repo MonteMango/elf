@@ -17,4 +17,8 @@ public enum ElfSizing {
     public static let buttonHeight: CGFloat = 50
     public static let buttonCornerRadius: CGFloat = 8
     public static let closeButtonSize: CGFloat = 44
+
+    // MARK: - Attributes
+
+    public static let attributeIconSize: CGFloat = 20
 }

@@ -35,7 +35,7 @@ enum BattleFightConstants {
 
         // Background colors
         static let panelBackground = Color(red: 0.1, green: 0.1, blue: 0.15).opacity(0.9)
-        static let separator = Color.white.opacity(0.5)
+        static let separator = Color.black.opacity(0.5)
     }
 
     // MARK: - Sizing
@@ -77,6 +77,11 @@ enum BattleFightConstants {
 
         // Separator
         static let separatorWidth: CGFloat = 2
+
+        // Team combatant images (duel pairs display)
+        static let teamImageSize: CGFloat = 20
+        static let teamImageActiveSize: CGFloat = 30
+        static let teamImageSpacing: CGFloat = 8
     }
 
     // MARK: - Fonts

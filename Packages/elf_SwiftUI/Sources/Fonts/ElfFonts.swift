@@ -23,4 +23,8 @@ public enum ElfFonts {
     // MARK: - Buttons
 
     public static let buttonTitle = Font.title3.weight(.semibold)
+
+    // MARK: - Attributes
+
+    public static let attributeValue = Font.system(size: 16, weight: .bold)
 }

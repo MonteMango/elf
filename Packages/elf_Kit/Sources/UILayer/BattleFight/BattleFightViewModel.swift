@@ -17,17 +17,24 @@ public final class BattleFightViewModel {
     private let combatRoundExecutor: CombatRoundExecutor
     private let battleLogger: BattleLogger
     private let debugLogger: DebugBattleLogger
+    private let duelPairingService: DuelPairingService
 
     // MARK: - State
 
-    public var battle: Battle
+    public let battle: Battle
     public var battleEnded: Bool = false
 
     // MARK: - Round State
 
+    /// Round logs accumulated during the battle
+    public private(set) var roundLog: [ManualBattleRoundLog] = []
+
     public var currentRoundNumber: Int {
-        return battle.currentRound
+        return roundLog.count + 1
     }
+
+    /// Current battle round with duel pairs (owned by ViewModel, not Battle)
+    public private(set) var currentBattleRound: BattleRound?
 
     // MARK: - Player State (Left Team - First Combatant)
 
@@ -65,13 +72,15 @@ public final class BattleFightViewModel {
         botAI: BotAIService,
         combatRoundExecutor: CombatRoundExecutor,
         battleLogger: BattleLogger,
-        debugLogger: DebugBattleLogger
+        debugLogger: DebugBattleLogger,
+        duelPairingService: DuelPairingService
     ) {
         self.battle = battle
         self.botAI = botAI
         self.combatRoundExecutor = combatRoundExecutor
         self.battleLogger = battleLogger
         self.debugLogger = debugLogger
+        self.duelPairingService = duelPairingService
 
         // Initialize HP values from snapshots
         let player = battle.leftTeam[0]
@@ -81,6 +90,9 @@ public final class BattleFightViewModel {
         let bot = battle.rightTeam[0]
         self.botMaxHP = bot.maxHP
         self.botCurrentHP = bot.currentHP
+
+        // Generate initial round pairings
+        generateNewRoundPairings()
     }
 
     // MARK: - Player Actions
@@ -111,6 +123,11 @@ public final class BattleFightViewModel {
                 playerDefensePoints.insert(bodyPart)
             }
         }
+    }
+
+    public func autoFillPoints() {
+        playerAttackPoints = botAI.selectAttackPoints(count: playerSnapshot.attackPoints)
+        playerDefensePoints = botAI.selectDefensePoints(count: playerSnapshot.defensePoints)
     }
 
     // MARK: - Round Execution
@@ -174,7 +191,7 @@ public final class BattleFightViewModel {
             playerOldHP: playerOldHP,
             botOldHP: botOldHP
         )
-        battle.roundLog.append(roundLog)
+        self.roundLog.append(roundLog)
 
         // Log round end
         debugLogger.logRoundEnd(
@@ -218,5 +235,34 @@ public final class BattleFightViewModel {
     public func finishBattle() {
         // When battle logic is implemented, call this to trigger navigation
         battleEnded = true
+    }
+
+    // MARK: - Duel Pairs
+
+    /// Generates new random pairings for the current round
+    public func generateNewRoundPairings() {
+        currentBattleRound = duelPairingService.createRandomPairs(
+            leftTeam: battle.leftTeam,
+            rightTeam: battle.rightTeam,
+            roundNumber: currentRoundNumber
+        )
+    }
+
+    /// Returns a combatant snapshot by ID from either team
+    public func combatantSnapshot(for id: UUID) -> CombatantSnapshot? {
+        if let snapshot = battle.leftTeam.first(where: { $0.id == id }) {
+            return snapshot
+        }
+        return battle.rightTeam.first(where: { $0.id == id })
+    }
+
+    /// Returns the left team combatants
+    public var leftTeam: [CombatantSnapshot] {
+        battle.leftTeam
+    }
+
+    /// Returns the right team combatants
+    public var rightTeam: [CombatantSnapshot] {
+        battle.rightTeam
     }
 }

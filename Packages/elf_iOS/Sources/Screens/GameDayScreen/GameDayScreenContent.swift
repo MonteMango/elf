@@ -59,7 +59,12 @@ internal struct GameDayScreenContent: View {
             )
 
             // Attributes
-            AttributesCompactView(attributes: viewModel.totalAttributes)
+            elf_SwiftUI.AttributesCompactView(
+                strength: Int(viewModel.totalAttributes.strength),
+                agility: Int(viewModel.totalAttributes.agility),
+                power: Int(viewModel.totalAttributes.power),
+                instinct: Int(viewModel.totalAttributes.instinct)
+            )
         }
     }
 
@@ -118,7 +123,7 @@ internal struct GameDayScreenContent: View {
 
                 Spacer()
 
-                CloseButton {
+                elf_SwiftUI.CloseButton {
                     router.popToRoot()
                 }
             }

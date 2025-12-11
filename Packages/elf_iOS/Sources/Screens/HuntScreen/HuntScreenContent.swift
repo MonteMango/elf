@@ -94,30 +94,20 @@ struct HuntScreenContent: View {
 
     @ViewBuilder
     private var huntButton: some View {
-        HStack(spacing: 12) {
-            Button {
-                viewModel.onHuntTapped()
-            } label: {
-                Text("Hunt")
-                    .font(HuntConstants.Fonts.huntButton)
-                    .foregroundColor(HuntConstants.Colors.huntButtonText)
-                    .frame(
-                        width: HuntConstants.Sizing.huntButtonWidth,
-                        height: HuntConstants.Sizing.huntButtonHeight
-                    )
-                    .background(
-                        viewModel.canHunt
-                            ? HuntConstants.Colors.huntButtonBackground
-                            : Color.gray
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: HuntConstants.Sizing.huntButtonCornerRadius))
+        Button("Hunt") {
+            Task {
+                if let battle = await viewModel.startHunt() {
+                    router.navigationPath.append(AppRoute.battleFight(battle))
+                }
             }
-            .disabled(!viewModel.canHunt)
-
-            // Cost label
+        }
+        .buttonStyle(.elfPrimary(isEnabled: viewModel.canHunt))
+        .disabled(!viewModel.canHunt)
+        .overlay(alignment: .bottomTrailing) {
             Text("\(viewModel.huntCost) pt")
-                .font(HuntConstants.Fonts.huntCost)
-                .foregroundColor(HuntConstants.Colors.huntCostText)
+                .font(.footnote)
+                .foregroundColor(.white.opacity(0.7))
+                .padding(4)
         }
     }
 }
@@ -129,7 +119,8 @@ struct HuntScreenContent: View {
         viewModel: HuntViewModel(
             gameService: PreviewMockData.createMockGameService(),
             monsterRepository: ElfMonsterRepository(),
-            materialRepository: ElfMaterialRepository()
+            materialRepository: ElfMaterialRepository(),
+            snapshotBuilder: PreviewMockData.createMockSnapshotBuilder()
         )
     )
     .environment(router)

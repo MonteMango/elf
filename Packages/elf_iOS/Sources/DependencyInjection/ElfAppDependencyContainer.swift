@@ -36,6 +36,7 @@ public final class ElfAppDependencyContainer {
     public let statisticsParser: BattleStatisticsParser
     public let battleSimulationService: BattleSimulationService
     public let combatRoundExecutor: CombatRoundExecutor
+    public let duelPairingService: DuelPairingService
     public let monsterRepository: MonsterRepository
     public let materialRepository: MaterialRepository
 
@@ -125,6 +126,7 @@ public final class ElfAppDependencyContainer {
             snapshotCombatCalculator: self.snapshotCombatCalculator,
             damageService: self.damageService
         )
+        self.duelPairingService = RandomDuelPairingService()
         self.monsterRepository = ElfMonsterRepository()
         self.materialRepository = ElfMaterialRepository()
 
@@ -159,7 +161,8 @@ public final class ElfAppDependencyContainer {
             botAI: self.botAI,
             combatRoundExecutor: self.combatRoundExecutor,
             battleLogger: self.battleLogger,
-            debugLogger: self.debugBattleLogger
+            debugLogger: self.debugBattleLogger,
+            duelPairingService: self.duelPairingService
         )
     }
 
@@ -241,7 +244,8 @@ public final class ElfAppDependencyContainer {
         return HuntViewModel(
             gameService: gameService,
             monsterRepository: self.monsterRepository,
-            materialRepository: self.materialRepository
+            materialRepository: self.materialRepository,
+            snapshotBuilder: self.snapshotBuilder
         )
     }
 

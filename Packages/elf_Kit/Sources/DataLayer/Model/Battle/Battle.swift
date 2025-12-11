@@ -16,14 +16,6 @@ public struct Battle: Sendable, Identifiable {
     /// Right team combatants (opponent team). Uses CombatantSnapshot for unified elf/monster handling.
     public let rightTeam: [CombatantSnapshot]
 
-    public var currentRound: Int {
-        // based on roundLog.count + 1
-        return roundLog.count + 1
-    }
-
-    // history of rounds
-    public var roundLog: [ManualBattleRoundLog] = []
-
     public init(
         id: UUID = UUID(),
         leftTeam: [CombatantSnapshot],

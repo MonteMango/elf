@@ -16,6 +16,7 @@ public final class HuntViewModel {
     private let gameService: GameService
     private let monsterRepository: MonsterRepository
     private let materialRepository: MaterialRepository
+    private let snapshotBuilder: CombatantSnapshotBuilder
 
     // MARK: - Constants
 
@@ -64,24 +65,53 @@ public final class HuntViewModel {
     public init(
         gameService: GameService,
         monsterRepository: MonsterRepository,
-        materialRepository: MaterialRepository
+        materialRepository: MaterialRepository,
+        snapshotBuilder: CombatantSnapshotBuilder
     ) {
         self.gameService = gameService
         self.monsterRepository = monsterRepository
         self.materialRepository = materialRepository
+        self.snapshotBuilder = snapshotBuilder
     }
 
     // MARK: - Actions
 
-    /// Called when Hunt button is tapped
-    /// For now, this is UI-only - actual hunting logic will be implemented later
-    public func onHuntTapped() {
-        guard canHunt else { return }
-        // TODO: Implement hunting logic
-        // 1. Spend action points
-        // 2. Select random monster
-        // 3. Start battle or calculate result
-        print("Hunt tapped! Available monsters: \(availableMonsters.count)")
+    /// Starts a hunt: spends action points, selects random monster, returns Battle
+    /// - Returns: Battle instance or nil if hunt cannot start
+    public func startHunt() async -> Battle? {
+        guard canHunt else { return nil }
+
+        // 1. Select random monster from available monsters (before spending AP)
+        guard let monster = availableMonsters.randomElement() else {
+            return nil
+        }
+
+        // 2. Spend action points (only after confirming monster exists)
+        gameService.spendActionPoints(huntCost)
+
+        // 3. Build player snapshot from ElfInfo
+        let player = gameService.game.player
+        let selectedItems: [HeroItemType: UUID?] = player.equippedItems.mapValues { $0 }
+
+        guard let playerSnapshot = await snapshotBuilder.buildSnapshot(
+            name: player.name,
+            imageName: player.imageName,
+            level: player.level,
+            fightStyleAttributes: player.fightStyleAttributes,
+            randomLevelAttributes: player.randomLevelAttributes,
+            selectedItems: selectedItems
+        ) else {
+            return nil
+        }
+
+        // 4. Build monster snapshot
+        let monsterSnapshot = snapshotBuilder.buildSnapshot(from: monster)
+
+        // 5. Create and return Battle
+        return Battle(
+            leftTeam: [playerSnapshot],
+            rightTeam: [monsterSnapshot]
+        )
     }
 
     // MARK: - Private Helpers

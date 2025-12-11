@@ -38,41 +38,43 @@ struct BodyPointSelector: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 5) {
+        let checkboxSize = BattleFightConstants.Sizing.checkboxSize
+        let spacing = BattleFightConstants.Sizing.checkboxSpacing
+        let selectorWidth = checkboxSize * 3 + spacing * 2
+        let selectorHeight = checkboxSize * 3 + spacing * 2
+
+        VStack(spacing: 20) {
             // Label
             Text(mode.label)
                 .font(BattleFightConstants.Fonts.sectionLabel)
-                .foregroundColor(.white)
+                .foregroundColor(.black)
 
-            // Checkboxes
-            GeometryReader { geometry in
-                let checkboxSize = BattleFightConstants.Sizing.checkboxSize
-                let spacing = BattleFightConstants.Sizing.checkboxSpacing
-                let centerX = geometry.size.width / 2
-                let centerY = geometry.size.height / 2
+            // Checkboxes with calculated frame
+            ZStack {
+                let centerX = selectorWidth / 2
+                let centerY = selectorHeight / 2
 
-                ZStack {
-                    // Center - Body
-                    checkbox(for: .body)
-                        .position(x: centerX, y: centerY)
+                // Center - Body
+                checkbox(for: .body)
+                    .position(x: centerX, y: centerY)
 
-                    // Top - Head
-                    checkbox(for: .head)
-                        .position(x: centerX, y: centerY - checkboxSize - spacing)
+                // Top - Head
+                checkbox(for: .head)
+                    .position(x: centerX, y: centerY - checkboxSize - spacing)
 
-                    // Bottom - Legs
-                    checkbox(for: .legs)
-                        .position(x: centerX, y: centerY + checkboxSize + spacing)
+                // Bottom - Legs
+                checkbox(for: .legs)
+                    .position(x: centerX, y: centerY + checkboxSize + spacing)
 
-                    // Left - Left Hand
-                    checkbox(for: .leftHand)
-                        .position(x: centerX - checkboxSize - spacing, y: centerY)
+                // Left - Left Hand
+                checkbox(for: .leftHand)
+                    .position(x: centerX - checkboxSize - spacing, y: centerY)
 
-                    // Right - Right Hand
-                    checkbox(for: .rightHand)
-                        .position(x: centerX + checkboxSize + spacing, y: centerY)
-                }
+                // Right - Right Hand
+                checkbox(for: .rightHand)
+                    .position(x: centerX + checkboxSize + spacing, y: centerY)
             }
+            .frame(width: selectorWidth, height: selectorHeight)
         }
     }
 
@@ -139,28 +141,13 @@ struct BodyPointSelector: View {
 
 struct BodyPointSelector_Previews: PreviewProvider {
     static var previews: some View {
-        HStack(spacing: 30) {
-            // Attack mode
-            BodyPointSelector(
-                mode: .attack,
-                selectedPoints: [.head, .body],
-                maxPoints: 2,
-                onToggle: { _ in }
-            )
-            .frame(width: 200, height: 200)
-
-            // Defense mode
-            BodyPointSelector(
-                mode: .defense,
-                selectedPoints: [.leftHand, .rightHand, .legs],
-                maxPoints: 3,
-                onToggle: { _ in }
-            )
-            .frame(width: 200, height: 200)
-        }
+        BodyPointSelector(
+            mode: .attack,
+            selectedPoints: [.head, .body],
+            maxPoints: 2,
+            onToggle: { _ in }
+        )
         .padding()
-        .background(Color.black)
-        .previewLayout(.sizeThatFits)
-        .previewDisplayName("Body Point Selector")
+        .background { Color.yellow }
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 import UIKit
 
@@ -41,14 +42,14 @@ struct HeroSection: View {
                 HStack(spacing: 0) {
                     // HP and MP stats (top left)
                     HStack(spacing: 4) {
-                        statsLabel(icon: "heart.fill", value: currentHP, color: GameDayConstants.Colors.hpBarFill)
-                        statsLabel(icon: "sparkles", value: currentMP, color: GameDayConstants.Colors.mpBarFill)
+                        IconValueLabel(icon: "heart.fill", value: currentHP, color: ElfColors.hp)
+                        IconValueLabel(icon: "sparkles", value: currentMP, color: ElfColors.mana)
                     }
 
                     Spacer()
 
                     // Reputation stats (top right)
-                    statsLabel(icon: "crown.fill", value: reputation, color: .orange)
+                    IconValueLabel(icon: "crown.fill", value: reputation, color: ElfColors.reputation)
                 }
 
                 HStack(alignment: .bottom, spacing: 0) {
@@ -104,18 +105,6 @@ struct HeroSection: View {
     }
 
     // MARK: - Subviews
-
-    @ViewBuilder
-    private func statsLabel(icon: String, value: Int, color: Color) -> some View {
-        HStack(spacing: 2) {
-            Image(systemName: icon)
-                .font(.system(size: 10))
-                .foregroundColor(color)
-            Text("\(value)")
-                .font(.system(size: 10, weight: .bold))
-                .foregroundColor(color)
-        }
-    }
 
     @ViewBuilder
     private func equipmentSlot(for itemType: HeroItemType) -> some View {

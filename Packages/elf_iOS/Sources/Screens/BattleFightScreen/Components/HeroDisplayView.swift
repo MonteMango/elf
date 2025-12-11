@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 import UIKit
 
@@ -29,17 +30,8 @@ struct HeroDisplayView: View {
 
             // Hero Image with overlays
             ZStack {
-                // Layer 1: Hero image placeholder
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(
-                        width: BattleFightConstants.Sizing.heroImageSize,
-                        height: BattleFightConstants.Sizing.heroImageSize
-                    )
-                    .overlay(
-                        Text(snapshot.name)
-                            .foregroundColor(.white.opacity(0.5))
-                    )
+                // Layer 1: Combatant image
+                combatantImage
 
                 // Layer 2: Items Grid Overlay (show if snapshot has equipment)
                 if snapshot.hasEquipment {
@@ -49,29 +41,59 @@ struct HeroDisplayView: View {
                 // Layer 3: Result Dots Overlay (top layer)
                 resultDotsOverlay
             }
+
+            // Attributes
+            elf_SwiftUI.AttributesCompactView(
+                strength: snapshot.strength,
+                agility: snapshot.agility,
+                power: snapshot.power,
+                instinct: snapshot.intuition
+            )
         }
     }
 
     // MARK: - Private Views
 
     private var hpBar: some View {
-        ZStack(alignment: .leading) {
-            // Background
-            RoundedRectangle(cornerRadius: BattleFightConstants.Sizing.hpBarCornerRadius)
-                .fill(BattleFightConstants.Colors.hpBarBackground)
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                // Background
+                RoundedRectangle(cornerRadius: BattleFightConstants.Sizing.hpBarCornerRadius)
+                    .fill(BattleFightConstants.Colors.hpBarBackground)
 
-            // Fill
-            RoundedRectangle(cornerRadius: BattleFightConstants.Sizing.hpBarCornerRadius)
-                .fill(BattleFightConstants.Colors.hpBarFill)
-                .frame(width: BattleFightConstants.Sizing.hpBarWidth * hpPercentage)
+                // Fill
+                RoundedRectangle(cornerRadius: BattleFightConstants.Sizing.hpBarCornerRadius)
+                    .fill(BattleFightConstants.Colors.hpBarFill)
+                    .frame(width: geometry.size.width * hpPercentage)
 
-            // Text
-            Text("\(currentHP)/\(maxHP)")
-                .font(BattleFightConstants.Fonts.hpText)
-                .foregroundColor(BattleFightConstants.Colors.hpBarText)
-                .frame(width: BattleFightConstants.Sizing.hpBarWidth, alignment: .center)
+                // Text
+                Text("\(currentHP)/\(maxHP)")
+                    .font(BattleFightConstants.Fonts.hpText)
+                    .foregroundColor(BattleFightConstants.Colors.hpBarText)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
         }
-        .frame(width: BattleFightConstants.Sizing.hpBarWidth, height: BattleFightConstants.Sizing.hpBarHeight)
+        .frame(maxWidth: .infinity)
+        .frame(height: BattleFightConstants.Sizing.hpBarHeight)
+    }
+
+    @ViewBuilder
+    private var combatantImage: some View {
+        if UIImage(named: snapshot.imageName) != nil {
+            Image(snapshot.imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: .infinity)
+        } else {
+            // Fallback placeholder
+            Rectangle()
+                .fill(Color.gray.opacity(0.3))
+                .frame(maxWidth: .infinity)
+                .overlay(
+                    Text(snapshot.name)
+                        .foregroundColor(.white.opacity(0.5))
+                )
+        }
     }
 
     @ViewBuilder
@@ -115,17 +137,13 @@ struct HeroDisplayView: View {
                 .position(x: width / 2, y: height - jewelrySize / 2 - spacing)
             }
         }
-        .frame(
-            width: BattleFightConstants.Sizing.heroImageSize,
-            height: BattleFightConstants.Sizing.heroImageSize
-        )
     }
 
     @ViewBuilder
     private func itemSlot(item: (any ElfItem)?) -> some View {
         ZStack {
             // Always show placeholder
-            RoundedRectangle(cornerRadius: 4)
+            RoundedRectangle(cornerRadius: 0)
                 .fill(Color.gray.opacity(0.3))
                 .frame(
                     width: BattleFightConstants.Sizing.battleItemSize,
@@ -143,7 +161,7 @@ struct HeroDisplayView: View {
     private func jewelrySlot(item: (any ElfItem)?) -> some View {
         ZStack {
             // Always show placeholder
-            RoundedRectangle(cornerRadius: 4)
+            RoundedRectangle(cornerRadius: 0)
                 .fill(Color.gray.opacity(0.3))
                 .frame(
                     width: BattleFightConstants.Sizing.battleJewelrySize,
@@ -214,10 +232,6 @@ struct HeroDisplayView: View {
                 }
             }
         }
-        .frame(
-            width: BattleFightConstants.Sizing.heroImageSize,
-            height: BattleFightConstants.Sizing.heroImageSize
-        )
     }
 
     @ViewBuilder
@@ -351,7 +365,7 @@ struct HeroDisplayView_Previews: PreviewProvider {
             .previewDisplayName("Elf Display")
         }
         .padding()
-        .background(Color.black)
+        .background(Color.white)
         .previewLayout(.sizeThatFits)
     }
 }

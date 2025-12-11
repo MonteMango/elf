@@ -511,7 +511,7 @@ public final class BattleSetupViewModel {
         // Build CombatantSnapshot for player
         guard let playerSnapshot = await snapshotBuilder.buildSnapshot(
             name: "Player",
-            imageName: "",
+            imageName: "Yuuki Asuna",
             level: playerState.level,
             fightStyleAttributes: playerFightStyleAttrs,
             randomLevelAttributes: playerLevelAttrs,

@@ -127,6 +127,15 @@ enum PreviewMockData {
     static func createMockGameDayViewModel() -> GameDayViewModel {
         GameDayViewModel(gameService: createMockGameService())
     }
+
+    static func createMockSnapshotBuilder() -> CombatantSnapshotBuilder {
+        let itemsRepository = ElfItemsRepository()
+        let armorService = ElfArmorService(itemsRepository: itemsRepository)
+        return DefaultCombatantSnapshotBuilder(
+            itemsRepository: itemsRepository,
+            armorService: armorService
+        )
+    }
 }
 
 #endif

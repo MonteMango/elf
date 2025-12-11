@@ -6,163 +6,179 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 internal struct BattleFightScreenContent: View {
     @Environment(AppRouter.self) private var router
     @State private var viewModel: BattleFightViewModel
     @State private var showWinnerAlert = false
+    @State private var showLeaveConfirmation = false
 
     internal init(viewModel: BattleFightViewModel) {
         self._viewModel = State(initialValue: viewModel)
     }
 
+    // MARK: - Button State
+
+    private var hasNoSelection: Bool {
+        viewModel.playerAttackPoints.isEmpty && viewModel.playerDefensePoints.isEmpty
+    }
+
+    private var hasFullSelection: Bool {
+        viewModel.playerAttackPoints.count == viewModel.playerSnapshot.attackPoints &&
+        viewModel.playerDefensePoints.count == viewModel.playerSnapshot.defensePoints
+    }
+
+    // MARK: - Body
+
     internal var body: some View {
         ZStack {
             // Background
-            Color.black.ignoresSafeArea()
+            Color.white.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Top bar: Round number (center) and Close button (right)
-                ZStack {
-                    // Round number (centered)
+                // Top bar: Player title, Round number with Close button, Bot title
+                HStack(alignment: .firstTextBaseline, spacing: 0) {
+                    Text("[\(viewModel.playerSnapshot.level)] \(viewModel.playerSnapshot.name)")
+                        .font(BattleFightConstants.Fonts.sectionLabel)
+                        .foregroundColor(.black)
+                    Spacer()
                     Text("Round \(viewModel.currentRoundNumber)")
                         .font(BattleFightConstants.Fonts.roundNumber)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, alignment: .center)
-
-                    // Close button (right)
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            router.pop()
-                        }) {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(
-                                    width: BattleFightConstants.Sizing.closeButtonSize,
-                                    height: BattleFightConstants.Sizing.closeButtonSize
-                                )
-                                .background(BattleFightConstants.Colors.closeButton)
-                                .clipShape(Circle())
+                        .foregroundColor(.black)
+                        .overlay(alignment: .trailing) {
+                            elf_SwiftUI.CloseButton {
+                                showLeaveConfirmation = true
+                            }
+                            .alignmentGuide(.trailing) { d in d[.leading] - 12 }
                         }
-                    }
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, BattleFightConstants.Sizing.roundNumberTopPadding)
+                    Spacer()
+                    Text("[\(viewModel.botSnapshot.level)] \(viewModel.botSnapshot.name)")
+                        .font(BattleFightConstants.Fonts.sectionLabel)
+                        .foregroundColor(.black)
                 }
-                .padding(.horizontal, BattleFightConstants.Sizing.horizontalPadding)
-                .padding(.top, BattleFightConstants.Sizing.roundNumberTopPadding)
-
+                
                 Spacer()
 
                 // Main horizontal layout
-                HStack(spacing: 0) {
-                    // LEFT SECTION: Player Hero (aligned to left safe area)
-                    VStack(spacing: 10) {
-                        Text("Player")
-                            .font(BattleFightConstants.Fonts.sectionLabel)
-                            .foregroundColor(.white)
-
+                HStack(alignment: .top, spacing: 0) {
+                    // Player Hero
+                    VStack {
                         HeroDisplayView(
                             snapshot: viewModel.playerSnapshot,
                             currentHP: viewModel.playerCurrentHP,
                             maxHP: viewModel.playerMaxHP,
                             roundResults: viewModel.playerLastRoundResults
                         )
+                        Spacer()
                     }
-                    .padding(.leading, BattleFightConstants.Sizing.horizontalPadding)
 
                     Spacer()
-                        .frame(width: 20)
+                        .frame(width: 15)
 
-                    // Defense selector
-                    BodyPointSelector(
-                        mode: .defense,
-                        selectedPoints: viewModel.playerDefensePoints,
-                        maxPoints: viewModel.playerSnapshot.defensePoints,
-                        onToggle: { bodyPart in
-                            viewModel.togglePlayerDefensePoint(bodyPart)
-                        }
-                    )
-                    .frame(
-                        width: BattleFightConstants.Sizing.bodySelectorWidth,
-                        height: BattleFightConstants.Sizing.bodySelectorHeight
-                    )
+                    VStack {
+                        Spacer()
 
-                    Spacer()
-
-                    // CENTER: Vertical Separator
-                    Rectangle()
-                        .fill(BattleFightConstants.Colors.separator)
-                        .frame(width: BattleFightConstants.Sizing.separatorWidth)
+                        // Defense selector
+                        BodyPointSelector(
+                            mode: .defense,
+                            selectedPoints: viewModel.playerDefensePoints,
+                            maxPoints: viewModel.playerSnapshot.defensePoints,
+                            onToggle: { bodyPart in
+                                viewModel.togglePlayerDefensePoint(bodyPart)
+                            }
+                        )
+                    }
 
                     Spacer()
+                        .frame(width: 5)
 
-                    // Attack selector
-                    BodyPointSelector(
-                        mode: .attack,
-                        selectedPoints: viewModel.playerAttackPoints,
-                        maxPoints: viewModel.playerSnapshot.attackPoints,
-                        onToggle: { bodyPart in
-                            viewModel.togglePlayerAttackPoint(bodyPart)
-                        }
-                    )
-                    .frame(
-                        width: BattleFightConstants.Sizing.bodySelectorWidth,
-                        height: BattleFightConstants.Sizing.bodySelectorHeight
-                    )
+                    // Duel Pairs with Separator
+                    if let battleRound = viewModel.currentBattleRound {
+                        DuelPairsColumnView(
+                            battleRound: battleRound,
+                            leftTeam: viewModel.leftTeam,
+                            rightTeam: viewModel.rightTeam
+                        )
+                    } else {
+                        // Fallback: just separator if no round data
+                        Rectangle()
+                            .fill(BattleFightConstants.Colors.separator)
+                            .frame(width: BattleFightConstants.Sizing.separatorWidth)
+                    }
 
                     Spacer()
-                        .frame(width: 20)
+                        .frame(width: 5)
 
-                    // RIGHT SECTION: Bot Hero (aligned to right safe area)
-                    VStack(spacing: 10) {
-                        Text("Bot")
-                            .font(BattleFightConstants.Fonts.sectionLabel)
-                            .foregroundColor(.white)
+                    VStack {
+                        Spacer()
 
+                        // Attack selector
+                        BodyPointSelector(
+                            mode: .attack,
+                            selectedPoints: viewModel.playerAttackPoints,
+                            maxPoints: viewModel.playerSnapshot.attackPoints,
+                            onToggle: { bodyPart in
+                                viewModel.togglePlayerAttackPoint(bodyPart)
+                            }
+                        )
+                    }
+
+                    Spacer()
+                        .frame(width: 15)
+
+                    VStack {
+                        // Bot Hero
                         HeroDisplayView(
                             snapshot: viewModel.botSnapshot,
                             currentHP: viewModel.botCurrentHP,
                             maxHP: viewModel.botMaxHP,
                             roundResults: viewModel.botLastRoundResults
                         )
+                        Spacer()
                     }
-                    .padding(.trailing, BattleFightConstants.Sizing.horizontalPadding)
                 }
 
-                // Spacing before FIGHT button
-                Spacer()
-                    .frame(height: BattleFightConstants.Sizing.fightButtonHeight + 10)
-            }
-
-            // FIGHT button overlay (bottom center, aligned to safe area)
-            VStack {
                 Spacer()
 
-                Button(action: {
-                    let vm = viewModel
-                    Task { @MainActor in
-                        await vm.executeFightRound()
+                // Auto/Fight button
+                if hasNoSelection {
+                    // AUTO button - when nothing is selected
+                    Button(action: {
+                        viewModel.autoFillPoints()
+                    }) {
+                        Text("AUTO")
+                            .font(BattleFightConstants.Fonts.fightButton)
+                            .foregroundColor(BattleFightConstants.Colors.fightButton)
+                            .frame(width: 120)
+                            .frame(height: 54)
+                            .background(Color.white)
+                            .cornerRadius(27)
+                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                     }
-                }) {
-                    Text("FIGHT")
-                        .font(BattleFightConstants.Fonts.fightButton)
-                        .foregroundColor(.white)
-                        .frame(width: BattleFightConstants.Sizing.fightButtonWidth)
-                        .frame(height: BattleFightConstants.Sizing.fightButtonHeight)
-                        .background(BattleFightConstants.Colors.fightButton)
-                        .cornerRadius(8)
+                } else {
+                    // FIGHT button - when any selection made
+                    Button(action: {
+                        let vm = viewModel
+                        Task { @MainActor in
+                            await vm.executeFightRound()
+                        }
+                    }) {
+                        Text("FIGHT")
+                            .font(BattleFightConstants.Fonts.fightButton)
+                            .foregroundColor(.white)
+                            .frame(width: 120)
+                            .frame(height: 54)
+                            .background(BattleFightConstants.Colors.fightButton)
+                            .cornerRadius(27)
+                    }
+                    .disabled(!hasFullSelection)
+                    .opacity(hasFullSelection ? 1.0 : 0.5)
                 }
-                .disabled(
-                    viewModel.playerAttackPoints.count != viewModel.playerSnapshot.attackPoints ||
-                    viewModel.playerDefensePoints.count != viewModel.playerSnapshot.defensePoints
-                )
-                .opacity(
-                    (viewModel.playerAttackPoints.count == viewModel.playerSnapshot.attackPoints &&
-                     viewModel.playerDefensePoints.count == viewModel.playerSnapshot.defensePoints) ? 1.0 : 0.5
-                )
             }
-            .safeAreaPadding(.bottom, 0)
         }
         .onChange(of: viewModel.battleEnded) { _, ended in
             if ended {
@@ -178,6 +194,14 @@ internal struct BattleFightScreenContent: View {
                 Text("\(winner) wins!")
             }
         }
+        .alert("Leave battle?", isPresented: $showLeaveConfirmation) {
+            Button("Stay", role: .cancel) { }
+            Button("Leave", role: .destructive) {
+                router.pop()
+            }
+        } message: {
+            Text("If you leave, you will automatically lose this battle.")
+        }
     }
 }
 
@@ -186,11 +210,13 @@ internal struct BattleFightScreenContent: View {
 #if DEBUG
 struct BattleFightScreenContent_Previews: PreviewProvider {
     static var previews: some View {
-        let mockPlayerSnapshot = CombatantSnapshot(
+        // Left team: 3 combatants
+        let elfA = CombatantSnapshot(
             sourceId: UUID(),
             name: "Player Elf",
             imageName: "elf_player",
             combatantType: .elf,
+            level: 5,
             currentHP: 150,
             maxHP: 150,
             strength: 22,
@@ -210,11 +236,51 @@ struct BattleFightScreenContent_Previews: PreviewProvider {
             ]
         )
 
-        let mockBotSnapshot = CombatantSnapshot(
+        let elfB = CombatantSnapshot(
             sourceId: UUID(),
-            name: "Goblin",
+            name: "Elf B",
+            imageName: "elf_player",
+            combatantType: .elf,
+            level: 4,
+            currentHP: 130,
+            maxHP: 130,
+            strength: 18,
+            agility: 16,
+            power: 14,
+            intuition: 14,
+            attackPoints: 1,
+            defensePoints: 2,
+            minimumAttack: 6,
+            maximumAttack: 12,
+            armorValues: [:]
+        )
+
+        let elfC = CombatantSnapshot(
+            sourceId: UUID(),
+            name: "Elf C",
+            imageName: "elf_player",
+            combatantType: .elf,
+            level: 3,
+            currentHP: 110,
+            maxHP: 110,
+            strength: 15,
+            agility: 20,
+            power: 12,
+            intuition: 16,
+            attackPoints: 1,
+            defensePoints: 2,
+            minimumAttack: 5,
+            maximumAttack: 10,
+            armorValues: [:]
+        )
+
+        // Right team: 2 combatants
+        let goblinD = CombatantSnapshot(
+            sourceId: UUID(),
+            name: "Goblin D",
             imageName: "monster_goblin",
             combatantType: .monster,
+            level: 3,
             currentHP: 120,
             maxHP: 120,
             strength: 15,
@@ -228,9 +294,28 @@ struct BattleFightScreenContent_Previews: PreviewProvider {
             armorValues: [:]
         )
 
+        let goblinE = CombatantSnapshot(
+            sourceId: UUID(),
+            name: "Goblin E",
+            imageName: "monster_goblin",
+            combatantType: .monster,
+            level: 2,
+            currentHP: 100,
+            maxHP: 100,
+            strength: 12,
+            agility: 15,
+            power: 18,
+            intuition: 12,
+            attackPoints: 1,
+            defensePoints: 2,
+            minimumAttack: 4,
+            maximumAttack: 10,
+            armorValues: [:]
+        )
+
         let mockBattle = Battle(
-            leftTeam: [mockPlayerSnapshot],
-            rightTeam: [mockBotSnapshot]
+            leftTeam: [elfA, elfB, elfC],
+            rightTeam: [goblinD, goblinE]
         )
 
         let container = ElfAppDependencyContainer()
@@ -241,7 +326,7 @@ struct BattleFightScreenContent_Previews: PreviewProvider {
             )
             .environment(AppRouter())
         }
-        .previewDisplayName("Battle Fight Screen")
+        .previewDisplayName("Battle Fight Screen (3v2)")
     }
 }
 #endif
