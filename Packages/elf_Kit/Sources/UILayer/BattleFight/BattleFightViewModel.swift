@@ -19,10 +19,18 @@ public final class BattleFightViewModel {
     private let debugLogger: DebugBattleLogger
     private let duelPairingService: DuelPairingService
 
+    // Result calculation dependencies (optional for non-hunt battles)
+    private let gameService: GameService?
+    private let monsterRepository: MonsterRepository?
+    private let battleResultCalculator: BattleResultCalculator?
+
     // MARK: - State
 
     public let battle: Battle
     public var battleEnded: Bool = false
+
+    /// Battle result for UI display (set when battle ends)
+    public private(set) var battleResult: ManualBattleResult?
 
     // MARK: - Round State
 
@@ -73,7 +81,10 @@ public final class BattleFightViewModel {
         combatRoundExecutor: CombatRoundExecutor,
         battleLogger: BattleLogger,
         debugLogger: DebugBattleLogger,
-        duelPairingService: DuelPairingService
+        duelPairingService: DuelPairingService,
+        gameService: GameService? = nil,
+        monsterRepository: MonsterRepository? = nil,
+        battleResultCalculator: BattleResultCalculator? = nil
     ) {
         self.battle = battle
         self.botAI = botAI
@@ -81,6 +92,9 @@ public final class BattleFightViewModel {
         self.battleLogger = battleLogger
         self.debugLogger = debugLogger
         self.duelPairingService = duelPairingService
+        self.gameService = gameService
+        self.monsterRepository = monsterRepository
+        self.battleResultCalculator = battleResultCalculator
 
         // Initialize HP values from snapshots
         let player = battle.leftTeam[0]
@@ -232,9 +246,57 @@ public final class BattleFightViewModel {
 
     // MARK: - Actions
 
+    /// Calculates battle result with XP, drops, and updates game state
     public func finishBattle() {
-        // When battle logic is implemented, call this to trigger navigation
-        battleEnded = true
+        guard battleEnded else { return }
+        guard battleResult == nil else { return }  // Already finished
+
+        let outcome = determineBattleOutcome()
+        let monster = getMonsterFromBot()
+
+        guard let calculator = battleResultCalculator else {
+            // Fallback for battles without result calculator
+            battleResult = ManualBattleResult(
+                outcome: outcome,
+                experienceGained: 0,
+                drops: [],
+                previousLevel: 1,
+                previousExp: 0,
+                previousExpToNext: 100,
+                newLevel: 1,
+                newExp: 0,
+                newExpToNext: 100
+            )
+            return
+        }
+
+        battleResult = calculator.calculateResult(
+            outcome: outcome,
+            monster: monster,
+            gameService: gameService
+        )
+    }
+
+    // MARK: - Private Helpers
+
+    private func determineBattleOutcome() -> BattleOutcome {
+        if playerCurrentHP > 0 && botCurrentHP <= 0 {
+            return .victory
+        } else if playerCurrentHP <= 0 && botCurrentHP > 0 {
+            return .defeat
+        } else {
+            return .draw
+        }
+    }
+
+    private func getMonsterFromBot() -> Monster? {
+        // Get monster by sourceId from the first opponent
+        guard let botSnapshot = battle.rightTeam.first,
+              botSnapshot.combatantType == .monster,
+              let monsterRepository = monsterRepository else {
+            return nil
+        }
+        return monsterRepository.getMonster(id: botSnapshot.sourceId)
     }
 
     // MARK: - Duel Pairs

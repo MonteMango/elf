@@ -18,6 +18,7 @@ public enum GameSaveError: Error, LocalizedError {
     case fileReadFailed(Error)
     case encodingFailed(Error)
     case decodingFailed(Error)
+    case missingItemData(itemId: UUID, itemType: String)
 
     public var errorDescription: String? {
         switch self {
@@ -39,6 +40,8 @@ public enum GameSaveError: Error, LocalizedError {
             return "Failed to encode game data: \(error.localizedDescription)"
         case .decodingFailed(let error):
             return "Failed to decode save file: \(error.localizedDescription)"
+        case .missingItemData(let itemId, let itemType):
+            return "Item '\(itemType)' with ID \(itemId) not found in game data. The item may have been removed in an update."
         }
     }
 }

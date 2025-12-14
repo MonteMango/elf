@@ -11,7 +11,22 @@ import SwiftUI
 public final class AppRouter {
     public var navigationPath = NavigationPath()
 
+    /// Currently presented modal (displayed as overlay on top of navigation stack)
+    public var presentedModal: ModalRoute?
+
     public init() {}
+
+    // MARK: - Modal Presentation
+
+    /// Presents a modal overlay on top of the current navigation stack
+    public func presentModal(_ modal: ModalRoute) {
+        presentedModal = modal
+    }
+
+    /// Dismisses the currently presented modal
+    public func dismissModal() {
+        presentedModal = nil
+    }
 
     public func pop() {
         guard !navigationPath.isEmpty else { return }

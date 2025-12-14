@@ -9,7 +9,7 @@ import Foundation
 
 /// Root game state structure
 /// Contains 8 houses with 10 elves each, and game state (day, action points, etc.)
-public struct Game: Sendable, Codable, Equatable {
+public struct Game: Sendable, Equatable {
 
     // MARK: - Constants
 

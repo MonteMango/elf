@@ -7,15 +7,6 @@
 
 import Foundation
 
-// MARK: - CombatantType
-
-public enum CombatantType: Sendable, Hashable {
-    case elf
-    case monster
-}
-
-// MARK: - CombatantSnapshot
-
 /// A unified snapshot of a combatant's state for battle calculations.
 /// This struct captures all relevant combat stats from either an ElfHero or Monster,
 /// enabling unified battle logic regardless of combatant type.

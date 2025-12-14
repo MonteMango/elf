@@ -64,7 +64,7 @@ public final class GameDayViewModel {
     }
 
     public var equippedItems: [HeroItemType: UUID] {
-        game.player.equippedItems
+        game.player.equippedItemIds
     }
 
     public var currentExp: Int {

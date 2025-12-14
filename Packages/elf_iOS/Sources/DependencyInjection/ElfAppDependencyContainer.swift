@@ -40,6 +40,13 @@ public final class ElfAppDependencyContainer {
     public let monsterRepository: MonsterRepository
     public let materialRepository: MaterialRepository
 
+    // Hunt and drop services
+    public let huntService: HuntService
+    public let dropService: DropService
+
+    // Battle result calculation
+    public let battleResultCalculator: BattleResultCalculator
+
     // Game initialization
     public let gameInitializationService: GameInitializationService
 
@@ -53,7 +60,10 @@ public final class ElfAppDependencyContainer {
     public init() {
         let itemsRepository = ElfItemsRepository()
         let attributeService = ElfAttributeService(itemsRepository: itemsRepository)
-        let elfInfoFactory = DefaultElfInfoFactory(attributeService: attributeService)
+        let elfInfoFactory = DefaultElfInfoFactory(
+            attributeService: attributeService,
+            itemsRepository: itemsRepository
+        )
 
         self.itemsRepository = itemsRepository
         self.attributeService = attributeService
@@ -101,7 +111,7 @@ public final class ElfAppDependencyContainer {
         self.houseService = DefaultHouseService(elfInfoFactory: elfInfoFactory)
 
         // Initialize persistence
-        self.gameRepository = FileGameRepository()
+        self.gameRepository = FileGameRepository(itemsRepository: itemsRepository)
 
         // Initialize calendar service
         self.calendarService = DefaultCalendarService()
@@ -129,6 +139,19 @@ public final class ElfAppDependencyContainer {
         self.duelPairingService = RandomDuelPairingService()
         self.monsterRepository = ElfMonsterRepository()
         self.materialRepository = ElfMaterialRepository()
+
+        // Hunt and drop services
+        self.huntService = ElfHuntService(monsterRepository: self.monsterRepository)
+        self.dropService = DefaultDropService(
+            materialRepository: self.materialRepository,
+            itemsRepository: itemsRepository
+        )
+
+        // Battle result calculation
+        self.battleResultCalculator = DefaultBattleResultCalculator(
+            huntService: self.huntService,
+            dropService: self.dropService
+        )
 
         // Game initialization service
         self.gameInitializationService = ElfGameInitializationService(
@@ -162,7 +185,10 @@ public final class ElfAppDependencyContainer {
             combatRoundExecutor: self.combatRoundExecutor,
             battleLogger: self.battleLogger,
             debugLogger: self.debugBattleLogger,
-            duelPairingService: self.duelPairingService
+            duelPairingService: self.duelPairingService,
+            gameService: self.activeGameService,
+            monsterRepository: self.monsterRepository,
+            battleResultCalculator: self.battleResultCalculator
         )
     }
 
@@ -183,6 +209,11 @@ public final class ElfAppDependencyContainer {
             battle: battle,
             battleSimulationService: self.battleSimulationService
         )
+    }
+
+    @MainActor
+    public func makeBattleResultViewModel(result: ManualBattleResult) -> BattleResultViewModel {
+        return BattleResultViewModel(result: result)
     }
 
     @MainActor
@@ -230,6 +261,7 @@ public final class ElfAppDependencyContainer {
         let gameService = DefaultGameService(
             game: game,
             gameRepository: self.gameRepository,
+            itemsRepository: self.itemsRepository,
             playTime: playTime
         )
         self.activeGameService = gameService

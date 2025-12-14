@@ -38,6 +38,10 @@ public protocol GameService: AnyObject {
     /// Levels up the player if enough experience
     func levelUpPlayer()
 
+    /// Adds hunt rewards (drops) to player's inventory
+    /// - Parameter rewards: Hunt rewards containing materials, weapon, and armor drops
+    func addDropsToPlayerInventory(rewards: HuntRewards)
+
     // MARK: - Player HP Management
 
     /// Heals the player by a specified amount
@@ -66,15 +70,17 @@ public protocol GameService: AnyObject {
 
     // MARK: - Player Equipment
 
-    /// Equips an item to player's slot
-    /// - Parameters:
-    ///   - itemId: UUID of the item to equip
-    ///   - slot: Equipment slot to use
-    func equipPlayerItem(_ itemId: UUID, to slot: HeroItemType)
-
-    /// Unequips an item from player's slot
-    /// - Parameter slot: Equipment slot to clear
-    func unequipPlayerItem(from slot: HeroItemType)
+    func equipWeapon(_ weapon: ElfWeaponItem?)
+    func equipShield(_ shield: ElfShieldItem?)
+    func equipHelmet(_ helmet: ElfDefenseItem?)
+    func equipGloves(_ gloves: ElfDefenseItem?)
+    func equipShoes(_ shoes: ElfDefenseItem?)
+    func equipUpperBody(_ upperBody: ElfDefenseItem?)
+    func equipBottomBody(_ bottomBody: ElfDefenseItem?)
+    func equipShirt(_ shirt: ElfRobeItem?)
+    func equipRing(_ ring: ElfJewelryItem?)
+    func equipNecklace(_ necklace: ElfJewelryItem?)
+    func equipEarrings(_ earrings: ElfJewelryItem?)
 
     // MARK: - House Management
 

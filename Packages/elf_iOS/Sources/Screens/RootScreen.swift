@@ -25,6 +25,12 @@ public struct RootScreen: View {
                         .navigationTitle("")
                 }
         }
+        .overlay {
+            // Modal layer - displayed on top of navigation stack
+            if let modal = router.presentedModal {
+                modal.view()
+            }
+        }
         .environment(router)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)

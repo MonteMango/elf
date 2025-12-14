@@ -13,6 +13,7 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
     // MARK: - Dependencies
 
     private let attributeService: AttributeService
+    private let itemsRepository: ItemsRepository
 
     // MARK: - Constants
 
@@ -25,23 +26,34 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
 
     private let availableFightStyles: [FightStyle] = [.dodge, .crit, .def]
 
-    // MARK: - Starter Equipment
+    // MARK: - Starter Equipment IDs
 
-    private let defaultEquipment: [HeroItemType: UUID] = {
-        var equipment: [HeroItemType: UUID] = [:]
-        if let robeId = UUID(uuidString: "55f10623-d3d9-4021-85c6-f52e08058e13") {
-            equipment[.shirt] = robeId
-        }
-        if let spearId = UUID(uuidString: "dfbd2742-5470-4f97-84ea-fb17b5f3a6d2") {
-            equipment[.weapons] = spearId
-        }
-        return equipment
-    }()
+    private let defaultRobeId = UUID(uuidString: "55f10623-d3d9-4021-85c6-f52e08058e13")
+    private let defaultWeaponId = UUID(uuidString: "dfbd2742-5470-4f97-84ea-fb17b5f3a6d2")
 
     // MARK: - Initialization
 
-    public init(attributeService: AttributeService) {
+    public init(attributeService: AttributeService, itemsRepository: ItemsRepository) {
         self.attributeService = attributeService
+        self.itemsRepository = itemsRepository
+    }
+
+    // MARK: - Private Helpers
+
+    private func createDefaultWeapon() -> ElfWeaponItem? {
+        guard let weaponId = defaultWeaponId,
+              let weaponItem = itemsRepository.getHeroItem(weaponId) as? WeaponItem else {
+            return nil
+        }
+        return ElfWeaponItem(weaponItem: weaponItem)
+    }
+
+    private func createDefaultShirt() -> ElfRobeItem? {
+        guard let robeId = defaultRobeId,
+              let robeItem = itemsRepository.getHeroItem(robeId) as? RobeItem else {
+            return nil
+        }
+        return ElfRobeItem(robeItem: robeItem)
     }
 
     // MARK: - ElfInfoFactory
@@ -59,7 +71,8 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
             randomLevelAttributes: character.randomLevelAttributes,
             currentHP: character.totalAttributes.hitPoints,
             currentMP: character.totalAttributes.manaPoints,
-            equippedItems: defaultEquipment,
+            equippedWeapon: createDefaultWeapon(),
+            equippedShirt: createDefaultShirt(),
             reputation: 0
         )
     }
@@ -90,7 +103,8 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
             randomLevelAttributes: randomLevelAttributes,
             currentHP: totalHP,
             currentMP: totalMP,
-            equippedItems: defaultEquipment
+            equippedWeapon: createDefaultWeapon(),
+            equippedShirt: createDefaultShirt()
         )
     }
 }

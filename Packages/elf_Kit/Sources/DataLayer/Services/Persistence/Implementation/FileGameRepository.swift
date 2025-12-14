@@ -34,6 +34,7 @@ public actor FileGameRepository: GameRepository {
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     private let appVersion: String
+    private let itemsRepository: ItemsRepository
 
     /// In-memory cache of slot info for fast access
     private var slotsCache: [SaveSlotInfo]?
@@ -41,8 +42,10 @@ public actor FileGameRepository: GameRepository {
     // MARK: - Initialization
 
     public init(
+        itemsRepository: ItemsRepository,
         appVersion: String = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     ) {
+        self.itemsRepository = itemsRepository
         self.fileManager = FileManager.default
         self.appVersion = appVersion
 
@@ -172,7 +175,7 @@ public actor FileGameRepository: GameRepository {
                 }
 
                 // Step 4: Convert to Game
-                let game = try gameSave.toGame()
+                let game = try gameSave.toGame(itemsRepository: itemsRepository)
                 debugLog("📂 [GameRepository] Game object created")
                 debugLog("📂 [GameRepository] - Game ID: \(game.id)")
                 debugLog("📂 [GameRepository] - Houses: \(game.houses.count)")
@@ -312,7 +315,7 @@ public actor FileGameRepository: GameRepository {
         case 1:
             // Current version, no migration needed
             let gameSave = try decoder.decode(GameSave.self, from: data)
-            return try gameSave.toGame()
+            return try gameSave.toGame(itemsRepository: itemsRepository)
         default:
             throw GameSaveError.unsupportedVersion(fromVersion)
         }

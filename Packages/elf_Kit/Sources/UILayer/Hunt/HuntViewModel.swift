@@ -91,7 +91,7 @@ public final class HuntViewModel {
 
         // 3. Build player snapshot from ElfInfo
         let player = gameService.game.player
-        let selectedItems: [HeroItemType: UUID?] = player.equippedItems.mapValues { $0 }
+        let selectedItems: [HeroItemType: UUID?] = player.equippedItemIds.mapValues { $0 }
 
         guard let playerSnapshot = await snapshotBuilder.buildSnapshot(
             name: player.name,

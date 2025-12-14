@@ -12,7 +12,6 @@ import SwiftUI
 internal struct BattleFightScreenContent: View {
     @Environment(AppRouter.self) private var router
     @State private var viewModel: BattleFightViewModel
-    @State private var showWinnerAlert = false
     @State private var showLeaveConfirmation = false
 
     internal init(viewModel: BattleFightViewModel) {
@@ -60,7 +59,7 @@ internal struct BattleFightScreenContent: View {
                         .font(BattleFightConstants.Fonts.sectionLabel)
                         .foregroundColor(.black)
                 }
-                
+
                 Spacer()
 
                 // Main horizontal layout
@@ -180,18 +179,15 @@ internal struct BattleFightScreenContent: View {
                 }
             }
         }
-        .onChange(of: viewModel.battleEnded) { _, ended in
-            if ended {
-                showWinnerAlert = true
+        .onChange(of: viewModel.battleResult) { _, result in
+            // When battle result is ready, present modal
+            if let result = result {
+                router.presentModal(.battleResult(result))
             }
         }
-        .alert("Battle Ended", isPresented: $showWinnerAlert) {
-            Button("OK") {
-                router.pop()
-            }
-        } message: {
-            if let winner = viewModel.getWinner() {
-                Text("\(winner) wins!")
+        .onChange(of: viewModel.battleEnded) { _, ended in
+            if ended {
+                viewModel.finishBattle()
             }
         }
         .alert("Leave battle?", isPresented: $showLeaveConfirmation) {

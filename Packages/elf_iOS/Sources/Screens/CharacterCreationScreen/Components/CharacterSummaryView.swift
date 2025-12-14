@@ -44,7 +44,7 @@ struct CharacterSummaryView: View {
                             .cornerRadius(12)
                             .shadow(radius: 3)
                     }
-                    
+
                     // Character info
                     VStack(alignment: .leading, spacing: 10) {
                         // Name and level
@@ -54,12 +54,12 @@ struct CharacterSummaryView: View {
                                 .fontWeight(.bold)
                                 .foregroundColor(.black)
                                 .lineLimit(nil)
-                            
+
                             Text("LVL1")
                                 .font(.title3)
                                 .foregroundColor(.gray)
                         }
-                        
+
                         // Fight style
                         if let style = fightStyle {
                             HStack {
@@ -70,17 +70,17 @@ struct CharacterSummaryView: View {
                                     .foregroundColor(.black)
                             }
                         }
-                        
+
                         // Attributes
                         Text("Attributes:")
                             .fontWeight(.bold)
                             .foregroundColor(.black)
-                        
+
                         attributesView
                     }
                 }
                 .frame(width: 450)
-                
+
                 if isCharacterReady {
                     Spacer()
                         .frame(maxWidth: .infinity)

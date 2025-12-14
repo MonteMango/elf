@@ -7,48 +7,6 @@
 
 import Foundation
 
-// MARK: - HuntRewards
-
-/// Rewards obtained from defeating a monster
-public struct HuntRewards: Sendable, Equatable {
-    /// Experience points gained
-    public let experience: Int
-
-    /// Materials dropped with their amounts
-    public let materials: [MaterialReward]
-
-    /// Weapon ID if a weapon was dropped (nil if no weapon dropped)
-    public let weaponId: String?
-
-    /// Armor ID if armor was dropped (nil if no armor dropped)
-    public let armorId: String?
-
-    public init(
-        experience: Int,
-        materials: [MaterialReward],
-        weaponId: String? = nil,
-        armorId: String? = nil
-    ) {
-        self.experience = experience
-        self.materials = materials
-        self.weaponId = weaponId
-        self.armorId = armorId
-    }
-}
-
-// MARK: - MaterialReward
-
-/// A material drop with its quantity
-public struct MaterialReward: Sendable, Equatable, Hashable {
-    public let id: UUID
-    public let amount: Int
-
-    public init(id: UUID, amount: Int) {
-        self.id = id
-        self.amount = amount
-    }
-}
-
 // MARK: - HuntService
 
 /// Service for managing hunt encounters and calculating rewards

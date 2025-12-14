@@ -9,7 +9,7 @@ import Foundation
 
 /// Information about an elf (player or AI)
 /// Used as member of a House
-public struct ElfInfo: Sendable, Equatable, Identifiable, Codable {
+public struct ElfInfo: Sendable, Equatable, Identifiable {
 
     // MARK: - Identity
 
@@ -37,9 +37,23 @@ public struct ElfInfo: Sendable, Equatable, Identifiable, Codable {
     public var currentHP: Int16
     public var currentMP: Int16
 
-    // MARK: - Equipment
+    // MARK: - Equipment Slots
 
-    public var equippedItems: [HeroItemType: UUID]
+    public var equippedWeapon: ElfWeaponItem?
+    public var equippedShield: ElfShieldItem?
+    public var equippedHelmet: ElfDefenseItem?
+    public var equippedGloves: ElfDefenseItem?
+    public var equippedShoes: ElfDefenseItem?
+    public var equippedUpperBody: ElfDefenseItem?
+    public var equippedBottomBody: ElfDefenseItem?
+    public var equippedShirt: ElfRobeItem?
+    public var equippedRing: ElfJewelryItem?
+    public var equippedNecklace: ElfJewelryItem?
+    public var equippedEarrings: ElfJewelryItem?
+
+    // MARK: - Inventory
+
+    public var inventory: ElfInventory
 
     // MARK: - Reputation
 
@@ -81,6 +95,40 @@ public struct ElfInfo: Sendable, Equatable, Identifiable, Codable {
         return Double(currentMP) / Double(maxMP)
     }
 
+    /// Get equipped item ID for a slot (for UI compatibility)
+    public func equippedItemId(for slot: HeroItemType) -> UUID? {
+        switch slot {
+        case .weapons: return equippedWeapon?.id
+        case .shields: return equippedShield?.id
+        case .helmet: return equippedHelmet?.id
+        case .gloves: return equippedGloves?.id
+        case .shoes: return equippedShoes?.id
+        case .upperBody: return equippedUpperBody?.id
+        case .bottomBody: return equippedBottomBody?.id
+        case .shirt: return equippedShirt?.id
+        case .ring: return equippedRing?.id
+        case .necklace: return equippedNecklace?.id
+        case .earrings: return equippedEarrings?.id
+        }
+    }
+
+    /// Get all equipped item IDs as dictionary (for UI compatibility)
+    public var equippedItemIds: [HeroItemType: UUID] {
+        var result: [HeroItemType: UUID] = [:]
+        if let id = equippedWeapon?.id { result[.weapons] = id }
+        if let id = equippedShield?.id { result[.shields] = id }
+        if let id = equippedHelmet?.id { result[.helmet] = id }
+        if let id = equippedGloves?.id { result[.gloves] = id }
+        if let id = equippedShoes?.id { result[.shoes] = id }
+        if let id = equippedUpperBody?.id { result[.upperBody] = id }
+        if let id = equippedBottomBody?.id { result[.bottomBody] = id }
+        if let id = equippedShirt?.id { result[.shirt] = id }
+        if let id = equippedRing?.id { result[.ring] = id }
+        if let id = equippedNecklace?.id { result[.necklace] = id }
+        if let id = equippedEarrings?.id { result[.earrings] = id }
+        return result
+    }
+
     // MARK: - Initialization
 
     public init(
@@ -95,7 +143,18 @@ public struct ElfInfo: Sendable, Equatable, Identifiable, Codable {
         randomLevelAttributes: HeroAttributes,
         currentHP: Int16,
         currentMP: Int16,
-        equippedItems: [HeroItemType: UUID] = [:],
+        equippedWeapon: ElfWeaponItem? = nil,
+        equippedShield: ElfShieldItem? = nil,
+        equippedHelmet: ElfDefenseItem? = nil,
+        equippedGloves: ElfDefenseItem? = nil,
+        equippedShoes: ElfDefenseItem? = nil,
+        equippedUpperBody: ElfDefenseItem? = nil,
+        equippedBottomBody: ElfDefenseItem? = nil,
+        equippedShirt: ElfRobeItem? = nil,
+        equippedRing: ElfJewelryItem? = nil,
+        equippedNecklace: ElfJewelryItem? = nil,
+        equippedEarrings: ElfJewelryItem? = nil,
+        inventory: ElfInventory = ElfInventory(),
         reputation: Int = 0
     ) {
         self.id = id
@@ -109,7 +168,18 @@ public struct ElfInfo: Sendable, Equatable, Identifiable, Codable {
         self.randomLevelAttributes = randomLevelAttributes
         self.currentHP = currentHP
         self.currentMP = currentMP
-        self.equippedItems = equippedItems
+        self.equippedWeapon = equippedWeapon
+        self.equippedShield = equippedShield
+        self.equippedHelmet = equippedHelmet
+        self.equippedGloves = equippedGloves
+        self.equippedShoes = equippedShoes
+        self.equippedUpperBody = equippedUpperBody
+        self.equippedBottomBody = equippedBottomBody
+        self.equippedShirt = equippedShirt
+        self.equippedRing = equippedRing
+        self.equippedNecklace = equippedNecklace
+        self.equippedEarrings = equippedEarrings
+        self.inventory = inventory
         self.reputation = reputation
     }
 
