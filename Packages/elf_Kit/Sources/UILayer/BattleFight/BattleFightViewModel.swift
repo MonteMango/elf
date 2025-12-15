@@ -185,7 +185,7 @@ public final class BattleFightViewModel {
         playerLastRoundResults = roundResult.playerResults
         botLastRoundResults = roundResult.botResults
 
-        // Store old HP values for logging
+        // Store old HP values for debug logging
         let playerOldHP = playerCurrentHP
         let botOldHP = botCurrentHP
 
@@ -201,9 +201,7 @@ public final class BattleFightViewModel {
             playerActions: (attack: playerAttackPoints, defense: playerDefensePoints),
             botActions: (attack: botAttackPoints, defense: botDefensePoints),
             playerResults: roundResult.playerResults,
-            botResults: roundResult.botResults,
-            playerOldHP: playerOldHP,
-            botOldHP: botOldHP
+            botResults: roundResult.botResults
         )
         self.roundLog.append(roundLog)
 
@@ -227,20 +225,6 @@ public final class BattleFightViewModel {
         // Check if battle ended
         if playerCurrentHP <= 0 || botCurrentHP <= 0 {
             battleEnded = true
-        }
-    }
-
-    // MARK: - Public Helper Methods
-
-    public func getWinner() -> String? {
-        guard battleEnded else { return nil }
-
-        if playerCurrentHP > 0 {
-            return "Player"
-        } else if botCurrentHP > 0 {
-            return "Bot"
-        } else {
-            return "Draw"
         }
     }
 
@@ -308,14 +292,6 @@ public final class BattleFightViewModel {
             rightTeam: battle.rightTeam,
             roundNumber: currentRoundNumber
         )
-    }
-
-    /// Returns a combatant snapshot by ID from either team
-    public func combatantSnapshot(for id: UUID) -> CombatantSnapshot? {
-        if let snapshot = battle.leftTeam.first(where: { $0.id == id }) {
-            return snapshot
-        }
-        return battle.rightTeam.first(where: { $0.id == id })
     }
 
     /// Returns the left team combatants

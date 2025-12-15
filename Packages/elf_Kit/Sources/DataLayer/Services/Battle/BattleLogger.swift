@@ -17,8 +17,6 @@ public protocol BattleLogger: Sendable {
     ///   - botActions: Bot's selected attack and defense points
     ///   - playerResults: Combat results for player as defender
     ///   - botResults: Combat results for bot as defender
-    ///   - playerOldHP: Player HP before damage
-    ///   - botOldHP: Bot HP before damage
     /// - Returns: Round log entry
     func createRoundLog(
         roundNumber: Int,
@@ -27,8 +25,6 @@ public protocol BattleLogger: Sendable {
         playerActions: (attack: Set<BodyPart>, defense: Set<BodyPart>),
         botActions: (attack: Set<BodyPart>, defense: Set<BodyPart>),
         playerResults: [BodyPart: PointStatus],
-        botResults: [BodyPart: PointStatus],
-        playerOldHP: Int,
-        botOldHP: Int
+        botResults: [BodyPart: PointStatus]
     ) -> ManualBattleRoundLog
 }

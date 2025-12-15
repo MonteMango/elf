@@ -19,7 +19,7 @@ public struct BattleRoundCalculatedPreResult: Sendable {
 
     // calculation based on ElfWeapon (min, max) damage and weapond enchantLevel (ToDo: Need to implement this in DamageService)
     public var leftWeaponAttackDamage: Int // calculation of weapon damage
-    public var rightWeapondAttackDamage: Int?
+    public var rightWeaponAttackDamage: Int?
 
     // calculation based on hero agility att and enemy instinct att. (Done by DodgeService)
     @available(*, deprecated, message: "Use detailed dodge fields (dodgeDistribution, dodgeStage1Roll, selectedDodgeChance, dodgeStage2Roll) instead")

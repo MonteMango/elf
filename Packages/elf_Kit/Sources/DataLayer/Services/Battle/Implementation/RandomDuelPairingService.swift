@@ -22,8 +22,8 @@ public final class RandomDuelPairingService: DuelPairingService {
         let aliveRight = rightTeam.filter { $0.isAlive }
 
         // Shuffle both teams for random pairing
-        var shuffledLeft = aliveLeft.shuffled()
-        var shuffledRight = aliveRight.shuffled()
+        let shuffledLeft = aliveLeft.shuffled()
+        let shuffledRight = aliveRight.shuffled()
 
         // Create pairs until one team runs out
         var duelPairs: [DuelPair] = []

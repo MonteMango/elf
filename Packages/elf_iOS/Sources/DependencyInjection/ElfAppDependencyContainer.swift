@@ -141,7 +141,7 @@ public final class ElfAppDependencyContainer {
         self.materialRepository = ElfMaterialRepository()
 
         // Hunt and drop services
-        self.huntService = ElfHuntService(monsterRepository: self.monsterRepository)
+        self.huntService = ElfHuntService()
         self.dropService = DefaultDropService(
             materialRepository: self.materialRepository,
             itemsRepository: itemsRepository

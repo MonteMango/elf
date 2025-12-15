@@ -9,21 +9,9 @@ import Foundation
 
 public final class ElfHuntService: HuntService {
 
-    private let monsterRepository: MonsterRepository
-
-    public init(monsterRepository: MonsterRepository) {
-        self.monsterRepository = monsterRepository
-    }
+    public init() {}
 
     // MARK: - HuntService
-
-    public func getAvailableMonsters(world: WorldType, level: Int) -> [Monster] {
-        monsterRepository.getMonsters(world: world, level: level)
-    }
-
-    public func selectRandomMonster(world: WorldType, level: Int) -> Monster? {
-        monsterRepository.getRandomMonster(world: world, level: level)
-    }
 
     public func calculateRewards(for monster: Monster) -> HuntRewards {
         let experience = rollExperience(from: monster.expReward)

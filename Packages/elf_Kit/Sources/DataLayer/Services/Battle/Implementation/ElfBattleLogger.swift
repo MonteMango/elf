@@ -18,9 +18,7 @@ public final class ElfBattleLogger: BattleLogger {
         playerActions: (attack: Set<BodyPart>, defense: Set<BodyPart>),
         botActions: (attack: Set<BodyPart>, defense: Set<BodyPart>),
         playerResults: [BodyPart: PointStatus],
-        botResults: [BodyPart: PointStatus],
-        playerOldHP: Int,
-        botOldHP: Int
+        botResults: [BodyPart: PointStatus]
     ) -> ManualBattleRoundLog {
         return ManualBattleRoundLog(
             roundNumber: roundNumber,
@@ -38,12 +36,10 @@ public final class ElfBattleLogger: BattleLogger {
             calculatedPreResults: [:], // MVP: empty for now
             results: [
                 playerSnapshot.id: BattleRoundResult(
-                    pointStatus: playerResults,
-                    oldHP: playerOldHP
+                    pointStatus: playerResults
                 ),
                 botSnapshot.id: BattleRoundResult(
-                    pointStatus: botResults,
-                    oldHP: botOldHP
+                    pointStatus: botResults
                 )
             ]
         )
