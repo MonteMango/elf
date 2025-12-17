@@ -293,5 +293,5 @@ DerivedData/
 # Project-specific files                                  #
 ############################################################
 
-# Claude Code instruction file
-CLAUDE.md
+# Claude Code local settings (personal, not for git)
+CLAUDE.local.md

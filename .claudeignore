@@ -1,0 +1,25 @@
+# Build artifacts
+.build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Generated
+*.generated.swift
+
+# Assets (много бинарных данных)
+*.xcassets/
+*.strings
+
+# Dependencies
+Pods/
+
+# Local settings
+CLAUDE.local.md
+
+# Xcode
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserstate
