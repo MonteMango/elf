@@ -48,15 +48,8 @@ struct HuntScreenContent: View {
 
     @ViewBuilder
     private var topBar: some View {
-        HStack {
-            // Back button
-            BackButton {
-                router.pop()
-            }
-
-            Spacer()
-
-            // Action Points Bar
+        ZStack {
+            // AP bar строго по центру + Calendar через overlay
             ActionPointsBar(
                 current: viewModel.currentActionPoints,
                 max: viewModel.maxActionPoints,
@@ -72,12 +65,32 @@ struct HuntScreenContent: View {
                 onNextDay: { viewModel.advanceToNextDay() }
             )
             .frame(width: HuntConstants.Sizing.apBarWidth)
+            .overlay(alignment: .trailing) {
+                elf_SwiftUI.CalendarSection(
+                    currentDay: CalendarDayData(
+                        id: viewModel.currentDay.id,
+                        dayNumber: viewModel.currentDay.dayNumber
+                    ),
+                    upcomingDays: viewModel.upcomingDays.map {
+                        CalendarDayData(id: $0.id, dayNumber: $0.dayNumber)
+                    },
+                    onTap: {
+                        router.navigate(to: .calendar(
+                            calendar: viewModel.calendar,
+                            currentDayNumber: viewModel.currentDay.dayNumber
+                        ))
+                    }
+                )
+                .alignmentGuide(.trailing) { d in d[.leading] - 16 }
+            }
 
-            Spacer()
-
-            // Empty space for symmetry
-            Color.clear
-                .frame(width: 44, height: 44)
+            // Back button слева
+            HStack {
+                BackButton {
+                    router.pop()
+                }
+                Spacer()
+            }
         }
     }
 

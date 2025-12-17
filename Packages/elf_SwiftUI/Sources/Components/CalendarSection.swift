@@ -1,23 +1,32 @@
 //
 //  CalendarSection.swift
-//  elf_iOS
+//  elf_SwiftUI
 //
-//  Created by Vitalii Lytvynov on 28.11.25.
+//  Created by Vitalii Lytvynov
 //
 
-import elf_Kit
 import SwiftUI
 
-struct CalendarSection: View {
-    let currentDay: GameDay
-    let upcomingDays: [GameDay]
+public struct CalendarSection: View {
+    let currentDay: CalendarDayData
+    let upcomingDays: [CalendarDayData]
     var onTap: (() -> Void)?
 
     private let daySize: CGFloat = 45
     private let layerOffset: CGFloat = 22.5  // daySize / 2
     private let borderWidth: CGFloat = 3
 
-    var body: some View {
+    public init(
+        currentDay: CalendarDayData,
+        upcomingDays: [CalendarDayData],
+        onTap: (() -> Void)? = nil
+    ) {
+        self.currentDay = currentDay
+        self.upcomingDays = upcomingDays
+        self.onTap = onTap
+    }
+
+    public var body: some View {
         ZStack(alignment: .leading) {
             // Background days (furthest back first)
             ForEach(Array(upcomingDays.enumerated().reversed()), id: \.element.id) { index, day in
@@ -51,7 +60,7 @@ struct CalendarSection: View {
     }
 
     @ViewBuilder
-    private func dayCell(day: GameDay, style: DayStyle) -> some View {
+    private func dayCell(day: CalendarDayData, style: DayStyle) -> some View {
         ZStack {
             // Background
             Rectangle()
@@ -101,11 +110,11 @@ struct CalendarSection: View {
 
 #Preview {
     CalendarSection(
-        currentDay: GameDay(dayNumber: 1, dayType: .normal),
+        currentDay: CalendarDayData(dayNumber: 1),
         upcomingDays: [
-            GameDay(dayNumber: 2, dayType: .dungeon),
-            GameDay(dayNumber: 3, dayType: .normal),
-            GameDay(dayNumber: 4, dayType: .houseWar)
+            CalendarDayData(dayNumber: 2),
+            CalendarDayData(dayNumber: 3),
+            CalendarDayData(dayNumber: 4)
         ],
         onTap: { print("Calendar tapped") }
     )

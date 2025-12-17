@@ -113,9 +113,14 @@ internal struct GameDayScreenContent: View {
 
                 Spacer()
 
-                CalendarSection(
-                    currentDay: viewModel.gameState.currentDay,
-                    upcomingDays: viewModel.gameState.upcomingDays,
+                elf_SwiftUI.CalendarSection(
+                    currentDay: CalendarDayData(
+                        id: viewModel.gameState.currentDay.id,
+                        dayNumber: viewModel.gameState.currentDay.dayNumber
+                    ),
+                    upcomingDays: viewModel.gameState.upcomingDays.map {
+                        CalendarDayData(id: $0.id, dayNumber: $0.dayNumber)
+                    },
                     onTap: {
                         router.navigate(to: .calendar(
                             calendar: viewModel.gameState.calendar,

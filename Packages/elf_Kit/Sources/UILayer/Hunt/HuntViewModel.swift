@@ -41,6 +41,23 @@ public final class HuntViewModel {
         gameService.game.gameState.isLastDay
     }
 
+    // MARK: - Calendar Properties
+
+    /// Current game day
+    public var currentDay: GameDay {
+        gameService.game.gameState.currentDay
+    }
+
+    /// Next upcoming days
+    public var upcomingDays: [GameDay] {
+        gameService.game.gameState.upcomingDays
+    }
+
+    /// Full game calendar
+    public var calendar: [GameDay] {
+        gameService.game.gameState.calendar
+    }
+
     /// Player's current level (determines monster level)
     public var playerLevel: Int {
         Int(gameService.game.player.level)
