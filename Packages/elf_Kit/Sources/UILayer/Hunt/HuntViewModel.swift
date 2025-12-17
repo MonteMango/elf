@@ -37,6 +37,10 @@ public final class HuntViewModel {
         currentActionPoints >= huntCost
     }
 
+    public var isLastDay: Bool {
+        gameService.game.gameState.isLastDay
+    }
+
     /// Player's current level (determines monster level)
     public var playerLevel: Int {
         Int(gameService.game.player.level)
@@ -75,6 +79,14 @@ public final class HuntViewModel {
     }
 
     // MARK: - Actions
+
+    /// Advances to the next day and restores action points
+    public func advanceToNextDay() {
+        gameService.advanceToNextDay()
+        Task {
+            try? await gameService.saveGame()
+        }
+    }
 
     /// Starts a hunt: spends action points, selects random monster, returns Battle
     /// - Returns: Battle instance or nil if hunt cannot start

@@ -42,4 +42,10 @@ public struct GameState: Sendable, Codable, Equatable {
         let endIndex = min(nextIndex + 3, calendar.count)
         return Array(calendar[nextIndex..<endIndex])
     }
+
+    /// Whether current day is the last day in the calendar
+    public var isLastDay: Bool {
+        guard let lastDay = calendar.last else { return false }
+        return currentDay.dayNumber >= lastDay.dayNumber
+    }
 }

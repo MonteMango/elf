@@ -96,36 +96,38 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
     }
 
     /// Get equipped item ID for a slot (for UI compatibility)
+    /// Returns the base item ID (from JSON) for image lookup and repository queries
     public func equippedItemId(for slot: HeroItemType) -> UUID? {
         switch slot {
-        case .weapons: return equippedWeapon?.id
-        case .shields: return equippedShield?.id
-        case .helmet: return equippedHelmet?.id
-        case .gloves: return equippedGloves?.id
-        case .shoes: return equippedShoes?.id
-        case .upperBody: return equippedUpperBody?.id
-        case .bottomBody: return equippedBottomBody?.id
-        case .shirt: return equippedShirt?.id
-        case .ring: return equippedRing?.id
-        case .necklace: return equippedNecklace?.id
-        case .earrings: return equippedEarrings?.id
+        case .weapons: return equippedWeapon?.item.id
+        case .shields: return equippedShield?.item.id
+        case .helmet: return equippedHelmet?.item.id
+        case .gloves: return equippedGloves?.item.id
+        case .shoes: return equippedShoes?.item.id
+        case .upperBody: return equippedUpperBody?.item.id
+        case .bottomBody: return equippedBottomBody?.item.id
+        case .shirt: return equippedShirt?.item.id
+        case .ring: return equippedRing?.item.id
+        case .necklace: return equippedNecklace?.item.id
+        case .earrings: return equippedEarrings?.item.id
         }
     }
 
     /// Get all equipped item IDs as dictionary (for UI compatibility)
+    /// Returns base item IDs (from JSON) for image lookup and repository queries
     public var equippedItemIds: [HeroItemType: UUID] {
         var result: [HeroItemType: UUID] = [:]
-        if let id = equippedWeapon?.id { result[.weapons] = id }
-        if let id = equippedShield?.id { result[.shields] = id }
-        if let id = equippedHelmet?.id { result[.helmet] = id }
-        if let id = equippedGloves?.id { result[.gloves] = id }
-        if let id = equippedShoes?.id { result[.shoes] = id }
-        if let id = equippedUpperBody?.id { result[.upperBody] = id }
-        if let id = equippedBottomBody?.id { result[.bottomBody] = id }
-        if let id = equippedShirt?.id { result[.shirt] = id }
-        if let id = equippedRing?.id { result[.ring] = id }
-        if let id = equippedNecklace?.id { result[.necklace] = id }
-        if let id = equippedEarrings?.id { result[.earrings] = id }
+        if let weapon = equippedWeapon { result[.weapons] = weapon.item.id }
+        if let shield = equippedShield { result[.shields] = shield.item.id }
+        if let helmet = equippedHelmet { result[.helmet] = helmet.item.id }
+        if let gloves = equippedGloves { result[.gloves] = gloves.item.id }
+        if let shoes = equippedShoes { result[.shoes] = shoes.item.id }
+        if let upperBody = equippedUpperBody { result[.upperBody] = upperBody.item.id }
+        if let bottomBody = equippedBottomBody { result[.bottomBody] = bottomBody.item.id }
+        if let shirt = equippedShirt { result[.shirt] = shirt.item.id }
+        if let ring = equippedRing { result[.ring] = ring.item.id }
+        if let necklace = equippedNecklace { result[.necklace] = necklace.item.id }
+        if let earrings = equippedEarrings { result[.earrings] = earrings.item.id }
         return result
     }
 

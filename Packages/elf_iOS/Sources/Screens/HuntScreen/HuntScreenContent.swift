@@ -66,7 +66,10 @@ struct HuntScreenContent: View {
                 barFont: HuntConstants.Fonts.apValue,
                 labelColor: .gray,
                 fillColor: HuntConstants.Colors.apBarFill,
-                backgroundColor: HuntConstants.Colors.apBarBackground
+                backgroundColor: HuntConstants.Colors.apBarBackground,
+                showNextDayButton: true,
+                isLastDay: viewModel.isLastDay,
+                onNextDay: { viewModel.advanceToNextDay() }
             )
             .frame(width: HuntConstants.Sizing.apBarWidth)
 

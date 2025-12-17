@@ -81,9 +81,12 @@ internal struct GameDayScreenContent: View {
                 barHeight: GameDayConstants.Sizing.apBarHeight,
                 labelFont: GameDayConstants.Fonts.apFont,
                 barFont: GameDayConstants.Fonts.apFont,
-                labelColor: GameDayConstants.Colors.secondaryText,
+                labelColor: .gray,
                 fillColor: GameDayConstants.Colors.apBarFill,
-                backgroundColor: GameDayConstants.Colors.xpBarBackground
+                backgroundColor: GameDayConstants.Colors.xpBarBackground,
+                showNextDayButton: true,
+                isLastDay: viewModel.gameState.isLastDay,
+                onNextDay: { viewModel.onConfirmActionPoints() }
             )
 
             // Action Buttons
