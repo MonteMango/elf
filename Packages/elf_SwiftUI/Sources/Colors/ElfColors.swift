@@ -54,5 +54,17 @@ public enum ElfColors {
         public static let eventDay = Color(red: 0.573, green: 0.6, blue: 0.886)         // #9299E2
         public static let houseWarDay = Color(red: 0.886, green: 0.573, blue: 0.573)    // #E29292
         public static let unknownDay = Color.white
+
+        /// Returns color for day type based on raw value
+        /// - Parameter rawValue: DayType.rawValue (0=normal, 1=dungeon, 2=randomEvent, 3=houseWar, 4+=unknown)
+        public static func dayColor(for rawValue: Int) -> Color {
+            switch rawValue {
+            case 0: return normalDay
+            case 1: return dungeonDay
+            case 2: return eventDay
+            case 3: return houseWarDay
+            default: return unknownDay
+            }
+        }
     }
 }

@@ -116,10 +116,15 @@ internal struct GameDayScreenContent: View {
                 elf_SwiftUI.CalendarSection(
                     currentDay: CalendarDayData(
                         id: viewModel.gameState.currentDay.id,
-                        dayNumber: viewModel.gameState.currentDay.dayNumber
+                        dayNumber: viewModel.gameState.currentDay.dayNumber,
+                        backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.gameState.currentDay.dayType.rawValue)
                     ),
                     upcomingDays: viewModel.gameState.upcomingDays.map {
-                        CalendarDayData(id: $0.id, dayNumber: $0.dayNumber)
+                        CalendarDayData(
+                            id: $0.id,
+                            dayNumber: $0.dayNumber,
+                            backgroundColor: ElfColors.Calendar.dayColor(for: $0.dayType.rawValue)
+                        )
                     },
                     onTap: {
                         router.navigate(to: .calendar(

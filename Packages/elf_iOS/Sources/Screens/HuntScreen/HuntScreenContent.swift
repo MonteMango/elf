@@ -69,10 +69,15 @@ struct HuntScreenContent: View {
                 elf_SwiftUI.CalendarSection(
                     currentDay: CalendarDayData(
                         id: viewModel.currentDay.id,
-                        dayNumber: viewModel.currentDay.dayNumber
+                        dayNumber: viewModel.currentDay.dayNumber,
+                        backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
                     ),
                     upcomingDays: viewModel.upcomingDays.map {
-                        CalendarDayData(id: $0.id, dayNumber: $0.dayNumber)
+                        CalendarDayData(
+                            id: $0.id,
+                            dayNumber: $0.dayNumber,
+                            backgroundColor: ElfColors.Calendar.dayColor(for: $0.dayType.rawValue)
+                        )
                     },
                     onTap: {
                         router.navigate(to: .calendar(

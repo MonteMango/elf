@@ -5,15 +5,17 @@
 //  Created by Vitalii Lytvynov
 //
 
-import Foundation
+import SwiftUI
 
 /// Simple data transfer object for calendar day display
 public struct CalendarDayData: Identifiable, Sendable {
     public let id: UUID
     public let dayNumber: Int
+    public let backgroundColor: Color
 
-    public init(id: UUID = UUID(), dayNumber: Int) {
+    public init(id: UUID = UUID(), dayNumber: Int, backgroundColor: Color = .white) {
         self.id = id
         self.dayNumber = dayNumber
+        self.backgroundColor = backgroundColor
     }
 }

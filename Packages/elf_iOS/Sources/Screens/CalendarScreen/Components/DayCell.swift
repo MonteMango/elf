@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 /// A single day cell for calendar display
@@ -17,7 +18,7 @@ struct DayCell: View {
         ZStack {
             // Background
             RoundedRectangle(cornerRadius: 4)
-                .fill(day.dayType.backgroundColor)
+                .fill(ElfColors.Calendar.dayColor(for: day.dayType.rawValue))
 
             // Day number or symbol
             VStack(spacing: 2) {

@@ -64,7 +64,7 @@ public struct CalendarSection: View {
         ZStack {
             // Background
             Rectangle()
-                .fill(backgroundColor(for: style))
+                .fill(day.backgroundColor)
                 .frame(width: daySize, height: daySize)
 
             // Border
@@ -87,22 +87,11 @@ public struct CalendarSection: View {
         }
     }
 
-    private func backgroundColor(for style: DayStyle) -> Color {
-        switch style {
-        case .current:
-            return .white
-        case .upcoming:
-            return Color(white: 0.9)
-        case .future:
-            return Color(red: 0.9, green: 0.85, blue: 0.95)  // light purple
-        }
-    }
-
     private func borderColor(for style: DayStyle) -> Color {
         switch style {
-        case .current, .upcoming:
+        case .current:
             return .orange
-        case .future:
+        case .upcoming, .future:
             return Color(white: 0.8)
         }
     }
@@ -110,11 +99,14 @@ public struct CalendarSection: View {
 
 #Preview {
     CalendarSection(
-        currentDay: CalendarDayData(dayNumber: 1),
+        currentDay: CalendarDayData(
+            dayNumber: 1,
+            backgroundColor: ElfColors.Calendar.normalDay
+        ),
         upcomingDays: [
-            CalendarDayData(dayNumber: 2),
-            CalendarDayData(dayNumber: 3),
-            CalendarDayData(dayNumber: 4)
+            CalendarDayData(dayNumber: 2, backgroundColor: ElfColors.Calendar.dungeonDay),
+            CalendarDayData(dayNumber: 3, backgroundColor: ElfColors.Calendar.eventDay),
+            CalendarDayData(dayNumber: 4, backgroundColor: ElfColors.Calendar.unknownDay)
         ],
         onTap: { print("Calendar tapped") }
     )
