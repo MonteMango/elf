@@ -18,6 +18,10 @@ public final class GameDayViewModel {
     // MARK: - UI State
 
     public var activeBuffs: [String]
+    public var isInventoryVisible: Bool = false
+
+    /// Item ID to pre-select when inventory opens
+    public var pendingInventoryItemId: UUID?
 
     // MARK: - Game Access
 
@@ -102,14 +106,26 @@ public final class GameDayViewModel {
 
     /// Called when a side menu button is tapped
     public func onSideMenuTapped(_ menu: SideMenuType) {
-        // UI only - logic will be implemented later
-        print("Side menu tapped: \(menu.rawValue)")
+        switch menu {
+        case .items:
+            isInventoryVisible.toggle()
+        default:
+            print("Side menu tapped: \(menu.rawValue)")
+        }
+    }
+
+    /// Called to close inventory overlay
+    public func closeInventory() {
+        isInventoryVisible = false
+        pendingInventoryItemId = nil
     }
 
     /// Called when an equipment slot is tapped
     public func onEquipmentSlotTapped(_ slotType: HeroItemType) {
-        // UI only - no navigation for now
-        print("Equipment slot tapped: \(slotType)")
+        // Get the equipped item's instance ID for this slot
+        let itemId = game.player.equipped.equippedItemId(for: slotType)
+        pendingInventoryItemId = itemId
+        isInventoryVisible = true
     }
 
     /// Called when a pocket slot is tapped

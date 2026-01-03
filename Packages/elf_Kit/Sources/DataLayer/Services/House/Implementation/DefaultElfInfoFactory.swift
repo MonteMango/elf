@@ -56,10 +56,33 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
         return ElfRobeItem(robeItem: robeItem)
     }
 
+    /// Creates default equipped items and inventory for new characters
+    private func createDefaultEquipment() -> (equipped: EquippedItems, inventory: ElfInventory) {
+        guard let weapon = createDefaultWeapon() else {
+            fatalError("Default weapon (Recruit's Spear) not found in repository")
+        }
+        let shirt = createDefaultShirt()
+
+        var inventory = ElfInventory()
+        inventory.addWeapon(weapon)
+        if let shirt {
+            inventory.addRobe(shirt)
+        }
+
+        let equipped = EquippedItems(
+            weapons: .twoHanded(weapon: weapon),
+            shirt: shirt
+        )
+
+        return (equipped, inventory)
+    }
+
     // MARK: - ElfInfoFactory
 
     public func create(from character: PlayerCharacter) -> ElfInfo {
-        ElfInfo(
+        let (equipped, inventory) = createDefaultEquipment()
+
+        return ElfInfo(
             id: character.id,
             name: character.name,
             imageName: character.appearance.imageName,
@@ -71,8 +94,8 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
             randomLevelAttributes: character.randomLevelAttributes,
             currentHP: character.totalAttributes.hitPoints,
             currentMP: character.totalAttributes.manaPoints,
-            equippedWeapon: createDefaultWeapon(),
-            equippedShirt: createDefaultShirt(),
+            equipped: equipped,
+            inventory: inventory,
             reputation: 0
         )
     }
@@ -92,6 +115,8 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
         let totalHP = fightStyleAttributes.hitPoints + randomLevelAttributes.hitPoints
         let totalMP = fightStyleAttributes.manaPoints + randomLevelAttributes.manaPoints
 
+        let (equipped, inventory) = createDefaultEquipment()
+
         return ElfInfo(
             name: aiNames.randomElement()!,
             imageName: "elf_ai_\(Int.random(in: 1...10))",
@@ -103,8 +128,8 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
             randomLevelAttributes: randomLevelAttributes,
             currentHP: totalHP,
             currentMP: totalMP,
-            equippedWeapon: createDefaultWeapon(),
-            equippedShirt: createDefaultShirt()
+            equipped: equipped,
+            inventory: inventory
         )
     }
 }

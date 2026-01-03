@@ -13,6 +13,17 @@
 | `.onAppear { Task { } }` | `.task { }` |
 | `@Environment(\.presentationMode)` | `@Environment(\.dismiss)` |
 
+### Background and Safe Area
+```swift
+// ❌ Ignores safe area (background extends beyond screen edges)
+.background(Color.gray)
+
+// ✅ Respects safe area
+.background {
+    Color.gray
+}
+```
+
 ---
 
 ## Architecture Mistakes

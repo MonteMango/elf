@@ -6,10 +6,26 @@
 //
 
 import elf_Kit
+import Foundation
 
 #if DEBUG
 
 enum PreviewMockData {
+
+    // MARK: - Default Weapon
+
+    private static let defaultWeaponId = UUID(uuidString: "dfbd2742-5470-4f97-84ea-fb17b5f3a6d2")!
+
+    private static func createDefaultEquipped() -> EquippedItems {
+        let repository = ElfItemsRepository()
+        guard let weaponItem = repository.getHeroItem(defaultWeaponId) as? WeaponItem else {
+            fatalError("Default weapon not found in repository")
+        }
+        let weapon = ElfWeaponItem(weaponItem: weaponItem)
+        return EquippedItems(weapons: .twoHanded(weapon: weapon))
+    }
+
+    // MARK: - Mock Elves
 
     static func createMockPlayerElfInfo() -> ElfInfo {
         ElfInfo(
@@ -36,7 +52,8 @@ enum PreviewMockData {
                 instinct: 0
             ),
             currentHP: 83,
-            currentMP: 23
+            currentMP: 23,
+            equipped: createDefaultEquipped()
         )
     }
 
@@ -65,7 +82,8 @@ enum PreviewMockData {
                 instinct: 1
             ),
             currentHP: 80,
-            currentMP: 20
+            currentMP: 20,
+            equipped: createDefaultEquipped()
         )
     }
 
@@ -126,6 +144,17 @@ enum PreviewMockData {
     @MainActor
     static func createMockGameDayViewModel() -> GameDayViewModel {
         GameDayViewModel(gameService: createMockGameService())
+    }
+
+    @MainActor
+    static func createMockInventoryViewModel() -> InventoryViewModel {
+        let gameService = createMockGameService()
+        let equipmentService = DefaultEquipmentService(gameService: gameService)
+        return InventoryViewModel(
+            gameService: gameService,
+            equipmentService: equipmentService,
+            materialRepository: ElfMaterialRepository()
+        )
     }
 
     static func createMockSnapshotBuilder() -> CombatantSnapshotBuilder {

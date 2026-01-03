@@ -70,17 +70,17 @@ public protocol GameService: AnyObject {
 
     // MARK: - Player Equipment
 
-    func equipWeapon(_ weapon: ElfWeaponItem?)
-    func equipShield(_ shield: ElfShieldItem?)
-    func equipHelmet(_ helmet: ElfDefenseItem?)
-    func equipGloves(_ gloves: ElfDefenseItem?)
-    func equipShoes(_ shoes: ElfDefenseItem?)
-    func equipUpperBody(_ upperBody: ElfDefenseItem?)
-    func equipBottomBody(_ bottomBody: ElfDefenseItem?)
+    /// Sets the weapon configuration (weapon, shield, dual-wield, etc.)
+    func setWeaponConfiguration(_ config: WeaponConfiguration)
+
+    /// Equips or unequips armor in the specified slot
+    func equipArmor(_ armor: ElfDefenseItem?, slot: ArmorSlot)
+
+    /// Equips or unequips jewelry in the specified slot
+    func equipJewelry(_ jewelry: ElfJewelryItem?, slot: JewelrySlot)
+
+    /// Equips or unequips a shirt
     func equipShirt(_ shirt: ElfRobeItem?)
-    func equipRing(_ ring: ElfJewelryItem?)
-    func equipNecklace(_ necklace: ElfJewelryItem?)
-    func equipEarrings(_ earrings: ElfJewelryItem?)
 
     // MARK: - House Management
 

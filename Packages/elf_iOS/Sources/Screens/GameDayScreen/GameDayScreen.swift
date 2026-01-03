@@ -21,7 +21,8 @@ internal struct GameDayScreen: View {
 
     internal var body: some View {
         GameDayScreenContent(
-            viewModel: container.makeGameDayViewModel(game: game, playTime: playTime)
+            viewModel: container.makeGameDayViewModel(game: game, playTime: playTime),
+            inventoryViewModel: container.makeInventoryViewModel()
         )
     }
 }

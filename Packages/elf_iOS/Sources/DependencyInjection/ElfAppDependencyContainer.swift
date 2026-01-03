@@ -53,6 +53,8 @@ public final class ElfAppDependencyContainer {
     // MARK: - Game Session State
 
     /// Currently active game service (nil when not in game)
+    /// @ObservationIgnored prevents view re-renders when this changes
+    @ObservationIgnored
     public private(set) var activeGameService: GameService?
 
     // MARK: - Initialization
@@ -290,6 +292,19 @@ public final class ElfAppDependencyContainer {
             calendar: calendar,
             currentDayNumber: currentDayNumber,
             daysPerIteration: self.calendarService.daysPerIteration
+        )
+    }
+
+    @MainActor
+    public func makeInventoryViewModel() -> InventoryViewModel {
+        guard let gameService = activeGameService else {
+            fatalError("No active game session. InventoryViewModel requires an active game.")
+        }
+        let equipmentService = DefaultEquipmentService(gameService: gameService)
+        return InventoryViewModel(
+            gameService: gameService,
+            equipmentService: equipmentService,
+            materialRepository: self.materialRepository
         )
     }
 

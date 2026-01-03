@@ -18,6 +18,13 @@ public final class DefaultGameService: GameService {
     public private(set) var game: Game
     public private(set) var playTime: TimeInterval
 
+    // MARK: - Player Access
+
+    private var player: ElfInfo {
+        get { game.houses[game.playerHouseIndex].members[game.playerMemberIndex] }
+        set { game.houses[game.playerHouseIndex].members[game.playerMemberIndex] = newValue }
+    }
+
     // MARK: - Dependencies
 
     private let gameRepository: GameRepository?
@@ -76,31 +83,21 @@ public final class DefaultGameService: GameService {
     }
 
     public func levelUpPlayer() {
-        let houseIndex = game.playerHouseIndex
-        let memberIndex = game.playerMemberIndex
+        guard player.currentExp >= player.expToNextLevel else { return }
 
-        guard game.houses[houseIndex].members[memberIndex].currentExp >=
-              game.houses[houseIndex].members[memberIndex].expToNextLevel else { return }
-
-        game.houses[houseIndex].members[memberIndex].currentExp -=
-            game.houses[houseIndex].members[memberIndex].expToNextLevel
-        game.houses[houseIndex].members[memberIndex].level += 1
+        player.currentExp -= player.expToNextLevel
+        player.level += 1
 
         // Increase exp required for next level (simple scaling)
-        game.houses[houseIndex].members[memberIndex].expToNextLevel =
-            Int(Double(game.houses[houseIndex].members[memberIndex].expToNextLevel) * 1.2)
+        player.expToNextLevel = Int(Double(player.expToNextLevel) * 1.2)
 
         // TODO: Add random attribute bonuses on level up via AttributeRandomizer
     }
 
     public func addDropsToPlayerInventory(rewards: HuntRewards) {
-        let houseIndex = game.playerHouseIndex
-        let memberIndex = game.playerMemberIndex
-
         // Add materials (stackable)
         for material in rewards.materials {
-            game.houses[houseIndex].members[memberIndex]
-                .inventory.addMaterial(id: material.id, quantity: material.amount)
+            player.inventory.addMaterial(id: material.id, quantity: material.amount)
         }
 
         // Add weapon if dropped
@@ -108,8 +105,7 @@ public final class DefaultGameService: GameService {
            let weaponId = UUID(uuidString: weaponIdString),
            let weaponItem = itemsRepository?.getHeroItem(weaponId) as? WeaponItem {
             let weapon = ElfWeaponItem(weaponItem: weaponItem)
-            game.houses[houseIndex].members[memberIndex]
-                .inventory.addWeapon(weapon)
+            player.inventory.addWeapon(weapon)
         }
 
         // Add armor if dropped
@@ -117,8 +113,7 @@ public final class DefaultGameService: GameService {
            let armorId = UUID(uuidString: armorIdString),
            let defenseItem = itemsRepository?.getHeroItem(armorId) as? DefenseItem {
             let armor = ElfDefenseItem(defenseItem: defenseItem)
-            game.houses[houseIndex].members[memberIndex]
-                .inventory.addArmor(armor)
+            player.inventory.addArmor(armor)
         }
     }
 
@@ -141,80 +136,58 @@ public final class DefaultGameService: GameService {
     }
 
     public func restorePlayerFullHP() {
-        let houseIndex = game.playerHouseIndex
-        let memberIndex = game.playerMemberIndex
-        game.houses[houseIndex].members[memberIndex].currentHP =
-            game.houses[houseIndex].members[memberIndex].maxHP
+        player.currentHP = player.maxHP
     }
 
     // MARK: - Player MP Management
 
     public func restorePlayerMP(_ amount: Int16) {
-        let houseIndex = game.playerHouseIndex
-        let memberIndex = game.playerMemberIndex
-        let newMP = game.houses[houseIndex].members[memberIndex].currentMP + amount
-        let maxMP = game.houses[houseIndex].members[memberIndex].maxMP
-        game.houses[houseIndex].members[memberIndex].currentMP = min(newMP, maxMP)
+        let newMP = player.currentMP + amount
+        player.currentMP = min(newMP, player.maxMP)
     }
 
     public func consumePlayerMP(_ amount: Int16) {
-        let houseIndex = game.playerHouseIndex
-        let memberIndex = game.playerMemberIndex
-        game.houses[houseIndex].members[memberIndex].currentMP =
-            max(0, game.houses[houseIndex].members[memberIndex].currentMP - amount)
+        player.currentMP = max(0, player.currentMP - amount)
     }
 
     public func restorePlayerFullMP() {
-        let houseIndex = game.playerHouseIndex
-        let memberIndex = game.playerMemberIndex
-        game.houses[houseIndex].members[memberIndex].currentMP =
-            game.houses[houseIndex].members[memberIndex].maxMP
+        player.currentMP = player.maxMP
     }
 
     // MARK: - Player Equipment
 
-    public func equipWeapon(_ weapon: ElfWeaponItem?) {
-        game.houses[game.playerHouseIndex].members[game.playerMemberIndex].equippedWeapon = weapon
+    public func setWeaponConfiguration(_ config: WeaponConfiguration) {
+        player.equipped.weapons = config
     }
 
-    public func equipShield(_ shield: ElfShieldItem?) {
-        game.houses[game.playerHouseIndex].members[game.playerMemberIndex].equippedShield = shield
+    public func equipArmor(_ armor: ElfDefenseItem?, slot: ArmorSlot) {
+        switch slot {
+        case .helmet:
+            player.equipped.helmet = armor
+        case .gloves:
+            player.equipped.gloves = armor
+        case .shoes:
+            player.equipped.shoes = armor
+        case .upperBody:
+            player.equipped.upperBody = armor
+        case .bottomBody:
+            player.equipped.bottomBody = armor
+        }
     }
 
-    public func equipHelmet(_ helmet: ElfDefenseItem?) {
-        game.houses[game.playerHouseIndex].members[game.playerMemberIndex].equippedHelmet = helmet
-    }
-
-    public func equipGloves(_ gloves: ElfDefenseItem?) {
-        game.houses[game.playerHouseIndex].members[game.playerMemberIndex].equippedGloves = gloves
-    }
-
-    public func equipShoes(_ shoes: ElfDefenseItem?) {
-        game.houses[game.playerHouseIndex].members[game.playerMemberIndex].equippedShoes = shoes
-    }
-
-    public func equipUpperBody(_ upperBody: ElfDefenseItem?) {
-        game.houses[game.playerHouseIndex].members[game.playerMemberIndex].equippedUpperBody = upperBody
-    }
-
-    public func equipBottomBody(_ bottomBody: ElfDefenseItem?) {
-        game.houses[game.playerHouseIndex].members[game.playerMemberIndex].equippedBottomBody = bottomBody
+    public func equipJewelry(_ jewelry: ElfJewelryItem?, slot: JewelrySlot) {
+        switch slot {
+        case .ring:
+            player.equipped.ring = jewelry
+        case .necklace:
+            player.equipped.necklace = jewelry
+        case .earrings:
+            player.equipped.earrings = jewelry
+        }
     }
 
     public func equipShirt(_ shirt: ElfRobeItem?) {
-        game.houses[game.playerHouseIndex].members[game.playerMemberIndex].equippedShirt = shirt
-    }
-
-    public func equipRing(_ ring: ElfJewelryItem?) {
-        game.houses[game.playerHouseIndex].members[game.playerMemberIndex].equippedRing = ring
-    }
-
-    public func equipNecklace(_ necklace: ElfJewelryItem?) {
-        game.houses[game.playerHouseIndex].members[game.playerMemberIndex].equippedNecklace = necklace
-    }
-
-    public func equipEarrings(_ earrings: ElfJewelryItem?) {
-        game.houses[game.playerHouseIndex].members[game.playerMemberIndex].equippedEarrings = earrings
+        player.equipped.shirt = shirt
     }
 
     // MARK: - House Management

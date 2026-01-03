@@ -12,23 +12,51 @@ import SwiftUI
 internal struct GameDayScreenContent: View {
     @Environment(AppRouter.self) private var router
     @State private var viewModel: GameDayViewModel
+    @State private var inventoryViewModel: InventoryViewModel
 
-    internal init(viewModel: GameDayViewModel) {
+    internal init(viewModel: GameDayViewModel, inventoryViewModel: InventoryViewModel) {
         self._viewModel = State(initialValue: viewModel)
+        self._inventoryViewModel = State(initialValue: inventoryViewModel)
     }
 
     var body: some View {
+        GeometryReader { geometry in
+            let spacing: CGFloat = 10
+            let centerWidth: CGFloat = 250
+            let topPadding: CGFloat = 15
+            let sideWidth = max(0, (geometry.size.width - centerWidth - 2 * spacing) / 2)
+            let contentHeight = max(0, geometry.size.height - topPadding)
 
-        HStack(spacing: 10) {
-              leftNewSection
-                  .frame(maxWidth: .infinity)
-              centerSection
-                  .frame(width: 250)
-              rightSection
-                  .frame(maxWidth: .infinity)
-          }
-        .padding(.top, 15)
+            HStack(alignment: .top, spacing: spacing) {
+                leftNewSection
+                    .frame(width: sideWidth)
+
+                // Center + Right sections
+                HStack(spacing: spacing) {
+                    centerSection
+                        .frame(width: centerWidth)
+                    rightSection
+                        .frame(width: sideWidth)
+                }
+                .opacity(viewModel.isInventoryVisible ? 0 : 1)
+                .frame(width: centerWidth + spacing + sideWidth, height: contentHeight)
+                .overlay {
+                    // Inventory: overlay inherits size from parent
+                    if viewModel.isInventoryVisible {
+                        InventoryScreenContent(
+                            viewModel: inventoryViewModel,
+                            selectedItemId: viewModel.pendingInventoryItemId
+                        )
+                        .transition(.opacity)
+                    }
+                }
+            }
+            .padding(.top, topPadding)
+        }
         .background(Color.white)
+        .task {
+            inventoryViewModel.onClose = viewModel.closeInventory
+        }
     }
 
     // MARK: - Left Section
@@ -109,7 +137,7 @@ internal struct GameDayScreenContent: View {
     private var rightSection: some View {
         VStack(alignment: .leading, spacing: 20) {
             // Top row: Calendar + Close button
-            HStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 0) {
 
                 Spacer()
 
@@ -152,7 +180,10 @@ internal struct GameDayScreenContent: View {
 #Preview {
     @Previewable @State var router = AppRouter()
 
-    GameDayScreenContent(viewModel: PreviewMockData.createMockGameDayViewModel())
-        .environment(router)
-        .preferredColorScheme(.light)
+    GameDayScreenContent(
+        viewModel: PreviewMockData.createMockGameDayViewModel(),
+        inventoryViewModel: PreviewMockData.createMockInventoryViewModel()
+    )
+    .environment(router)
+    .preferredColorScheme(.light)
 }

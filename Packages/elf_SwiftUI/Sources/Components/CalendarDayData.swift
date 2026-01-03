@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Simple data transfer object for calendar day display
-public struct CalendarDayData: Identifiable, Sendable {
+public struct CalendarDayData: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let dayNumber: Int
     public let backgroundColor: Color

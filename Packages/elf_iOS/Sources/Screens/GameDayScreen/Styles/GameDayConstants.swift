@@ -28,7 +28,7 @@ enum GameDayConstants {
         static let closeButtonBackground = Color.red
 
         // Equipment slots
-        static let equipmentSlotBackground = Color(red: 0.25, green: 0.25, blue: 0.3)
+        static let equipmentSlotBackground = Color.gray.opacity(0.3)
         static let equipmentSlotBorder = Color.gray.opacity(0.5)
 
         // Pockets

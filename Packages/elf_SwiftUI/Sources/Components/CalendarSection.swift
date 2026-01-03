@@ -39,7 +39,6 @@ public struct CalendarSection: View {
 
             // Current day (front, no offset)
             dayCell(day: currentDay, style: .current)
-                .shadow(color: .black.opacity(0.3), radius: 4, x: 2, y: 2)
         }
         .frame(width: totalWidth, height: daySize, alignment: .leading)
         .contentShape(Rectangle())
@@ -62,14 +61,18 @@ public struct CalendarSection: View {
     @ViewBuilder
     private func dayCell(day: CalendarDayData, style: DayStyle) -> some View {
         ZStack {
-            // Background
+            // Background with shadow (only for current style)
             Rectangle()
                 .fill(day.backgroundColor)
                 .frame(width: daySize, height: daySize)
+                .shadow(
+                    color: style == .current ? .black.opacity(0.3) : .clear,
+                    radius: 4, x: 2, y: 2
+                )
 
-            // Border
+            // Border (strokeBorder keeps border inside frame)
             Rectangle()
-                .stroke(borderColor(for: style), lineWidth: style == .current ? borderWidth : 1)
+                .strokeBorder(borderColor(for: style), lineWidth: style == .current ? borderWidth : 1)
                 .frame(width: daySize, height: daySize)
 
             // Content
