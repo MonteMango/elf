@@ -63,11 +63,11 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
     }
 
     public var maxHP: Int16 {
-        totalAttributes.hitPoints
+        totalAttributes.hitPoints.value
     }
 
     public var maxMP: Int16 {
-        totalAttributes.manaPoints
+        totalAttributes.manaPoints.value
     }
 
     public var expProgress: Double {

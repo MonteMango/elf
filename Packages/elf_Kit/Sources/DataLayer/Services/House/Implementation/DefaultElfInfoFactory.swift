@@ -92,8 +92,8 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
             expToNextLevel: 100,
             fightStyleAttributes: character.fightStyleAttributes,
             randomLevelAttributes: character.randomLevelAttributes,
-            currentHP: character.totalAttributes.hitPoints,
-            currentMP: character.totalAttributes.manaPoints,
+            currentHP: character.totalAttributes.hitPoints.value,
+            currentMP: character.totalAttributes.manaPoints.value,
             equipped: equipped,
             inventory: inventory,
             reputation: 0
@@ -126,8 +126,8 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
             expToNextLevel: 100 * Int(level),
             fightStyleAttributes: fightStyleAttributes,
             randomLevelAttributes: randomLevelAttributes,
-            currentHP: totalHP,
-            currentMP: totalMP,
+            currentHP: totalHP.value,
+            currentMP: totalMP.value,
             equipped: equipped,
             inventory: inventory
         )

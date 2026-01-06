@@ -175,7 +175,7 @@ final class ElfArmorServiceTests: XCTestCase {
         let service = ElfArmorService(itemsRepository: repository)
         let result = await service.getAllItemsArmor(for: [id])
 
-        XCTAssertEqual(result.values.reduce(0, +), 0)
+        XCTAssertEqual(result.values.reduce(Int16(0), +), 0)
     }
 
     func testMissingItemIsIgnored() async throws {
@@ -185,6 +185,6 @@ final class ElfArmorServiceTests: XCTestCase {
         let service = ElfArmorService(itemsRepository: repository)
         let result = await service.getAllItemsArmor(for: [id])
 
-        XCTAssertEqual(result.values.reduce(0, +), 0)
+        XCTAssertEqual(result.values.reduce(Int16(0), +), 0)
     }
 }

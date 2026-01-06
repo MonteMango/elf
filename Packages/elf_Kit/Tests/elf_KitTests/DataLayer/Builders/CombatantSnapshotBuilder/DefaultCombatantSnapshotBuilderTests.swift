@@ -296,7 +296,9 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
 
     func testBuildSnapshot_FromElfConfig_NoWeapons_HasDefaultAttackDefensePoints() async {
         // Given
-        let attributes = HeroAttributes(hitPoints: 100)
+        let attributes = HeroAttributes(
+            hitPoints: 100, manaPoints: 0, agility: 0, strength: 0, power: 0, instinct: 0
+        )
 
         // When
         let snapshot = await builder.buildSnapshot(
@@ -304,7 +306,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             imageName: "",
             level: 1,
             fightStyleAttributes: attributes,
-            randomLevelAttributes: HeroAttributes(),
+            randomLevelAttributes: .zero,
             selectedItems: [:]
         )
 
@@ -316,7 +318,9 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
 
     func testBuildSnapshot_FromElfConfig_UsesArmorFromService() async {
         // Given
-        let attributes = HeroAttributes(hitPoints: 100)
+        let attributes = HeroAttributes(
+            hitPoints: 100, manaPoints: 0, agility: 0, strength: 0, power: 0, instinct: 0
+        )
         mockArmorService.armorToReturn = [
             .head: 5,
             .body: 10,
@@ -331,7 +335,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             imageName: "",
             level: 1,
             fightStyleAttributes: attributes,
-            randomLevelAttributes: HeroAttributes(),
+            randomLevelAttributes: .zero,
             selectedItems: [:]
         )
 

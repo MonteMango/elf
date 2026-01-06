@@ -49,11 +49,10 @@ public final class ElfGameInitializationService: GameInitializationService {
         let calendar = calendarService.generateFullCalendar()
         let firstDay = calendar.first ?? GameDay(dayNumber: 1, dayType: .normal)
 
-        // Create game state
+        // Create game state with full action points
         let gameState = GameState(
             currentDay: firstDay,
-            currentActionPoints: 100,
-            maxActionPoints: 100,
+            actionPoints: ActionPoints.unsafeCreate(current: 100, maximum: 100),
             calendar: calendar
         )
 

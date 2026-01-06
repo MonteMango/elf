@@ -88,10 +88,10 @@ internal struct GameDayScreenContent: View {
 
             // Attributes
             elf_SwiftUI.AttributesCompactView(
-                strength: Int(viewModel.totalAttributes.strength),
-                agility: Int(viewModel.totalAttributes.agility),
-                power: Int(viewModel.totalAttributes.power),
-                instinct: Int(viewModel.totalAttributes.instinct)
+                strength: viewModel.totalAttributes.strength.intValue,
+                agility: viewModel.totalAttributes.agility.intValue,
+                power: viewModel.totalAttributes.power.intValue,
+                instinct: viewModel.totalAttributes.instinct.intValue
             )
         }
     }

@@ -29,41 +29,41 @@ struct AttributesPanel: View {
             // Group 1: Basic attributes
             attributeRow(
                 title: "Strength",
-                value: attributes?.strength ?? 0,
+                value: attributes?.strength.value ?? 0,
                 breakdown: (
-                    fightStyleAttrs?.strength ?? 0,
-                    levelAttrs?.strength ?? 0,
-                    itemsAttrs?.strength ?? 0
+                    fightStyleAttrs?.strength.value ?? 0,
+                    levelAttrs?.strength.value ?? 0,
+                    itemsAttrs?.strength.value ?? 0
                 )
             )
 
             attributeRow(
                 title: "Agility",
-                value: attributes?.agility ?? 0,
+                value: attributes?.agility.value ?? 0,
                 breakdown: (
-                    fightStyleAttrs?.agility ?? 0,
-                    levelAttrs?.agility ?? 0,
-                    itemsAttrs?.agility ?? 0
+                    fightStyleAttrs?.agility.value ?? 0,
+                    levelAttrs?.agility.value ?? 0,
+                    itemsAttrs?.agility.value ?? 0
                 )
             )
 
             attributeRow(
                 title: "Power",
-                value: attributes?.power ?? 0,
+                value: attributes?.power.value ?? 0,
                 breakdown: (
-                    fightStyleAttrs?.power ?? 0,
-                    levelAttrs?.power ?? 0,
-                    itemsAttrs?.power ?? 0
+                    fightStyleAttrs?.power.value ?? 0,
+                    levelAttrs?.power.value ?? 0,
+                    itemsAttrs?.power.value ?? 0
                 )
             )
 
             attributeRow(
                 title: "Instinct",
-                value: attributes?.instinct ?? 0,
+                value: attributes?.instinct.value ?? 0,
                 breakdown: (
-                    fightStyleAttrs?.instinct ?? 0,
-                    levelAttrs?.instinct ?? 0,
-                    itemsAttrs?.instinct ?? 0
+                    fightStyleAttrs?.instinct.value ?? 0,
+                    levelAttrs?.instinct.value ?? 0,
+                    itemsAttrs?.instinct.value ?? 0
                 )
             )
 
@@ -113,21 +113,21 @@ struct AttributesPanel: View {
             // Group 3: Resource attributes
             attributeRow(
                 title: "HP",
-                value: attributes?.hitPoints ?? 0,
+                value: attributes?.hitPoints.value ?? 0,
                 breakdown: (
-                    fightStyleAttrs?.hitPoints ?? 0,
-                    levelAttrs?.hitPoints ?? 0,
-                    itemsAttrs?.hitPoints ?? 0
+                    fightStyleAttrs?.hitPoints.value ?? 0,
+                    levelAttrs?.hitPoints.value ?? 0,
+                    itemsAttrs?.hitPoints.value ?? 0
                 )
             )
 
             attributeRow(
                 title: "MP",
-                value: attributes?.manaPoints ?? 0,
+                value: attributes?.manaPoints.value ?? 0,
                 breakdown: (
-                    fightStyleAttrs?.manaPoints ?? 0,
-                    levelAttrs?.manaPoints ?? 0,
-                    itemsAttrs?.manaPoints ?? 0
+                    fightStyleAttrs?.manaPoints.value ?? 0,
+                    levelAttrs?.manaPoints.value ?? 0,
+                    itemsAttrs?.manaPoints.value ?? 0
                 )
             )
         }

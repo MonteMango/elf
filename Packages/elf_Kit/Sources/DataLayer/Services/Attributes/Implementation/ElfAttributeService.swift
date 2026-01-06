@@ -20,34 +20,34 @@ public final class ElfAttributeService: AttributeService {
     public func getAllFightStyleAttributes(for fightStyle: FightStyle, at level: Int16) async -> HeroAttributes {
         switch fightStyle {
         case .crit:
-            var attributes = HeroAttributes()
-            attributes.hitPoints = 80
-            attributes.manaPoints = 20
-            attributes.agility = 0
-            attributes.instinct = 1 * level
-            attributes.power = 4 * level
-            attributes.strength = 1 * level
-            return attributes
+            return HeroAttributes(
+                hitPoints: 80,
+                manaPoints: 20,
+                agility: 0,
+                strength: Attribute(1 * level),
+                power: Attribute(4 * level),
+                instinct: Attribute(1 * level)
+            )
 
         case .def:
-            var attributes = HeroAttributes()
-            attributes.hitPoints = 80 + (2 * level)
-            attributes.manaPoints = 20
-            attributes.agility = 0
-            attributes.instinct = 2 * level
-            attributes.power = 0
-            attributes.strength = 2 * level
-            return attributes
+            return HeroAttributes(
+                hitPoints: Attribute(80 + (2 * level)),
+                manaPoints: 20,
+                agility: 0,
+                strength: Attribute(2 * level),
+                power: 0,
+                instinct: Attribute(2 * level)
+            )
 
         case .dodge:
-            var attributes = HeroAttributes()
-            attributes.hitPoints = 80
-            attributes.manaPoints = 20
-            attributes.agility = 4 * level
-            attributes.instinct = 1 * level
-            attributes.power = 0
-            attributes.strength = 1 * level
-            return attributes
+            return HeroAttributes(
+                hitPoints: 80,
+                manaPoints: 20,
+                agility: Attribute(4 * level),
+                strength: Attribute(1 * level),
+                power: 0,
+                instinct: Attribute(1 * level)
+            )
         }
     }
 
@@ -132,7 +132,7 @@ public final class ElfAttributeService: AttributeService {
 
     public func calculateTotalHP(from attributes: [HeroAttributes]) -> Int {
         return attributes.reduce(0) { total, attrs in
-            total + Int(attrs.hitPoints)
+            total + attrs.hitPoints.intValue
         }
     }
 }

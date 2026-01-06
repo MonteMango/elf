@@ -23,8 +23,7 @@ public struct GameStateSaveData: Codable, Sendable {
     public func toGameState() -> GameState {
         GameState(
             currentDay: currentDay.toGameDay(),
-            currentActionPoints: currentActionPoints,
-            maxActionPoints: maxActionPoints,
+            actionPoints: ActionPoints.unsafeCreate(current: currentActionPoints, maximum: maxActionPoints),
             calendar: calendar.map { $0.toGameDay() }
         )
     }

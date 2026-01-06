@@ -123,8 +123,7 @@ enum PreviewMockData {
 
         let gameState = GameState(
             currentDay: firstDay,
-            currentActionPoints: 100,
-            maxActionPoints: 100,
+            actionPoints: ActionPoints.unsafeCreate(current: 100, maximum: 100),
             calendar: calendar
         )
 

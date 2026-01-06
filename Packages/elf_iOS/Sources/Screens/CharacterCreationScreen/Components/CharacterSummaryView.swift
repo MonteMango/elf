@@ -122,15 +122,15 @@ struct CharacterSummaryView: View {
     private var attributesView: some View {
         if let attrs = fightStyleAttributes {
             VStack(alignment: .leading, spacing: 8) {
-                attributeRow("Strength", base: attrs.strength, bonus: randomAttributes?.strength)
-                attributeRow("Agility", base: attrs.agility, bonus: randomAttributes?.agility)
-                attributeRow("Power", base: attrs.power, bonus: randomAttributes?.power)
-                attributeRow("Instinct", base: attrs.instinct, bonus: randomAttributes?.instinct)
+                attributeRow("Strength", base: attrs.strength.value, bonus: randomAttributes?.strength.value)
+                attributeRow("Agility", base: attrs.agility.value, bonus: randomAttributes?.agility.value)
+                attributeRow("Power", base: attrs.power.value, bonus: randomAttributes?.power.value)
+                attributeRow("Instinct", base: attrs.instinct.value, bonus: randomAttributes?.instinct.value)
 
                 Spacer().frame(height: 8)
 
-                attributeRow("HP", base: attrs.hitPoints, bonus: randomAttributes?.hitPoints)
-                attributeRow("MP", base: attrs.manaPoints, bonus: randomAttributes?.manaPoints)
+                attributeRow("HP", base: attrs.hitPoints.value, bonus: randomAttributes?.hitPoints.value)
+                attributeRow("MP", base: attrs.manaPoints.value, bonus: randomAttributes?.manaPoints.value)
             }
         }
     }

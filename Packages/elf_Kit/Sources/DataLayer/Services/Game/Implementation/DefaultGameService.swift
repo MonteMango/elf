@@ -65,11 +65,13 @@ public final class DefaultGameService: GameService {
     }
 
     public func spendActionPoints(_ amount: Int) {
-        game.gameState.currentActionPoints = max(0, game.gameState.currentActionPoints - amount)
+        if case .success(let newPoints) = game.gameState.actionPoints.spend(amount) {
+            game.gameState.actionPoints = newPoints
+        }
     }
 
     public func restoreActionPoints() {
-        game.gameState.currentActionPoints = game.gameState.maxActionPoints
+        game.gameState.actionPoints = game.gameState.actionPoints.reset()
     }
 
     // MARK: - Player Progression
