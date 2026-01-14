@@ -70,4 +70,5 @@ public final class ElfCritDistributionStrategy: CritDistributionStrategy {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: Stateless class with no stored properties.
 extension ElfCritDistributionStrategy: @unchecked Sendable {}

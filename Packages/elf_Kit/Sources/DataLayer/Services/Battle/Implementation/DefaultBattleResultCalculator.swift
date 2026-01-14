@@ -68,8 +68,14 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
         }
 
         // Save game after battle rewards are applied
-        Task {
-            try? await gameService?.saveGame()
+        Task(priority: .userInitiated) {
+            do {
+                try await gameService?.saveGame()
+            } catch {
+                #if DEBUG
+                print("[BattleResultCalculator] Failed to save game: \(error)")
+                #endif
+            }
         }
 
         // Get new player XP state (after adding)

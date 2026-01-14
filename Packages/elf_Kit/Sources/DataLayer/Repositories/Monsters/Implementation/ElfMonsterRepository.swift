@@ -117,4 +117,6 @@ public final class ElfMonsterRepository: MonsterRepository {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: All stored properties are immutable (let) after initialization.
+// `_monstersData` is a value type, `monsterLookup` is an immutable dictionary of value types.
 extension ElfMonsterRepository: @unchecked Sendable {}

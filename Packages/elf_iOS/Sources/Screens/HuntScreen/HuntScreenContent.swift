@@ -11,9 +11,9 @@ import SwiftUI
 
 struct HuntScreenContent: View {
     @Environment(AppRouter.self) private var router
-    @State private var viewModel: HuntViewModel
+    @State private var viewModel: ElfAppDependencyContainer.HuntVM
 
-    init(viewModel: HuntViewModel) {
+    init(viewModel: ElfAppDependencyContainer.HuntVM) {
         self._viewModel = State(initialValue: viewModel)
     }
 
@@ -98,14 +98,13 @@ struct HuntScreenContent: View {
 
 #Preview {
     @Previewable @State var router = AppRouter()
+    let container = ElfAppDependencyContainer()
+    container.initializePreviewSession(game: PreviewMockData.createMockGame())
 
-    HuntScreenContent(
-        viewModel: HuntViewModel(
-            gameService: PreviewMockData.createMockGameService(),
-            monsterRepository: ElfMonsterRepository(),
-            materialRepository: ElfMaterialRepository(),
-            snapshotBuilder: PreviewMockData.createMockSnapshotBuilder()
+    return NavigationStack(path: $router.navigationPath) {
+        HuntScreenContent(
+            viewModel: container.makeHuntViewModel()
         )
-    )
-    .environment(router)
+        .environment(router)
+    }
 }

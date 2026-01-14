@@ -9,20 +9,29 @@ import Foundation
 
 @Observable
 @MainActor
-public final class BattleFightViewModel {
+public final class BattleFightViewModel<
+    BotAI: BotAIService,
+    RoundExec: CombatRoundExecutor,
+    Logger: BattleLogger,
+    DebugLog: DebugBattleLogger,
+    DuelPair: DuelPairingService,
+    GameSvc: GameService,
+    MonsterRepo: MonsterRepository,
+    ResultCalc: BattleResultCalculator
+> {
 
     // MARK: - Dependencies
 
-    private let botAI: BotAIService
-    private let combatRoundExecutor: CombatRoundExecutor
-    private let battleLogger: BattleLogger
-    private let debugLogger: DebugBattleLogger
-    private let duelPairingService: DuelPairingService
+    private let botAI: BotAI
+    private let combatRoundExecutor: RoundExec
+    private let battleLogger: Logger
+    private let debugLogger: DebugLog
+    private let duelPairingService: DuelPair
 
     // Result calculation dependencies (optional for non-hunt battles)
-    private let gameService: GameService?
-    private let monsterRepository: MonsterRepository?
-    private let battleResultCalculator: BattleResultCalculator?
+    private let gameService: GameSvc?
+    private let monsterRepository: MonsterRepo?
+    private let battleResultCalculator: ResultCalc?
 
     // MARK: - State
 
@@ -77,14 +86,14 @@ public final class BattleFightViewModel {
 
     public init(
         battle: Battle,
-        botAI: BotAIService,
-        combatRoundExecutor: CombatRoundExecutor,
-        battleLogger: BattleLogger,
-        debugLogger: DebugBattleLogger,
-        duelPairingService: DuelPairingService,
-        gameService: GameService? = nil,
-        monsterRepository: MonsterRepository? = nil,
-        battleResultCalculator: BattleResultCalculator? = nil
+        botAI: BotAI,
+        combatRoundExecutor: RoundExec,
+        battleLogger: Logger,
+        debugLogger: DebugLog,
+        duelPairingService: DuelPair,
+        gameService: GameSvc? = nil,
+        monsterRepository: MonsterRepo? = nil,
+        battleResultCalculator: ResultCalc? = nil
     ) {
         self.battle = battle
         self.botAI = botAI
@@ -170,16 +179,26 @@ public final class BattleFightViewModel {
             botDefense: Array(botDefensePoints)
         )
 
-        // Execute combat round using CombatRoundExecutor
+        // Execute combat round using CombatRoundExecutor on background thread
         // Snapshots are already in Battle, no need to create them
-        let roundResult = await combatRoundExecutor.executeRound(
-            playerSnapshot: playerSnapshot,
-            botSnapshot: botSnapshot,
-            playerAttackPoints: playerAttackPoints,
-            playerDefensePoints: playerDefensePoints,
-            botAttackPoints: botAttackPoints,
-            botDefensePoints: botDefensePoints
-        )
+        let executor = combatRoundExecutor
+        let pSnap = playerSnapshot
+        let bSnap = botSnapshot
+        let pAttack = playerAttackPoints
+        let pDefense = playerDefensePoints
+        let bAttack = botAttackPoints
+        let bDefense = botDefensePoints
+
+        let roundResult = await Task.detached(priority: .userInitiated) {
+            await executor.executeRound(
+                playerSnapshot: pSnap,
+                botSnapshot: bSnap,
+                playerAttackPoints: pAttack,
+                playerDefensePoints: pDefense,
+                botAttackPoints: bAttack,
+                botDefensePoints: bDefense
+            )
+        }.value
 
         // Store results
         playerLastRoundResults = roundResult.playerResults

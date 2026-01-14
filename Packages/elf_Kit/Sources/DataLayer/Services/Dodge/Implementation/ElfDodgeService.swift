@@ -105,4 +105,5 @@ public final class ElfDodgeService: DodgeService {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: Single immutable (let) stored property `distributionStrategy` is a Sendable protocol.
 extension ElfDodgeService: @unchecked Sendable {}

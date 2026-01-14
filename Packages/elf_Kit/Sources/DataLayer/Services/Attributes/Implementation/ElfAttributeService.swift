@@ -138,4 +138,6 @@ public final class ElfAttributeService: AttributeService {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: All stored properties are immutable (let) after initialization.
+// Dependencies: ItemsRepository is a Sendable protocol, AttributeRandomizer is stateless.
 extension ElfAttributeService: @unchecked Sendable {}

@@ -32,8 +32,9 @@ public enum CharacterBuilderError: Error, Sendable, Equatable {
 }
 
 /// Protocol for building PlayerCharacter with validation
+/// Note: @MainActor because it holds mutable state used in character creation flow
 @MainActor
-public protocol CharacterBuilder: Sendable {
+public protocol CharacterBuilder {
     func setAppearance(_ appearance: CharacterAppearance)
 
     func setName(_ name: String)

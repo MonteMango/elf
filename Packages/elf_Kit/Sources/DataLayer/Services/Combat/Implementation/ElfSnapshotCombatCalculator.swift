@@ -287,4 +287,6 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: All stored properties are immutable (let) after initialization.
+// All dependencies are Sendable protocols: DamageService, DodgeService, CritService, DebugBattleLogger.
 extension ElfSnapshotCombatCalculator: @unchecked Sendable {}

@@ -9,12 +9,12 @@ import Foundation
 
 @Observable
 @MainActor
-public final class MainMenuViewModel {
+public final class MainMenuViewModel<ItemsRepo: ItemsRepository, GameRepo: GameRepository> {
 
     // MARK: - Dependencies
 
-    private let itemsRepository: ItemsRepository
-    private let gameRepository: GameRepository
+    private let itemsRepository: ItemsRepo
+    private let gameRepository: GameRepo
 
     // MARK: - State
 
@@ -35,7 +35,7 @@ public final class MainMenuViewModel {
 
     // MARK: - Initialization
 
-    public init(itemsRepository: ItemsRepository, gameRepository: GameRepository) {
+    public init(itemsRepository: ItemsRepo, gameRepository: GameRepo) {
         self.itemsRepository = itemsRepository
         self.gameRepository = gameRepository
         self.hasSavedGame = gameRepository.hasAnySave()

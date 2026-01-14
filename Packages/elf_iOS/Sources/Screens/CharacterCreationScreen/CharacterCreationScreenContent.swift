@@ -11,10 +11,10 @@ import SwiftUI
 
 struct CharacterCreationScreenContent: View {
     @Environment(AppRouter.self) private var router
-    @State private var viewModel: CharacterCreationViewModel
+    @State private var viewModel: ElfAppDependencyContainer.CharacterCreationVM
     @FocusState private var isTextFieldFocused: Bool
 
-    init(viewModel: CharacterCreationViewModel) {
+    init(viewModel: ElfAppDependencyContainer.CharacterCreationVM) {
         self._viewModel = State(initialValue: viewModel)
     }
 

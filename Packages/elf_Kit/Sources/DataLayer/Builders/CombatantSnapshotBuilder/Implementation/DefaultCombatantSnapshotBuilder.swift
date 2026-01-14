@@ -223,4 +223,6 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: All stored properties are immutable (let) after initialization.
+// All dependencies are Sendable protocols: ItemsRepository, ArmorService.
 extension DefaultCombatantSnapshotBuilder: @unchecked Sendable {}

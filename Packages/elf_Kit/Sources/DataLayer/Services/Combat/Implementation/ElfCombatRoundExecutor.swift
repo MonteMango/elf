@@ -34,21 +34,23 @@ public final class ElfCombatRoundExecutor: CombatRoundExecutor {
         botAttackPoints: Set<BodyPart>,
         botDefensePoints: Set<BodyPart>
     ) async -> CombatRoundResult {
-        // Calculate combat results for player (bot attacking player)
-        let playerResults = await snapshotCombatCalculator.calculatePointStatus(
+        // Calculate combat results in parallel
+        async let playerResultsTask = snapshotCombatCalculator.calculatePointStatus(
             attackingPoints: botAttackPoints,
             defendingPoints: playerDefensePoints,
             attacker: botSnapshot,
             defender: playerSnapshot
         )
 
-        // Calculate combat results for bot (player attacking bot)
-        let botResults = await snapshotCombatCalculator.calculatePointStatus(
+        async let botResultsTask = snapshotCombatCalculator.calculatePointStatus(
             attackingPoints: playerAttackPoints,
             defendingPoints: botDefensePoints,
             attacker: playerSnapshot,
             defender: botSnapshot
         )
+
+        // Await both results
+        let (playerResults, botResults) = await (playerResultsTask, botResultsTask)
 
         // Calculate total damage
         let playerDamageTaken = damageService.calculateTotalDamage(from: playerResults)
@@ -64,5 +66,6 @@ public final class ElfCombatRoundExecutor: CombatRoundExecutor {
 }
 
 // MARK: - Sendable Conformance
-
+// Thread-safe: All stored properties are immutable (let) after initialization.
+// All dependencies are Sendable protocols: SnapshotCombatCalculator, DamageService.
 extension ElfCombatRoundExecutor: @unchecked Sendable {}

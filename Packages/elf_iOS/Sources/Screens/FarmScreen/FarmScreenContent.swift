@@ -33,9 +33,9 @@ extension View {
 
 struct FarmScreenContent: View {
     @Environment(AppRouter.self) private var router
-    @State private var viewModel: FarmViewModel
+    @State private var viewModel: ElfAppDependencyContainer.FarmVM
 
-    init(viewModel: FarmViewModel) {
+    init(viewModel: ElfAppDependencyContainer.FarmVM) {
         self._viewModel = State(initialValue: viewModel)
     }
 
@@ -130,10 +130,14 @@ struct FarmScreenContent: View {
 }
 
 #Preview {
-    FarmScreenContent(
-        viewModel: FarmViewModel(
-            gameService: PreviewMockData.createMockGameService()
+    @Previewable @State var router = AppRouter()
+    let container = ElfAppDependencyContainer()
+    container.initializePreviewSession(game: PreviewMockData.createMockGame())
+
+    return NavigationStack(path: $router.navigationPath) {
+        FarmScreenContent(
+            viewModel: container.makeFarmViewModel()
         )
-    )
-    .environment(AppRouter())
+        .environment(router)
+    }
 }

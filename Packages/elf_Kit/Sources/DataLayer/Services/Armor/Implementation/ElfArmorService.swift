@@ -40,4 +40,5 @@ public final class ElfArmorService: ArmorService {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: Single immutable (let) stored property `itemsRepository` is a Sendable protocol.
 extension ElfArmorService: @unchecked Sendable {}

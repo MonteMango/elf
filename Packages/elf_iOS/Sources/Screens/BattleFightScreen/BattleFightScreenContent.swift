@@ -11,10 +11,10 @@ import SwiftUI
 
 internal struct BattleFightScreenContent: View {
     @Environment(AppRouter.self) private var router
-    @State private var viewModel: BattleFightViewModel
+    @State private var viewModel: ElfAppDependencyContainer.BattleFightVM
     @State private var showLeaveConfirmation = false
 
-    internal init(viewModel: BattleFightViewModel) {
+    internal init(viewModel: ElfAppDependencyContainer.BattleFightVM) {
         self._viewModel = State(initialValue: viewModel)
     }
 

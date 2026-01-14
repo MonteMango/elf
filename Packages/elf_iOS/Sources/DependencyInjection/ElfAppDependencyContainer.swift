@@ -8,54 +8,62 @@
 import elf_Kit
 import Foundation
 
+// MARK: - Debug Logger Type Alias
+
+#if DEBUG
+public typealias DebugLoggerImpl = ConsoleDebugBattleLogger
+#else
+public typealias DebugLoggerImpl = NoOpDebugBattleLogger
+#endif
+
 @Observable
 public final class ElfAppDependencyContainer {
 
-    // MARK: - Long-lived dependencies
+    // MARK: - Long-lived dependencies (concrete types for static dispatch)
 
-    public let itemsRepository: ItemsRepository
-    public let attributeService: AttributeService
-    public let armorService: ArmorService
-    public let damageService: DamageService
-    public let dodgeService: DodgeService
-    public let critService: CritService
-    public let weaponValidator: WeaponValidator
-    public let snapshotBuilder: CombatantSnapshotBuilder
-    public let fightStyleDescriptionService: FightStyleDescriptionService
-    public let nameSuggestionService: CharacterNameSuggestionService
-    public let elfInfoFactory: ElfInfoFactory
-    public let houseService: HouseService
-    public let gameRepository: GameRepository
-    public let calendarService: CalendarService
+    public let itemsRepository: ElfItemsRepository
+    public let attributeService: ElfAttributeService
+    public let armorService: ElfArmorService
+    public let damageService: ElfDamageService
+    public let dodgeService: ElfDodgeService
+    public let critService: ElfCritService
+    public let weaponValidator: ElfWeaponValidator
+    public let snapshotBuilder: DefaultCombatantSnapshotBuilder
+    public let fightStyleDescriptionService: DefaultFightStyleDescriptionService
+    public let nameSuggestionService: DefaultCharacterNameSuggestionService
+    public let elfInfoFactory: DefaultElfInfoFactory
+    public let houseService: DefaultHouseService
+    public let gameRepository: FileGameRepository
+    public let calendarService: DefaultCalendarService
 
-    // Battle services
-    public let botAI: BotAIService
-    public let snapshotCombatCalculator: SnapshotCombatCalculator
-    public let battleLogger: BattleLogger
-    public let debugBattleLogger: DebugBattleLogger
-    public let statisticsParser: BattleStatisticsParser
-    public let battleSimulationService: BattleSimulationService
-    public let combatRoundExecutor: CombatRoundExecutor
-    public let duelPairingService: DuelPairingService
-    public let monsterRepository: MonsterRepository
-    public let materialRepository: MaterialRepository
+    // Battle services (concrete types for static dispatch)
+    public let botAI: ElfRandomBotAI
+    public let snapshotCombatCalculator: ElfSnapshotCombatCalculator
+    public let battleLogger: ElfBattleLogger
+    public let debugBattleLogger: DebugLoggerImpl
+    public let statisticsParser: ElfBattleStatisticsParser
+    public let battleSimulationService: ElfBattleSimulationService
+    public let combatRoundExecutor: ElfCombatRoundExecutor
+    public let duelPairingService: RandomDuelPairingService
+    public let monsterRepository: ElfMonsterRepository
+    public let materialRepository: ElfMaterialRepository
 
     // Hunt and drop services
-    public let huntService: HuntService
-    public let dropService: DropService
+    public let huntService: ElfHuntService
+    public let dropService: DefaultDropService
 
     // Battle result calculation
-    public let battleResultCalculator: BattleResultCalculator
+    public let battleResultCalculator: DefaultBattleResultCalculator
 
     // Game initialization
-    public let gameInitializationService: GameInitializationService
+    public let gameInitializationService: ElfGameInitializationService
 
     // MARK: - Game Session State
 
     /// Currently active game service (nil when not in game)
     /// @ObservationIgnored prevents view re-renders when this changes
     @ObservationIgnored
-    public private(set) var activeGameService: GameService?
+    public private(set) var activeGameService: DefaultGameService?
 
     // MARK: - Initialization
 
@@ -66,11 +74,12 @@ public final class ElfAppDependencyContainer {
             attributeService: attributeService,
             itemsRepository: itemsRepository
         )
+        let armorService = ElfArmorService(itemsRepository: itemsRepository)
 
         self.itemsRepository = itemsRepository
         self.attributeService = attributeService
         self.elfInfoFactory = elfInfoFactory
-        self.armorService = ElfArmorService(itemsRepository: itemsRepository)
+        self.armorService = armorService
 
         // Initialize debug logger based on build configuration
         #if DEBUG
@@ -84,27 +93,29 @@ public final class ElfAppDependencyContainer {
 //            .bodyPartCalculation,
 //            .roundEnd
         ]
-        self.debugBattleLogger = ConsoleDebugBattleLogger(categories: debugLogCategories)
+        let debugBattleLogger = ConsoleDebugBattleLogger(categories: debugLogCategories)
         #else
-        self.debugBattleLogger = NoOpDebugBattleLogger()
+        let debugBattleLogger = NoOpDebugBattleLogger()
         #endif
+        self.debugBattleLogger = debugBattleLogger
 
-        self.damageService = ElfDamageService(
-            itemsRepository: itemsRepository
-        )
+        let damageService = ElfDamageService(itemsRepository: itemsRepository)
+        self.damageService = damageService
 
         // Initialize dodge service with distribution strategy
         let dodgeDistributionStrategy = ElfDodgeDistributionStrategy()
-        self.dodgeService = ElfDodgeService(distributionStrategy: dodgeDistributionStrategy)
+        let dodgeService = ElfDodgeService(distributionStrategy: dodgeDistributionStrategy)
+        self.dodgeService = dodgeService
 
         // Initialize crit service with distribution strategy
         let critDistributionStrategy = ElfCritDistributionStrategy()
-        self.critService = ElfCritService(distributionStrategy: critDistributionStrategy)
+        let critService = ElfCritService(distributionStrategy: critDistributionStrategy)
+        self.critService = critService
 
         self.weaponValidator = ElfWeaponValidator(itemsRepository: itemsRepository)
         self.snapshotBuilder = DefaultCombatantSnapshotBuilder(
             itemsRepository: itemsRepository,
-            armorService: self.armorService
+            armorService: armorService
         )
 
         // Initialize character creation services
@@ -113,61 +124,136 @@ public final class ElfAppDependencyContainer {
         self.houseService = DefaultHouseService(elfInfoFactory: elfInfoFactory)
 
         // Initialize persistence
-        self.gameRepository = FileGameRepository(itemsRepository: itemsRepository)
+        let gameRepository = FileGameRepository(itemsRepository: itemsRepository)
+        self.gameRepository = gameRepository
 
         // Initialize calendar service
-        self.calendarService = DefaultCalendarService()
+        let calendarService = DefaultCalendarService()
+        self.calendarService = calendarService
 
         // Initialize battle services
-        self.botAI = ElfRandomBotAI()
-        self.snapshotCombatCalculator = ElfSnapshotCombatCalculator(
-            damageService: self.damageService,
-            dodgeService: self.dodgeService,
-            critService: self.critService,
-            debugLogger: self.debugBattleLogger
+        let botAI = ElfRandomBotAI()
+        self.botAI = botAI
+
+        let snapshotCombatCalculator = ElfSnapshotCombatCalculator(
+            damageService: damageService,
+            dodgeService: dodgeService,
+            critService: critService,
+            debugLogger: debugBattleLogger
         )
+        self.snapshotCombatCalculator = snapshotCombatCalculator
+
         self.battleLogger = ElfBattleLogger()
-        self.statisticsParser = ElfBattleStatisticsParser()
+
+        let statisticsParser = ElfBattleStatisticsParser()
+        self.statisticsParser = statisticsParser
+
         self.battleSimulationService = ElfBattleSimulationService(
-            botAI: self.botAI,
-            snapshotCombatCalculator: self.snapshotCombatCalculator,
-            damageService: self.damageService,
-            statisticsParser: self.statisticsParser
+            botAI: botAI,
+            snapshotCombatCalculator: snapshotCombatCalculator,
+            damageService: damageService,
+            statisticsParser: statisticsParser
         )
         self.combatRoundExecutor = ElfCombatRoundExecutor(
-            snapshotCombatCalculator: self.snapshotCombatCalculator,
-            damageService: self.damageService
+            snapshotCombatCalculator: snapshotCombatCalculator,
+            damageService: damageService
         )
         self.duelPairingService = RandomDuelPairingService()
         self.monsterRepository = ElfMonsterRepository()
-        self.materialRepository = ElfMaterialRepository()
+
+        let materialRepository = ElfMaterialRepository()
+        self.materialRepository = materialRepository
 
         // Hunt and drop services
-        self.huntService = ElfHuntService()
-        self.dropService = DefaultDropService(
-            materialRepository: self.materialRepository,
+        let huntService = ElfHuntService()
+        self.huntService = huntService
+
+        let dropService = DefaultDropService(
+            materialRepository: materialRepository,
             itemsRepository: itemsRepository
         )
+        self.dropService = dropService
 
         // Battle result calculation
         self.battleResultCalculator = DefaultBattleResultCalculator(
-            huntService: self.huntService,
-            dropService: self.dropService
+            huntService: huntService,
+            dropService: dropService
         )
 
         // Game initialization service
         self.gameInitializationService = ElfGameInitializationService(
             houseService: self.houseService,
             elfInfoFactory: elfInfoFactory,
-            calendarService: self.calendarService,
-            gameRepository: self.gameRepository
+            calendarService: calendarService,
+            gameRepository: gameRepository
         )
     }
 
     // MARK: - ViewModel Factories
 
+    // Type aliases for complex generic ViewModels
+    public typealias BattleSetupVM = BattleSetupViewModel<
+        ElfItemsRepository,
+        ElfAttributeService,
+        ElfArmorService,
+        ElfDamageService,
+        ElfWeaponValidator,
+        DefaultCombatantSnapshotBuilder,
+        ElfMonsterRepository
+    >
+
+    public typealias BattleFightVM = BattleFightViewModel<
+        ElfRandomBotAI,
+        ElfCombatRoundExecutor,
+        ElfBattleLogger,
+        DebugLoggerImpl,
+        RandomDuelPairingService,
+        DefaultGameService,
+        ElfMonsterRepository,
+        DefaultBattleResultCalculator
+    >
+
+    public typealias AutoBattleVM = AutoBattleViewModel<
+        ElfRandomBotAI,
+        ElfSnapshotCombatCalculator,
+        ElfDamageService,
+        ElfBattleStatisticsParser
+    >
+
+    public typealias MultiBattleVM = MultiBattleViewModel<ElfBattleSimulationService>
+
+    public typealias MainMenuVM = MainMenuViewModel<ElfItemsRepository, FileGameRepository>
+
+    public typealias CharacterCreationVM = CharacterCreationViewModel<
+        ElfAttributeService,
+        DefaultCharacterNameValidator,
+        DefaultCharacterBuilder,
+        DefaultFightStyleDescriptionService,
+        DefaultCharacterNameSuggestionService,
+        ElfGameInitializationService
+    >
+
+    public typealias SelectHeroItemVM = SelectHeroItemViewModel<ElfItemsRepository>
+
+    public typealias GameDayVM = GameDayViewModel<DefaultGameService>
+
+    public typealias HuntVM = HuntViewModel<
+        DefaultGameService,
+        ElfMonsterRepository,
+        ElfMaterialRepository,
+        DefaultCombatantSnapshotBuilder
+    >
+
+    public typealias FarmVM = FarmViewModel<DefaultGameService>
+
+    public typealias InventoryVM = InventoryViewModel<
+        DefaultGameService,
+        DefaultEquipmentService,
+        ElfMaterialRepository
+    >
+
     @MainActor
-    public func makeBattleSetupViewModel() -> BattleSetupViewModel {
+    public func makeBattleSetupViewModel() -> BattleSetupVM {
         return BattleSetupViewModel(
             itemsRepository: self.itemsRepository,
             attributeService: self.attributeService,
@@ -180,7 +266,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeBattleFightViewModel(battle: Battle) -> BattleFightViewModel {
+    public func makeBattleFightViewModel(battle: Battle) -> BattleFightVM {
         return BattleFightViewModel(
             battle: battle,
             botAI: self.botAI,
@@ -195,7 +281,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeAutoBattleViewModel(battle: Battle) -> AutoBattleViewModel {
+    public func makeAutoBattleViewModel(battle: Battle) -> AutoBattleVM {
         return AutoBattleViewModel(
             battle: battle,
             botAI: self.botAI,
@@ -206,7 +292,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeMultiBattleViewModel(battle: Battle) -> MultiBattleViewModel {
+    public func makeMultiBattleViewModel(battle: Battle) -> MultiBattleVM {
         return MultiBattleViewModel(
             battle: battle,
             battleSimulationService: self.battleSimulationService
@@ -219,7 +305,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeMainMenuViewModel() -> MainMenuViewModel {
+    public func makeMainMenuViewModel() -> MainMenuVM {
         return MainMenuViewModel(
             itemsRepository: self.itemsRepository,
             gameRepository: self.gameRepository
@@ -227,7 +313,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeCharacterCreationViewModel() -> CharacterCreationViewModel {
+    public func makeCharacterCreationViewModel() -> CharacterCreationVM {
         let nameValidator = DefaultCharacterNameValidator()
         let characterBuilder = DefaultCharacterBuilder()
 
@@ -246,7 +332,7 @@ public final class ElfAppDependencyContainer {
         heroType: HeroType,
         heroItemType: HeroItemType,
         currentItemId: UUID?
-    ) -> SelectHeroItemViewModel {
+    ) -> SelectHeroItemVM {
         return SelectHeroItemViewModel(
             heroType: heroType,
             heroItemType: heroItemType,
@@ -256,7 +342,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeGameDayViewModel(game: Game, playTime: TimeInterval = 0) -> GameDayViewModel {
+    public func makeGameDayViewModel(game: Game, playTime: TimeInterval = 0) -> GameDayVM {
         // Clean up previous game session if exists
         activeGameService = nil
 
@@ -271,7 +357,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeHuntViewModel() -> HuntViewModel {
+    public func makeHuntViewModel() -> HuntVM {
         guard let gameService = activeGameService else {
             fatalError("No active game session. HuntViewModel requires an active game.")
         }
@@ -284,7 +370,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeFarmViewModel() -> FarmViewModel {
+    public func makeFarmViewModel() -> FarmVM {
         guard let gameService = activeGameService else {
             fatalError("No active game session. FarmViewModel requires an active game.")
         }
@@ -304,7 +390,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeInventoryViewModel() -> InventoryViewModel {
+    public func makeInventoryViewModel() -> InventoryVM {
         guard let gameService = activeGameService else {
             fatalError("No active game session. InventoryViewModel requires an active game.")
         }
@@ -324,4 +410,19 @@ public final class ElfAppDependencyContainer {
         guard let gameService = activeGameService else { return }
         try? await gameService.saveGame()
     }
+
+    // MARK: - Preview Support
+
+    #if DEBUG
+    /// Initialize a game session for SwiftUI previews without side effects
+    @MainActor
+    public func initializePreviewSession(game: Game) {
+        activeGameService = DefaultGameService(
+            game: game,
+            gameRepository: self.gameRepository,
+            itemsRepository: self.itemsRepository,
+            playTime: 0
+        )
+    }
+    #endif
 }

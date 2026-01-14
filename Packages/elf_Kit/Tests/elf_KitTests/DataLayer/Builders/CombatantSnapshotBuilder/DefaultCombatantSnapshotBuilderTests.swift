@@ -43,7 +43,6 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
     final class MockArmorService: ArmorService, @unchecked Sendable {
         var armorToReturn: [BodyPart: Int16] = [:]
 
-        func calculateItemArmor(itemId: UUID) async -> [BodyPart: Int16] { [:] }
         func getAllItemsArmor(for itemIds: [UUID]) async -> [BodyPart: Int16] { armorToReturn }
     }
 

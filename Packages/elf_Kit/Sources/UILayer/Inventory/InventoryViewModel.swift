@@ -9,13 +9,17 @@ import Foundation
 
 @Observable
 @MainActor
-public final class InventoryViewModel {
+public final class InventoryViewModel<
+    GameSvc: GameService,
+    EquipSvc: EquipmentService,
+    MaterialRepo: MaterialRepository
+> {
 
     // MARK: - Dependencies
 
-    let gameService: GameService
-    let equipmentService: EquipmentService
-    let materialRepository: MaterialRepository
+    let gameService: GameSvc
+    let equipmentService: EquipSvc
+    let materialRepository: MaterialRepo
 
     // MARK: - State
 
@@ -84,9 +88,9 @@ public final class InventoryViewModel {
     // MARK: - Initialization
 
     public init(
-        gameService: GameService,
-        equipmentService: EquipmentService,
-        materialRepository: MaterialRepository
+        gameService: GameSvc,
+        equipmentService: EquipSvc,
+        materialRepository: MaterialRepo
     ) {
         self.gameService = gameService
         self.equipmentService = equipmentService

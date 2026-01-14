@@ -94,4 +94,5 @@ public final class NoOpDebugBattleLogger: DebugBattleLogger {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: Stateless class with no stored properties. All methods are no-op.
 extension NoOpDebugBattleLogger: @unchecked Sendable {}

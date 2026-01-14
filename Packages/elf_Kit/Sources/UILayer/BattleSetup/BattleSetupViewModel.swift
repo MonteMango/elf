@@ -9,7 +9,15 @@ import Foundation
 
 @Observable
 @MainActor
-public final class BattleSetupViewModel {
+public final class BattleSetupViewModel<
+    ItemsRepo: ItemsRepository,
+    AttrSvc: AttributeService,
+    ArmorSvc: ArmorService,
+    DmgSvc: DamageService,
+    WeaponVal: WeaponValidator,
+    SnapshotBld: CombatantSnapshotBuilder,
+    MonsterRepo: MonsterRepository
+> {
 
     // MARK: - Hero Configuration State
 
@@ -75,13 +83,13 @@ public final class BattleSetupViewModel {
 
     // MARK: - Dependencies
 
-    private let itemsRepository: ItemsRepository
-    private let attributeService: AttributeService
-    private let armorService: ArmorService
-    private let damageService: DamageService
-    private let weaponValidator: WeaponValidator
-    private let snapshotBuilder: CombatantSnapshotBuilder
-    private let monsterRepository: MonsterRepository
+    private let itemsRepository: ItemsRepo
+    private let attributeService: AttrSvc
+    private let armorService: ArmorSvc
+    private let damageService: DmgSvc
+    private let weaponValidator: WeaponVal
+    private let snapshotBuilder: SnapshotBld
+    private let monsterRepository: MonsterRepo
 
     // MARK: - State
 
@@ -189,13 +197,13 @@ public final class BattleSetupViewModel {
     // MARK: - Initialization
 
     public init(
-        itemsRepository: ItemsRepository,
-        attributeService: AttributeService,
-        armorService: ArmorService,
-        damageService: DamageService,
-        weaponValidator: WeaponValidator,
-        snapshotBuilder: CombatantSnapshotBuilder,
-        monsterRepository: MonsterRepository
+        itemsRepository: ItemsRepo,
+        attributeService: AttrSvc,
+        armorService: ArmorSvc,
+        damageService: DmgSvc,
+        weaponValidator: WeaponVal,
+        snapshotBuilder: SnapshotBld,
+        monsterRepository: MonsterRepo
     ) {
         self.itemsRepository = itemsRepository
         self.attributeService = attributeService
@@ -340,18 +348,20 @@ public final class BattleSetupViewModel {
                     return  // Values changed - this task is outdated
                 }
 
-                // Fetch attributes in parallel
+                // Fetch attributes in parallel on background thread
                 let service = attributeService
                 let levelInt16 = Int16(currentLevel)
-                async let fightStyleAttrs = service.getAllFightStyleAttributes(
-                    for: fightStyle,
-                    at: levelInt16
-                )
-                async let levelRandomAttrs = service.getAllRandomLevelAttributes(
-                    for: levelInt16
-                )
 
-                let (fsAttrs, lrAttrs) = await (fightStyleAttrs, levelRandomAttrs)
+                let (fsAttrs, lrAttrs) = await Task.detached(priority: .userInitiated) {
+                    async let fightStyleAttrs = service.getAllFightStyleAttributes(
+                        for: fightStyle,
+                        at: levelInt16
+                    )
+                    async let levelRandomAttrs = service.getAllRandomLevelAttributes(
+                        for: levelInt16
+                    )
+                    return await (fightStyleAttrs, levelRandomAttrs)
+                }.value
 
                 // Final validation before updating UI
                 guard !Task.isCancelled,
@@ -415,18 +425,43 @@ public final class BattleSetupViewModel {
                 let primaryWeaponId = currentItems[.weapons] ?? nil
                 let secondaryWeaponId = currentItems[.shields] ?? nil
 
-                // Fetch all data in parallel
-                async let itemsAttrs = attributeService.getAllItemsAttributes(for: itemIds)
-                async let armorValues = armorService.getAllItemsArmor(for: itemIds)
+                // Fetch all data in parallel on background thread
+                let attrService = attributeService
+                let armService = armorService
+                let dmgService = damageService
+                let itemsRepo = itemsRepository
 
-                // Check two-handed weapon and calculate damage
-                let (twoHandedWeaponId, rightHandDamage, leftHandDamage) = await self.calculateWeaponData(
-                    primaryWeaponId: primaryWeaponId,
-                    secondaryWeaponId: secondaryWeaponId
-                )
+                let (attrs, armor, twoHandedWeaponId, rightHandDamage, leftHandDamage) = await Task.detached(priority: .userInitiated) {
+                    async let itemsAttrs = attrService.getAllItemsAttributes(for: itemIds)
+                    async let armorVals = armService.getAllItemsArmor(for: itemIds)
 
-                // Wait for all parallel operations
-                let (attrs, armor) = await (itemsAttrs, armorValues)
+                    // Check two-handed weapon and calculate damage
+                    var isTwoHanded = false
+                    var twoHandedId: UUID?
+
+                    if let weaponId = primaryWeaponId,
+                       let item = itemsRepo.getHeroItem(weaponId),
+                       let weapon = item as? WeaponItem {
+                        if weapon.handUse == .both {
+                            isTwoHanded = true
+                            twoHandedId = weapon.id
+                        }
+                    }
+
+                    let rightDmg: (minDmg: Int16, maxDmg: Int16)?
+                    let leftDmg: (minDmg: Int16, maxDmg: Int16)?
+
+                    if isTwoHanded {
+                        rightDmg = await dmgService.getWeaponDamage(weaponId: primaryWeaponId)
+                        leftDmg = (minDmg: 0, maxDmg: 0)
+                    } else {
+                        rightDmg = await dmgService.getWeaponDamage(weaponId: primaryWeaponId)
+                        leftDmg = await dmgService.getWeaponDamage(weaponId: secondaryWeaponId)
+                    }
+
+                    let (a, ar) = await (itemsAttrs, armorVals)
+                    return (a, ar, twoHandedId, rightDmg, leftDmg)
+                }.value
 
                 // Final validation before updating UI
                 guard !Task.isCancelled,
@@ -451,43 +486,6 @@ public final class BattleSetupViewModel {
         }
 
         setEquipmentTask(task, for: heroType)
-    }
-
-    /// Helper method to calculate weapon-related data (two-handed check + damage)
-    private func calculateWeaponData(
-        primaryWeaponId: UUID?,
-        secondaryWeaponId: UUID?
-    ) async -> (twoHandedWeaponId: UUID?, rightHandDamage: (minDmg: Int16, maxDmg: Int16)?, leftHandDamage: (minDmg: Int16, maxDmg: Int16)?) {
-
-        // Check if primary weapon is two-handed
-        var isTwoHanded = false
-        var twoHandedWeaponId: UUID?
-
-        if let weaponId = primaryWeaponId,
-           let item = itemsRepository.getHeroItem(weaponId),
-           let weapon = item as? WeaponItem {
-            if weapon.handUse == .both {
-                isTwoHanded = true
-                twoHandedWeaponId = weapon.id
-            }
-        }
-
-        // Calculate damage based on weapon configuration
-        let rightHandDamage: (minDmg: Int16, maxDmg: Int16)?
-        let leftHandDamage: (minDmg: Int16, maxDmg: Int16)?
-
-        if isTwoHanded {
-            // Two-handed weapon: damage only in right hand, left hand is 0-0
-            rightHandDamage = await damageService.getWeaponDamage(weaponId: primaryWeaponId)
-            leftHandDamage = (minDmg: 0, maxDmg: 0)
-        } else {
-            // Single weapons: calculate separately for each hand in parallel
-            async let rightDamage = damageService.getWeaponDamage(weaponId: primaryWeaponId)
-            async let leftDamage = damageService.getWeaponDamage(weaponId: secondaryWeaponId)
-            (rightHandDamage, leftHandDamage) = await (rightDamage, leftDamage)
-        }
-
-        return (twoHandedWeaponId, rightHandDamage, leftHandDamage)
     }
 
     private func schedulePlayerEquipmentUpdate() {

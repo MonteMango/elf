@@ -69,4 +69,6 @@ public final class ElfMaterialRepository: MaterialRepository {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: All stored properties are immutable (let) after initialization.
+// `_materialsData` is a value type, `materialLookup` is an immutable dictionary of value types.
 extension ElfMaterialRepository: @unchecked Sendable {}

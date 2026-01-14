@@ -80,21 +80,22 @@ public final class ElfBattleSimulationService: BattleSimulationService {
             let bot2Attack = botAI.selectAttackPoints(count: bot2Snapshot.attackPoints)
             let bot2Defense = botAI.selectDefensePoints(count: bot2Snapshot.defensePoints)
 
-            // Calculate bot2 attacking bot1
-            let bot1Results = await snapshotCombatCalculator.calculatePointStatus(
+            // Calculate both attacks in parallel
+            async let bot1ResultsTask = snapshotCombatCalculator.calculatePointStatus(
                 attackingPoints: bot2Attack,
                 defendingPoints: bot1Defense,
                 attacker: bot2Snapshot,
                 defender: bot1Snapshot
             )
 
-            // Calculate bot1 attacking bot2
-            let bot2Results = await snapshotCombatCalculator.calculatePointStatus(
+            async let bot2ResultsTask = snapshotCombatCalculator.calculatePointStatus(
                 attackingPoints: bot1Attack,
                 defendingPoints: bot2Defense,
                 attacker: bot1Snapshot,
                 defender: bot2Snapshot
             )
+
+            let (bot1Results, bot2Results) = await (bot1ResultsTask, bot2ResultsTask)
 
             // Calculate damage
             let bot1DamageTaken = damageService.calculateTotalDamage(from: bot1Results)
@@ -211,4 +212,6 @@ public final class ElfBattleSimulationService: BattleSimulationService {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: All stored properties are immutable (let) after initialization.
+// All dependencies are Sendable protocols: BotAIService, SnapshotCombatCalculator, DamageService, BattleStatisticsParser.
 extension ElfBattleSimulationService: @unchecked Sendable {}

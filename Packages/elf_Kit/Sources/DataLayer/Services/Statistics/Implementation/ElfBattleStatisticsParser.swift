@@ -79,4 +79,5 @@ public final class ElfBattleStatisticsParser: BattleStatisticsParser {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: Stateless class with no stored properties.
 extension ElfBattleStatisticsParser: @unchecked Sendable {}

@@ -129,4 +129,7 @@ public final class ElfItemsRepository: ItemsRepository {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: All stored properties are immutable (let) after initialization.
+// `_heroItems` is a value type, `heroItemLookup` is an immutable dictionary.
+// Note: Dictionary values are protocol types (Item), but all implementations are reference-immutable.
 extension ElfItemsRepository: @unchecked Sendable {}

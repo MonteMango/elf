@@ -160,4 +160,6 @@ public final class ElfCritService: CritService {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: All stored properties are immutable (let) after initialization.
+// CritDistributionStrategy is a Sendable protocol, CritMultiplierDistribution is a value type.
 extension ElfCritService: @unchecked Sendable {}

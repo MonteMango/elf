@@ -78,5 +78,6 @@ public final class ElfGameInitializationService: GameInitializationService {
 }
 
 // MARK: - Sendable Conformance
-
+// Thread-safe: All stored properties are immutable (let) after initialization.
+// All dependencies are Sendable protocols: HouseService, ElfInfoFactory, CalendarService, GameRepository.
 extension ElfGameInitializationService: @unchecked Sendable {}

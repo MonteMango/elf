@@ -9,14 +9,19 @@ import Foundation
 
 @Observable
 @MainActor
-public final class HuntViewModel {
+public final class HuntViewModel<
+    GameSvc: GameService,
+    MonsterRepo: MonsterRepository,
+    MaterialRepo: MaterialRepository,
+    SnapshotBld: CombatantSnapshotBuilder
+> {
 
     // MARK: - Dependencies
 
-    private let gameService: GameService
-    private let monsterRepository: MonsterRepository
-    private let materialRepository: MaterialRepository
-    private let snapshotBuilder: CombatantSnapshotBuilder
+    private let gameService: GameSvc
+    private let monsterRepository: MonsterRepo
+    private let materialRepository: MaterialRepo
+    private let snapshotBuilder: SnapshotBld
 
     // MARK: - Constants
 
@@ -84,10 +89,10 @@ public final class HuntViewModel {
     // MARK: - Initialization
 
     public init(
-        gameService: GameService,
-        monsterRepository: MonsterRepository,
-        materialRepository: MaterialRepository,
-        snapshotBuilder: CombatantSnapshotBuilder
+        gameService: GameSvc,
+        monsterRepository: MonsterRepo,
+        materialRepository: MaterialRepo,
+        snapshotBuilder: SnapshotBld
     ) {
         self.gameService = gameService
         self.monsterRepository = monsterRepository

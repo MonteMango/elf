@@ -12,9 +12,9 @@ internal struct BattleSetupScreenContent: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppRouter.self) private var router
     @Environment(ElfAppDependencyContainer.self) private var container
-    @State private var viewModel: BattleSetupViewModel
+    @State private var viewModel: ElfAppDependencyContainer.BattleSetupVM
 
-    internal init(viewModel: BattleSetupViewModel) {
+    internal init(viewModel: ElfAppDependencyContainer.BattleSetupVM) {
         self._viewModel = State(initialValue: viewModel)
     }
 

@@ -9,11 +9,11 @@ import elf_Kit
 import SwiftUI
 
 internal struct AutoBattleResultScreenContent: View {
-    @State private var viewModel: AutoBattleViewModel
+    @State private var viewModel: ElfAppDependencyContainer.AutoBattleVM
     let onClose: () -> Void
 
     internal init(
-        viewModel: AutoBattleViewModel,
+        viewModel: ElfAppDependencyContainer.AutoBattleVM,
         onClose: @escaping () -> Void
     ) {
         self._viewModel = State(initialValue: viewModel)

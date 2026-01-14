@@ -9,16 +9,23 @@ import Foundation
 
 @Observable
 @MainActor
-public final class CharacterCreationViewModel {
+public final class CharacterCreationViewModel<
+    AttrSvc: AttributeService,
+    NameVal: CharacterNameValidator,
+    CharBld: CharacterBuilder,
+    FightStyleDesc: FightStyleDescriptionService,
+    NameSugg: CharacterNameSuggestionService,
+    GameInit: GameInitializationService
+> {
 
     // MARK: - Dependencies
 
-    private let attributeService: AttributeService
-    private let nameValidator: CharacterNameValidator
-    private let characterBuilder: CharacterBuilder
-    private let fightStyleDescriptionService: FightStyleDescriptionService
-    private let nameSuggestionService: CharacterNameSuggestionService
-    private let gameInitializationService: GameInitializationService
+    private let attributeService: AttrSvc
+    private let nameValidator: NameVal
+    private let characterBuilder: CharBld
+    private let fightStyleDescriptionService: FightStyleDesc
+    private let nameSuggestionService: NameSugg
+    private let gameInitializationService: GameInit
 
     // MARK: - Stage State
 
@@ -110,12 +117,12 @@ public final class CharacterCreationViewModel {
     // MARK: - Initialization
 
     public init(
-        attributeService: AttributeService,
-        nameValidator: CharacterNameValidator,
-        characterBuilder: CharacterBuilder,
-        fightStyleDescriptionService: FightStyleDescriptionService,
-        nameSuggestionService: CharacterNameSuggestionService,
-        gameInitializationService: GameInitializationService
+        attributeService: AttrSvc,
+        nameValidator: NameVal,
+        characterBuilder: CharBld,
+        fightStyleDescriptionService: FightStyleDesc,
+        nameSuggestionService: NameSugg,
+        gameInitializationService: GameInit
     ) {
         self.attributeService = attributeService
         self.nameValidator = nameValidator
@@ -188,14 +195,21 @@ public final class CharacterCreationViewModel {
 
         guard let style = selectedFightStyle else { return }
 
+        // Capture service for Task.detached (services are Sendable)
+        let service = attributeService
+        let level = GameMechanicsConstants.startingLevel
+
         attributeLoadingTask = Task { @MainActor in
             isLoadingAttributes = true
             defer { isLoadingAttributes = false }
 
-            fightStyleAttributes = await attributeService.getAllFightStyleAttributes(
-                for: style,
-                at: GameMechanicsConstants.startingLevel
-            )
+            // Run calculation on background thread
+            let attrs = await Task.detached(priority: .userInitiated) {
+                await service.getAllFightStyleAttributes(for: style, at: level)
+            }.value
+
+            // Update UI on MainActor
+            fightStyleAttributes = attrs
         }
     }
 
@@ -205,8 +219,13 @@ public final class CharacterCreationViewModel {
               selectedAppearance != nil,
               fightStyleAttributes != nil else { return }
 
-        // Generate random attributes
-        randomLevelAttributes = await attributeService.getRandomLevelAttributes()
+        // Capture service for Task.detached (services are Sendable)
+        let service = attributeService
+
+        // Generate random attributes on background thread
+        randomLevelAttributes = await Task.detached(priority: .userInitiated) {
+            await service.getRandomLevelAttributes()
+        }.value
 
         // Create character and game using GameInitializationService
         guard let character = createCharacter(),

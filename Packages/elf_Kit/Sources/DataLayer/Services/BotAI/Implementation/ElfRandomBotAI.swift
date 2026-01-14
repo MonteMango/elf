@@ -25,4 +25,5 @@ public final class ElfRandomBotAI: BotAIService {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: Single immutable (let) stored property `allBodyParts` is an array of value types.
 extension ElfRandomBotAI: @unchecked Sendable {}

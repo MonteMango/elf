@@ -7,6 +7,9 @@
 
 import Foundation
 
+// MARK: - Sendable Conformance
+// Thread-safe: All stored properties are immutable (let) after initialization.
+// `id` is UUID, `enchantLevel` is Int (value types), `item` is Item protocol but implementations are reference-immutable.
 public final class ElfWeaponItem: ElfItem, Hashable, Equatable, @unchecked Sendable {
     public let id: UUID
     public let item: Item

@@ -112,4 +112,6 @@ public final class ElfDamageService: DamageService {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: All stored properties are immutable (let) after initialization.
+// Dependencies (ItemsRepository, StrengthDamageDistributionStrategy) are Sendable protocols.
 extension ElfDamageService: @unchecked Sendable {}

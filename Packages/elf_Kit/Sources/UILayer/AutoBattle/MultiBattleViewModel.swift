@@ -10,12 +10,12 @@ import Observation
 
 @Observable
 @MainActor
-public final class MultiBattleViewModel {
+public final class MultiBattleViewModel<BattleSim: BattleSimulationService> {
 
     // MARK: - Dependencies
 
     private let battle: Battle
-    private let battleSimulationService: BattleSimulationService
+    private let battleSimulationService: BattleSim
 
     // MARK: - Configuration
 
@@ -51,7 +51,7 @@ public final class MultiBattleViewModel {
 
     public init(
         battle: Battle,
-        battleSimulationService: BattleSimulationService,
+        battleSimulationService: BattleSim,
         totalBattles: Int = 1000,
         batchSize: Int = 25
     ) {

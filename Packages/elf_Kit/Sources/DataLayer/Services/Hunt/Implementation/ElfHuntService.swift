@@ -81,4 +81,5 @@ public final class ElfHuntService: HuntService {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: Stateless class with no stored properties.
 extension ElfHuntService: @unchecked Sendable {}

@@ -70,4 +70,5 @@ public final class ElfDodgeDistributionStrategy: DodgeDistributionStrategy {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: Stateless class with no stored properties.
 extension ElfDodgeDistributionStrategy: @unchecked Sendable {}

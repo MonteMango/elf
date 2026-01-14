@@ -323,4 +323,5 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
 }
 
 // MARK: - Sendable Conformance
+// Thread-safe: Single immutable (let) stored property `categories` is a Set<DebugBattleLogCategory> value type.
 extension ConsoleDebugBattleLogger: @unchecked Sendable {}
