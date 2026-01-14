@@ -30,31 +30,31 @@ struct HeroSection: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(
-                    width: GameDayConstants.Sizing.heroImageWidth,
-                    height: GameDayConstants.Sizing.heroImageHeight
+                    width: ElfSizing.GameDay.heroImageWidth,
+                    height: ElfSizing.GameDay.heroImageHeight
                 )
-                .background { Color.gray }
-                .padding(.bottom, bottomSectionHeight + GameDayConstants.Spacing.gridSpacing)
+                .background { ElfColors.Text.secondary }
+                .padding(.bottom, bottomSectionHeight + ElfSpacing.grid)
 
             // Bottom row with equipment slots + pockets below
-            VStack(alignment: .center, spacing: 10) {
+            VStack(alignment: .center, spacing: ElfSpacing.medium) {
                 // Equipment row (left, jewelry, right - all bottom aligned)
                 HStack(spacing: 0) {
                     // HP and MP stats (top left)
-                    HStack(spacing: 4) {
-                        IconValueLabel(icon: "heart.fill", value: currentHP, color: ElfColors.hp)
-                        IconValueLabel(icon: "sparkles", value: currentMP, color: ElfColors.mana)
+                    HStack(spacing: ElfSpacing.xxs) {
+                        IconValueLabel(icon: "heart.fill", value: currentHP, color: ElfColors.ProgressBar.hp)
+                        IconValueLabel(icon: "sparkles", value: currentMP, color: ElfColors.ProgressBar.mp)
                     }
 
                     Spacer()
 
                     // Reputation stats (top right)
-                    IconValueLabel(icon: "crown.fill", value: reputation, color: ElfColors.reputation)
+                    IconValueLabel(icon: "crown.fill", value: reputation, color: ElfColors.primary)
                 }
 
                 HStack(alignment: .bottom, spacing: 0) {
                     // Left column: 4 equipment slots
-                    VStack(alignment: .leading, spacing: GameDayConstants.Spacing.gridSpacing) {
+                    VStack(alignment: .leading, spacing: ElfSpacing.grid) {
                         equipmentSlot(for: .helmet)
                         equipmentSlot(for: .gloves)
                         equipmentSlot(for: .shoes)
@@ -64,7 +64,7 @@ struct HeroSection: View {
                     Spacer()
 
                     // Center: 3 jewelry slots (horizontal, centered)
-                    HStack(alignment: .bottom, spacing: GameDayConstants.Spacing.gridSpacing) {
+                    HStack(alignment: .bottom, spacing: ElfSpacing.grid) {
                         equipmentSlot(for: .ring)
                         equipmentSlot(for: .necklace)
                         equipmentSlot(for: .earrings)
@@ -73,7 +73,7 @@ struct HeroSection: View {
                     Spacer()
 
                     // Right column: 4 equipment slots
-                    VStack(alignment: .trailing, spacing: GameDayConstants.Spacing.gridSpacing) {
+                    VStack(alignment: .trailing, spacing: ElfSpacing.grid) {
                         equipmentSlot(for: .upperBody)
                         equipmentSlot(for: .bottomBody)
                         equipmentSlot(for: .shirt)
@@ -93,7 +93,7 @@ struct HeroSection: View {
 
     private var bottomSectionHeight: CGFloat {
         // jewelry + spacing (10) + pockets
-        jewelrySlotSize + 10 + GameDayConstants.Sizing.pocketSize
+        jewelrySlotSize + ElfSpacing.medium + ElfSizing.GameDay.pocketSize
     }
 
     private var sideSpacing: CGFloat {
@@ -109,8 +109,8 @@ struct HeroSection: View {
     @ViewBuilder
     private func equipmentSlot(for itemType: HeroItemType) -> some View {
         let isJewelry = jewelryTypes.contains(itemType)
-        let slotSize = isJewelry ? jewelrySlotSize : GameDayConstants.Sizing.equipmentSlotSize
-        let iconSize = isJewelry ? jewelryIconSize : GameDayConstants.Sizing.equipmentIconSize
+        let slotSize = isJewelry ? jewelrySlotSize : ElfSizing.GameDay.equipmentSlotSize
+        let iconSize = isJewelry ? jewelryIconSize : ElfSizing.GameDay.equipmentIconSize
 
         Button {
             onEquipmentSlotTapped(itemType)
@@ -118,11 +118,11 @@ struct HeroSection: View {
             ZStack {
                 // No corner radius - Rectangle instead of RoundedRectangle
                 Rectangle()
-                    .fill(GameDayConstants.Colors.equipmentSlotBackground)
+                    .fill(ElfColors.Interactive.slotBackground)
                     .frame(width: slotSize, height: slotSize)
                     .overlay(
                         Rectangle()
-                            .stroke(GameDayConstants.Colors.equipmentSlotBorder, lineWidth: 1)
+                            .stroke(ElfColors.Interactive.border, lineWidth: 1)
                     )
 
                 if let itemId = equippedItems[itemType] {

@@ -28,7 +28,7 @@ public struct AttributesCompactView: View {
     // MARK: - Body
 
     public var body: some View {
-        HStack(spacing: 15) {
+        HStack(spacing: ElfSpacing.large + ElfSpacing.xxxs) {
             IconValueLabel(icon: "figure.strengthtraining.traditional", value: strength, color: ElfColors.Attributes.strength)
             IconValueLabel(icon: "figure.run", value: agility, color: ElfColors.Attributes.agility)
             IconValueLabel(icon: "bolt.fill", value: power, color: ElfColors.Attributes.power)

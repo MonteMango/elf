@@ -53,7 +53,7 @@ internal struct GameDayScreenContent: View {
             }
             .padding(.top, topPadding)
         }
-        .background(Color.white)
+        .background(ElfColors.Background.primary)
         .task {
             inventoryViewModel.onClose = viewModel.closeInventory
         }
@@ -100,18 +100,18 @@ internal struct GameDayScreenContent: View {
 
     @ViewBuilder
     private var centerSection: some View {
-        VStack(spacing: GameDayConstants.Spacing.sectionSpacing) {
+        VStack(spacing: ElfSpacing.section) {
             // Action Points Bar
             elf_SwiftUI.ActionPointsBar(
                 current: viewModel.gameState.currentActionPoints,
                 max: viewModel.gameState.maxActionPoints,
                 label: "Action points",
-                barHeight: GameDayConstants.Sizing.apBarHeight,
-                labelFont: GameDayConstants.Fonts.apFont,
-                barFont: GameDayConstants.Fonts.apFont,
-                labelColor: .gray,
-                fillColor: GameDayConstants.Colors.apBarFill,
-                backgroundColor: GameDayConstants.Colors.xpBarBackground,
+                barHeight: ElfSizing.ProgressBar.large,
+                labelFont: ElfFonts.Component.apFont,
+                barFont: ElfFonts.Component.apFont,
+                labelColor: ElfColors.Text.secondary,
+                fillColor: ElfColors.ProgressBar.ap,
+                backgroundColor: ElfColors.ProgressBar.background,
                 showNextDayButton: true,
                 isLastDay: viewModel.gameState.isLastDay,
                 onNextDay: { viewModel.onConfirmActionPoints() }

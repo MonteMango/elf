@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 struct BattleResultHeader: View {
@@ -13,18 +14,17 @@ struct BattleResultHeader: View {
     let isVisible: Bool
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: BattleResultConstants.Sizing.smallSpacing) {
+        HStack(alignment: .firstTextBaseline, spacing: ElfSizing.BattleResult.smallSpacing) {
             // Outcome icon
             outcomeIcon
-                .font(.system(size: BattleResultConstants.Sizing.outcomeIconSize))
-                .foregroundStyle(BattleResultConstants.color(for: outcome))
+                .font(.system(size: ElfSizing.BattleResult.outcomeIconSize))
+                .foregroundStyle(outcomeColor(for: outcome))
 
             // Outcome title
-            Text(BattleResultConstants.title(for: outcome))
-                .font(BattleResultConstants.Fonts.outcomeTitle)
-                .foregroundStyle(BattleResultConstants.color(for: outcome))
+            Text(title(for: outcome))
+                .font(ElfFonts.Component.outcomeTitle)
+                .foregroundStyle(outcomeColor(for: outcome))
         }
-//        .frame(width: BattleResultConstants.Sizing.headerWidth)
         .scaleEffect(isVisible ? 1.0 : 0.5)
         .opacity(isVisible ? 1.0 : 0.0)
     }
@@ -38,6 +38,28 @@ struct BattleResultHeader: View {
             Image(systemName: "xmark.circle.fill")
         case .draw:
             Image(systemName: "equal.circle.fill")
+        }
+    }
+
+    private func outcomeColor(for outcome: BattleOutcome) -> Color {
+        switch outcome {
+        case .victory:
+            return ElfColors.Battle.victory
+        case .defeat:
+            return ElfColors.Battle.defeat
+        case .draw:
+            return ElfColors.Battle.draw
+        }
+    }
+
+    private func title(for outcome: BattleOutcome) -> String {
+        switch outcome {
+        case .victory:
+            return "VICTORY"
+        case .defeat:
+            return "DEFEAT"
+        case .draw:
+            return "DRAW"
         }
     }
 }

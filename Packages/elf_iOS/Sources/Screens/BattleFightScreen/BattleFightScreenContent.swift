@@ -40,11 +40,11 @@ internal struct BattleFightScreenContent: View {
                 // Top bar: Player title, Round number with Close button, Bot title
                 HStack(alignment: .firstTextBaseline, spacing: 0) {
                     Text("[\(viewModel.playerSnapshot.level)] \(viewModel.playerSnapshot.name)")
-                        .font(BattleFightConstants.Fonts.sectionLabel)
+                        .font(ElfFonts.Component.statLabel)
                         .foregroundColor(.black)
                     Spacer()
                     Text("Round \(viewModel.currentRoundNumber)")
-                        .font(BattleFightConstants.Fonts.roundNumber)
+                        .font(ElfFonts.Component.roundNumber)
                         .foregroundColor(.black)
                         .overlay(alignment: .trailing) {
                             elf_SwiftUI.CloseButton {
@@ -53,10 +53,10 @@ internal struct BattleFightScreenContent: View {
                             .alignmentGuide(.trailing) { d in d[.leading] - 12 }
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.top, BattleFightConstants.Sizing.roundNumberTopPadding)
+                        .padding(.top, 16)
                     Spacer()
                     Text("[\(viewModel.botSnapshot.level)] \(viewModel.botSnapshot.name)")
-                        .font(BattleFightConstants.Fonts.sectionLabel)
+                        .font(ElfFonts.Component.statLabel)
                         .foregroundColor(.black)
                 }
 
@@ -105,8 +105,8 @@ internal struct BattleFightScreenContent: View {
                     } else {
                         // Fallback: just separator if no round data
                         Rectangle()
-                            .fill(BattleFightConstants.Colors.separator)
-                            .frame(width: BattleFightConstants.Sizing.separatorWidth)
+                            .fill(ElfColors.Background.overlayLight)
+                            .frame(width: 2)
                     }
 
                     Spacer()
@@ -150,8 +150,8 @@ internal struct BattleFightScreenContent: View {
                         viewModel.autoFillPoints()
                     }) {
                         Text("AUTO")
-                            .font(BattleFightConstants.Fonts.fightButton)
-                            .foregroundColor(BattleFightConstants.Colors.fightButton)
+                            .font(ElfFonts.Component.actionButton)
+                            .foregroundColor(ElfColors.Button.primary)
                             .frame(width: 120)
                             .frame(height: 54)
                             .background(Color.white)
@@ -167,11 +167,11 @@ internal struct BattleFightScreenContent: View {
                         }
                     }) {
                         Text("FIGHT")
-                            .font(BattleFightConstants.Fonts.fightButton)
+                            .font(ElfFonts.Component.actionButton)
                             .foregroundColor(.white)
                             .frame(width: 120)
                             .frame(height: 54)
-                            .background(BattleFightConstants.Colors.fightButton)
+                            .background(ElfColors.Button.primary)
                             .cornerRadius(27)
                     }
                     .disabled(!hasFullSelection)

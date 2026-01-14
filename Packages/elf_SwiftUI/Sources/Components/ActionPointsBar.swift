@@ -30,12 +30,12 @@ public struct ActionPointsBar: View {
         current: Int,
         max: Int,
         label: String = "Action points",
-        barHeight: CGFloat = 30,
-        labelFont: Font = .system(size: 14),
-        barFont: Font = .system(size: 14, weight: .medium),
-        labelColor: Color = .gray,
-        fillColor: Color = .yellow,
-        backgroundColor: Color = Color(white: 0.9),
+        barHeight: CGFloat = ElfSizing.ProgressBar.large,
+        labelFont: Font = ElfFonts.Component.statLabel,
+        barFont: Font = ElfFonts.Component.apFont,
+        labelColor: Color = ElfColors.Text.secondary,
+        fillColor: Color = ElfColors.ProgressBar.ap,
+        backgroundColor: Color = ElfColors.ProgressBar.background,
         showNextDayButton: Bool = false,
         isLastDay: Bool = false,
         nextDayButtonText: String = "Next day",
@@ -94,7 +94,7 @@ public struct ActionPointsBar: View {
             // Text overlay
             Text("\(current)/\(max)")
                 .font(barFont)
-                .foregroundColor(.black)
+                .foregroundColor(ElfColors.Text.primary)
                 .frame(maxWidth: .infinity)
         }
         .frame(height: barHeight)

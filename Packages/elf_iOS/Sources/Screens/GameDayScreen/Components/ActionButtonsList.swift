@@ -13,13 +13,11 @@ struct ActionButtonsList: View {
     let onAction: (ActionType) -> Void
 
     var body: some View {
-//        ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: GameDayConstants.Spacing.buttonSpacing) {
-                ForEach(ActionType.allCases, id: \.self) { action in
-                    actionButton(for: action)
-                }
+        VStack(spacing: ElfSpacing.button) {
+            ForEach(ActionType.allCases, id: \.self) { action in
+                actionButton(for: action)
             }
-//        }
+        }
     }
 
     @ViewBuilder

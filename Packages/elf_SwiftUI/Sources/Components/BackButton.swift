@@ -19,9 +19,9 @@ public struct BackButton: View {
             Image(systemName: "arrow.backward")
                 .font(.title2)
                 .fontWeight(.semibold)
-                .foregroundStyle(.white)
-                .frame(width: 44, height: 44)
-                .background(Color.orange)
+                .foregroundStyle(ElfColors.Button.primaryText)
+                .frame(width: ElfSizing.minTouchTarget, height: ElfSizing.minTouchTarget)
+                .background(ElfColors.Button.primary)
         }
     }
 }

@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 06.01.26.
 //
 
+import elf_SwiftUI
 import SwiftUI
 
 struct FarmActivityCell: View {
@@ -20,8 +21,8 @@ struct FarmActivityCell: View {
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(
-                    width: FarmConstants.Sizing.activityCellWidth,
-                    height: FarmConstants.Sizing.activityCellHeight
+                    width: 200,
+                    height: 200
                 )
                 .clipShape(Rectangle())
                 .contentShape(Rectangle())
@@ -37,33 +38,33 @@ struct FarmActivityCell: View {
     private var cellOverlay: some View {
         VStack {
             levelSection
-                .padding(.top, 16)
-                .padding(.horizontal, 16)
+                .padding(.top, ElfSpacing.xl)
+                .padding(.horizontal, ElfSpacing.xl)
 
             Spacer()
 
             Text(title)
-                .font(FarmConstants.Fonts.activityLabel)
-                .foregroundStyle(FarmConstants.Colors.activityLabelText)
+                .font(.system(size: 36, weight: .bold))
+                .foregroundStyle(ElfColors.Text.accent)
                 .textShadow()
-                .padding(.bottom, 16)
+                .padding(.bottom, ElfSpacing.xl)
         }
     }
 
     @ViewBuilder
     private var levelSection: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: ElfSpacing.xxs) {
             Text("LVL \(level)")
-                .font(FarmConstants.Fonts.levelText)
-                .foregroundStyle(FarmConstants.Colors.levelText)
+                .font(.system(size: 24, weight: .bold))
+                .foregroundStyle(ElfColors.Text.primaryLight)
                 .textShadow()
 
             Capsule()
-                .fill(FarmConstants.Colors.skillBarBackground)
-                .frame(height: FarmConstants.Sizing.skillBarHeight)
+                .fill(ElfColors.Background.secondary)
+                .frame(height: ElfSpacing.xxs)
                 .overlay(alignment: .leading) {
                     Capsule()
-                        .fill(FarmConstants.Colors.skillBarFill)
+                        .fill(ElfColors.ProgressBar.xp)
                         .scaleEffect(x: skillProgress, y: 1, anchor: .leading)
                 }
                 .clipShape(Capsule())

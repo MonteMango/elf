@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 28.11.25.
 //
 
+import elf_SwiftUI
 import SwiftUI
 
 struct PlayerInfoSection: View {
@@ -14,40 +15,39 @@ struct PlayerInfoSection: View {
     let expToNextLevel: Int
     let xpProgress: Double
 
-    private let xpBarHeight: CGFloat = 4
-
+    private let xpBarHeight: CGFloat = ElfSizing.ProgressBar.thin
     private let labelWidth: CGFloat = 60
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Level and Name
-            HStack(spacing: GameDayConstants.Spacing.smallSpacing) {
+            HStack(spacing: ElfSpacing.component) {
                 Text("LVL\(level)")
-                    .font(GameDayConstants.Fonts.levelFont)
-                    .foregroundColor(.gray)
+                    .font(ElfFonts.Component.heroLevel)
+                    .foregroundColor(ElfColors.Text.secondary)
                     .frame(width: labelWidth, alignment: .leading)
 
                 Text(name)
-                    .font(GameDayConstants.Fonts.nameFont)
+                    .font(ElfFonts.Component.heroName)
                     .fontWeight(.bold)
-                    .foregroundColor(.black)
+                    .foregroundColor(ElfColors.Text.primary)
             }
 
             // Experience bar with label on the left
-            HStack(spacing: GameDayConstants.Spacing.smallSpacing) {
+            HStack(spacing: ElfSpacing.component) {
                 Text("Exp: \(currentExp)/\(expToNextLevel)")
-                    .font(GameDayConstants.Fonts.expFont)
-                    .foregroundColor(.gray)
+                    .font(ElfFonts.Component.expLabel)
+                    .foregroundColor(ElfColors.Text.secondary)
                     .frame(width: labelWidth, alignment: .leading)
 
                 ZStack(alignment: .leading) {
                     // Background (no corner radius)
                     Rectangle()
-                        .fill(GameDayConstants.Colors.xpBarBackground)
+                        .fill(ElfColors.ProgressBar.background)
 
                     // Fill (no corner radius) - uses scaleEffect instead of GeometryReader
                     Rectangle()
-                        .fill(GameDayConstants.Colors.xpBarFill)
+                        .fill(ElfColors.ProgressBar.xp)
                         .scaleEffect(x: xpProgress, y: 1, anchor: .leading)
                 }
                 .frame(height: xpBarHeight)

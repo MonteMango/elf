@@ -9,6 +9,28 @@ import elf_Kit
 import elf_SwiftUI
 import SwiftUI
 
+// MARK: - Farm Activity
+
+enum FarmActivity: String, CaseIterable, Identifiable {
+    case foraging
+    case fishing
+    case mining
+
+    var id: String { rawValue }
+    var title: String { rawValue.capitalized }
+    var imageName: String { rawValue }
+}
+
+// MARK: - View Extension
+
+extension View {
+    func textShadow() -> some View {
+        shadow(color: .black.opacity(0.5), radius: 2, x: 1, y: 1)
+    }
+}
+
+// MARK: - FarmScreenContent
+
 struct FarmScreenContent: View {
     @Environment(AppRouter.self) private var router
     @State private var viewModel: FarmViewModel
@@ -57,7 +79,7 @@ struct FarmScreenContent: View {
                 }
             )
             .padding(.top, ElfSizing.standardPadding)
-            .padding(.horizontal, FarmConstants.Spacing.horizontalPadding)
+            .padding(.horizontal, ElfSpacing.screen)
 
             Spacer()
 
@@ -65,14 +87,14 @@ struct FarmScreenContent: View {
 
             Spacer()
         }
-        .background(FarmConstants.Colors.background)
+        .background(ElfColors.Background.primary)
     }
 
     // MARK: - Activity Buttons
 
     @ViewBuilder
     private var activityButtons: some View {
-        HStack(spacing: FarmConstants.Spacing.activitySpacing) {
+        HStack(spacing: ElfSpacing.xxl) {
             ForEach(FarmActivity.allCases) { activity in
                 FarmActivityCell(
                     title: activity.title,
@@ -85,7 +107,7 @@ struct FarmScreenContent: View {
                 )
             }
         }
-        .padding(.horizontal, FarmConstants.Spacing.horizontalPadding)
+        .padding(.horizontal, ElfSpacing.screen)
     }
 
     // MARK: - Helpers

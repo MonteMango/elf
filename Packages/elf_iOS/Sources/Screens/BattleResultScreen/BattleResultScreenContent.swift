@@ -29,12 +29,12 @@ struct BattleResultScreenContent: View {
     var body: some View {
         ZStack {
             // Dimmed background
-            BattleResultConstants.Colors.overlayBackground
+            ElfColors.Background.overlay
                 .ignoresSafeArea()
                 .opacity(showBackground ? 1.0 : 0.0)
 
             // Result card - VStack layout
-            VStack(spacing: BattleResultConstants.Sizing.sectionSpacing) {
+            VStack(spacing: ElfSizing.BattleResult.sectionSpacing) {
                 // Header
                 BattleResultHeader(
                     outcome: viewModel.result.outcome,
@@ -78,11 +78,11 @@ struct BattleResultScreenContent: View {
                     .scaleEffect(showContinueButton ? 1.0 : 0.8)
                 }
             }
-            .padding(BattleResultConstants.Sizing.cardPadding)
+            .padding(ElfSizing.BattleResult.cardPadding)
             .frame(width: 600, height: 340)
             .background(
-                RoundedRectangle(cornerRadius: BattleResultConstants.Sizing.cardCornerRadius)
-                    .fill(BattleResultConstants.Colors.cardBackground)
+                RoundedRectangle(cornerRadius: ElfSizing.BattleResult.cardCornerRadius)
+                    .fill(ElfColors.Background.primary)
             )
             .scaleEffect(showCard ? 1.0 : 0.8)
             .opacity(showCard ? 1.0 : 0.0)
@@ -94,13 +94,13 @@ struct BattleResultScreenContent: View {
 
     private func startAnimationSequence() {
         // Background fade in
-        withAnimation(.easeIn(duration: BattleResultConstants.Animation.backgroundFadeDuration)) {
+        withAnimation(.easeIn(duration: ElfAnimations.BattleResult.backgroundFadeDuration)) {
             showBackground = true
         }
 
         // Card appear
         DispatchQueue.main.asyncAfter(
-            deadline: .now() + BattleResultConstants.Animation.cardAppearDelay
+            deadline: .now() + ElfAnimations.BattleResult.cardAppearDelay
         ) {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                 showCard = true
@@ -109,7 +109,7 @@ struct BattleResultScreenContent: View {
 
         // Header appear
         DispatchQueue.main.asyncAfter(
-            deadline: .now() + BattleResultConstants.Animation.headerAppearDelay
+            deadline: .now() + ElfAnimations.BattleResult.headerAppearDelay
         ) {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                 showHeader = true
@@ -118,7 +118,7 @@ struct BattleResultScreenContent: View {
 
         // XP section appear
         DispatchQueue.main.asyncAfter(
-            deadline: .now() + BattleResultConstants.Animation.xpBarFillDelay - 0.2
+            deadline: .now() + ElfAnimations.BattleResult.xpBarFillDelay - 0.2
         ) {
             withAnimation(.easeInOut(duration: 0.3)) {
                 showXP = true
@@ -127,22 +127,22 @@ struct BattleResultScreenContent: View {
 
         // XP bar fill animation
         DispatchQueue.main.asyncAfter(
-            deadline: .now() + BattleResultConstants.Animation.xpBarFillDelay
+            deadline: .now() + ElfAnimations.BattleResult.xpBarFillDelay
         ) {
             startXPProgress = true
         }
 
         // Drops reveal
         DispatchQueue.main.asyncAfter(
-            deadline: .now() + BattleResultConstants.Animation.dropItemDelay
+            deadline: .now() + ElfAnimations.BattleResult.dropItemDelay
         ) {
             startDropReveal = true
         }
 
         // Buttons appear
-        let dropsDelay = viewModel.result.drops.isEmpty ? 0 : Double(viewModel.result.drops.count) * BattleResultConstants.Animation.dropItemStagger
+        let dropsDelay = viewModel.result.drops.isEmpty ? 0 : Double(viewModel.result.drops.count) * ElfAnimations.BattleResult.dropItemStagger
         DispatchQueue.main.asyncAfter(
-            deadline: .now() + BattleResultConstants.Animation.dropItemDelay + dropsDelay + BattleResultConstants.Animation.continueButtonDelay
+            deadline: .now() + ElfAnimations.BattleResult.dropItemDelay + dropsDelay + ElfAnimations.BattleResult.continueButtonDelay
         ) {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
                 showContinueButton = true

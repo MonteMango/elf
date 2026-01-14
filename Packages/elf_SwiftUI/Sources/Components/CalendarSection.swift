@@ -79,13 +79,13 @@ public struct CalendarSection: View {
             VStack(spacing: 0) {
                 if style == .current {
                     Text("day")
-                        .font(.system(size: 10, weight: .regular))
-                        .foregroundColor(.gray)
+                        .font(.system(size: ElfFonts.Size.small, weight: .regular))
+                        .foregroundColor(ElfColors.Text.secondary)
                 }
 
                 Text("\(day.dayNumber)")
-                    .font(.system(size: style == .current ? 24 : 18, weight: .bold))
-                    .foregroundColor(.black)
+                    .font(.system(size: style == .current ? ElfFonts.Size.title2 : ElfFonts.Size.headline, weight: .bold))
+                    .foregroundColor(ElfColors.Text.primary)
             }
         }
     }
@@ -93,9 +93,9 @@ public struct CalendarSection: View {
     private func borderColor(for style: DayStyle) -> Color {
         switch style {
         case .current:
-            return .orange
+            return ElfColors.Calendar.currentDayBorder
         case .upcoming, .future:
-            return Color(white: 0.8)
+            return ElfColors.Calendar.upcomingDayBorder
         }
     }
 }

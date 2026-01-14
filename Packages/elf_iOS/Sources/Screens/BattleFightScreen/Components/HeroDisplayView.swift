@@ -58,23 +58,23 @@ struct HeroDisplayView: View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
                 // Background
-                RoundedRectangle(cornerRadius: BattleFightConstants.Sizing.hpBarCornerRadius)
-                    .fill(BattleFightConstants.Colors.hpBarBackground)
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(ElfColors.ProgressBar.background)
 
                 // Fill
-                RoundedRectangle(cornerRadius: BattleFightConstants.Sizing.hpBarCornerRadius)
-                    .fill(BattleFightConstants.Colors.hpBarFill)
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(ElfColors.ProgressBar.hp)
                     .frame(width: geometry.size.width * hpPercentage)
 
                 // Text
                 Text("\(currentHP)/\(maxHP)")
-                    .font(BattleFightConstants.Fonts.hpText)
-                    .foregroundColor(BattleFightConstants.Colors.hpBarText)
+                    .font(ElfFonts.Component.statValue)
+                    .foregroundColor(ElfColors.Text.primaryLight)
                     .frame(maxWidth: .infinity, alignment: .center)
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: BattleFightConstants.Sizing.hpBarHeight)
+        .frame(height: ElfSizing.BattleFight.hpBarHeight)
     }
 
     @ViewBuilder
@@ -101,8 +101,8 @@ struct HeroDisplayView: View {
         GeometryReader { geometry in
             let width = geometry.size.width
             let height = geometry.size.height
-            let itemSize = BattleFightConstants.Sizing.battleItemSize
-            let jewelrySize = BattleFightConstants.Sizing.battleJewelrySize
+            let itemSize = ElfSizing.BattleFight.battleItemSize
+            let jewelrySize = ElfSizing.BattleFight.battleJewelrySize
             let spacing: CGFloat = 4
 
             // Column positioning
@@ -144,15 +144,15 @@ struct HeroDisplayView: View {
         ZStack {
             // Always show placeholder
             RoundedRectangle(cornerRadius: 0)
-                .fill(Color.gray.opacity(0.3))
+                .fill(ElfColors.Interactive.slotBackground)
                 .frame(
-                    width: BattleFightConstants.Sizing.battleItemSize,
-                    height: BattleFightConstants.Sizing.battleItemSize
+                    width: ElfSizing.BattleFight.battleItemSize,
+                    height: ElfSizing.BattleFight.battleItemSize
                 )
 
             // Item image if equipped
             if let elfItem = item {
-                itemImage(id: elfItem.id, size: BattleFightConstants.Sizing.battleItemSize)
+                itemImage(id: elfItem.id, size: ElfSizing.BattleFight.battleItemSize)
             }
         }
     }
@@ -162,15 +162,15 @@ struct HeroDisplayView: View {
         ZStack {
             // Always show placeholder
             RoundedRectangle(cornerRadius: 0)
-                .fill(Color.gray.opacity(0.3))
+                .fill(ElfColors.Interactive.slotBackground)
                 .frame(
-                    width: BattleFightConstants.Sizing.battleJewelrySize,
-                    height: BattleFightConstants.Sizing.battleJewelrySize
+                    width: ElfSizing.BattleFight.battleJewelrySize,
+                    height: ElfSizing.BattleFight.battleJewelrySize
                 )
 
             // Item image if equipped
             if let elfItem = item {
-                itemImage(id: elfItem.id, size: BattleFightConstants.Sizing.battleJewelrySize)
+                itemImage(id: elfItem.id, size: ElfSizing.BattleFight.battleJewelrySize)
             }
         }
     }
@@ -238,7 +238,7 @@ struct HeroDisplayView: View {
     private func resultLabel(status: PointStatus) -> some View {
         if let text = statusText(for: status) {
             Text(text)
-                .font(BattleFightConstants.Fonts.resultStatusText)
+                .font(Font.system(size: 12, weight: .bold))
                 .foregroundColor(statusColor(for: status))
         }
     }
@@ -264,15 +264,15 @@ struct HeroDisplayView: View {
     private func statusColor(for status: PointStatus) -> Color {
         switch status {
         case .dodged:
-            return .green
+            return ElfColors.Battle.dodged
         case .hit:
-            return .white
+            return ElfColors.Battle.hit
         case .critHit:
-            return .red
+            return ElfColors.Battle.critHit
         case .blocked:
-            return .blue
+            return ElfColors.Battle.blocked
         case .nothing:
-            return .clear
+            return ElfColors.Battle.nothing
         }
     }
 

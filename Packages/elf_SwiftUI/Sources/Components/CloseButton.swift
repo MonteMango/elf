@@ -17,13 +17,13 @@ public struct CloseButton: View {
     public var body: some View {
         Button(action: action) {
             Image(systemName: "xmark")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.white)
+                .font(.system(size: ElfFonts.Size.title3, weight: .bold))
+                .foregroundColor(ElfColors.Button.closeText)
                 .frame(
-                    width: ElfSizing.closeButtonSize,
-                    height: ElfSizing.closeButtonSize
+                    width: ElfSizing.Button.closeSize,
+                    height: ElfSizing.Button.closeSize
                 )
-                .background(ElfColors.elfRed)
+                .background(ElfColors.Button.close)
                 .clipShape(Circle())
         }
     }

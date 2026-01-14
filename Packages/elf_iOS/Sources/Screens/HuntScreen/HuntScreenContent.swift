@@ -46,7 +46,7 @@ struct HuntScreenContent: View {
                 }
             )
             .padding(.top, ElfSizing.standardPadding)
-            .padding(.horizontal, HuntConstants.Spacing.horizontalPadding)
+            .padding(.horizontal, ElfSpacing.screen)
 
             Spacer()
 
@@ -57,21 +57,21 @@ struct HuntScreenContent: View {
 
             // Hunt button
             huntButton
-                .padding(.bottom, HuntConstants.Spacing.sectionSpacing)
+                .padding(.bottom, ElfSpacing.huge)
         }
-        .background(HuntConstants.Colors.background)
+        .background(ElfColors.Background.primary)
     }
 
     // MARK: - Monster Collection
 
     @ViewBuilder
     private var monsterCollection: some View {
-        HStack(spacing: HuntConstants.Spacing.monsterSpacing) {
+        HStack(spacing: ElfSpacing.xxl) {
             ForEach(viewModel.availableMonstersDisplayData) { displayData in
                 MonsterCell(displayData: displayData)
             }
         }
-        .padding(.horizontal, HuntConstants.Spacing.horizontalPadding)
+        .padding(.horizontal, ElfSpacing.screen)
     }
 
     // MARK: - Hunt Button

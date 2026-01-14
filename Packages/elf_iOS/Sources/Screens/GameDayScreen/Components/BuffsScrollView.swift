@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 28.11.25.
 //
 
+import elf_SwiftUI
 import SwiftUI
 
 struct BuffsScrollView: View {
@@ -12,7 +13,7 @@ struct BuffsScrollView: View {
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: GameDayConstants.Spacing.smallSpacing) {
+            HStack(spacing: ElfSpacing.component) {
                 if buffs.isEmpty {
                     // Placeholder empty slots
                     ForEach(0..<2, id: \.self) { _ in
@@ -25,23 +26,23 @@ struct BuffsScrollView: View {
                 }
             }
         }
-        .frame(height: GameDayConstants.Sizing.buffSize)
+        .frame(height: ElfSizing.GameDay.buffSize)
     }
 
     @ViewBuilder
     private func buffSlot(isEmpty: Bool, buffName: String? = nil) -> some View {
         RoundedRectangle(cornerRadius: 0)
-            .fill(GameDayConstants.Colors.buffBackground)
+            .fill(ElfColors.Interactive.slotBackground)
             .frame(
-                width: GameDayConstants.Sizing.buffSize,
-                height: GameDayConstants.Sizing.buffSize
+                width: ElfSizing.GameDay.buffSize,
+                height: ElfSizing.GameDay.buffSize
             )
             .overlay(
                 Group {
                     if let name = buffName {
                         Text(String(name.prefix(1)))
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(GameDayConstants.Colors.primaryText)
+                            .font(ElfFonts.Component.statValue)
+                            .foregroundColor(ElfColors.Text.primaryLight)
                     }
                 }
             )

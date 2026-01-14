@@ -24,8 +24,52 @@ Models (Data)
 ```
 /Packages
 ├── elf_Kit/          # DataLayer - services, models, repositories
-├── elf_SwiftUI/      # Shared UI components
+├── elf_SwiftUI/      # Shared UI components + Design System
 └── elf_iOS/          # UILayer - app screens
+```
+
+---
+
+## Design System (elf_SwiftUI)
+
+All styles are centralized in `elf_SwiftUI/Sources/DesignSystem/`:
+
+```
+DesignSystem/
+├── ElfColors.swift       # Colors (Text, Background, Button, Battle, Rarity, etc.)
+├── ElfSpacing.swift      # Spacing scale (xxxs→huge) + semantic aliases
+├── ElfSizing.swift       # Component sizes (Icon, Button, ProgressBar, Cell)
+├── ElfFonts.swift        # Typography (Size scale + Component fonts)
+├── ElfCornerRadius.swift # Border radius scale
+├── ElfShadows.swift      # Shadow presets + .elfShadow() extension
+└── ElfAnimations.swift   # Animation timing constants
+```
+
+### Rules:
+1. **DO NOT** create `*Constants.swift` files in `elf_iOS` screens
+2. **ALWAYS** use tokens from `ElfColors`, `ElfSpacing`, `ElfSizing`, etc.
+3. **EXTEND** design system if new values needed (add to elf_SwiftUI, not locally)
+
+### Usage:
+```swift
+import elf_SwiftUI
+
+// Colors
+.foregroundColor(ElfColors.Text.primary)
+.background(ElfColors.Background.panel)
+
+// Spacing
+.padding(ElfSpacing.section)
+VStack(spacing: ElfSpacing.component)
+
+// Sizing
+.frame(width: ElfSizing.Button.widthStandard, height: ElfSizing.Button.height)
+
+// Fonts
+.font(ElfFonts.Component.heroName)
+
+// Shadows
+.elfShadow(ElfShadows.button)
 ```
 
 ---

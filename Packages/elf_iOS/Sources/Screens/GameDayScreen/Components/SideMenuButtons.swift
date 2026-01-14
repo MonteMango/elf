@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 struct SideMenuButtons: View {
@@ -13,12 +14,12 @@ struct SideMenuButtons: View {
 
     // Define grid layout: 2 columns
     private let columns = [
-        GridItem(.fixed(GameDayConstants.Sizing.sideButtonSize), spacing: GameDayConstants.Spacing.buttonSpacing),
-        GridItem(.fixed(GameDayConstants.Sizing.sideButtonSize), spacing: GameDayConstants.Spacing.buttonSpacing)
+        GridItem(.fixed(ElfSizing.Button.sideSize), spacing: ElfSpacing.button),
+        GridItem(.fixed(ElfSizing.Button.sideSize), spacing: ElfSpacing.button)
     ]
 
     var body: some View {
-        LazyVGrid(columns: columns, spacing: GameDayConstants.Spacing.buttonSpacing) {
+        LazyVGrid(columns: columns, spacing: ElfSpacing.button) {
             ForEach(SideMenuType.allCases, id: \.self) { menu in
                 sideButton(for: menu)
             }
@@ -30,17 +31,17 @@ struct SideMenuButtons: View {
         Button {
             onMenuTapped(menu)
         } label: {
-            VStack(spacing: 4) {
-                RoundedRectangle(cornerRadius: GameDayConstants.Sizing.sideButtonCornerRadius)
-                    .fill(GameDayConstants.Colors.sideButtonBackground)
+            VStack(spacing: ElfSpacing.xxs) {
+                RoundedRectangle(cornerRadius: ElfSizing.GameDay.sideButtonCornerRadius)
+                    .fill(ElfColors.Button.primary)
                     .frame(
-                        width: GameDayConstants.Sizing.sideButtonSize,
-                        height: GameDayConstants.Sizing.sideButtonSize
+                        width: ElfSizing.Button.sideSize,
+                        height: ElfSizing.Button.sideSize
                     )
 
                 Text(menu.rawValue)
-                    .font(GameDayConstants.Fonts.sideButtonFont)
-                    .foregroundColor(Color.gray)
+                    .font(ElfFonts.Component.sideButton)
+                    .foregroundColor(ElfColors.Text.secondary)
             }
         }
     }

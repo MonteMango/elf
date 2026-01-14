@@ -48,9 +48,12 @@ App supports **landscape orientation only**.
 
 ## Documentation
 - **Architecture:** `.claude/docs/project-architecture.md`
+- **Design System:** `.claude/docs/project-architecture.md#design-system` (Colors, Fonts, Spacing in elf_SwiftUI)
 - **SwiftUI patterns:** `.claude/docs/swiftui-patterns.md`
 - **Persistence:** `.claude/docs/persistence-patterns.md`
 - **Common mistakes:** `.claude/docs/common-mistakes.md`
 - **Game design:** `.claude/docs/game-design.md`
 
 Before writing code, check `.claude/docs/` for current patterns.
+
+**Important:** All UI styles (colors, fonts, spacing, sizing) are in `elf_SwiftUI/Sources/DesignSystem/`. Do NOT create local style constants in `elf_iOS` - extend the central design system instead.

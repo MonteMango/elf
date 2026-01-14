@@ -6,13 +6,14 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 struct MonsterCell: View {
     let displayData: MonsterDisplayData
 
     var body: some View {
-        VStack(spacing: HuntConstants.Spacing.componentSpacing) {
+        VStack(spacing: ElfSpacing.small) {
             // Drop items row
             dropItemsRow
 
@@ -21,17 +22,17 @@ struct MonsterCell: View {
 
             // Monster name
             Text(displayData.title)
-                .font(HuntConstants.Fonts.monsterName)
-                .foregroundColor(HuntConstants.Colors.monsterNameText)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(ElfColors.Text.primary)
         }
-        .frame(width: HuntConstants.Sizing.monsterCellWidth)
+        .frame(width: 200)
     }
 
     // MARK: - Drop Items Row
 
     @ViewBuilder
     private var dropItemsRow: some View {
-        HStack(spacing: HuntConstants.Spacing.dropItemSpacing) {
+        HStack(spacing: ElfSpacing.small) {
             ForEach(displayData.dropImageNames, id: \.self) { imageName in
                 dropItemView(imageName: imageName)
             }
@@ -41,18 +42,18 @@ struct MonsterCell: View {
     @ViewBuilder
     private func dropItemView(imageName: String) -> some View {
         ZStack {
-            RoundedRectangle(cornerRadius: HuntConstants.Sizing.dropItemCornerRadius)
-                .fill(HuntConstants.Colors.dropItemBackground)
+            RoundedRectangle(cornerRadius: 8)
+                .fill(ElfColors.Background.secondary)
 
-            RoundedRectangle(cornerRadius: HuntConstants.Sizing.dropItemCornerRadius)
-                .stroke(HuntConstants.Colors.dropItemBorder, lineWidth: HuntConstants.Sizing.dropItemBorderWidth)
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(ElfColors.primary, lineWidth: 2)
 
             // Try to load image, fallback to placeholder
             if let uiImage = UIImage(named: imageName) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFit()
-                    .padding(4)
+                    .padding(ElfSpacing.xxs)
             } else {
                 Image(systemName: "gift.fill")
                     .font(.system(size: 24))
@@ -60,8 +61,8 @@ struct MonsterCell: View {
             }
         }
         .frame(
-            width: HuntConstants.Sizing.dropItemSize,
-            height: HuntConstants.Sizing.dropItemSize
+            width: 50,
+            height: 50
         )
     }
 
@@ -74,16 +75,16 @@ struct MonsterCell: View {
                 .resizable()
                 .scaledToFit()
                 .frame(
-                    idealWidth: HuntConstants.Sizing.monsterImageSize,
-                    idealHeight: HuntConstants.Sizing.monsterImageSize
+                    idealWidth: 150,
+                    idealHeight: 150
                 )
         } else {
             // Placeholder for missing image
             Rectangle()
                 .fill(Color.gray.opacity(0.2))
                 .frame(
-                    width: HuntConstants.Sizing.monsterImageSize,
-                    height: HuntConstants.Sizing.monsterImageSize
+                    width: 150,
+                    height: 150
                 )
                 .overlay(
                     Image(systemName: "pawprint.fill")

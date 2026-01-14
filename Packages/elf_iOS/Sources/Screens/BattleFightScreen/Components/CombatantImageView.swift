@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 /// Displays a combatant's image with size based on active state and defeated overlay.
@@ -15,8 +16,8 @@ struct CombatantImageView: View {
 
     private var size: CGFloat {
         isActive
-            ? BattleFightConstants.Sizing.teamImageActiveSize
-            : BattleFightConstants.Sizing.teamImageSize
+            ? ElfSizing.BattleFight.teamImageActiveSize
+            : ElfSizing.BattleFight.teamImageSize
     }
 
     var body: some View {

@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 /// Displays two vertical columns of combatants representing duel pairs.
@@ -24,7 +25,7 @@ struct DuelPairsColumnView: View {
     var body: some View {
         HStack(alignment: .bottom, spacing: 4) {
             // Left column
-            VStack(alignment: .trailing, spacing: BattleFightConstants.Sizing.teamImageSpacing) {
+            VStack(alignment: .trailing, spacing: 8) {
                 // Waiting left combatants (top, no pair)
                 ForEach(battleRound.waitingLeftIds, id: \.self) { id in
                     if let combatant = snapshot(for: id) {
@@ -48,11 +49,11 @@ struct DuelPairsColumnView: View {
 
             // Separator
             Rectangle()
-                .fill(BattleFightConstants.Colors.separator)
-                .frame(width: BattleFightConstants.Sizing.separatorWidth)
+                .fill(ElfColors.Background.overlayLight)
+                .frame(width: 2)
 
             // Right column
-            VStack(alignment: .leading, spacing: BattleFightConstants.Sizing.teamImageSpacing) {
+            VStack(alignment: .leading, spacing: 8) {
                 // Waiting right combatants (top, no pair)
                 ForEach(battleRound.waitingRightIds, id: \.self) { id in
                     if let combatant = snapshot(for: id) {
@@ -64,8 +65,8 @@ struct DuelPairsColumnView: View {
                 ForEach(battleRound.waitingLeftIds, id: \.self) { _ in
                     Color.clear
                         .frame(
-                            width: BattleFightConstants.Sizing.teamImageSize,
-                            height: BattleFightConstants.Sizing.teamImageSize
+                            width: ElfSizing.BattleFight.teamImageSize,
+                            height: ElfSizing.BattleFight.teamImageSize
                         )
                 }
 

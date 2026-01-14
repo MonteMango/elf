@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 struct ExperienceProgressView: View {
@@ -20,12 +21,12 @@ struct ExperienceProgressView: View {
         VStack(spacing: 0) {
             // XP gained text
             Text("+\(result.experienceGained) XP")
-                .font(BattleResultConstants.Fonts.xpGained)
-                .foregroundStyle(BattleResultConstants.Colors.xpBarFill)
+                .font(ElfFonts.Component.xpGained)
+                .foregroundStyle(ElfColors.ProgressBar.xp)
                 .opacity(isVisible ? 1.0 : 0.0)
 
             // Level and progress bar
-            HStack(spacing: BattleResultConstants.Sizing.smallSpacing) {
+            HStack(spacing: ElfSizing.BattleResult.smallSpacing) {
                 // Current level badge
                 levelBadge(level: Int(result.didLevelUp ? result.newLevel : result.previousLevel))
 
@@ -33,18 +34,18 @@ struct ExperienceProgressView: View {
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
                         // Background
-                        RoundedRectangle(cornerRadius: BattleResultConstants.Sizing.xpBarCornerRadius)
-                            .fill(BattleResultConstants.Colors.xpBarBackground)
+                        RoundedRectangle(cornerRadius: ElfSizing.BattleResult.xpBarCornerRadius)
+                            .fill(ElfColors.ProgressBar.background)
 
                         // Fill
-                        RoundedRectangle(cornerRadius: BattleResultConstants.Sizing.xpBarCornerRadius)
-                            .fill(BattleResultConstants.Colors.xpBarFill)
+                        RoundedRectangle(cornerRadius: ElfSizing.BattleResult.xpBarCornerRadius)
+                            .fill(ElfColors.ProgressBar.xp)
                             .frame(width: geometry.size.width * animatedProgress)
                     }
                 }
                 .frame(
-                    width: BattleResultConstants.Sizing.xpBarWidth,
-                    height: BattleResultConstants.Sizing.xpBarHeight
+                    width: ElfSizing.BattleResult.xpBarWidth,
+                    height: ElfSizing.BattleResult.xpBarHeight
                 )
 
                 // Next level badge
@@ -56,9 +57,9 @@ struct ExperienceProgressView: View {
             // Level up text
             if result.didLevelUp && showLevelUp {
                 Text("LEVEL UP!")
-                    .font(BattleResultConstants.Fonts.levelUp)
-                    .foregroundStyle(BattleResultConstants.Colors.levelUpGlow)
-                    .shadow(color: BattleResultConstants.Colors.levelUpGlow, radius: 10)
+                    .font(ElfFonts.Component.levelUpText)
+                    .foregroundStyle(ElfColors.ProgressBar.levelUpGlow)
+                    .shadow(color: ElfColors.ProgressBar.levelUpGlow, radius: 10)
                     .scaleEffect(showLevelUp ? 1.0 : 0.5)
                     .transition(.scale.combined(with: .opacity))
             }
@@ -73,15 +74,15 @@ struct ExperienceProgressView: View {
     private func levelBadge(level: Int) -> some View {
         ZStack {
             Circle()
-                .fill(BattleResultConstants.Colors.xpBarFill)
+                .fill(ElfColors.ProgressBar.xp)
                 .frame(
-                    width: BattleResultConstants.Sizing.levelBadgeSize,
-                    height: BattleResultConstants.Sizing.levelBadgeSize
+                    width: ElfSizing.BattleResult.levelBadgeSize,
+                    height: ElfSizing.BattleResult.levelBadgeSize
                 )
 
             Text("\(level)")
-                .font(BattleResultConstants.Fonts.levelNumber)
-                .foregroundStyle(BattleResultConstants.Colors.primaryText)
+                .font(ElfFonts.Component.levelNumber)
+                .foregroundStyle(ElfColors.Text.primary)
         }
     }
 
@@ -92,13 +93,13 @@ struct ExperienceProgressView: View {
         // If leveled up, animate to 100% then reset to new progress
         if result.didLevelUp {
             // First animate to 100%
-            withAnimation(.easeInOut(duration: BattleResultConstants.Animation.xpBarFillDuration * 0.6)) {
+            withAnimation(.easeInOut(duration: ElfAnimations.BattleResult.xpBarFillDuration * 0.6)) {
                 animatedProgress = 1.0
             }
 
             // Then show level up and reset
             DispatchQueue.main.asyncAfter(
-                deadline: .now() + BattleResultConstants.Animation.xpBarFillDuration * 0.6
+                deadline: .now() + ElfAnimations.BattleResult.xpBarFillDuration * 0.6
             ) {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
                     showLevelUp = true
@@ -106,7 +107,7 @@ struct ExperienceProgressView: View {
 
                 // Reset progress bar and animate to new value
                 animatedProgress = 0
-                withAnimation(.easeInOut(duration: BattleResultConstants.Animation.xpBarFillDuration * 0.4)) {
+                withAnimation(.easeInOut(duration: ElfAnimations.BattleResult.xpBarFillDuration * 0.4)) {
                     animatedProgress = targetProgress
                 }
             }
@@ -115,7 +116,7 @@ struct ExperienceProgressView: View {
             let startProgress = Double(result.previousExp) / Double(result.previousExpToNext)
             animatedProgress = startProgress
 
-            withAnimation(.easeInOut(duration: BattleResultConstants.Animation.xpBarFillDuration)) {
+            withAnimation(.easeInOut(duration: ElfAnimations.BattleResult.xpBarFillDuration)) {
                 animatedProgress = targetProgress
             }
         }

@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 struct DropsRevealView: View {
@@ -16,13 +17,13 @@ struct DropsRevealView: View {
 
     var body: some View {
         if !drops.isEmpty {
-            VStack(spacing: BattleResultConstants.Sizing.smallSpacing) {
+            VStack(spacing: ElfSizing.BattleResult.smallSpacing) {
                 Text("Loot")
-                    .font(BattleResultConstants.Fonts.xpGained)
-                    .foregroundStyle(BattleResultConstants.Colors.secondaryText)
+                    .font(ElfFonts.Component.xpGained)
+                    .foregroundStyle(ElfColors.Text.secondary)
                     .opacity(revealedCount > 0 ? 1.0 : 0.0)
 
-                HStack(spacing: BattleResultConstants.Sizing.dropItemSpacing) {
+                HStack(spacing: ElfSizing.BattleResult.dropItemSpacing) {
                     ForEach(Array(drops.enumerated()), id: \.element.id) { index, item in
                         DropItemCard(
                             item: item,
@@ -47,7 +48,7 @@ struct DropsRevealView: View {
     private func revealDropsSequentially() {
         for index in 0..<drops.count {
             DispatchQueue.main.asyncAfter(
-                deadline: .now() + Double(index) * BattleResultConstants.Animation.dropItemStagger
+                deadline: .now() + Double(index) * ElfAnimations.BattleResult.dropItemStagger
             ) {
                 withAnimation {
                     revealedCount = index + 1

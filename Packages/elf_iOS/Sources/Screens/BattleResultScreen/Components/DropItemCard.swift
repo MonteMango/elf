@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 struct DropItemCard: View {
@@ -17,12 +18,12 @@ struct DropItemCard: View {
             // Item icon with rarity border
             ZStack {
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(BattleResultConstants.Colors.cardBackground)
+                    .fill(ElfColors.Background.primary)
                     .overlay(
                         RoundedRectangle(cornerRadius: 6)
                             .stroke(
-                                BattleResultConstants.color(for: item.rarity),
-                                lineWidth: BattleResultConstants.Sizing.dropItemBorderWidth
+                                rarityColor(for: item.rarity),
+                                lineWidth: ElfSizing.BattleResult.dropItemBorderWidth
                             )
                     )
 
@@ -33,7 +34,7 @@ struct DropItemCard: View {
                 // Quantity badge (top-right corner)
                 if item.quantity > 1 {
                     Text("x\(item.quantity)")
-                        .font(BattleResultConstants.Fonts.dropItemQuantity)
+                        .font(ElfFonts.Component.dropItemQuantity)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 4)
                         .padding(.vertical, 1)
@@ -50,16 +51,16 @@ struct DropItemCard: View {
                 }
             }
             .frame(
-                width: BattleResultConstants.Sizing.dropItemSize,
-                height: BattleResultConstants.Sizing.dropItemSize
+                width: ElfSizing.BattleResult.dropItemSize,
+                height: ElfSizing.BattleResult.dropItemSize
             )
 
             // Item name
             Text(item.name)
-                .font(BattleResultConstants.Fonts.dropItemName)
-                .foregroundStyle(BattleResultConstants.Colors.primaryText)
+                .font(ElfFonts.Component.dropItemName)
+                .foregroundStyle(ElfColors.Text.primary)
                 .lineLimit(1)
-                .frame(width: BattleResultConstants.Sizing.dropItemSize)
+                .frame(width: ElfSizing.BattleResult.dropItemSize)
         }
         .scaleEffect(isVisible ? 1.0 : 0.3)
         .opacity(isVisible ? 1.0 : 0.0)
@@ -73,6 +74,21 @@ struct DropItemCard: View {
         Image(item.icon)
             .resizable()
             .aspectRatio(contentMode: .fit)
+    }
+
+    private func rarityColor(for rarity: ItemRarity) -> Color {
+        switch rarity {
+        case .common:
+            return ElfColors.Rarity.common
+        case .uncommon:
+            return ElfColors.Rarity.uncommon
+        case .rare:
+            return ElfColors.Rarity.rare
+        case .epic:
+            return ElfColors.Rarity.epic
+        case .legendary:
+            return ElfColors.Rarity.legendary
+        }
     }
 }
 

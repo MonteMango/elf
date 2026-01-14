@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 // MARK: - BodyPointSelector
@@ -38,15 +39,15 @@ struct BodyPointSelector: View {
     // MARK: - Body
 
     var body: some View {
-        let checkboxSize = BattleFightConstants.Sizing.checkboxSize
-        let spacing = BattleFightConstants.Sizing.checkboxSpacing
+        let checkboxSize = ElfSizing.BattleFight.checkboxSize
+        let spacing: CGFloat = 10
         let selectorWidth = checkboxSize * 3 + spacing * 2
         let selectorHeight = checkboxSize * 3 + spacing * 2
 
         VStack(spacing: 20) {
             // Label
             Text(mode.label)
-                .font(BattleFightConstants.Fonts.sectionLabel)
+                .font(ElfFonts.Component.statLabel)
                 .foregroundColor(.black)
 
             // Checkboxes with calculated frame
@@ -93,14 +94,14 @@ struct BodyPointSelector: View {
             Circle()
                 .fill(backgroundColor(isSelected: isSelected, isDisabled: isDisabled))
                 .frame(
-                    width: BattleFightConstants.Sizing.checkboxSize,
-                    height: BattleFightConstants.Sizing.checkboxSize
+                    width: ElfSizing.BattleFight.checkboxSize,
+                    height: ElfSizing.BattleFight.checkboxSize
                 )
                 .overlay(
                     Circle()
                         .stroke(
                             borderColor(isSelected: isSelected, isDisabled: isDisabled),
-                            lineWidth: BattleFightConstants.Sizing.checkboxBorderWidth
+                            lineWidth: 2
                         )
                 )
                 .overlay(
@@ -118,19 +119,19 @@ struct BodyPointSelector: View {
 
     private func backgroundColor(isSelected: Bool, isDisabled: Bool) -> Color {
         if isDisabled {
-            return BattleFightConstants.Colors.checkboxDisabled
+            return ElfColors.Interactive.disabled
         } else if isSelected {
-            return BattleFightConstants.Colors.checkboxSelected
+            return ElfColors.Interactive.selected
         } else {
-            return BattleFightConstants.Colors.checkboxNormal
+            return ElfColors.Interactive.normal
         }
     }
 
     private func borderColor(isSelected: Bool, isDisabled: Bool) -> Color {
         if isDisabled {
-            return BattleFightConstants.Colors.checkboxDisabled
+            return ElfColors.Interactive.disabled
         } else if isSelected {
-            return BattleFightConstants.Colors.checkboxSelected
+            return ElfColors.Interactive.selected
         } else {
             return Color.white.opacity(0.5)
         }
