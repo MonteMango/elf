@@ -18,11 +18,28 @@ enum PreviewMockData {
 
     private static func createDefaultEquipped() -> EquippedItems {
         let repository = ElfItemsRepository()
-        guard let weaponItem = repository.getHeroItem(defaultWeaponId) as? WeaponItem else {
-            fatalError("Default weapon not found in repository")
+        if let weaponItem = repository.getHeroItem(defaultWeaponId) as? WeaponItem {
+            let weapon = ElfWeaponItem(weaponItem: weaponItem)
+            return EquippedItems(weapons: .twoHanded(weapon: weapon))
         }
-        let weapon = ElfWeaponItem(weaponItem: weaponItem)
-        return EquippedItems(weapons: .twoHanded(weapon: weapon))
+        // Fallback for Preview when HeroItems.json is not available
+        let mockWeapon = ElfWeaponItem(weaponItem: createMockWeaponItem())
+        return EquippedItems(weapons: .twoHanded(weapon: mockWeapon))
+    }
+
+    private static func createMockWeaponItem() -> WeaponItem {
+        let json = """
+        {
+            "id": "dfbd2742-5470-4f97-84ea-fb17b5f3a6d2",
+            "title": "Training Sword",
+            "tier": 1,
+            "minimumAttackPoint": 5,
+            "maximumAttackPoint": 10,
+            "handUse": "both"
+        }
+        """
+        // swiftlint:disable:next force_try
+        return try! JSONDecoder().decode(WeaponItem.self, from: Data(json.utf8))
     }
 
     // MARK: - Mock Elves
@@ -32,9 +49,7 @@ enum PreviewMockData {
             name: "Asuna Yuuki",
             imageName: "elf_appearance_1",
             fightStyle: .dodge,
-            level: 1,
             currentExp: 0,
-            expToNextLevel: 100,
             fightStyleAttributes: HeroAttributes(
                 hitPoints: 80,
                 manaPoints: 20,
@@ -62,9 +77,7 @@ enum PreviewMockData {
             name: "Luna",
             imageName: "elf_ai_1",
             fightStyle: .crit,
-            level: 1,
             currentExp: 0,
-            expToNextLevel: 100,
             fightStyleAttributes: HeroAttributes(
                 hitPoints: 80,
                 manaPoints: 20,

@@ -15,12 +15,12 @@ public struct ManualBattleResult: Sendable, Equatable {
     public let drops: [DropItem]
 
     // For XP bar animation - state before battle
-    public let previousLevel: Int16
+    public let previousLevel: Int
     public let previousExp: Int
     public let previousExpToNext: Int
 
     // For XP bar animation - state after battle
-    public let newLevel: Int16
+    public let newLevel: Int
     public let newExp: Int
     public let newExpToNext: Int
 
@@ -31,17 +31,17 @@ public struct ManualBattleResult: Sendable, Equatable {
 
     /// Returns the number of levels gained
     public var levelsGained: Int {
-        Int(newLevel - previousLevel)
+        newLevel - previousLevel
     }
 
     public init(
         outcome: BattleOutcome,
         experienceGained: Int,
         drops: [DropItem],
-        previousLevel: Int16,
+        previousLevel: Int,
         previousExp: Int,
         previousExpToNext: Int,
-        newLevel: Int16,
+        newLevel: Int,
         newExp: Int,
         newExpToNext: Int
     ) {

@@ -74,8 +74,8 @@ struct MonsterCell: View {
                 .resizable()
                 .scaledToFit()
                 .frame(
-                    width: HuntConstants.Sizing.monsterImageSize,
-                    height: HuntConstants.Sizing.monsterImageSize
+                    idealWidth: HuntConstants.Sizing.monsterImageSize,
+                    idealHeight: HuntConstants.Sizing.monsterImageSize
                 )
         } else {
             // Placeholder for missing image

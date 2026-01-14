@@ -12,9 +12,10 @@ public struct ElfSaveData: Codable, Sendable {
     public let name: String
     public let imageName: String
     public let fightStyle: FightStyle
-    public let level: Int16
     public let currentExp: Int
-    public let expToNextLevel: Int
+    public let foragingExp: Int
+    public let fishingExp: Int
+    public let miningExp: Int
     public let fightStyleAttributes: HeroAttributes
     public let randomLevelAttributes: HeroAttributes
     public let currentHP: Int16
@@ -31,9 +32,10 @@ public struct ElfSaveData: Codable, Sendable {
         self.name = elf.name
         self.imageName = elf.imageName
         self.fightStyle = elf.fightStyle
-        self.level = elf.level
         self.currentExp = elf.currentExp
-        self.expToNextLevel = elf.expToNextLevel
+        self.foragingExp = elf.foragingExp
+        self.fishingExp = elf.fishingExp
+        self.miningExp = elf.miningExp
         self.fightStyleAttributes = elf.fightStyleAttributes
         self.randomLevelAttributes = elf.randomLevelAttributes
         self.currentHP = elf.currentHP
@@ -53,9 +55,10 @@ public struct ElfSaveData: Codable, Sendable {
             name: name,
             imageName: imageName,
             fightStyle: fightStyle,
-            level: level,
             currentExp: currentExp,
-            expToNextLevel: expToNextLevel,
+            foragingExp: foragingExp,
+            fishingExp: fishingExp,
+            miningExp: miningExp,
             fightStyleAttributes: fightStyleAttributes,
             randomLevelAttributes: randomLevelAttributes,
             currentHP: currentHP,

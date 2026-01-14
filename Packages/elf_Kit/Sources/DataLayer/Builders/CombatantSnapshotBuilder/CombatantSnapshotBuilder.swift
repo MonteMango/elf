@@ -15,7 +15,7 @@ public protocol CombatantSnapshotBuilder: Sendable {
     /// - Parameters:
     ///   - name: Display name for the combatant
     ///   - imageName: Image asset name for UI display
-    ///   - level: Hero level
+    ///   - level: Hero level (1-12)
     ///   - fightStyleAttributes: Attributes from selected fight style
     ///   - randomLevelAttributes: Random attributes gained from levels
     ///   - selectedItems: Dictionary of selected item UUIDs by type
@@ -23,7 +23,7 @@ public protocol CombatantSnapshotBuilder: Sendable {
     func buildSnapshot(
         name: String,
         imageName: String,
-        level: Int16,
+        level: Int,
         fightStyleAttributes: HeroAttributes,
         randomLevelAttributes: HeroAttributes,
         selectedItems: [HeroItemType: UUID?]

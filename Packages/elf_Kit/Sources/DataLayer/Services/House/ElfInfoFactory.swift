@@ -16,7 +16,7 @@ public protocol ElfInfoFactory: Sendable {
     func create(from character: PlayerCharacter) -> ElfInfo
 
     /// Create random AI elf with specified level
-    /// - Parameter level: The level for the AI elf
+    /// - Parameter level: The level for the AI elf (1-12)
     /// - Returns: Randomly generated ElfInfo for AI
-    func createRandomAI(level: Int16) async -> ElfInfo
+    func createRandomAI(level: Int) async -> ElfInfo
 }

@@ -23,7 +23,7 @@ internal struct GameDayScreenContent: View {
         GeometryReader { geometry in
             let spacing: CGFloat = 10
             let centerWidth: CGFloat = 250
-            let topPadding: CGFloat = 15
+            let topPadding = ElfSizing.standardPadding
             let sideWidth = max(0, (geometry.size.width - centerWidth - 2 * spacing) / 2)
             let contentHeight = max(0, geometry.size.height - topPadding)
 
@@ -122,6 +122,8 @@ internal struct GameDayScreenContent: View {
                 switch action {
                 case .hunt:
                     router.navigate(to: .hunt)
+                case .farm:
+                    router.navigate(to: .farm)
                 default:
                     viewModel.onActionTapped(action)
                 }

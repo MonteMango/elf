@@ -35,7 +35,7 @@ public final class DefaultHouseService: HouseService {
 
     // MARK: - HouseService
 
-    public func createHouse(templateIndex: Int, level: Int16) async -> House {
+    public func createHouse(templateIndex: Int, level: Int) async -> House {
         precondition(templateIndex >= 0 && templateIndex < templates.count, "Invalid template index")
 
         let template = templates[templateIndex]
@@ -63,7 +63,7 @@ public final class DefaultHouseService: HouseService {
 
     public func createHouse(
         templateIndex: Int,
-        level: Int16,
+        level: Int,
         playerElfInfo: ElfInfo,
         playerMemberIndex: Int
     ) async -> House {

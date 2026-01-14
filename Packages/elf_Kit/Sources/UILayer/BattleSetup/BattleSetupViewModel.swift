@@ -15,7 +15,7 @@ public final class BattleSetupViewModel {
 
     @Observable
     public final class HeroConfigurationState {
-        public var level: Int16
+        public var level: Int
         public var fightStyle: FightStyle?
         public var fightStyleAttributes: HeroAttributes?
         public var levelRandomAttributes: HeroAttributes?
@@ -44,7 +44,7 @@ public final class BattleSetupViewModel {
             )
         }
 
-        public init(level: Int16 = 1) {
+        public init(level: Int = 1) {
             self.level = level
             self.fightStyle = nil
             self.fightStyleAttributes = nil
@@ -121,7 +121,7 @@ public final class BattleSetupViewModel {
         heroType == .player ? playerState : botState
     }
 
-    private func level(for heroType: HeroType) -> Int16 {
+    private func level(for heroType: HeroType) -> Int {
         state(for: heroType).level
     }
 
@@ -231,7 +231,7 @@ public final class BattleSetupViewModel {
 
     // MARK: - Public API for State Updates
 
-    public func updatePlayerLevel(_ newLevel: Int16) {
+    public func updatePlayerLevel(_ newLevel: Int) {
         playerState.level = newLevel
         schedulePlayerUpdate()
     }
@@ -241,7 +241,7 @@ public final class BattleSetupViewModel {
         schedulePlayerUpdate()
     }
 
-    public func updateBotLevel(_ newLevel: Int16) {
+    public func updateBotLevel(_ newLevel: Int) {
         botState.level = newLevel
         scheduleBotUpdate()
     }
@@ -342,12 +342,13 @@ public final class BattleSetupViewModel {
 
                 // Fetch attributes in parallel
                 let service = attributeService
+                let levelInt16 = Int16(currentLevel)
                 async let fightStyleAttrs = service.getAllFightStyleAttributes(
                     for: fightStyle,
-                    at: currentLevel
+                    at: levelInt16
                 )
                 async let levelRandomAttrs = service.getAllRandomLevelAttributes(
-                    for: currentLevel
+                    for: levelInt16
                 )
 
                 let (fsAttrs, lrAttrs) = await (fightStyleAttrs, levelRandomAttrs)

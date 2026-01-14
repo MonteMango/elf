@@ -18,85 +18,48 @@ struct HuntScreenContent: View {
     }
 
     var body: some View {
-        ZStack {
-            // Background
-            HuntConstants.Colors.background
-                .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                // Top bar: Back button + Action Points
-                topBar
-                    .padding(.top, HuntConstants.Spacing.topPadding)
-                    .padding(.horizontal, HuntConstants.Spacing.horizontalPadding)
-
-                Spacer()
-
-                // Monster collection
-                monsterCollection
-
-                Spacer()
-
-                // Hunt button
-                huntButton
-                    .padding(.bottom, HuntConstants.Spacing.sectionSpacing)
-            }
-        }
-        .navigationBarHidden(true)
-    }
-
-    // MARK: - Top Bar
-
-    @ViewBuilder
-    private var topBar: some View {
-        ZStack {
-            // AP bar строго по центру + Calendar через overlay
-            ActionPointsBar(
-                current: viewModel.currentActionPoints,
-                max: viewModel.maxActionPoints,
-                label: "Action points",
-                barHeight: HuntConstants.Sizing.apBarHeight,
-                labelFont: HuntConstants.Fonts.apLabel,
-                barFont: HuntConstants.Fonts.apValue,
-                labelColor: .gray,
-                fillColor: HuntConstants.Colors.apBarFill,
-                backgroundColor: HuntConstants.Colors.apBarBackground,
-                showNextDayButton: true,
+        VStack(spacing: 0) {
+            // Top bar: Back button + Action Points
+            ScreenTopBar(
+                currentActionPoints: viewModel.currentActionPoints,
+                maxActionPoints: viewModel.maxActionPoints,
                 isLastDay: viewModel.isLastDay,
-                onNextDay: { viewModel.advanceToNextDay() }
-            )
-            .frame(width: HuntConstants.Sizing.apBarWidth)
-            .overlay(alignment: .trailing) {
-                elf_SwiftUI.CalendarSection(
-                    currentDay: CalendarDayData(
-                        id: viewModel.currentDay.id,
-                        dayNumber: viewModel.currentDay.dayNumber,
-                        backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
-                    ),
-                    upcomingDays: viewModel.upcomingDays.map {
-                        CalendarDayData(
-                            id: $0.id,
-                            dayNumber: $0.dayNumber,
-                            backgroundColor: ElfColors.Calendar.dayColor(for: $0.dayType.rawValue)
-                        )
-                    },
-                    onTap: {
-                        router.navigate(to: .calendar(
-                            calendar: viewModel.calendar,
-                            currentDayNumber: viewModel.currentDay.dayNumber
-                        ))
-                    }
-                )
-                .alignmentGuide(.trailing) { d in d[.leading] - 16 }
-            }
-
-            // Back button слева
-            HStack {
-                BackButton {
-                    router.pop()
+                currentDay: CalendarDayData(
+                    id: viewModel.currentDay.id,
+                    dayNumber: viewModel.currentDay.dayNumber,
+                    backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
+                ),
+                upcomingDays: viewModel.upcomingDays.map {
+                    CalendarDayData(
+                        id: $0.id,
+                        dayNumber: $0.dayNumber,
+                        backgroundColor: ElfColors.Calendar.dayColor(for: $0.dayType.rawValue)
+                    )
+                },
+                onNextDay: { viewModel.advanceToNextDay() },
+                onBack: { router.pop() },
+                onCalendarTap: {
+                    router.navigate(to: .calendar(
+                        calendar: viewModel.calendar,
+                        currentDayNumber: viewModel.currentDay.dayNumber
+                    ))
                 }
-                Spacer()
-            }
+            )
+            .padding(.top, ElfSizing.standardPadding)
+            .padding(.horizontal, HuntConstants.Spacing.horizontalPadding)
+
+            Spacer()
+
+            // Monster collection
+            monsterCollection
+
+            Spacer()
+
+            // Hunt button
+            huntButton
+                .padding(.bottom, HuntConstants.Spacing.sectionSpacing)
         }
+        .background(HuntConstants.Colors.background)
     }
 
     // MARK: - Monster Collection

@@ -22,7 +22,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
     public func buildSnapshot(
         name: String,
         imageName: String,
-        level: Int16,
+        level: Int,
         fightStyleAttributes: HeroAttributes,
         randomLevelAttributes: HeroAttributes,
         selectedItems: [HeroItemType: UUID?]

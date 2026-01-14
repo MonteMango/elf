@@ -23,9 +23,13 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
 
     // MARK: - Progression
 
-    public var level: Int16
     public var currentExp: Int
-    public var expToNextLevel: Int
+
+    // MARK: - Farming Skills (TDD: stored XP, levels computed)
+
+    public var foragingExp: Int
+    public var fishingExp: Int
+    public var miningExp: Int
 
     // MARK: - Attributes
 
@@ -70,9 +74,69 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
         totalAttributes.manaPoints.value
     }
 
+    /// Level computed from currentExp (TDD: single source of truth)
+    /// Formula: level = max(1, min(12, currentExp / 100))
+    public var level: Int {
+        max(1, min(12, currentExp / 100))
+    }
+
+    /// XP threshold to reach next level
+    public var expToNextLevel: Int {
+        guard level < 12 else { return 0 }
+        return (level + 1) * 100
+    }
+
+    /// Progress within current level (0.0 to 1.0)
     public var expProgress: Double {
-        guard expToNextLevel > 0 else { return 0 }
-        return Double(currentExp) / Double(expToNextLevel)
+        guard level < 12 else { return 1.0 }
+        let levelStartXP = level == 1 ? 0 : level * 100
+        let levelEndXP = (level + 1) * 100
+        let xpInLevel = currentExp - levelStartXP
+        let levelSize = levelEndXP - levelStartXP
+        return Double(xpInLevel) / Double(levelSize)
+    }
+
+    // MARK: - Farming Skill Levels (TDD: computed from XP)
+
+    /// Foraging skill level (1-12), computed from foragingExp
+    /// Formula: level = max(1, min(12, foragingExp / 50))
+    public var foragingLevel: Int {
+        max(1, min(12, foragingExp / 50))
+    }
+
+    /// Fishing skill level (1-12), computed from fishingExp
+    public var fishingLevel: Int {
+        max(1, min(12, fishingExp / 50))
+    }
+
+    /// Mining skill level (1-12), computed from miningExp
+    public var miningLevel: Int {
+        max(1, min(12, miningExp / 50))
+    }
+
+    /// Progress within current foraging level (0.0 to 1.0)
+    public var foragingProgress: Double {
+        farmingSkillProgress(for: foragingExp, level: foragingLevel)
+    }
+
+    /// Progress within current fishing level (0.0 to 1.0)
+    public var fishingProgress: Double {
+        farmingSkillProgress(for: fishingExp, level: fishingLevel)
+    }
+
+    /// Progress within current mining level (0.0 to 1.0)
+    public var miningProgress: Double {
+        farmingSkillProgress(for: miningExp, level: miningLevel)
+    }
+
+    /// Helper to calculate progress within a farming skill level
+    private func farmingSkillProgress(for exp: Int, level: Int) -> Double {
+        guard level < 12 else { return 1.0 }
+        let levelStartXP = level == 1 ? 0 : level * 50
+        let levelEndXP = (level + 1) * 50
+        let xpInLevel = exp - levelStartXP
+        let levelSize = levelEndXP - levelStartXP
+        return Double(xpInLevel) / Double(levelSize)
     }
 
     public var hpProgress: Double {
@@ -104,9 +168,10 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
         name: String,
         imageName: String,
         fightStyle: FightStyle,
-        level: Int16,
         currentExp: Int,
-        expToNextLevel: Int,
+        foragingExp: Int = 0,
+        fishingExp: Int = 0,
+        miningExp: Int = 0,
         fightStyleAttributes: HeroAttributes,
         randomLevelAttributes: HeroAttributes,
         currentHP: Int16,
@@ -119,9 +184,10 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
         self.name = name
         self.imageName = imageName
         self.fightStyle = fightStyle
-        self.level = level
         self.currentExp = currentExp
-        self.expToNextLevel = expToNextLevel
+        self.foragingExp = foragingExp
+        self.fishingExp = fishingExp
+        self.miningExp = miningExp
         self.fightStyleAttributes = fightStyleAttributes
         self.randomLevelAttributes = randomLevelAttributes
         self.currentHP = currentHP

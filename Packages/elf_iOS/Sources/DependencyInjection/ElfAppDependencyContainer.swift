@@ -284,6 +284,14 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
+    public func makeFarmViewModel() -> FarmViewModel {
+        guard let gameService = activeGameService else {
+            fatalError("No active game session. FarmViewModel requires an active game.")
+        }
+        return FarmViewModel(gameService: gameService)
+    }
+
+    @MainActor
     public func makeCalendarViewModel(
         calendar: [GameDay],
         currentDayNumber: Int

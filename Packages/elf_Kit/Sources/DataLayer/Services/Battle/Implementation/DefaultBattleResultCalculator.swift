@@ -46,7 +46,7 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
         }
 
         // Get current player XP state (before adding)
-        let previousLevel: Int16
+        let previousLevel: Int
         let previousExp: Int
         let previousExpToNext: Int
 
@@ -59,7 +59,7 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
             // Fallback for non-game battles
             previousLevel = 1
             previousExp = 0
-            previousExpToNext = 100
+            previousExpToNext = 200
         }
 
         // Add XP to player if we have game service and won
@@ -73,7 +73,7 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
         }
 
         // Get new player XP state (after adding)
-        let newLevel: Int16
+        let newLevel: Int
         let newExp: Int
         let newExpToNext: Int
 
@@ -83,17 +83,11 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
             newExp = player.currentExp
             newExpToNext = player.expToNextLevel
         } else {
-            // Fallback: simulate simple XP addition
+            // Fallback: simulate simple XP addition using new formula
             let totalExp = previousExp + experienceGained
-            if totalExp >= previousExpToNext {
-                newLevel = previousLevel + 1
-                newExp = totalExp - previousExpToNext
-                newExpToNext = Int(Double(previousExpToNext) * 1.2)
-            } else {
-                newLevel = previousLevel
-                newExp = totalExp
-                newExpToNext = previousExpToNext
-            }
+            newLevel = max(1, min(12, totalExp / 100))
+            newExp = totalExp
+            newExpToNext = newLevel < 12 ? (newLevel + 1) * 100 : 0
         }
 
         // Create battle result

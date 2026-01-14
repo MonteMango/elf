@@ -82,14 +82,13 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
     public func create(from character: PlayerCharacter) -> ElfInfo {
         let (equipped, inventory) = createDefaultEquipment()
 
+        // New characters start at level 1 (currentExp = 0)
         return ElfInfo(
             id: character.id,
             name: character.name,
             imageName: character.appearance.imageName,
             fightStyle: character.fightStyle,
-            level: character.level,
             currentExp: 0,
-            expToNextLevel: 100,
             fightStyleAttributes: character.fightStyleAttributes,
             randomLevelAttributes: character.randomLevelAttributes,
             currentHP: character.totalAttributes.hitPoints.value,
@@ -100,16 +99,16 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
         )
     }
 
-    public func createRandomAI(level: Int16) async -> ElfInfo {
+    public func createRandomAI(level: Int) async -> ElfInfo {
         let fightStyle = availableFightStyles.randomElement()!
 
         // Use AttributeService like in BattleSetup
         let fightStyleAttributes = await attributeService.getAllFightStyleAttributes(
             for: fightStyle,
-            at: level
+            at: Int16(level)
         )
         let randomLevelAttributes = await attributeService.getAllRandomLevelAttributes(
-            for: level
+            for: Int16(level)
         )
 
         let totalHP = fightStyleAttributes.hitPoints + randomLevelAttributes.hitPoints
@@ -117,13 +116,15 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
 
         let (equipped, inventory) = createDefaultEquipment()
 
+        // Calculate currentExp for desired level
+        // level 1 → 0 XP, level N (N>1) → N*100 XP
+        let currentExp = level <= 1 ? 0 : level * 100
+
         return ElfInfo(
             name: aiNames.randomElement()!,
             imageName: "elf_ai_\(Int.random(in: 1...10))",
             fightStyle: fightStyle,
-            level: level,
-            currentExp: 0,
-            expToNextLevel: 100 * Int(level),
+            currentExp: currentExp,
             fightStyleAttributes: fightStyleAttributes,
             randomLevelAttributes: randomLevelAttributes,
             currentHP: totalHP.value,

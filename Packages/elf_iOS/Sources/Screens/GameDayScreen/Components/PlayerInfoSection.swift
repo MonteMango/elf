@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PlayerInfoSection: View {
-    let level: Int16
+    let level: Int
     let name: String
     let currentExp: Int
     let expToNextLevel: Int

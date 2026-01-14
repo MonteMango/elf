@@ -84,18 +84,6 @@ public final class DefaultGameService: GameService {
         )
     }
 
-    public func levelUpPlayer() {
-        guard player.currentExp >= player.expToNextLevel else { return }
-
-        player.currentExp -= player.expToNextLevel
-        player.level += 1
-
-        // Increase exp required for next level (simple scaling)
-        player.expToNextLevel = Int(Double(player.expToNextLevel) * 1.2)
-
-        // TODO: Add random attribute bonuses on level up via AttributeRandomizer
-    }
-
     public func addDropsToPlayerInventory(rewards: HuntRewards) {
         // Add materials (stackable)
         for material in rewards.materials {
@@ -249,20 +237,8 @@ public final class DefaultGameService: GameService {
         guard houseIndex >= 0 && houseIndex < Game.housesCount,
               memberIndex >= 0 && memberIndex < House.membersCount else { return }
 
+        // Simply add XP - level is computed automatically (TDD: single source of truth)
         game.houses[houseIndex].members[memberIndex].currentExp += amount
-
-        // Auto level up if enough experience
-        while game.houses[houseIndex].members[memberIndex].currentExp >=
-              game.houses[houseIndex].members[memberIndex].expToNextLevel {
-
-            game.houses[houseIndex].members[memberIndex].currentExp -=
-                game.houses[houseIndex].members[memberIndex].expToNextLevel
-            game.houses[houseIndex].members[memberIndex].level += 1
-
-            // Increase exp required for next level
-            game.houses[houseIndex].members[memberIndex].expToNextLevel =
-                Int(Double(game.houses[houseIndex].members[memberIndex].expToNextLevel) * 1.2)
-        }
     }
 
     // MARK: - Persistence

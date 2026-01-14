@@ -13,9 +13,9 @@ struct LevelSelector: View {
 
     // MARK: - Properties
 
-    @Binding var level: Int16
-    let minLevel: Int16 = 1
-    let maxLevel: Int16 = 12
+    @Binding var level: Int
+    let minLevel: Int = 1
+    let maxLevel: Int = 12
 
     // MARK: - Body
 

@@ -35,7 +35,7 @@ public final class GameDayViewModel {
         game.player.name
     }
 
-    public var characterLevel: Int16 {
+    public var characterLevel: Int {
         game.player.level
     }
 

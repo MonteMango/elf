@@ -29,8 +29,8 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
     /// Type of combatant (elf or monster)
     public let combatantType: CombatantType
 
-    /// Level of the combatant
-    public let level: Int16
+    /// Level of the combatant (1-12)
+    public let level: Int
 
     // MARK: - Health
 
@@ -121,7 +121,7 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
         name: String,
         imageName: String,
         combatantType: CombatantType,
-        level: Int16 = 1,
+        level: Int = 1,
         currentHP: Int,
         maxHP: Int,
         strength: Int,

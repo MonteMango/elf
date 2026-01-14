@@ -28,8 +28,8 @@ public struct SaveSlotInfo: Codable, Identifiable, Sendable {
     /// Player character name
     public let playerName: String
 
-    /// Player character level
-    public let playerLevel: Int16
+    /// Player character level (1-12)
+    public let playerLevel: Int
 
     /// Player's house name
     public let houseName: String
@@ -46,7 +46,7 @@ public struct SaveSlotInfo: Codable, Identifiable, Sendable {
         playTime: TimeInterval,
         currentDay: Int,
         playerName: String,
-        playerLevel: Int16,
+        playerLevel: Int,
         houseName: String
     ) {
         self.slotId = slotId

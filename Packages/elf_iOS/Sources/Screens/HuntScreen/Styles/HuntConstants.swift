@@ -35,7 +35,6 @@ enum HuntConstants {
     // MARK: - Spacing
 
     enum Spacing {
-        static let topPadding: CGFloat = 20
         static let horizontalPadding: CGFloat = 20
         static let sectionSpacing: CGFloat = 30
         static let monsterSpacing: CGFloat = 20

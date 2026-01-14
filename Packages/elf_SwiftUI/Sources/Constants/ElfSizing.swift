@@ -9,7 +9,7 @@ import Foundation
 public enum ElfSizing {
     // MARK: - Padding
 
-    public static let standardPadding: CGFloat = 20
+    public static let standardPadding: CGFloat = 10
 
     // MARK: - Buttons
 

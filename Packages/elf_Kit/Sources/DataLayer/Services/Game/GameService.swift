@@ -32,11 +32,9 @@ public protocol GameService: AnyObject {
     // MARK: - Player Progression
 
     /// Adds experience points to the player
+    /// Level is computed automatically from total XP (TDD: single source of truth)
     /// - Parameter amount: Experience points to add
     func addPlayerExperience(_ amount: Int)
-
-    /// Levels up the player if enough experience
-    func levelUpPlayer()
 
     /// Adds hunt rewards (drops) to player's inventory
     /// - Parameter rewards: Hunt rewards containing materials, weapon, and armor drops
