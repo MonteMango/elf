@@ -37,8 +37,3 @@ public struct RootScreen: View {
         .toolbar(.hidden, for: .navigationBar)
     }
 }
-
-#Preview {
-    RootScreen()
-        .environment(ElfAppDependencyContainer())
-}

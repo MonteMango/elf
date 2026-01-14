@@ -15,9 +15,3 @@ struct HuntScreen: View {
         HuntScreenContent(viewModel: container.makeHuntViewModel())
     }
 }
-
-#Preview {
-    HuntScreen()
-        .environment(ElfAppDependencyContainer())
-        .environment(AppRouter())
-}

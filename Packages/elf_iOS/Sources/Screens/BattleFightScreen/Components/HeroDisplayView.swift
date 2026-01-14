@@ -286,87 +286,78 @@ struct HeroDisplayView: View {
 
 // MARK: - Preview
 
-#if DEBUG
-struct HeroDisplayView_Previews: PreviewProvider {
-    static var previews: some View {
-        // Preview 1: Monster snapshot (no items)
-        let monsterSnapshot = CombatantSnapshot(
-            sourceId: UUID(),
-            name: "Goblin",
-            imageName: "monster_goblin",
-            combatantType: .monster,
+#Preview {
+    let monsterSnapshot = CombatantSnapshot(
+        sourceId: UUID(),
+        name: "Goblin",
+        imageName: "monster_goblin",
+        combatantType: .monster,
+        currentHP: 120,
+        maxHP: 150,
+        strength: 15,
+        agility: 10,
+        power: 12,
+        intuition: 8,
+        attackPoints: 1,
+        defensePoints: 2,
+        minimumAttack: 5,
+        maximumAttack: 10,
+        armorValues: [:]
+    )
+
+    let elfSnapshot = CombatantSnapshot(
+        sourceId: UUID(),
+        name: "Elara",
+        imageName: "elf_warrior",
+        combatantType: .elf,
+        currentHP: 180,
+        maxHP: 225,
+        strength: 18,
+        agility: 12,
+        power: 14,
+        intuition: 10,
+        attackPoints: 2,
+        defensePoints: 3,
+        minimumAttack: 8,
+        maximumAttack: 15,
+        armorValues: [
+            .head: 5,
+            .body: 10,
+            .leftHand: 3,
+            .rightHand: 3,
+            .legs: 7
+        ]
+    )
+
+    return HStack(spacing: 30) {
+        HeroDisplayView(
+            snapshot: monsterSnapshot,
             currentHP: 120,
             maxHP: 150,
-            strength: 15,
-            agility: 10,
-            power: 12,
-            intuition: 8,
-            attackPoints: 1,
-            defensePoints: 2,
-            minimumAttack: 5,
-            maximumAttack: 10,
-            armorValues: [:]
-        )
-
-        // Preview 2: Elf snapshot with equipment
-        let elfSnapshot = CombatantSnapshot(
-            sourceId: UUID(),
-            name: "Elara",
-            imageName: "elf_warrior",
-            combatantType: .elf,
-            currentHP: 180,
-            maxHP: 225,
-            strength: 18,
-            agility: 12,
-            power: 14,
-            intuition: 10,
-            attackPoints: 2,
-            defensePoints: 3,
-            minimumAttack: 8,
-            maximumAttack: 15,
-            armorValues: [
-                .head: 5,
-                .body: 10,
-                .leftHand: 3,
-                .rightHand: 3,
-                .legs: 7
+            roundResults: [
+                .head: .blocked(wasCrit: false),
+                .body: .hit(weaponDamage: 8, strengthDamage: 5, defenderArmor: 3),
+                .leftHand: .nothing,
+                .rightHand: .critHit(weaponDamage: 12, strengthDamage: 8, defenderArmor: 0, multiplier: 2.0),
+                .legs: .dodged(wasCrit: false)
             ]
         )
+        .frame(width: 150)
 
-        HStack(spacing: 30) {
-            HeroDisplayView(
-                snapshot: monsterSnapshot,
-                currentHP: 120,
-                maxHP: 150,
-                roundResults: [
-                    .head: .blocked(wasCrit: false),
-                    .body: .hit(weaponDamage: 8, strengthDamage: 5, defenderArmor: 3),
-                    .leftHand: .nothing,
-                    .rightHand: .critHit(weaponDamage: 12, strengthDamage: 8, defenderArmor: 0, multiplier: 2.0),
-                    .legs: .dodged(wasCrit: false)
-                ]
-            )
-            .frame(width: 150)
-            .previewDisplayName("Monster Display")
-
-            HeroDisplayView(
-                snapshot: elfSnapshot,
-                currentHP: 180,
-                maxHP: 225,
-                roundResults: [
-                    .head: .hit(weaponDamage: 4, strengthDamage: 3, defenderArmor: 2),
-                    .body: .blocked(wasCrit: false),
-                    .leftHand: .dodged(wasCrit: true),
-                    .rightHand: .critHit(weaponDamage: 15, strengthDamage: 10, defenderArmor: 0, multiplier: 1.5),
-                    .legs: .nothing
-                ]
-            )
-            .frame(width: 150)
-            .previewDisplayName("Elf Display")
-        }
-        .padding()
-        .background(Color.white)
-        .previewLayout(.sizeThatFits)
+        HeroDisplayView(
+            snapshot: elfSnapshot,
+            currentHP: 180,
+            maxHP: 225,
+            roundResults: [
+                .head: .hit(weaponDamage: 4, strengthDamage: 3, defenderArmor: 2),
+                .body: .blocked(wasCrit: false),
+                .leftHand: .dodged(wasCrit: true),
+                .rightHand: .critHit(weaponDamage: 15, strengthDamage: 10, defenderArmor: 0, multiplier: 1.5),
+                .legs: .nothing
+            ]
+        )
+        .frame(width: 150)
     }
+    .padding()
+    .background(Color.white)
 }
-#endif

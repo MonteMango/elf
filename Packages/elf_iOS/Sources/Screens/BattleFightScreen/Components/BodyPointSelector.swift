@@ -140,15 +140,13 @@ struct BodyPointSelector: View {
 
 // MARK: - Preview
 
-struct BodyPointSelector_Previews: PreviewProvider {
-    static var previews: some View {
-        BodyPointSelector(
-            mode: .attack,
-            selectedPoints: [.head, .body],
-            maxPoints: 2,
-            onToggle: { _ in }
-        )
-        .padding()
-        .background { Color.yellow }
-    }
+#Preview {
+    BodyPointSelector(
+        mode: .attack,
+        selectedPoints: [.head, .body],
+        maxPoints: 2,
+        onToggle: { _ in }
+    )
+    .padding()
+    .background { Color.yellow }
 }

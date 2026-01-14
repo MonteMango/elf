@@ -91,3 +91,11 @@ struct InventoryScreenContent: View {
         .buttonStyle(.plain)
     }
 }
+
+// MARK: - Preview
+
+#Preview {
+    InventoryScreenContent(
+        viewModel: PreviewMockData.createMockInventoryViewModel()
+    )
+}
