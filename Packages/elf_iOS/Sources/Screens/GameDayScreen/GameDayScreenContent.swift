@@ -101,17 +101,9 @@ internal struct GameDayScreenContent: View {
     @ViewBuilder
     private var centerSection: some View {
         VStack(spacing: ElfSpacing.section) {
-            // Action Points Bar
             elf_SwiftUI.ActionPointsBar(
                 current: viewModel.gameState.currentActionPoints,
                 max: viewModel.gameState.maxActionPoints,
-                label: "Action points",
-                barHeight: ElfSizing.ProgressBar.large,
-                labelFont: ElfFonts.Component.apFont,
-                barFont: ElfFonts.Component.apFont,
-                labelColor: ElfColors.Text.secondary,
-                fillColor: ElfColors.ProgressBar.ap,
-                backgroundColor: ElfColors.ProgressBar.background,
                 showNextDayButton: true,
                 isLastDay: viewModel.gameState.isLastDay,
                 onNextDay: { viewModel.onConfirmActionPoints() }

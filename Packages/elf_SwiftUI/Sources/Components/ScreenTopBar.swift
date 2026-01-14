@@ -41,17 +41,9 @@ public struct ScreenTopBar: View {
 
     public var body: some View {
         ZStack(alignment: .top) {
-            // Action Points Bar centered + Calendar overlay
             ActionPointsBar(
                 current: currentActionPoints,
                 max: maxActionPoints,
-                label: "Action points",
-                barHeight: 30,
-                labelFont: .system(size: 14, weight: .medium),
-                barFont: .system(size: 14, weight: .bold),
-                labelColor: .gray,
-                fillColor: .yellow,
-                backgroundColor: Color(white: 0.9),
                 showNextDayButton: true,
                 isLastDay: isLastDay,
                 onNextDay: onNextDay

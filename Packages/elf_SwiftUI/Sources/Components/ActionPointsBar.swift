@@ -7,20 +7,11 @@
 
 import SwiftUI
 
-/// A reusable progress bar for displaying action points or similar resources.
+/// A progress bar for displaying action points.
 /// When action points reach 0 and `showNextDayButton` is true, displays a "Next day" button instead.
 public struct ActionPointsBar: View {
     let current: Int
     let max: Int
-    let label: String
-    let barHeight: CGFloat
-    let labelFont: Font
-    let barFont: Font
-    let labelColor: Color
-    let fillColor: Color
-    let backgroundColor: Color
-
-    // Next day button configuration
     let showNextDayButton: Bool
     let isLastDay: Bool
     let nextDayButtonText: String
@@ -29,13 +20,6 @@ public struct ActionPointsBar: View {
     public init(
         current: Int,
         max: Int,
-        label: String = "Action points",
-        barHeight: CGFloat = ElfSizing.ProgressBar.large,
-        labelFont: Font = ElfFonts.Component.statLabel,
-        barFont: Font = ElfFonts.Component.apFont,
-        labelColor: Color = ElfColors.Text.secondary,
-        fillColor: Color = ElfColors.ProgressBar.ap,
-        backgroundColor: Color = ElfColors.ProgressBar.background,
         showNextDayButton: Bool = false,
         isLastDay: Bool = false,
         nextDayButtonText: String = "Next day",
@@ -43,13 +27,6 @@ public struct ActionPointsBar: View {
     ) {
         self.current = current
         self.max = max
-        self.label = label
-        self.barHeight = barHeight
-        self.labelFont = labelFont
-        self.barFont = barFont
-        self.labelColor = labelColor
-        self.fillColor = fillColor
-        self.backgroundColor = backgroundColor
         self.showNextDayButton = showNextDayButton
         self.isLastDay = isLastDay
         self.nextDayButtonText = nextDayButtonText
@@ -63,12 +40,10 @@ public struct ActionPointsBar: View {
 
     public var body: some View {
         VStack(spacing: 4) {
-            // Label
-            Text(label)
-                .font(labelFont)
-                .foregroundColor(labelColor)
+            Text("Action points")
+                .font(ElfFonts.Component.statLabel)
+                .foregroundColor(ElfColors.Text.secondary)
 
-            // Progress bar OR Next Day button
             if showNextDayButton && current == 0 {
                 nextDayButton
             } else {
@@ -81,23 +56,20 @@ public struct ActionPointsBar: View {
 
     private var progressBar: some View {
         ZStack(alignment: .leading) {
-            // Background
-            RoundedRectangle(cornerRadius: barHeight / 2)
-                .fill(backgroundColor)
+            RoundedRectangle(cornerRadius: ElfSizing.ProgressBar.large / 2)
+                .fill(ElfColors.ProgressBar.background)
 
-            // Fill with clipShape for proper corner radius
             Rectangle()
-                .fill(fillColor)
+                .fill(ElfColors.ProgressBar.ap)
                 .scaleEffect(x: progress, y: 1, anchor: .leading)
-                .clipShape(RoundedRectangle(cornerRadius: barHeight / 2))
+                .clipShape(RoundedRectangle(cornerRadius: ElfSizing.ProgressBar.large / 2))
 
-            // Text overlay
             Text("\(current)/\(max)")
-                .font(barFont)
+                .font(ElfFonts.Component.apFont)
                 .foregroundColor(ElfColors.Text.primary)
                 .frame(maxWidth: .infinity)
         }
-        .frame(height: barHeight)
+        .frame(height: ElfSizing.ProgressBar.large)
     }
 
     private var nextDayButton: some View {
@@ -106,8 +78,8 @@ public struct ActionPointsBar: View {
         }
         .buttonStyle(.elfFlexible(
             isEnabled: !isLastDay,
-            height: barHeight,
-            cornerRadius: barHeight / 2
+            height: ElfSizing.ProgressBar.large,
+            cornerRadius: ElfSizing.ProgressBar.large / 2
         ))
         .disabled(isLastDay)
     }
