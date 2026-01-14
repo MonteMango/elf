@@ -25,6 +25,7 @@ public struct RootScreen: View {
                         .navigationTitle("")
                 }
         }
+        .allowsHitTesting(router.presentedModal == nil)
         .overlay {
             // Modal layer - displayed on top of navigation stack
             if let modal = router.presentedModal {

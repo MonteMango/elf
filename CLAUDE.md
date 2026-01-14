@@ -13,8 +13,10 @@
 xcodebuild -scheme elf -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 
 # Tests
-swift test --package-path Packages/elf_Kit
+xcodebuild test -scheme elf_Kit -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
+
+**Note:** Always run unit tests after making code changes to ensure nothing is broken.
 
 ## Orientation
 App supports **landscape orientation only**.

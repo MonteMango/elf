@@ -18,17 +18,32 @@ final class ElfInfoTests: XCTestCase {
 
     // MARK: - Test Helpers
 
+    private func makeTestWeaponConfiguration() -> WeaponConfiguration {
+        let json: [String: Any] = [
+            "id": UUID().uuidString,
+            "title": "Test Sword",
+            "tier": 1,
+            "minimumAttackPoint": 1,
+            "maximumAttackPoint": 5,
+            "handUse": "primary"
+        ]
+        let data = try! JSONSerialization.data(withJSONObject: json)
+        let weaponItem = try! JSONDecoder().decode(WeaponItem.self, from: data)
+        let elfWeapon = ElfWeaponItem(weaponItem: weaponItem)
+        return .oneHanded(weapon: elfWeapon)
+    }
+
     private func makeElf(currentExp: Int) -> ElfInfo {
         ElfInfo(
             name: "Test Elf",
             imageName: "elf_1",
-            fightStyle: .warrior,
+            fightStyle: .crit,
             currentExp: currentExp,
             fightStyleAttributes: HeroAttributes.zero,
             randomLevelAttributes: HeroAttributes.zero,
             currentHP: 100,
             currentMP: 50,
-            equipped: EquippedItems()
+            equipped: EquippedItems(weapons: makeTestWeaponConfiguration())
         )
     }
 
