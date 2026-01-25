@@ -19,10 +19,12 @@ public struct ElfSecondaryButtonStyle: ButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(ElfFonts.buttonTitle)
-            .foregroundColor(ElfColors.elfOrange)
+            .foregroundStyle(ElfColors.elfOrange)
             .frame(width: ElfSizing.buttonWidth, height: ElfSizing.buttonHeight)
-            .background(isEnabled ? Color.white : ElfColors.disabledBackground)
-            .cornerRadius(ElfSizing.buttonCornerRadius)
+            .background(
+                isEnabled ? Color.white : ElfColors.disabledBackground,
+                in: RoundedRectangle(cornerRadius: ElfSizing.buttonCornerRadius)
+            )
             .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
             .opacity(isEnabled ? (configuration.isPressed ? 0.8 : 1.0) : 0.6)
     }

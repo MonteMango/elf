@@ -65,7 +65,7 @@ internal struct MainMenuScreenContent: View {
                 Text(error)
             }
         }
-        .onAppear {
+        .task {
             viewModel.refreshSaveStatus()
         }
     }

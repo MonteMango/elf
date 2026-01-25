@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov
 //
 
+import elf_SwiftUI
 import SwiftUI
 
 struct SubcategoryButtonsRow: View {
@@ -44,8 +45,8 @@ private struct SubcategoryButton: View {
                     .fill(isSelected ? Color.orange : Color.white)
 
                 Text(title)
-                    .font(.system(size: 8, weight: .medium))
-                    .foregroundColor(isSelected ? .white : .orange)
+                    .font(ElfFonts.Component.subcategoryTab)
+                    .foregroundStyle(isSelected ? .white : .orange)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .padding(4)

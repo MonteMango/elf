@@ -8,6 +8,7 @@
 import SwiftUI
 
 @Observable
+@MainActor
 public final class AppRouter {
     public var navigationPath = NavigationPath()
 

@@ -43,7 +43,7 @@ struct CalendarScreenContent: View {
             Text("Calendar")
                 .foregroundStyle(.black)
                 .font(.title2)
-                .fontWeight(.bold)
+                .bold()
 
             // Back button
             HStack {

@@ -22,8 +22,8 @@ struct MonsterCell: View {
 
             // Monster name
             Text(displayData.title)
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(ElfColors.Text.primary)
+                .font(ElfFonts.Component.monsterName)
+                .foregroundStyle(ElfColors.Text.primary)
         }
         .frame(width: 200)
     }
@@ -64,8 +64,8 @@ struct MonsterCell: View {
                 )
                 .overlay(
                     Image(systemName: "pawprint.fill")
-                        .font(.system(size: 50))
-                        .foregroundColor(.gray)
+                        .font(ElfFonts.Component.monsterIcon)
+                        .foregroundStyle(.gray)
                 )
         }
     }

@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 struct ItemDetailPanel: View {
@@ -37,8 +38,8 @@ struct ItemDetailPanel: View {
 
             // Item title
             Text(item.title)
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.black)
+                .font(ElfFonts.Component.itemTitle)
+                .foregroundStyle(.black)
 
             // Item description/stats (scrollable for long descriptions)
             ScrollView {
@@ -77,8 +78,8 @@ struct ItemDetailPanel: View {
                     Spacer().frame(height: 8)
                 } else {
                     Text("- \(line)")
-                        .font(.system(size: 12))
-                        .foregroundColor(.black)
+                        .font(ElfFonts.Component.itemDetail)
+                        .foregroundStyle(.black)
                 }
             }
         }
@@ -99,12 +100,11 @@ struct ItemDetailPanel: View {
                 }
             }) {
                 Text(item.isEquipped ? "Unequip" : "Equip")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.white)
+                    .font(ElfFonts.Component.itemTitle)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
-                    .background(Color.orange)
-                    .cornerRadius(8)
+                    .background(Color.orange, in: RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
         }
@@ -116,8 +116,8 @@ struct ItemDetailPanel: View {
         VStack {
             Spacer()
             Text("Select an item")
-                .font(.system(size: 14))
-                .foregroundColor(.gray)
+                .font(ElfFonts.Component.itemEmptyState)
+                .foregroundStyle(.gray)
             Spacer()
         }
     }

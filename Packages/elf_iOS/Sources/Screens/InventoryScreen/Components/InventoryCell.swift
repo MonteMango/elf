@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 struct InventoryCell: View {
@@ -31,8 +32,8 @@ struct InventoryCell: View {
                 // Equipped label
                 if item.isEquipped {
                     Text("equipped")
-                        .font(.system(size: 7, weight: .medium))
-                        .foregroundColor(.white)
+                        .font(ElfFonts.Component.inventoryCellLabel)
+                        .foregroundStyle(.white)
                         .padding(.horizontal, 2)
                         .padding(.vertical, 1)
                         .background(Color.orange)
@@ -42,12 +43,11 @@ struct InventoryCell: View {
                 // Quantity badge
                 if let quantity = item.quantity {
                     Text("\(quantity)")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white)
+                        .font(ElfFonts.Component.inventoryCellQuantity)
+                        .foregroundStyle(.white)
                         .padding(.horizontal, 4)
                         .padding(.vertical, 2)
-                        .background(Color.black.opacity(0.7))
-                        .cornerRadius(4)
+                        .background(Color.black.opacity(0.7), in: RoundedRectangle(cornerRadius: 4))
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                         .padding(2)
                 }

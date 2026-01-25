@@ -43,7 +43,7 @@ internal struct AutoBattleResultScreenContent: View {
             Text("Battle in Progress")
                 .font(.title)
                 .bold()
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
 
             ProgressView(value: viewModel.progress)
                 .progressViewStyle(.linear)
@@ -52,7 +52,7 @@ internal struct AutoBattleResultScreenContent: View {
 
             Text("\(Int(viewModel.progress * 100))%")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
         }
     }
 
@@ -77,7 +77,7 @@ internal struct AutoBattleResultScreenContent: View {
             Button(action: onClose) {
                 Image(systemName: "xmark")
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .frame(width: 44, height: 44)
                     .background(Color.gray.opacity(0.3))
                     .clipShape(Circle())
@@ -91,7 +91,7 @@ internal struct AutoBattleResultScreenContent: View {
             Text(result.winner == .bot1 ? "Bot1 Wins!" : "Bot2 Wins!")
                 .font(.largeTitle)
                 .bold()
-                .foregroundColor(result.winner == .bot1 ? .green : .red)
+                .foregroundStyle(result.winner == .bot1 ? .green : .red)
 
             HStack(spacing: 40) {
                 botHPView(
@@ -102,7 +102,7 @@ internal struct AutoBattleResultScreenContent: View {
 
                 Text("vs")
                     .font(.title3)
-                    .foregroundColor(.gray)
+                    .foregroundStyle(.gray)
 
                 botHPView(
                     name: "Bot2",
@@ -113,7 +113,7 @@ internal struct AutoBattleResultScreenContent: View {
 
             Text("Total Rounds: \(result.totalRounds)")
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundStyle(.gray)
         }
         .padding()
         .background(
@@ -127,10 +127,10 @@ internal struct AutoBattleResultScreenContent: View {
         VStack {
             Text(name)
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
             Text("\(hp) HP")
                 .font(.title2)
-                .foregroundColor(isWinner ? .green : .gray)
+                .foregroundStyle(isWinner ? .green : .gray)
         }
     }
 
@@ -139,7 +139,7 @@ internal struct AutoBattleResultScreenContent: View {
             Text("Battle Statistics")
                 .font(.title2)
                 .bold()
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
                 .padding(.horizontal)
 
             StatisticsRow(
@@ -203,7 +203,7 @@ internal struct AutoBattleResultScreenContent: View {
             Text("Round History")
                 .font(.title2)
                 .bold()
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
                 .padding(.horizontal)
 
             ForEach(result.roundHistory) { round in
@@ -221,11 +221,10 @@ internal struct AutoBattleResultScreenContent: View {
         }) {
             Text("Fight Again")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.blue)
-                .cornerRadius(12)
+                .background(Color.blue, in: RoundedRectangle(cornerRadius: 12))
         }
         .padding(.horizontal, 32)
         .padding(.bottom, 24)

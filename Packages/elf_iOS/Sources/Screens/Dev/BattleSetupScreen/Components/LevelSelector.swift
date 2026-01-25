@@ -23,14 +23,14 @@ struct LevelSelector: View {
         VStack(spacing: BattleSetupConstants.Spacing.labelToControlSpacing) {
             Text("Level")
                 .font(BattleSetupConstants.Fonts.labelFont)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .multilineTextAlignment(.center)
 
             HStack {
                 Button(action: decrementLevel) {
                     Image(systemName: "minus")
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                         .font(.system(size: 16, weight: .bold))
                 }
                 .buttonStyle(LevelButtonStyle())
@@ -38,13 +38,13 @@ struct LevelSelector: View {
 
                 Text("\(level)")
                     .font(BattleSetupConstants.Fonts.levelFont)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .frame(width: 40)
                     .multilineTextAlignment(.center)
 
                 Button(action: incrementLevel) {
                     Image(systemName: "plus")
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                         .font(.system(size: 16, weight: .bold))
                 }
                 .buttonStyle(LevelButtonStyle())

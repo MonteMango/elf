@@ -50,7 +50,7 @@ internal struct BattleSetupScreenContent: View {
                             dismiss()
                         }) {
                             Image(systemName: "xmark")
-                                .foregroundColor(.white)
+                                .foregroundStyle(.white)
                                 .font(.system(size: 20, weight: .bold))
                                 .frame(width: 44, height: 44)
                         }
@@ -67,11 +67,10 @@ internal struct BattleSetupScreenContent: View {
                     }) {
                         Text("BATTLE")
                             .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundStyle(.white)
                             .frame(width: 200)
                             .frame(height: 50)
-                            .background(Color.orange)
-                            .cornerRadius(8)
+                            .background(Color.orange, in: RoundedRectangle(cornerRadius: 8))
                     }
 
                     // Auto battle buttons (bottom right)
@@ -89,8 +88,7 @@ internal struct BattleSetupScreenContent: View {
                             .tint(.white)
                             .frame(height: 44)
                             .padding(.horizontal, 8)
-                            .background(Color.blue)
-                            .cornerRadius(8)
+                            .background(Color.blue, in: RoundedRectangle(cornerRadius: 8))
 
                             // 1000x Auto Battle button
                             Button(action: {
@@ -103,11 +101,10 @@ internal struct BattleSetupScreenContent: View {
                             }) {
                                 Text("1000x")
                                     .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.white)
+                                    .foregroundStyle(.white)
                                     .frame(width: 50)
                                     .frame(height: 44)
-                                    .background(Color.purple)
-                                    .cornerRadius(8)
+                                    .background(Color.purple, in: RoundedRectangle(cornerRadius: 8))
                             }
 
                             // 1x AutoBattle button
@@ -121,11 +118,10 @@ internal struct BattleSetupScreenContent: View {
                             }) {
                                 Text("1x")
                                     .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.white)
+                                    .foregroundStyle(.white)
                                     .frame(width: 50)
                                     .frame(height: 44)
-                                    .background(Color.green)
-                                    .cornerRadius(8)
+                                    .background(Color.green, in: RoundedRectangle(cornerRadius: 8))
                             }
                         }
                     }
@@ -164,7 +160,7 @@ internal struct BattleSetupScreenContent: View {
                 VStack(alignment: .leading, spacing: BattleSetupConstants.Spacing.labelToControlSpacing) {
                     Text("Fight Style")
                         .font(BattleSetupConstants.Fonts.labelFont)
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
 
                     FightStyleSelector(selectedFightStyle: $viewModel.playerState.fightStyle)
                         .onChange(of: viewModel.playerState.fightStyle) { _, newValue in
@@ -224,7 +220,7 @@ internal struct BattleSetupScreenContent: View {
                 VStack(alignment: .trailing, spacing: BattleSetupConstants.Spacing.labelToControlSpacing) {
                     Text("Fight Style")
                         .font(BattleSetupConstants.Fonts.labelFont)
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
 
                     FightStyleSelector(selectedFightStyle: $viewModel.botState.fightStyle)
                         .onChange(of: viewModel.botState.fightStyle) { _, newValue in

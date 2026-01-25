@@ -55,23 +55,21 @@ struct HeroDisplayView: View {
     // MARK: - Private Views
 
     private var hpBar: some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .leading) {
-                // Background
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(ElfColors.ProgressBar.background)
+        ZStack(alignment: .leading) {
+            // Background
+            RoundedRectangle(cornerRadius: 12)
+                .fill(ElfColors.ProgressBar.background)
 
-                // Fill
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(ElfColors.ProgressBar.hp)
-                    .frame(width: geometry.size.width * hpPercentage)
+            // Fill
+            RoundedRectangle(cornerRadius: 12)
+                .fill(ElfColors.ProgressBar.hp)
+                .scaleEffect(x: hpPercentage, y: 1, anchor: .leading)
 
-                // Text
-                Text("\(currentHP)/\(maxHP)")
-                    .font(ElfFonts.Component.statValue)
-                    .foregroundColor(ElfColors.Text.primaryLight)
-                    .frame(maxWidth: .infinity, alignment: .center)
-            }
+            // Text
+            Text("\(currentHP)/\(maxHP)")
+                .font(ElfFonts.Component.statValue)
+                .foregroundStyle(ElfColors.Text.primaryLight)
+                .frame(maxWidth: .infinity, alignment: .center)
         }
         .frame(maxWidth: .infinity)
         .frame(height: ElfSizing.BattleFight.hpBarHeight)
@@ -91,7 +89,7 @@ struct HeroDisplayView: View {
                 .frame(maxWidth: .infinity)
                 .overlay(
                     Text(snapshot.name)
-                        .foregroundColor(.white.opacity(0.5))
+                        .foregroundStyle(.white.opacity(0.5))
                 )
         }
     }
@@ -189,7 +187,7 @@ struct HeroDisplayView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: size * 0.6, height: size * 0.6)
-                .foregroundColor(.gray.opacity(0.5))
+                .foregroundStyle(.gray.opacity(0.5))
         }
     }
 
@@ -239,7 +237,7 @@ struct HeroDisplayView: View {
         if let text = statusText(for: status) {
             Text(text)
                 .font(Font.system(size: 12, weight: .bold))
-                .foregroundColor(statusColor(for: status))
+                .foregroundStyle(statusColor(for: status))
         }
     }
 

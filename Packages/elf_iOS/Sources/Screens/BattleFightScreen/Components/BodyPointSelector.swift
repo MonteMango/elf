@@ -48,7 +48,7 @@ struct BodyPointSelector: View {
             // Label
             Text(mode.label)
                 .font(ElfFonts.Component.statLabel)
-                .foregroundColor(.black)
+                .foregroundStyle(.black)
 
             // Checkboxes with calculated frame
             ZStack {
@@ -108,8 +108,8 @@ struct BodyPointSelector: View {
                     Group {
                         if isSelected {
                             Image(systemName: "checkmark")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.white)
+                                .font(ElfFonts.Component.bodyPointCheckmark)
+                                .foregroundStyle(.white)
                         }
                     }
                 )

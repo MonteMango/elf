@@ -19,13 +19,13 @@ internal struct EmptyItemCell: View {
 
             Image(systemName: "xmark")
                 .font(.system(size: 60))
-                .foregroundColor(.white.opacity(0.5))
+                .foregroundStyle(.white.opacity(0.5))
         }
         .overlay(alignment: .top) {
             // Label overlay on top
             Text("Unequip")
                 .font(.caption)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
                 .lineLimit(1)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 4)

@@ -17,6 +17,7 @@ public typealias DebugLoggerImpl = NoOpDebugBattleLogger
 #endif
 
 @Observable
+@MainActor
 public final class ElfAppDependencyContainer {
 
     // MARK: - Long-lived dependencies (concrete types for static dispatch)

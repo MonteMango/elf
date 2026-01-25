@@ -18,7 +18,7 @@ struct LineCalendarView: View {
 
     var body: some View {
         ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
+            ScrollView(.horizontal) {
                 LazyHStack(spacing: spacing) {
                     ForEach(calendar) { day in
                         DayCell(
@@ -32,6 +32,7 @@ struct LineCalendarView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 20)
             }
+            .scrollIndicators(.hidden)
             .onAppear {
                 // Scroll to current day with some offset to show context
                 withAnimation {

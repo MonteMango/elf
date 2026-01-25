@@ -5,6 +5,7 @@
 //  Created by Claude on 23.11.25.
 //
 
+import elf_SwiftUI
 import SwiftUI
 
 /// Stage 2: Enter character name
@@ -27,11 +28,10 @@ struct NameInputView: View {
                         onRandomName()
                     }) {
                         Text("random name")
-                            .font(.subheadline)
-                            .foregroundColor(.white)
+                            .font(ElfFonts.Component.nameInputLabel)
+                            .foregroundStyle(.white)
                             .frame(width: 100, height: 36)
-                            .background(Color.green.opacity(0.7))
-                            .cornerRadius(4)
+                            .background(Color.green.opacity(0.7), in: RoundedRectangle(cornerRadius: 4))
                     }
                     .overlay(alignment: .trailing) {
                         // Error indicator button - dismisses keyboard
@@ -41,7 +41,7 @@ struct NameInputView: View {
                             }) {
                                 Image(systemName: "exclamationmark.circle.fill")
                                     .font(.title2)
-                                    .foregroundColor(.red)
+                                    .foregroundStyle(.red)
                                     .frame(width: 45, height: 45)
                                     .contentShape(Rectangle())
                             }
@@ -54,11 +54,10 @@ struct NameInputView: View {
                         "",
                         text: $characterName,
                         prompt: Text("Enter name...")
-                            .foregroundColor(.gray)
+                            .foregroundStyle(.gray)
                     )
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(validationError != nil ? .red : .black)
+                    .font(ElfFonts.Component.nameInput)
+                    .foregroundStyle(validationError != nil ? .red : .black)
                     .multilineTextAlignment(.center)
                     .focused(isTextFieldFocused)
                     .onChange(of: characterName) { _, _ in
@@ -72,7 +71,7 @@ struct NameInputView: View {
                 .overlay(alignment: .bottom) {
                     Rectangle()
                         .frame(height: 2)
-                        .foregroundColor(validationError != nil ? .red : .gray.opacity(0.5))
+                        .foregroundStyle(validationError != nil ? .red : .gray.opacity(0.5))
                 }
                 .padding(StagePadding.standard)
                 .padding(.leading, safeArea.leading)
@@ -81,7 +80,7 @@ struct NameInputView: View {
                 // Inline validation error
                 if let error = validationError {
                     Text(error)
-                        .foregroundColor(.red)
+                        .foregroundStyle(.red)
                         .font(.caption)
                         .padding(.leading, StagePadding.leading(safeArea))
                         .frame(maxWidth: .infinity, alignment: .leading)

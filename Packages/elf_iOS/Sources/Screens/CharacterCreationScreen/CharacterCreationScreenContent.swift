@@ -41,8 +41,8 @@ struct CharacterCreationScreenContent: View {
                     }) {
                         Image(systemName: "xmark")
                             .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .bold()
+                            .foregroundStyle(.white)
                             .frame(width: 44, height: 44)
                             .background(Color.red)
                     }
@@ -60,7 +60,7 @@ struct CharacterCreationScreenContent: View {
                 GeometryReader { geometry in
                     let fullWidth = geometry.size.width
 
-                    ScrollView(.horizontal, showsIndicators: false) {
+                    ScrollView(.horizontal) {
                         LazyHStack(spacing: 0) {
                             AppearanceSelectionView(
                                 selectedAppearance: $viewModel.selectedAppearance,
@@ -111,6 +111,7 @@ struct CharacterCreationScreenContent: View {
                             .id(4)
                         }
                     }
+                    .scrollIndicators(.hidden)
                     .scrollPosition(id: Binding(
                         get: { viewModel.currentStage.rawValue },
                         set: { if let newValue = $0, let stage = CharacterCreationStage(rawValue: newValue) {

@@ -13,7 +13,7 @@ public final class BattleSetupViewModel {
 
     // MARK: - Hero Configuration State
 
-    @Observable
+    @Observable @MainActor
     public final class HeroConfigurationState {
         public var level: Int
         public var fightStyle: FightStyle?

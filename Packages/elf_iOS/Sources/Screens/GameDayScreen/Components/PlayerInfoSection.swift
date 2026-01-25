@@ -24,20 +24,20 @@ struct PlayerInfoSection: View {
             HStack(spacing: ElfSpacing.component) {
                 Text("LVL\(level)")
                     .font(ElfFonts.Component.heroLevel)
-                    .foregroundColor(ElfColors.Text.secondary)
+                    .foregroundStyle(ElfColors.Text.secondary)
                     .frame(width: labelWidth, alignment: .leading)
 
                 Text(name)
                     .font(ElfFonts.Component.heroName)
-                    .fontWeight(.bold)
-                    .foregroundColor(ElfColors.Text.primary)
+                    .bold()
+                    .foregroundStyle(ElfColors.Text.primary)
             }
 
             // Experience bar with label on the left
             HStack(spacing: ElfSpacing.component) {
                 Text("Exp: \(currentExp)/\(expToNextLevel)")
                     .font(ElfFonts.Component.expLabel)
-                    .foregroundColor(ElfColors.Text.secondary)
+                    .foregroundStyle(ElfColors.Text.secondary)
                     .frame(width: labelWidth, alignment: .leading)
 
                 ZStack(alignment: .leading) {

@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 /// Stage 3: Select fight style
@@ -21,9 +22,8 @@ struct FightStyleSelectionView: View {
                 // Title and buttons (top left)
                 VStack(alignment: .leading, spacing: 20) {
                     Text("Select your fight style")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.black)
+                        .font(ElfFonts.Component.sectionTitle)
+                        .foregroundStyle(.black)
                         .padding(.top, StagePadding.top())
                         .padding(.leading, StagePadding.leading(safeArea))
 
@@ -42,17 +42,17 @@ struct FightStyleSelectionView: View {
                 VStack(spacing: 8) {
                     Text("Base attributes")
                         .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.black)
+                        .bold()
+                        .foregroundStyle(.black)
 
                     if let style = selectedFightStyle {
                         Text(getAttributesDescription(style))
                             .font(.body)
-                            .foregroundColor(.black)
+                            .foregroundStyle(.black)
                     } else {
                         Text("No style selected")
                             .font(.body)
-                            .foregroundColor(.gray)
+                            .foregroundStyle(.gray)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -63,12 +63,12 @@ struct FightStyleSelectionView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Fight Tactic")
                             .font(.headline)
-                            .fontWeight(.bold)
-                            .foregroundColor(.black)
+                            .bold()
+                            .foregroundStyle(.black)
 
                         Text(getDescription(style))
                             .font(.footnote)
-                            .foregroundColor(.gray)
+                            .foregroundStyle(.gray)
                             .minimumScaleFactor(0.7)
                     }
                     .frame(width: 180, alignment: .leading)
@@ -89,12 +89,10 @@ struct FightStyleSelectionView: View {
             selectedFightStyle = style
         }) {
             Text(style.displayName)
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(.white)
+                .font(ElfFonts.Component.sectionTitle)
+                .foregroundStyle(.white)
                 .frame(width: 150, height: 50)
-                .background(styleColor(for: style))
-                .cornerRadius(8)
+                .background(styleColor(for: style), in: RoundedRectangle(cornerRadius: 8))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(isSelected ? Color.orange : Color.clear, lineWidth: 3)

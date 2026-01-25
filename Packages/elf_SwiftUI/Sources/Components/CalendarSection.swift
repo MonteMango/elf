@@ -27,24 +27,25 @@ public struct CalendarSection: View {
     }
 
     public var body: some View {
-        ZStack(alignment: .leading) {
-            // Background days (furthest back first)
-            ForEach(Array(upcomingDays.enumerated().reversed()), id: \.element.id) { index, day in
-                let offsetIndex = index + 1
-                let isLastDay = index == upcomingDays.count - 1
-
-                dayCell(day: day, style: isLastDay ? .future : .upcoming)
-                    .offset(x: layerOffset * CGFloat(offsetIndex))
-            }
-
-            // Current day (front, no offset)
-            dayCell(day: currentDay, style: .current)
-        }
-        .frame(width: totalWidth, height: daySize, alignment: .leading)
-        .contentShape(Rectangle())
-        .onTapGesture {
+        Button {
             onTap?()
+        } label: {
+            ZStack(alignment: .leading) {
+                // Background days (furthest back first)
+                ForEach(Array(upcomingDays.enumerated().reversed()), id: \.element.id) { index, day in
+                    let offsetIndex = index + 1
+                    let isLastDay = index == upcomingDays.count - 1
+
+                    dayCell(day: day, style: isLastDay ? .future : .upcoming)
+                        .offset(x: layerOffset * CGFloat(offsetIndex))
+                }
+
+                // Current day (front, no offset)
+                dayCell(day: currentDay, style: .current)
+            }
+            .frame(width: totalWidth, height: daySize, alignment: .leading)
         }
+        .buttonStyle(.plain)
     }
 
     private var totalWidth: CGFloat {
@@ -79,13 +80,13 @@ public struct CalendarSection: View {
             VStack(spacing: 0) {
                 if style == .current {
                     Text("day")
-                        .font(.system(size: ElfFonts.Size.small, weight: .regular))
-                        .foregroundColor(ElfColors.Text.secondary)
+                        .font(ElfFonts.Component.calendarDayLabel)
+                        .foregroundStyle(ElfColors.Text.secondary)
                 }
 
                 Text("\(day.dayNumber)")
-                    .font(.system(size: style == .current ? ElfFonts.Size.title2 : ElfFonts.Size.headline, weight: .bold))
-                    .foregroundColor(ElfColors.Text.primary)
+                    .font(style == .current ? ElfFonts.Component.calendarDayNumber : ElfFonts.Component.calendarDayNumberSmall)
+                    .foregroundStyle(ElfColors.Text.primary)
             }
         }
     }

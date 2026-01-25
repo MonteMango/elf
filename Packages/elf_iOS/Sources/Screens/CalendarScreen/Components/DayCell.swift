@@ -23,11 +23,11 @@ struct DayCell: View {
             // Day number or symbol
             VStack(spacing: 2) {
                 Text("day")
-                    .font(.system(size: 10))
+                    .font(ElfFonts.Component.calendarDayLabel)
                     .foregroundStyle(.black.opacity(0.6))
 
                 Text(displayText)
-                    .font(.system(size: 20, weight: .bold))
+                    .font(ElfFonts.Component.calendarDayNumberMedium)
                     .foregroundStyle(.black)
             }
         }

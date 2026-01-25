@@ -12,7 +12,7 @@ struct BuffsScrollView: View {
     let buffs: [String]
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
+        ScrollView(.horizontal) {
             HStack(spacing: ElfSpacing.component) {
                 if buffs.isEmpty {
                     // Placeholder empty slots
@@ -26,6 +26,7 @@ struct BuffsScrollView: View {
                 }
             }
         }
+        .scrollIndicators(.hidden)
         .frame(height: ElfSizing.GameDay.buffSize)
     }
 
@@ -42,7 +43,7 @@ struct BuffsScrollView: View {
                     if let name = buffName {
                         Text(String(name.prefix(1)))
                             .font(ElfFonts.Component.statValue)
-                            .foregroundColor(ElfColors.Text.primaryLight)
+                            .foregroundStyle(ElfColors.Text.primaryLight)
                     }
                 }
             )

@@ -25,7 +25,7 @@ struct FightStyleSelector: View {
             ForEach(fightStyles, id: \.self) { style in
                 Button(action: { selectedFightStyle = style }) {
                     fightStyleIcon(for: style)
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                 }
                 .buttonStyle(FightStyleButtonStyle(isSelected: selectedFightStyle == style))
             }
@@ -64,7 +64,7 @@ struct FightStyleSelector_Previews: PreviewProvider {
             // Preview with Crit selected
             VStack(spacing: 20) {
                 Text("Crit Selected")
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                 FightStyleSelector(selectedFightStyle: .constant(.crit))
             }
             .padding()
@@ -74,7 +74,7 @@ struct FightStyleSelector_Previews: PreviewProvider {
             // Preview with no selection
             VStack(spacing: 20) {
                 Text("No Selection")
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                 FightStyleSelector(selectedFightStyle: .constant(nil))
             }
             .padding()
@@ -84,7 +84,7 @@ struct FightStyleSelector_Previews: PreviewProvider {
             // Preview with Dodge selected
             VStack(spacing: 20) {
                 Text("Dodge Selected")
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                 FightStyleSelector(selectedFightStyle: .constant(.dodge))
             }
             .padding()

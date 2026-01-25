@@ -129,7 +129,7 @@ struct HeroItemsGrid: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: size, height: size)
-                .foregroundColor(.gray.opacity(0.5))
+                .foregroundStyle(.gray.opacity(0.5))
         }
     }
 
@@ -172,7 +172,7 @@ struct HeroItemsGrid_Previews: PreviewProvider {
         Group {
             VStack(spacing: 20) {
                 Text("With All Items")
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .font(.caption)
                 HeroItemsGrid(
                     selectedItems: .constant([:]),
@@ -194,7 +194,7 @@ struct HeroItemsGrid_Previews: PreviewProvider {
 
             VStack(spacing: 20) {
                 Text("Secondary Weapon Disabled")
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .font(.caption)
                 HeroItemsGrid(
                     selectedItems: .constant([:]),

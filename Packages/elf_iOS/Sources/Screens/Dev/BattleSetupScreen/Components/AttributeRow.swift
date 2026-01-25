@@ -25,7 +25,7 @@ struct AttributeRow: View {
             if alignment == .leading {
                 Text(title)
                     .font(BattleSetupConstants.Fonts.labelFont)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                 Spacer()
                 formattedCalculation
             } else {
@@ -33,7 +33,7 @@ struct AttributeRow: View {
                 Spacer()
                 Text(title)
                     .font(BattleSetupConstants.Fonts.labelFont)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
             }
         }
     }
@@ -46,24 +46,24 @@ struct AttributeRow: View {
                 // Player format: "X A+B+C" (X=total bold orange, A+B+C=breakdown white)
                 Text(String(total))
                     .font(BattleSetupConstants.Fonts.attributeTotal)
-                    .foregroundColor(BattleSetupConstants.Colors.attributeTotalText)
+                    .foregroundStyle(BattleSetupConstants.Colors.attributeTotalText)
                 +
                 Text(" ")
                 +
                 Text("\(breakdown.fightStyle)+\(breakdown.level)+\(breakdown.items)")
                     .font(BattleSetupConstants.Fonts.attributeBreakdown)
-                    .foregroundColor(BattleSetupConstants.Colors.attributeBreakdownText)
+                    .foregroundStyle(BattleSetupConstants.Colors.attributeBreakdownText)
             } else {
                 // Bot format: "A+B+C X" (A+B+C=breakdown white, X=total bold orange)
                 Text("\(breakdown.items)+\(breakdown.level)+\(breakdown.fightStyle)")
                     .font(BattleSetupConstants.Fonts.attributeBreakdown)
-                    .foregroundColor(BattleSetupConstants.Colors.attributeBreakdownText)
+                    .foregroundStyle(BattleSetupConstants.Colors.attributeBreakdownText)
                 +
                 Text(" ")
                 +
                 Text(String(total))
                     .font(BattleSetupConstants.Fonts.attributeTotal)
-                    .foregroundColor(BattleSetupConstants.Colors.attributeTotalText)
+                    .foregroundStyle(BattleSetupConstants.Colors.attributeTotalText)
             }
         }
     }
@@ -76,7 +76,7 @@ struct AttributeRow_Previews: PreviewProvider {
         Group {
             VStack(spacing: 20) {
                 Text("Player Format (Leading)")
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .font(.caption)
                 AttributeRow(
                     title: "Strength",
@@ -97,7 +97,7 @@ struct AttributeRow_Previews: PreviewProvider {
 
             VStack(spacing: 20) {
                 Text("Bot Format (Trailing)")
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .font(.caption)
                 AttributeRow(
                     title: "Strength",

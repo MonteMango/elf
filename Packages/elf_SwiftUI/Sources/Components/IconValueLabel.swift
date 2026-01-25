@@ -28,11 +28,11 @@ public struct IconValueLabel: View {
     public var body: some View {
         HStack(spacing: 2) {
             Image(systemName: icon)
-                .font(.system(size: 10))
-                .foregroundColor(color)
+                .font(ElfFonts.Component.iconValue)
+                .foregroundStyle(color)
             Text("\(value)")
-                .font(.system(size: 10, weight: .bold))
-                .foregroundColor(color)
+                .font(ElfFonts.Component.iconValue)
+                .foregroundStyle(color)
         }
     }
 }

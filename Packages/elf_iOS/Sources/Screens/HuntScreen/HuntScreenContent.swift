@@ -17,6 +17,16 @@ struct HuntScreenContent: View {
         self._viewModel = State(initialValue: viewModel)
     }
 
+    private var upcomingDaysData: [CalendarDayData] {
+        viewModel.upcomingDays.map {
+            CalendarDayData(
+                id: $0.id,
+                dayNumber: $0.dayNumber,
+                backgroundColor: ElfColors.Calendar.dayColor(for: $0.dayType.rawValue)
+            )
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Top bar: Back button + Action Points
@@ -29,13 +39,7 @@ struct HuntScreenContent: View {
                     dayNumber: viewModel.currentDay.dayNumber,
                     backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
                 ),
-                upcomingDays: viewModel.upcomingDays.map {
-                    CalendarDayData(
-                        id: $0.id,
-                        dayNumber: $0.dayNumber,
-                        backgroundColor: ElfColors.Calendar.dayColor(for: $0.dayType.rawValue)
-                    )
-                },
+                upcomingDays: upcomingDaysData,
                 onNextDay: { viewModel.advanceToNextDay() },
                 onBack: { router.pop() },
                 onCalendarTap: {
@@ -90,7 +94,7 @@ struct HuntScreenContent: View {
         .overlay(alignment: .bottomTrailing) {
             Text("\(viewModel.huntCost) pt")
                 .font(.footnote)
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundStyle(.white.opacity(0.7))
                 .padding(4)
         }
     }

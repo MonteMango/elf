@@ -24,7 +24,7 @@ internal struct ItemCell: View {
                 // Item title overlay on top of image
                 Text(item.title)
                     .font(.caption)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 4)

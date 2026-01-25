@@ -32,7 +32,7 @@ struct CombatantImageView: View {
             if !snapshot.isAlive {
                 Image(systemName: "xmark")
                     .font(.system(size: size * 0.6, weight: .bold))
-                    .foregroundColor(.red)
+                    .foregroundStyle(.red)
             }
         }
         .frame(width: size, height: size)

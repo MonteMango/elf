@@ -41,11 +41,11 @@ internal struct BattleFightScreenContent: View {
                 HStack(alignment: .firstTextBaseline, spacing: 0) {
                     Text("[\(viewModel.playerSnapshot.level)] \(viewModel.playerSnapshot.name)")
                         .font(ElfFonts.Component.statLabel)
-                        .foregroundColor(.black)
+                        .foregroundStyle(.black)
                     Spacer()
                     Text("Round \(viewModel.currentRoundNumber)")
                         .font(ElfFonts.Component.roundNumber)
-                        .foregroundColor(.black)
+                        .foregroundStyle(.black)
                         .overlay(alignment: .trailing) {
                             elf_SwiftUI.CloseButton {
                                 showLeaveConfirmation = true
@@ -57,7 +57,7 @@ internal struct BattleFightScreenContent: View {
                     Spacer()
                     Text("[\(viewModel.botSnapshot.level)] \(viewModel.botSnapshot.name)")
                         .font(ElfFonts.Component.statLabel)
-                        .foregroundColor(.black)
+                        .foregroundStyle(.black)
                 }
 
                 Spacer()
@@ -151,28 +151,25 @@ internal struct BattleFightScreenContent: View {
                     }) {
                         Text("AUTO")
                             .font(ElfFonts.Component.actionButton)
-                            .foregroundColor(ElfColors.Button.primary)
+                            .foregroundStyle(ElfColors.Button.primary)
                             .frame(width: 120)
                             .frame(height: 54)
-                            .background(Color.white)
-                            .cornerRadius(27)
+                            .background(Color.white, in: RoundedRectangle(cornerRadius: 27))
                             .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                     }
                 } else {
                     // FIGHT button - when any selection made
                     Button(action: {
-                        let vm = viewModel
                         Task { @MainActor in
-                            await vm.executeFightRound()
+                            await viewModel.executeFightRound()
                         }
                     }) {
                         Text("FIGHT")
                             .font(ElfFonts.Component.actionButton)
-                            .foregroundColor(.white)
+                            .foregroundStyle(.white)
                             .frame(width: 120)
                             .frame(height: 54)
-                            .background(ElfColors.Button.primary)
-                            .cornerRadius(27)
+                            .background(ElfColors.Button.primary, in: RoundedRectangle(cornerRadius: 27))
                     }
                     .disabled(!hasFullSelection)
                     .opacity(hasFullSelection ? 1.0 : 0.5)

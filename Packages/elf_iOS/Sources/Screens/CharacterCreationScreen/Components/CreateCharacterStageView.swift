@@ -30,8 +30,8 @@ struct CreateCharacterStageView: View {
             Button(action: onClose) {
                 Image(systemName: "xmark")
                     .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .bold()
+                    .foregroundStyle(.white)
                     .frame(width: 44, height: 44)
                     .background(Color.red)
             }
@@ -54,8 +54,8 @@ struct CreateCharacterStageView: View {
         }) {
             Text("\(stage.number)")
                 .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(stageTextColor(isVisited: isVisited, isCurrent: isCurrent))
+                .bold()
+                .foregroundStyle(stageTextColor(isVisited: isVisited, isCurrent: isCurrent))
                 .frame(width: 50, height: 50)
                 .background(stageBackgroundColor(isVisited: isVisited, isCurrent: isCurrent))
                 .clipShape(Circle())

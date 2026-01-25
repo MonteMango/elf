@@ -19,6 +19,16 @@ internal struct GameDayScreenContent: View {
         self._inventoryViewModel = State(initialValue: inventoryViewModel)
     }
 
+    private var upcomingDaysData: [CalendarDayData] {
+        viewModel.gameState.upcomingDays.map {
+            CalendarDayData(
+                id: $0.id,
+                dayNumber: $0.dayNumber,
+                backgroundColor: ElfColors.Calendar.dayColor(for: $0.dayType.rawValue)
+            )
+        }
+    }
+
     var body: some View {
         GeometryReader { geometry in
             let spacing: CGFloat = 10
@@ -141,13 +151,7 @@ internal struct GameDayScreenContent: View {
                         dayNumber: viewModel.gameState.currentDay.dayNumber,
                         backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.gameState.currentDay.dayType.rawValue)
                     ),
-                    upcomingDays: viewModel.gameState.upcomingDays.map {
-                        CalendarDayData(
-                            id: $0.id,
-                            dayNumber: $0.dayNumber,
-                            backgroundColor: ElfColors.Calendar.dayColor(for: $0.dayType.rawValue)
-                        )
-                    },
+                    upcomingDays: upcomingDaysData,
                     onTap: {
                         router.navigate(to: .calendar(
                             calendar: viewModel.gameState.calendar,

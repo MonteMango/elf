@@ -31,17 +31,15 @@ struct ExperienceProgressView: View {
                 levelBadge(level: Int(result.didLevelUp ? result.newLevel : result.previousLevel))
 
                 // Progress bar
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        // Background
-                        RoundedRectangle(cornerRadius: ElfSizing.BattleResult.xpBarCornerRadius)
-                            .fill(ElfColors.ProgressBar.background)
+                ZStack(alignment: .leading) {
+                    // Background
+                    RoundedRectangle(cornerRadius: ElfSizing.BattleResult.xpBarCornerRadius)
+                        .fill(ElfColors.ProgressBar.background)
 
-                        // Fill
-                        RoundedRectangle(cornerRadius: ElfSizing.BattleResult.xpBarCornerRadius)
-                            .fill(ElfColors.ProgressBar.xp)
-                            .frame(width: geometry.size.width * animatedProgress)
-                    }
+                    // Fill
+                    RoundedRectangle(cornerRadius: ElfSizing.BattleResult.xpBarCornerRadius)
+                        .fill(ElfColors.ProgressBar.xp)
+                        .scaleEffect(x: animatedProgress, y: 1, anchor: .leading)
                 }
                 .frame(
                     width: ElfSizing.BattleResult.xpBarWidth,
@@ -64,9 +62,9 @@ struct ExperienceProgressView: View {
                     .transition(.scale.combined(with: .opacity))
             }
         }
-        .onChange(of: showProgress) { _, shouldShow in
-            if shouldShow {
-                animateProgress()
+        .task(id: showProgress) {
+            if showProgress {
+                await animateProgress()
             }
         }
     }
@@ -86,7 +84,7 @@ struct ExperienceProgressView: View {
         }
     }
 
-    private func animateProgress() {
+    private func animateProgress() async {
         // Calculate target progress
         let targetProgress = Double(result.newExp) / Double(result.newExpToNext)
 
@@ -98,18 +96,15 @@ struct ExperienceProgressView: View {
             }
 
             // Then show level up and reset
-            DispatchQueue.main.asyncAfter(
-                deadline: .now() + ElfAnimations.BattleResult.xpBarFillDuration * 0.6
-            ) {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
-                    showLevelUp = true
-                }
+            try? await Task.sleep(for: .seconds(ElfAnimations.BattleResult.xpBarFillDuration * 0.6))
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                showLevelUp = true
+            }
 
-                // Reset progress bar and animate to new value
-                animatedProgress = 0
-                withAnimation(.easeInOut(duration: ElfAnimations.BattleResult.xpBarFillDuration * 0.4)) {
-                    animatedProgress = targetProgress
-                }
+            // Reset progress bar and animate to new value
+            animatedProgress = 0
+            withAnimation(.easeInOut(duration: ElfAnimations.BattleResult.xpBarFillDuration * 0.4)) {
+                animatedProgress = targetProgress
             }
         } else {
             // Simple animation from previous to new

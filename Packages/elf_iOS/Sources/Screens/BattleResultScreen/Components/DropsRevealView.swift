@@ -32,27 +32,21 @@ struct DropsRevealView: View {
                     }
                 }
             }
-            .onAppear {
+            .task(id: startReveal) {
                 if startReveal {
-                    revealDropsSequentially()
-                }
-            }
-            .onChange(of: startReveal) { _, shouldStart in
-                if shouldStart {
-                    revealDropsSequentially()
+                    await revealDropsSequentially()
                 }
             }
         }
     }
 
-    private func revealDropsSequentially() {
+    private func revealDropsSequentially() async {
         for index in 0..<drops.count {
-            DispatchQueue.main.asyncAfter(
-                deadline: .now() + Double(index) * ElfAnimations.BattleResult.dropItemStagger
-            ) {
-                withAnimation {
-                    revealedCount = index + 1
-                }
+            if index > 0 {
+                try? await Task.sleep(for: .seconds(ElfAnimations.BattleResult.dropItemStagger))
+            }
+            withAnimation {
+                revealedCount = index + 1
             }
         }
     }

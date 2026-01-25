@@ -73,19 +73,19 @@ struct AttributesPanel: View {
                 if alignment == .leading {
                     Text("Att 1")
                         .font(BattleSetupConstants.Fonts.labelFont)
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                     Spacer()
                     Text("\(rightHandDamage?.minDmg ?? 0)-\(rightHandDamage?.maxDmg ?? 0)")
                         .font(BattleSetupConstants.Fonts.attributeTotal)
-                        .foregroundColor(BattleSetupConstants.Colors.attributeTotalText)
+                        .foregroundStyle(BattleSetupConstants.Colors.attributeTotalText)
                 } else {
                     Text("\(rightHandDamage?.minDmg ?? 0)-\(rightHandDamage?.maxDmg ?? 0)")
                         .font(BattleSetupConstants.Fonts.attributeTotal)
-                        .foregroundColor(BattleSetupConstants.Colors.attributeTotalText)
+                        .foregroundStyle(BattleSetupConstants.Colors.attributeTotalText)
                     Spacer()
                     Text("Att 1")
                         .font(BattleSetupConstants.Fonts.labelFont)
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                 }
             }
 
@@ -94,19 +94,19 @@ struct AttributesPanel: View {
                 if alignment == .leading {
                     Text("Att 2")
                         .font(BattleSetupConstants.Fonts.labelFont)
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                     Spacer()
                     Text("\(leftHandDamage?.minDmg ?? 0)-\(leftHandDamage?.maxDmg ?? 0)")
                         .font(BattleSetupConstants.Fonts.attributeTotal)
-                        .foregroundColor(BattleSetupConstants.Colors.attributeTotalText)
+                        .foregroundStyle(BattleSetupConstants.Colors.attributeTotalText)
                 } else {
                     Text("\(leftHandDamage?.minDmg ?? 0)-\(leftHandDamage?.maxDmg ?? 0)")
                         .font(BattleSetupConstants.Fonts.attributeTotal)
-                        .foregroundColor(BattleSetupConstants.Colors.attributeTotalText)
+                        .foregroundStyle(BattleSetupConstants.Colors.attributeTotalText)
                     Spacer()
                     Text("Att 2")
                         .font(BattleSetupConstants.Fonts.labelFont)
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                 }
             }
 
@@ -194,7 +194,7 @@ struct AttributesPanel_Previews: PreviewProvider {
             ScrollView {
                 VStack(spacing: 20) {
                     Text("Player Panel (Leading)")
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                         .font(.caption)
                     AttributesPanel(
                         alignment: .leading,
@@ -214,7 +214,7 @@ struct AttributesPanel_Previews: PreviewProvider {
             ScrollView {
                 VStack(spacing: 20) {
                     Text("Bot Panel (Trailing)")
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                         .font(.caption)
                     AttributesPanel(
                         alignment: .trailing,

@@ -43,7 +43,7 @@ internal struct MultiBattleResultScreenContent: View {
             Text("Running 1000 Battles")
                 .font(.title)
                 .bold()
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
 
             ProgressView(value: viewModel.progress)
                 .progressViewStyle(.linear)
@@ -52,7 +52,7 @@ internal struct MultiBattleResultScreenContent: View {
 
             Text("\(viewModel.completedBattles)/\(viewModel.totalBattles) battles")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
         }
     }
 
@@ -78,7 +78,7 @@ internal struct MultiBattleResultScreenContent: View {
             Button(action: onClose) {
                 Image(systemName: "xmark")
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .frame(width: 44, height: 44)
                     .background(Color.gray.opacity(0.3))
                     .clipShape(Circle())
@@ -94,7 +94,7 @@ internal struct MultiBattleResultScreenContent: View {
             Text("1000 Battle Results")
                 .font(.largeTitle)
                 .bold()
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
 
             HStack(spacing: 20) {
                 winRateBox(
@@ -140,20 +140,20 @@ internal struct MultiBattleResultScreenContent: View {
         VStack(spacing: 8) {
             Text(title)
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
 
             Text(subtitle)
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundStyle(.gray)
 
             Text("\(wins)")
                 .font(.title)
                 .bold()
-                .foregroundColor(color)
+                .foregroundStyle(color)
 
             Text(String(format: "%.1f%%", rate * 100))
                 .font(.subheadline)
-                .foregroundColor(color.opacity(0.8))
+                .foregroundStyle(color.opacity(0.8))
         }
         .frame(maxWidth: .infinity)
     }
@@ -169,11 +169,10 @@ internal struct MultiBattleResultScreenContent: View {
         }) {
             Text("Fight Again")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.blue)
-                .cornerRadius(12)
+                .background(Color.blue, in: RoundedRectangle(cornerRadius: 12))
         }
         .padding(.horizontal, 32)
     }
@@ -185,7 +184,7 @@ internal struct MultiBattleResultScreenContent: View {
             Text("Bot1 Statistics (Lv.\(result.bot1Level))")
                 .font(.title2)
                 .bold()
-                .foregroundColor(.green)
+                .foregroundStyle(.green)
                 .padding(.horizontal)
 
             statisticsContent(result.bot1AggregatedStats)
@@ -205,7 +204,7 @@ internal struct MultiBattleResultScreenContent: View {
             Text("Bot2 Statistics (Lv.\(result.bot2Level))")
                 .font(.title2)
                 .bold()
-                .foregroundColor(.red)
+                .foregroundStyle(.red)
                 .padding(.horizontal)
 
             statisticsContent(result.bot2AggregatedStats)
@@ -259,13 +258,13 @@ internal struct MultiBattleResultScreenContent: View {
         HStack {
             Text(title)
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundStyle(.gray)
 
             Spacer()
 
             Text(value)
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
         }
     }
 }

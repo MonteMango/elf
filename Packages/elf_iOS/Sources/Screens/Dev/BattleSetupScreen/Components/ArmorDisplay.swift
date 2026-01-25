@@ -57,11 +57,11 @@ struct ArmorDisplay: View {
                 .resizable()
                 .frame(width: BattleSetupConstants.Sizing.armorIconSize,
                        height: BattleSetupConstants.Sizing.armorIconSize)
-                .foregroundColor(BattleSetupConstants.Colors.armorOverlayTint)
+                .foregroundStyle(BattleSetupConstants.Colors.armorOverlayTint)
 
             Text("\(value)")
                 .font(.system(size: 8, weight: .regular))
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
         }
     }
 }

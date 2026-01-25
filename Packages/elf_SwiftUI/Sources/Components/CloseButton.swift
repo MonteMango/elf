@@ -18,7 +18,7 @@ public struct CloseButton: View {
         Button(action: action) {
             Image(systemName: "xmark")
                 .font(.system(size: ElfFonts.Size.title3, weight: .bold))
-                .foregroundColor(ElfColors.Button.closeText)
+                .foregroundStyle(ElfColors.Button.closeText)
                 .frame(
                     width: ElfSizing.Button.closeSize,
                     height: ElfSizing.Button.closeSize

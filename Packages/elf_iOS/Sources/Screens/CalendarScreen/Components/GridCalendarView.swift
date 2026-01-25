@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 /// Grid view of the calendar (10 rows × 16 columns)
@@ -30,7 +31,7 @@ struct GridCalendarView: View {
 
     var body: some View {
         ScrollViewReader { proxy in
-            ScrollView(.vertical, showsIndicators: true) {
+            ScrollView(.vertical) {
                 VStack(spacing: spacing) {
                     // Header row with day numbers 1-16
                     headerRow
@@ -49,6 +50,7 @@ struct GridCalendarView: View {
                 }
                 .padding(16)
             }
+            .scrollIndicators(.visible)
             .onAppear {
                 // Scroll to current day
                 withAnimation {
@@ -64,7 +66,7 @@ struct GridCalendarView: View {
         LazyVGrid(columns: columns, spacing: spacing) {
             ForEach(1...daysPerIteration, id: \.self) { dayInIteration in
                 Text("\(dayInIteration)")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(ElfFonts.Component.calendarHeader)
                     .foregroundStyle(.gray)
             }
         }

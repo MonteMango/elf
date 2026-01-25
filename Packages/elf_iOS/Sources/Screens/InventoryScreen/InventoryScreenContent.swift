@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 struct InventoryScreenContent: View {
@@ -34,7 +35,7 @@ struct InventoryScreenContent: View {
         .background {
             Color.white
         }
-        .onAppear {
+        .task {
             viewModel.selectItemById(selectedItemId)
         }
         .onChange(of: selectedItemId) { _, newValue in
@@ -78,12 +79,10 @@ struct InventoryScreenContent: View {
         Button(action: viewModel.closeInventory) {
             HStack(spacing: 6) {
                 Image(systemName: "arrow.left")
-                    .font(.system(size: 14, weight: .bold))
-
                 Text("Close inventory")
-                    .font(.system(size: 14, weight: .bold))
             }
-            .foregroundColor(.white)
+            .font(ElfFonts.Component.closeButton)
+            .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 36)
             .background { Color.orange }

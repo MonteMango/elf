@@ -146,7 +146,7 @@ struct HeroSection: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: iconSize, height: iconSize)
-                .foregroundColor(.gray.opacity(0.5))
+                .foregroundStyle(.gray.opacity(0.5))
         }
     }
 }

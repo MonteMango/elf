@@ -35,7 +35,7 @@ public struct SkillInfoSection: View {
             Text(title)
                 .font(.system(size: ElfFonts.Size.title2, weight: .bold))
                 .italic()
-                .foregroundColor(ElfColors.primary)
+                .foregroundStyle(ElfColors.primary)
 
             // Progress bar with XP text
             progressBar
@@ -43,7 +43,7 @@ public struct SkillInfoSection: View {
             // Level (bold, orange)
             Text("LVL \(level)")
                 .font(.system(size: ElfFonts.Size.titleLarge, weight: .bold))
-                .foregroundColor(ElfColors.primary)
+                .foregroundStyle(ElfColors.primary)
         }
     }
 
@@ -59,7 +59,7 @@ public struct SkillInfoSection: View {
             .overlay {
                 Text("\(currentExp)/\(maxExp)")
                     .font(ElfFonts.Component.progressValue)
-                    .foregroundColor(ElfColors.Text.primary)
+                    .foregroundStyle(ElfColors.Text.primary)
             }
     }
 }

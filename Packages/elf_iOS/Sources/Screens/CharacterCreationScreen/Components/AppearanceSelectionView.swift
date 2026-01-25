@@ -20,7 +20,7 @@ struct AppearanceSelectionView: View {
 
             ZStack {
                 // Items Grid - full size
-                ScrollView(.horizontal, showsIndicators: false) {
+                ScrollView(.horizontal) {
                     HStack(spacing: 20) {
                         ForEach(CharacterAppearance.allCases, id: \.self) { appearance in
                             appearanceCard(for: appearance, width: cardWidth, height: cardHeight)
@@ -30,6 +30,7 @@ struct AppearanceSelectionView: View {
                     .padding(.trailing, StagePadding.trailing(safeArea))
                     .padding(.vertical, StagePadding.standard)
                 }
+                .scrollIndicators(.hidden)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .overlay(alignment: .topLeading) {
@@ -37,7 +38,7 @@ struct AppearanceSelectionView: View {
                 Text("Select your appearance")
                     .font(.title2)
                     .fontWeight(.semibold)
-                    .foregroundColor(.black)
+                    .foregroundStyle(.black)
                     .padding(.top, StagePadding.top())
                     .padding(.leading, StagePadding.leading(safeArea))
             }
@@ -48,21 +49,22 @@ struct AppearanceSelectionView: View {
     private func appearanceCard(for appearance: CharacterAppearance, width: CGFloat, height: CGFloat) -> some View {
         let isSelected = selectedAppearance == appearance
 
-        Image(appearance.imageName)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(width: width, height: height)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3)
-            )
-            .shadow(color: isSelected ? Color.blue.opacity(0.5) : Color.black.opacity(0.2), radius: isSelected ? 8 : 2)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                selectedAppearance = appearance
-            }
+        Button {
+            selectedAppearance = appearance
+        } label: {
+            Image(appearance.imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: width, height: height)
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3)
+                )
+                .shadow(color: isSelected ? Color.blue.opacity(0.5) : Color.black.opacity(0.2), radius: isSelected ? 8 : 2)
+        }
+        .buttonStyle(.plain)
     }
 }
 

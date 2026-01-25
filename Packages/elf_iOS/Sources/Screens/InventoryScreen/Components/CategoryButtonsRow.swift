@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 struct CategoryButtonsRow: View {
@@ -44,8 +45,8 @@ private struct CategoryButton: View {
                     .fill(isSelected ? Color.orange : Color.white)
 
                 Text(title)
-                    .font(.system(size: 9, weight: .medium))
-                    .foregroundColor(isSelected ? .white : .orange)
+                    .font(ElfFonts.Component.categoryTab)
+                    .foregroundStyle(isSelected ? .white : .orange)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .padding(5)

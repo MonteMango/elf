@@ -16,7 +16,7 @@ internal struct StatisticsRow: View {
         HStack {
             Text(title)
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundStyle(.gray)
 
             Spacer()
 
@@ -32,10 +32,10 @@ internal struct StatisticsRow: View {
         VStack(alignment: .trailing) {
             Text(label)
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundStyle(.gray)
             Text(value)
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
         }
     }
 }

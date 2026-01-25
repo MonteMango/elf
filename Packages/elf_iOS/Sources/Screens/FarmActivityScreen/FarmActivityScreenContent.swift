@@ -118,7 +118,7 @@ struct FarmActivityScreenContent: View {
                 .overlay(alignment: .bottomTrailing) {
                     Text("\(viewModel.actionCost) pt")
                         .font(.footnote)
-                        .foregroundColor(.white.opacity(0.7))
+                        .foregroundStyle(.white.opacity(0.7))
                         .padding(4)
                 }
 

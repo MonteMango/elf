@@ -42,7 +42,7 @@ public struct ActionPointsBar: View {
         VStack(spacing: 4) {
             Text("Action points")
                 .font(ElfFonts.Component.statLabel)
-                .foregroundColor(ElfColors.Text.secondary)
+                .foregroundStyle(ElfColors.Text.secondary)
 
             if showNextDayButton && current == 0 {
                 nextDayButton
@@ -70,7 +70,7 @@ public struct ActionPointsBar: View {
             // Text
             Text("\(current)/\(max)")
                 .font(ElfFonts.Component.apFont)
-                .foregroundColor(ElfColors.Text.primary)
+                .foregroundStyle(ElfColors.Text.primary)
                 .frame(maxWidth: .infinity)
         }
         .frame(height: ElfSizing.ProgressBar.large)

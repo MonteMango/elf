@@ -32,11 +32,13 @@ public struct ElfFlexibleButtonStyle: ButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(ElfFonts.buttonTitle)
-            .foregroundColor(ElfColors.Button.primaryText)
+            .foregroundStyle(ElfColors.Button.primaryText)
             .frame(maxWidth: width ?? .infinity)
             .frame(height: height)
-            .background(isEnabled ? ElfColors.Button.primary : ElfColors.disabledBackground)
-            .cornerRadius(cornerRadius)
+            .background(
+                isEnabled ? ElfColors.Button.primary : ElfColors.disabledBackground,
+                in: RoundedRectangle(cornerRadius: cornerRadius)
+            )
             .elfShadow(ElfShadows.button)
             .opacity(isEnabled ? (configuration.isPressed ? 0.8 : 1.0) : 0.6)
     }

@@ -23,13 +23,13 @@ public struct ActivityWarningBadge: View {
                 .frame(width: 24, height: 24)
                 .overlay {
                     Text("!")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.white)
+                        .font(ElfFonts.Component.warningIcon)
+                        .foregroundStyle(.white)
                 }
 
             // Warning text
             Text(text)
-                .font(.system(size: ElfFonts.Size.body))
+                .font(ElfFonts.Component.warningText)
                 .italic()
                 .foregroundStyle(.primary)
                 .lineLimit(2)

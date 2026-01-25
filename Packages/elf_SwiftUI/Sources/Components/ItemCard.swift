@@ -71,14 +71,15 @@ public struct ItemCard: View {
     }
 
     public var body: some View {
-        VStack(spacing: ElfSpacing.xxxs) {
-            cardContent
-            labelView
-        }
-        .contentShape(Rectangle())
-        .onTapGesture {
+        Button {
             onTap?()
+        } label: {
+            VStack(spacing: ElfSpacing.xxxs) {
+                cardContent
+                labelView
+            }
         }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Card Content
@@ -112,7 +113,7 @@ public struct ItemCard: View {
                     .scaledToFit()
             } else {
                 Image(systemName: "square.dashed")
-                    .foregroundColor(rarityColor.color)
+                    .foregroundStyle(rarityColor.color)
             }
         }
     }

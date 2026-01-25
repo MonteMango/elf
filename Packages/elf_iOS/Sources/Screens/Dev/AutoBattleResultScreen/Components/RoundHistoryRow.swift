@@ -29,14 +29,14 @@ internal struct RoundHistoryRow: View {
             HStack {
                 Text("Round \(round.roundNumber)")
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
 
                 Spacer()
 
                 hpChanges
 
                 Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                    .foregroundColor(.gray)
+                    .foregroundStyle(.gray)
             }
             .padding()
             .background(
@@ -51,11 +51,11 @@ internal struct RoundHistoryRow: View {
         HStack(spacing: 16) {
             Text("Bot1: \(round.bot1StartHP) → \(round.bot1EndHP)")
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundStyle(.gray)
 
             Text("Bot2: \(round.bot2StartHP) → \(round.bot2EndHP)")
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundStyle(.gray)
         }
     }
 
@@ -99,7 +99,7 @@ internal struct RoundHistoryRow: View {
             Text(name)
                 .font(.caption)
                 .bold()
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
 
             detailText("Attack", attackPoints.map { $0.rawValue }.joined(separator: ", "))
             detailText("Defense", defensePoints.map { $0.rawValue }.joined(separator: ", "))
@@ -111,6 +111,6 @@ internal struct RoundHistoryRow: View {
     private func detailText(_ label: String, _ value: String) -> some View {
         Text("\(label): \(value)")
             .font(.caption)
-            .foregroundColor(.gray)
+            .foregroundStyle(.gray)
     }
 }

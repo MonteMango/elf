@@ -41,7 +41,7 @@ struct SideMenuButtons: View {
 
                 Text(menu.rawValue)
                     .font(ElfFonts.Component.sideButton)
-                    .foregroundColor(ElfColors.Text.secondary)
+                    .foregroundStyle(ElfColors.Text.secondary)
             }
         }
     }

@@ -36,9 +36,9 @@ struct LevelButtonStyle: ButtonStyle {
             .background(
                 configuration.isPressed ?
                 BattleSetupConstants.Colors.buttonHighlightedBackground :
-                BattleSetupConstants.Colors.buttonNormalBackground
+                BattleSetupConstants.Colors.buttonNormalBackground,
+                in: RoundedRectangle(cornerRadius: BattleSetupConstants.Sizing.levelButtonCornerRadius)
             )
-            .cornerRadius(BattleSetupConstants.Sizing.levelButtonCornerRadius)
             .overlay(
                 RoundedRectangle(cornerRadius: BattleSetupConstants.Sizing.levelButtonCornerRadius)
                     .stroke(BattleSetupConstants.Colors.buttonNormalBorder, lineWidth: BattleSetupConstants.Sizing.buttonBorderWidth)

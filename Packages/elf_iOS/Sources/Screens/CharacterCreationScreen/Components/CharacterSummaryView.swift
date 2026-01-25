@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 /// Stage 4: Character summary and finalization
@@ -40,8 +41,7 @@ struct CharacterSummaryView: View {
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: cardWidth, height: cardHeight)
-                            .background(Color.white)
-                            .cornerRadius(12)
+                            .background(Color.white, in: RoundedRectangle(cornerRadius: 12))
                             .shadow(radius: 3)
                     }
 
@@ -50,31 +50,30 @@ struct CharacterSummaryView: View {
                         // Name and level
                         HStack(alignment: .firstTextBaseline) {
                             Text(name)
-                                .font(.title)
-                                .fontWeight(.bold)
-                                .foregroundColor(.black)
+                                .font(ElfFonts.Component.characterName)
+                                .foregroundStyle(.black)
                                 .lineLimit(nil)
 
                             Text("LVL1")
-                                .font(.title3)
-                                .foregroundColor(.gray)
+                                .font(ElfFonts.Component.characterLevel)
+                                .foregroundStyle(.gray)
                         }
 
                         // Fight style
                         if let style = fightStyle {
                             HStack {
                                 Text("Fight style:")
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.black)
+                                    .bold()
+                                    .foregroundStyle(.black)
                                 Text(style.displayName)
-                                    .foregroundColor(.black)
+                                    .foregroundStyle(.black)
                             }
                         }
 
                         // Attributes
                         Text("Attributes:")
-                            .fontWeight(.bold)
-                            .foregroundColor(.black)
+                            .bold()
+                            .foregroundStyle(.black)
 
                         attributesView
                     }
@@ -99,19 +98,18 @@ struct CharacterSummaryView: View {
         VStack(spacing: 12) {
             Text("Your House")
                 .font(.headline)
-                .foregroundColor(.black)
+                .foregroundStyle(.black)
 
             if let house = assignedHouse {
                 Image(house.logoImageName)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 100, height: 100)
-                    .cornerRadius(8)
+                    .clipShape(.rect(cornerRadius: 8))
 
                 Text(house.name)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.black)
+                    .font(ElfFonts.Component.sectionTitle)
+                    .foregroundStyle(.black)
             }
         }
         .frame(height: cardHeight, alignment: .top)
@@ -140,17 +138,17 @@ struct CharacterSummaryView: View {
         HStack {
             Text("- \(label):")
                 .frame(width: 100, alignment: .leading)
-                .foregroundColor(.black)
+                .foregroundStyle(.black)
 
             let total = base + (bonus ?? 0)
             Text("\(total)")
                 .frame(width: 30, alignment: .trailing)
-                .foregroundColor(.black)
+                .foregroundStyle(.black)
 
             Group {
                 if let bonus = bonus, bonus > 0 {
                     Text("+\(bonus)")
-                        .foregroundColor(.green)
+                        .foregroundStyle(.green)
                 } else {
                     Text("")
                 }

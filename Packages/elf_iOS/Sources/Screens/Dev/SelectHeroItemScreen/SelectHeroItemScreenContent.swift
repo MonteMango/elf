@@ -28,7 +28,7 @@ internal struct SelectHeroItemScreenContent: View {
     internal var body: some View {
         ZStack {
             // Items Grid - full size
-            ScrollView(.horizontal, showsIndicators: false) {
+            ScrollView(.horizontal) {
                 HStack(spacing: 20) {
                     // Empty cell (unequip option)
                     EmptyItemCell(isSelected: viewModel.selectedItemId == nil)
@@ -50,6 +50,7 @@ internal struct SelectHeroItemScreenContent: View {
                 .padding(.horizontal, 20)
                 .frame(maxHeight: .infinity)
             }
+            .scrollIndicators(.hidden)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -57,7 +58,7 @@ internal struct SelectHeroItemScreenContent: View {
             // Title
             Text(itemTypeTitle)
                 .font(.title2.weight(.bold))
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
                 .padding(.top, 20)
         }
         .overlay(alignment: .topTrailing) {
@@ -67,7 +68,7 @@ internal struct SelectHeroItemScreenContent: View {
             }) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 32))
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .shadow(radius: 4)
             }
             .padding(20)
@@ -80,11 +81,10 @@ internal struct SelectHeroItemScreenContent: View {
             }) {
                 Text("EQUIP")
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .frame(width: 200)
                     .frame(height: 50)
-                    .background(Color.orange)
-                    .cornerRadius(8)
+                    .background(Color.orange, in: RoundedRectangle(cornerRadius: 8))
             }
             .padding(20)
         }

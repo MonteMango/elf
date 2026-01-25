@@ -87,66 +87,57 @@ struct BattleResultScreenContent: View {
             .scaleEffect(showCard ? 1.0 : 0.8)
             .opacity(showCard ? 1.0 : 0.0)
         }
-        .onAppear {
-            startAnimationSequence()
+        .task {
+            await startAnimationSequence()
         }
     }
 
-    private func startAnimationSequence() {
+    // Animation delays use relative timing: (targetDelay - previousDelay) for sequential execution
+    private func startAnimationSequence() async {
         // Background fade in
         withAnimation(.easeIn(duration: ElfAnimations.BattleResult.backgroundFadeDuration)) {
             showBackground = true
         }
 
         // Card appear
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + ElfAnimations.BattleResult.cardAppearDelay
-        ) {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                showCard = true
-            }
+        try? await Task.sleep(for: .seconds(ElfAnimations.BattleResult.cardAppearDelay))
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            showCard = true
         }
 
         // Header appear
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + ElfAnimations.BattleResult.headerAppearDelay
-        ) {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                showHeader = true
-            }
+        try? await Task.sleep(for: .seconds(
+            ElfAnimations.BattleResult.headerAppearDelay - ElfAnimations.BattleResult.cardAppearDelay
+        ))
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+            showHeader = true
         }
 
         // XP section appear
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + ElfAnimations.BattleResult.xpBarFillDelay - 0.2
-        ) {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                showXP = true
-            }
+        try? await Task.sleep(for: .seconds(
+            ElfAnimations.BattleResult.xpBarFillDelay - 0.2 - ElfAnimations.BattleResult.headerAppearDelay
+        ))
+        withAnimation(.easeInOut(duration: 0.3)) {
+            showXP = true
         }
 
         // XP bar fill animation
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + ElfAnimations.BattleResult.xpBarFillDelay
-        ) {
-            startXPProgress = true
-        }
+        try? await Task.sleep(for: .seconds(0.2))
+        startXPProgress = true
 
         // Drops reveal
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + ElfAnimations.BattleResult.dropItemDelay
-        ) {
-            startDropReveal = true
-        }
+        try? await Task.sleep(for: .seconds(
+            ElfAnimations.BattleResult.dropItemDelay - ElfAnimations.BattleResult.xpBarFillDelay
+        ))
+        startDropReveal = true
 
         // Buttons appear
-        let dropsDelay = viewModel.result.drops.isEmpty ? 0 : Double(viewModel.result.drops.count) * ElfAnimations.BattleResult.dropItemStagger
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + ElfAnimations.BattleResult.dropItemDelay + dropsDelay + ElfAnimations.BattleResult.continueButtonDelay
-        ) {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
-                showContinueButton = true
-            }
+        let dropsDelay = viewModel.result.drops.isEmpty
+            ? 0
+            : Double(viewModel.result.drops.count) * ElfAnimations.BattleResult.dropItemStagger
+        try? await Task.sleep(for: .seconds(dropsDelay + ElfAnimations.BattleResult.continueButtonDelay))
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+            showContinueButton = true
         }
     }
 }
