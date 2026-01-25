@@ -56,14 +56,18 @@ public struct ActionPointsBar: View {
 
     private var progressBar: some View {
         ZStack(alignment: .leading) {
+            // Background with Material Design style
             RoundedRectangle(cornerRadius: ElfSizing.ProgressBar.large / 2)
-                .fill(ElfColors.ProgressBar.background)
+                .fill(ElfColors.ProgressBar.materialBackground)
+                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
 
+            // Progress fill
             Rectangle()
                 .fill(ElfColors.ProgressBar.ap)
                 .scaleEffect(x: progress, y: 1, anchor: .leading)
                 .clipShape(RoundedRectangle(cornerRadius: ElfSizing.ProgressBar.large / 2))
 
+            // Text
             Text("\(current)/\(max)")
                 .font(ElfFonts.Component.apFont)
                 .foregroundColor(ElfColors.Text.primary)
@@ -113,5 +117,5 @@ public struct ActionPointsBar: View {
         )
     }
     .padding()
-    .background(Color.white)
+    .background(ElfColors.Background.secondary)
 }

@@ -9,29 +9,20 @@ import Foundation
 
 @Observable
 @MainActor
-public final class BattleFightViewModel<
-    BotAI: BotAIService,
-    RoundExec: CombatRoundExecutor,
-    Logger: BattleLogger,
-    DebugLog: DebugBattleLogger,
-    DuelPair: DuelPairingService,
-    GameSvc: GameService,
-    MonsterRepo: MonsterRepository,
-    ResultCalc: BattleResultCalculator
-> {
+public final class BattleFightViewModel {
 
     // MARK: - Dependencies
 
-    private let botAI: BotAI
-    private let combatRoundExecutor: RoundExec
-    private let battleLogger: Logger
-    private let debugLogger: DebugLog
-    private let duelPairingService: DuelPair
+    private let botAI: any BotAIService
+    private let combatRoundExecutor: any CombatRoundExecutor
+    private let battleLogger: any BattleLogger
+    private let debugLogger: any DebugBattleLogger
+    private let duelPairingService: any DuelPairingService
 
     // Result calculation dependencies (optional for non-hunt battles)
-    private let gameService: GameSvc?
-    private let monsterRepository: MonsterRepo?
-    private let battleResultCalculator: ResultCalc?
+    private let gameService: (any GameService)?
+    private let monsterRepository: (any MonsterRepository)?
+    private let battleResultCalculator: (any BattleResultCalculator)?
 
     // MARK: - State
 
@@ -86,14 +77,14 @@ public final class BattleFightViewModel<
 
     public init(
         battle: Battle,
-        botAI: BotAI,
-        combatRoundExecutor: RoundExec,
-        battleLogger: Logger,
-        debugLogger: DebugLog,
-        duelPairingService: DuelPair,
-        gameService: GameSvc? = nil,
-        monsterRepository: MonsterRepo? = nil,
-        battleResultCalculator: ResultCalc? = nil
+        botAI: any BotAIService,
+        combatRoundExecutor: any CombatRoundExecutor,
+        battleLogger: any BattleLogger,
+        debugLogger: any DebugBattleLogger,
+        duelPairingService: any DuelPairingService,
+        gameService: (any GameService)? = nil,
+        monsterRepository: (any MonsterRepository)? = nil,
+        battleResultCalculator: (any BattleResultCalculator)? = nil
     ) {
         self.battle = battle
         self.botAI = botAI

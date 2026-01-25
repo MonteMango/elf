@@ -34,4 +34,12 @@ public final class ElfDataLoader: DataLoader {
 
         return try Data(contentsOf: fileURL)
     }
+
+    public func loadFishData() throws -> Data {
+        guard let fileURL = Bundle.main.url(forResource: "Fish", withExtension: "json") else {
+            throw NSError(domain: "File Fish.json not found in bundle", code: 404, userInfo: nil)
+        }
+
+        return try Data(contentsOf: fileURL)
+    }
 }

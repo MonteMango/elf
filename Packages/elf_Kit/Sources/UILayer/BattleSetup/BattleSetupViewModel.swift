@@ -9,15 +9,7 @@ import Foundation
 
 @Observable
 @MainActor
-public final class BattleSetupViewModel<
-    ItemsRepo: ItemsRepository,
-    AttrSvc: AttributeService,
-    ArmorSvc: ArmorService,
-    DmgSvc: DamageService,
-    WeaponVal: WeaponValidator,
-    SnapshotBld: CombatantSnapshotBuilder,
-    MonsterRepo: MonsterRepository
-> {
+public final class BattleSetupViewModel {
 
     // MARK: - Hero Configuration State
 
@@ -83,13 +75,13 @@ public final class BattleSetupViewModel<
 
     // MARK: - Dependencies
 
-    private let itemsRepository: ItemsRepo
-    private let attributeService: AttrSvc
-    private let armorService: ArmorSvc
-    private let damageService: DmgSvc
-    private let weaponValidator: WeaponVal
-    private let snapshotBuilder: SnapshotBld
-    private let monsterRepository: MonsterRepo
+    private let itemsRepository: any ItemsRepository
+    private let attributeService: any AttributeService
+    private let armorService: any ArmorService
+    private let damageService: any DamageService
+    private let weaponValidator: any WeaponValidator
+    private let snapshotBuilder: any CombatantSnapshotBuilder
+    private let monsterRepository: any MonsterRepository
 
     // MARK: - State
 
@@ -197,13 +189,13 @@ public final class BattleSetupViewModel<
     // MARK: - Initialization
 
     public init(
-        itemsRepository: ItemsRepo,
-        attributeService: AttrSvc,
-        armorService: ArmorSvc,
-        damageService: DmgSvc,
-        weaponValidator: WeaponVal,
-        snapshotBuilder: SnapshotBld,
-        monsterRepository: MonsterRepo
+        itemsRepository: any ItemsRepository,
+        attributeService: any AttributeService,
+        armorService: any ArmorService,
+        damageService: any DamageService,
+        weaponValidator: any WeaponValidator,
+        snapshotBuilder: any CombatantSnapshotBuilder,
+        monsterRepository: any MonsterRepository
     ) {
         self.itemsRepository = itemsRepository
         self.attributeService = attributeService

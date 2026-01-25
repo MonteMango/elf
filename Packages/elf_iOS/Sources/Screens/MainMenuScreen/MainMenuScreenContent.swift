@@ -11,9 +11,9 @@ import SwiftUI
 
 internal struct MainMenuScreenContent: View {
     @Environment(AppRouter.self) private var router
-    @State private var viewModel: ElfAppDependencyContainer.MainMenuVM
+    @State private var viewModel: MainMenuViewModel
 
-    internal init(viewModel: ElfAppDependencyContainer.MainMenuVM) {
+    internal init(viewModel: MainMenuViewModel) {
         self._viewModel = State(initialValue: viewModel)
     }
 

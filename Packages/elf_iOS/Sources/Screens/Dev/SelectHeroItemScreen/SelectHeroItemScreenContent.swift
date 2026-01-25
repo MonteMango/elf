@@ -10,13 +10,13 @@ import SwiftUI
 
 internal struct SelectHeroItemScreenContent: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var viewModel: ElfAppDependencyContainer.SelectHeroItemVM
+    @State private var viewModel: SelectHeroItemViewModel
 
     private let heroItemType: HeroItemType
     private let onEquip: (UUID?) -> Void
 
     internal init(
-        viewModel: ElfAppDependencyContainer.SelectHeroItemVM,
+        viewModel: SelectHeroItemViewModel,
         heroItemType: HeroItemType,
         onEquip: @escaping (UUID?) -> Void
     ) {

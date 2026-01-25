@@ -11,9 +11,9 @@ import SwiftUI
 
 struct HuntScreenContent: View {
     @Environment(AppRouter.self) private var router
-    @State private var viewModel: ElfAppDependencyContainer.HuntVM
+    @State private var viewModel: HuntViewModel
 
-    init(viewModel: ElfAppDependencyContainer.HuntVM) {
+    init(viewModel: HuntViewModel) {
         self._viewModel = State(initialValue: viewModel)
     }
 
@@ -57,8 +57,8 @@ struct HuntScreenContent: View {
 
             // Hunt button
             huntButton
-                .padding(.bottom, ElfSpacing.huge)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(ElfColors.Background.primary)
     }
 

@@ -9,23 +9,16 @@ import Foundation
 
 @Observable
 @MainActor
-public final class CharacterCreationViewModel<
-    AttrSvc: AttributeService,
-    NameVal: CharacterNameValidator,
-    CharBld: CharacterBuilder,
-    FightStyleDesc: FightStyleDescriptionService,
-    NameSugg: CharacterNameSuggestionService,
-    GameInit: GameInitializationService
-> {
+public final class CharacterCreationViewModel {
 
     // MARK: - Dependencies
 
-    private let attributeService: AttrSvc
-    private let nameValidator: NameVal
-    private let characterBuilder: CharBld
-    private let fightStyleDescriptionService: FightStyleDesc
-    private let nameSuggestionService: NameSugg
-    private let gameInitializationService: GameInit
+    private let attributeService: any AttributeService
+    private let nameValidator: any CharacterNameValidator
+    private let characterBuilder: any CharacterBuilder
+    private let fightStyleDescriptionService: any FightStyleDescriptionService
+    private let nameSuggestionService: any CharacterNameSuggestionService
+    private let gameInitializationService: any GameInitializationService
 
     // MARK: - Stage State
 
@@ -117,12 +110,12 @@ public final class CharacterCreationViewModel<
     // MARK: - Initialization
 
     public init(
-        attributeService: AttrSvc,
-        nameValidator: NameVal,
-        characterBuilder: CharBld,
-        fightStyleDescriptionService: FightStyleDesc,
-        nameSuggestionService: NameSugg,
-        gameInitializationService: GameInit
+        attributeService: any AttributeService,
+        nameValidator: any CharacterNameValidator,
+        characterBuilder: any CharacterBuilder,
+        fightStyleDescriptionService: any FightStyleDescriptionService,
+        nameSuggestionService: any CharacterNameSuggestionService,
+        gameInitializationService: any GameInitializationService
     ) {
         self.attributeService = attributeService
         self.nameValidator = nameValidator

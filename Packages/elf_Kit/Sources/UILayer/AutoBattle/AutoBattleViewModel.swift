@@ -10,20 +10,15 @@ import Observation
 
 @Observable
 @MainActor
-public final class AutoBattleViewModel<
-    BotAI: BotAIService,
-    CombatCalc: SnapshotCombatCalculator,
-    DmgSvc: DamageService,
-    StatsParser: BattleStatisticsParser
-> {
+public final class AutoBattleViewModel {
 
     // MARK: - Dependencies
 
     private let battle: Battle
-    private let botAI: BotAI
-    private let snapshotCombatCalculator: CombatCalc
-    private let damageService: DmgSvc
-    private let statisticsParser: StatsParser
+    private let botAI: any BotAIService
+    private let snapshotCombatCalculator: any SnapshotCombatCalculator
+    private let damageService: any DamageService
+    private let statisticsParser: any BattleStatisticsParser
 
     // MARK: - State
 
@@ -40,10 +35,10 @@ public final class AutoBattleViewModel<
 
     public init(
         battle: Battle,
-        botAI: BotAI,
-        snapshotCombatCalculator: CombatCalc,
-        damageService: DmgSvc,
-        statisticsParser: StatsParser
+        botAI: any BotAIService,
+        snapshotCombatCalculator: any SnapshotCombatCalculator,
+        damageService: any DamageService,
+        statisticsParser: any BattleStatisticsParser
     ) {
         self.battle = battle
         self.botAI = botAI

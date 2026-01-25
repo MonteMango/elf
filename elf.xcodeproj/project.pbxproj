@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		09259ED82EE4C4E200DE5A84 /* Monsters.json in Resources */ = {isa = PBXBuildFile; fileRef = 09259ED72EE4C4D700DE5A84 /* Monsters.json */; };
 		09259EDA2EE7651800DE5A84 /* Materials.json in Resources */ = {isa = PBXBuildFile; fileRef = 09259ED92EE7650D00DE5A84 /* Materials.json */; };
+		09F15C012EF8D00000DE5A84 /* Fish.json in Resources */ = {isa = PBXBuildFile; fileRef = 09F15C002EF8D00000DE5A84 /* Fish.json */; };
 		0993F1FD2EC2994000B568F3 /* ElfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0993F1FC2EC2993700B568F3 /* ElfApp.swift */; };
 		09A8CD6B2BE13E3300DDC851 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 09A8CD6A2BE13E3300DDC851 /* Assets.xcassets */; };
 		09A8CD6E2BE13E3300DDC851 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 09A8CD6D2BE13E3300DDC851 /* Base */; };
@@ -19,6 +20,7 @@
 /* Begin PBXFileReference section */
 		09259ED72EE4C4D700DE5A84 /* Monsters.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Monsters.json; sourceTree = "<group>"; };
 		09259ED92EE7650D00DE5A84 /* Materials.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Materials.json; sourceTree = "<group>"; };
+		09F15C002EF8D00000DE5A84 /* Fish.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Fish.json; sourceTree = "<group>"; };
 		0993F1FC2EC2993700B568F3 /* ElfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElfApp.swift; sourceTree = "<group>"; };
 		0993F2002EC5063100B568F3 /* elf_SwiftUI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = elf_SwiftUI; path = Packages/elf_SwiftUI; sourceTree = "<group>"; };
 		09A8CD5E2BE13E3100DDC851 /* elf.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = elf.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -79,6 +81,7 @@
 		09D5060B2CB9D91200082EA0 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				09F15C002EF8D00000DE5A84 /* Fish.json */,
 				09259ED92EE7650D00DE5A84 /* Materials.json */,
 				09259ED72EE4C4D700DE5A84 /* Monsters.json */,
 				09D5060A2CB9D91200082EA0 /* HeroItems.json */,
@@ -155,6 +158,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				09F15C012EF8D00000DE5A84 /* Fish.json in Resources */,
 				09259EDA2EE7651800DE5A84 /* Materials.json in Resources */,
 				09259ED82EE4C4E200DE5A84 /* Monsters.json in Resources */,
 				09A8CD6B2BE13E3300DDC851 /* Assets.xcassets in Resources */,
@@ -262,7 +266,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -321,7 +325,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;

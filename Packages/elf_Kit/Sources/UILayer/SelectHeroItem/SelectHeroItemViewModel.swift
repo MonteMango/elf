@@ -9,11 +9,11 @@ import Foundation
 
 @Observable
 @MainActor
-public final class SelectHeroItemViewModel<ItemsRepo: ItemsRepository> {
+public final class SelectHeroItemViewModel {
 
     // MARK: - Dependencies
 
-    private let itemsRepository: ItemsRepo
+    private let itemsRepository: any ItemsRepository
 
     // MARK: - Input
 
@@ -33,7 +33,7 @@ public final class SelectHeroItemViewModel<ItemsRepo: ItemsRepository> {
         heroType: HeroType,
         heroItemType: HeroItemType,
         currentItemId: UUID?,
-        itemsRepository: ItemsRepo
+        itemsRepository: any ItemsRepository
     ) {
         self.heroType = heroType
         self.heroItemType = heroItemType

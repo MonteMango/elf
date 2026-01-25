@@ -11,10 +11,10 @@ import SwiftUI
 
 internal struct GameDayScreenContent: View {
     @Environment(AppRouter.self) private var router
-    @State private var viewModel: ElfAppDependencyContainer.GameDayVM
-    @State private var inventoryViewModel: ElfAppDependencyContainer.InventoryVM
+    @State private var viewModel: GameDayViewModel
+    @State private var inventoryViewModel: InventoryViewModel
 
-    internal init(viewModel: ElfAppDependencyContainer.GameDayVM, inventoryViewModel: ElfAppDependencyContainer.InventoryVM) {
+    internal init(viewModel: GameDayViewModel, inventoryViewModel: InventoryViewModel) {
         self._viewModel = State(initialValue: viewModel)
         self._inventoryViewModel = State(initialValue: inventoryViewModel)
     }

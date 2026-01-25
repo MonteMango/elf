@@ -10,7 +10,7 @@ import elf_SwiftUI
 import SwiftUI
 
 struct CalendarScreenContent: View {
-    @Environment(AppRouter.self) private var router
+    @Environment(\.dismiss) private var dismiss
     @State private var viewModel: CalendarViewModel
 
     init(viewModel: CalendarViewModel) {
@@ -32,6 +32,7 @@ struct CalendarScreenContent: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(Color.white)
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     // MARK: - Header
@@ -47,7 +48,7 @@ struct CalendarScreenContent: View {
             // Back button
             HStack {
                 BackButton {
-                    router.pop()
+                    dismiss()
                 }
 
                 Spacer()
@@ -59,7 +60,6 @@ struct CalendarScreenContent: View {
 }
 
 #Preview {
-    @Previewable @State var router = AppRouter()
     let calendarService = DefaultCalendarService()
     let calendar = calendarService.generateFullCalendar()
 
@@ -70,5 +70,4 @@ struct CalendarScreenContent: View {
             daysPerIteration: calendarService.daysPerIteration
         )
     )
-    .environment(router)
 }

@@ -21,6 +21,7 @@ public enum ElfFonts {
         public static let headline: CGFloat = 18
         public static let title3: CGFloat = 20
         public static let title2: CGFloat = 24
+        public static let titleLarge: CGFloat = 28
         public static let title1: CGFloat = 32
         public static let largeTitle: CGFloat = 36
     }

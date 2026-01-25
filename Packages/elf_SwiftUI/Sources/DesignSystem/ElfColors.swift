@@ -77,6 +77,7 @@ public enum ElfColors {
 
     public enum ProgressBar {
         public static let background = Color.gray.opacity(0.3)
+        public static let materialBackground = Color.white
         public static let hp = Color.green
         public static let mp = Color.blue
         public static let xp = Color.blue
@@ -110,6 +111,25 @@ public enum ElfColors {
         public static let rare = Color.blue
         public static let epic = Color.purple
         public static let legendary = Color.orange
+    }
+
+    // MARK: - Tier Colors (Fish, Items)
+
+    public enum Tier {
+        public static let tier1 = Color.purple       // Legendary
+        public static let tier2 = Color.blue         // Rare
+        public static let tier3 = Color.green        // Uncommon
+        public static let tier4 = Color.gray         // Common
+
+        /// Returns color for a tier level (1 = best/legendary, 4 = common)
+        public static func color(for tier: Int) -> Color {
+            switch tier {
+            case 1: return tier1
+            case 2: return tier2
+            case 3: return tier3
+            default: return tier4
+            }
+        }
     }
 
     // MARK: - Interactive Element Colors

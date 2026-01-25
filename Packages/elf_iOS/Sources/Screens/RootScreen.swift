@@ -11,6 +11,7 @@ import SwiftUI
 public struct RootScreen: View {
 
     @State private var router = AppRouter()
+    @Namespace private var farmZoomNamespace
 
     public init() {}
 
@@ -32,6 +33,7 @@ public struct RootScreen: View {
                 modal.view()
             }
         }
+        .environment(\.farmZoomNamespace, farmZoomNamespace)
         .environment(router)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)

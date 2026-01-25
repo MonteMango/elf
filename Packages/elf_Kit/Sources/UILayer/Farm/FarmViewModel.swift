@@ -9,11 +9,11 @@ import Foundation
 
 @Observable
 @MainActor
-public final class FarmViewModel<GameSvc: GameService> {
+public final class FarmViewModel {
 
     // MARK: - Dependencies
 
-    private let gameService: GameSvc
+    private let gameService: any GameService
 
     // MARK: - Computed Properties
 
@@ -71,7 +71,7 @@ public final class FarmViewModel<GameSvc: GameService> {
 
     // MARK: - Initialization
 
-    public init(gameService: GameSvc) {
+    public init(gameService: any GameService) {
         self.gameService = gameService
     }
 

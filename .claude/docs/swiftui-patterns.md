@@ -133,6 +133,54 @@ class GameViewModel {
 }
 ```
 
+## ViewModels с Existential Types
+
+ViewModels используют `any Protocol` (existential types) для зависимостей. Это проще generics и безопасно работает с `@Observable`.
+
+```swift
+@Observable
+@MainActor
+public final class HuntViewModel {
+    private let gameService: any GameService
+    private let monsterRepository: any MonsterRepository
+
+    public init(
+        gameService: any GameService,
+        monsterRepository: any MonsterRepository
+    ) {
+        self.gameService = gameService
+        self.monsterRepository = monsterRepository
+    }
+}
+```
+
+### Factory Methods
+
+```swift
+// В ElfAppDependencyContainer.swift
+@MainActor
+public func makeHuntViewModel() -> HuntViewModel {
+    guard let gameService = activeGameService else {
+        fatalError("No active game session.")
+    }
+    return HuntViewModel(
+        gameService: gameService,
+        monsterRepository: self.monsterRepository,
+        // ...
+    )
+}
+```
+
+### Использование в ScreenContent
+
+```swift
+@State private var viewModel: HuntViewModel
+
+init(viewModel: HuntViewModel) {
+    self._viewModel = State(initialValue: viewModel)
+}
+```
+
 ## AsyncImage
 
 ```swift

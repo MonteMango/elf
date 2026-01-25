@@ -19,6 +19,7 @@ public enum AppRoute {
     case calendar(calendar: [GameDay], currentDayNumber: Int)
     case hunt
     case farm
+    case farmActivity(FarmActivity)
 
     case battleSetup
     case battleFight(Battle)
@@ -44,6 +45,8 @@ extension AppRoute: Hashable {
             return true
         case (.farm, .farm):
             return true
+        case (.farmActivity(let lhs), .farmActivity(let rhs)):
+            return lhs == rhs
         case (.battleSetup, .battleSetup):
             return true
         case (.battleFight(let lhsBattle), .battleFight(let rhsBattle)):
@@ -73,6 +76,9 @@ extension AppRoute: Hashable {
             hasher.combine("hunt")
         case .farm:
             hasher.combine("farm")
+        case .farmActivity(let activity):
+            hasher.combine("farmActivity")
+            hasher.combine(activity.id)
         case .battleSetup:
             hasher.combine("battleSetup")
         case .battleFight(let battle):
@@ -108,6 +114,8 @@ extension AppRoute {
             HuntScreen()
         case .farm:
             FarmScreen()
+        case .farmActivity(let activity):
+            FarmActivityScreen(activity: activity)
         case .battleSetup:
             BattleSetupScreen()
         case .battleFight(let battle):

@@ -88,6 +88,19 @@ final class ElfItemsRepositoryTests: XCTestCase {
             """
             return Data(json.utf8)
         }
+
+        func loadFishData() throws -> Data {
+            // Return minimal valid fish data for tests
+            let json = """
+            {
+              "version": "1.0",
+              "effects": [],
+              "areas": {},
+              "fish": []
+            }
+            """
+            return Data(json.utf8)
+        }
     }
     
     // MARK: - Тесты

@@ -154,12 +154,12 @@ enum PreviewMockData {
     }
 
     @MainActor
-    static func createMockGameDayViewModel() -> ElfAppDependencyContainer.GameDayVM {
+    static func createMockGameDayViewModel() -> GameDayViewModel {
         GameDayViewModel(gameService: createMockGameService())
     }
 
     @MainActor
-    static func createMockInventoryViewModel() -> ElfAppDependencyContainer.InventoryVM {
+    static func createMockInventoryViewModel() -> InventoryViewModel {
         let gameService = createMockGameService()
         let equipmentService = DefaultEquipmentService(gameService: gameService)
         return InventoryViewModel(

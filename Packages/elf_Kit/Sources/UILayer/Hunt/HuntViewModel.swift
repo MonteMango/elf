@@ -9,19 +9,15 @@ import Foundation
 
 @Observable
 @MainActor
-public final class HuntViewModel<
-    GameSvc: GameService,
-    MonsterRepo: MonsterRepository,
-    MaterialRepo: MaterialRepository,
-    SnapshotBld: CombatantSnapshotBuilder
-> {
+public final class HuntViewModel {
 
     // MARK: - Dependencies
 
-    private let gameService: GameSvc
-    private let monsterRepository: MonsterRepo
-    private let materialRepository: MaterialRepo
-    private let snapshotBuilder: SnapshotBld
+    private let gameService: any GameService
+    private let monsterRepository: any MonsterRepository
+    private let materialRepository: any MaterialRepository
+    private let itemsRepository: any ItemsRepository
+    private let snapshotBuilder: any CombatantSnapshotBuilder
 
     // MARK: - Constants
 
@@ -89,14 +85,16 @@ public final class HuntViewModel<
     // MARK: - Initialization
 
     public init(
-        gameService: GameSvc,
-        monsterRepository: MonsterRepo,
-        materialRepository: MaterialRepo,
-        snapshotBuilder: SnapshotBld
+        gameService: any GameService,
+        monsterRepository: any MonsterRepository,
+        materialRepository: any MaterialRepository,
+        itemsRepository: any ItemsRepository,
+        snapshotBuilder: any CombatantSnapshotBuilder
     ) {
         self.gameService = gameService
         self.monsterRepository = monsterRepository
         self.materialRepository = materialRepository
+        self.itemsRepository = itemsRepository
         self.snapshotBuilder = snapshotBuilder
     }
 
@@ -152,30 +150,49 @@ public final class HuntViewModel<
 
     /// Converts Monster model to display data for the View
     private func createDisplayData(from monster: Monster) -> MonsterDisplayData {
-        var dropImages: [String] = []
+        var drops: [DropDisplayData] = []
 
-        // Weapon drops - use weapon.id as image name
-        dropImages += monster.drops.weapons.map { $0.id }
-
-        // Armor drops - use armor.id as image name
-        dropImages += monster.drops.armor.map { $0.id }
-
-        // Material drops - lookup via materialRepository
-        for materialDrop in monster.drops.materials {
-            if let material = materialRepository.getMaterial(id: materialDrop.id) {
-                dropImages.append(material.imageName)
+        // Weapon drops - lookup item for tier
+        for itemDrop in monster.drops.weapons {
+            if let uuid = UUID(uuidString: itemDrop.id),
+               let item = itemsRepository.getHeroItem(uuid) {
+                drops.append(DropDisplayData(
+                    imageName: itemDrop.id,
+                    tier: Int(item.tier)
+                ))
             }
         }
 
-        // Remove duplicates while preserving order
+        // Armor drops - lookup item for tier
+        for itemDrop in monster.drops.armor {
+            if let uuid = UUID(uuidString: itemDrop.id),
+               let item = itemsRepository.getHeroItem(uuid) {
+                drops.append(DropDisplayData(
+                    imageName: itemDrop.id,
+                    tier: Int(item.tier)
+                ))
+            }
+        }
+
+        // Material drops - default tier 4 (common)
+        for materialDrop in monster.drops.materials {
+            if let material = materialRepository.getMaterial(id: materialDrop.id) {
+                drops.append(DropDisplayData(
+                    imageName: material.imageName,
+                    tier: 4
+                ))
+            }
+        }
+
+        // Remove duplicates while preserving order (by imageName)
         var seen = Set<String>()
-        let uniqueImages = dropImages.filter { seen.insert($0).inserted }
+        let uniqueDrops = drops.filter { seen.insert($0.imageName).inserted }
 
         return MonsterDisplayData(
             id: monster.id,
             title: monster.title,
             imageName: monster.imageName,
-            dropImageNames: uniqueImages
+            drops: uniqueDrops
         )
     }
 }

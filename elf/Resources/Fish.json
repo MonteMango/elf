@@ -1,0 +1,132 @@
+{
+  "version": "1.0",
+  "effects": [
+    { "id": "E1F2A3B4-0001-4001-8001-000000000001", "effectType": "arcane", "title": "Arcane", "description": "Pure magical energy" },
+    { "id": "E1F2A3B4-0002-4002-8002-000000000002", "effectType": "flame", "title": "Flame", "description": "Fire magic essence" },
+    { "id": "E1F2A3B4-0003-4003-8003-000000000003", "effectType": "frost", "title": "Frost", "description": "Ice magic essence" },
+    { "id": "E1F2A3B4-0004-4004-8004-000000000004", "effectType": "storm", "title": "Storm", "description": "Lightning and wind essence" },
+    { "id": "E1F2A3B4-0005-4005-8005-000000000005", "effectType": "shadow", "title": "Shadow", "description": "Dark magic essence" },
+    { "id": "E1F2A3B4-0006-4006-8006-000000000006", "effectType": "radiance", "title": "Radiance", "description": "Light magic essence" },
+    { "id": "E1F2A3B4-0007-4007-8007-000000000007", "effectType": "spirit", "title": "Spirit", "description": "Spiritual energy" },
+    { "id": "E1F2A3B4-0008-4008-8008-000000000008", "effectType": "venom", "title": "Venom", "description": "Poison magic essence" }
+  ],
+  "areas": {
+    "forest_pond": {
+      "title": "Forest Pond",
+      "fish": [
+        "A1B2C3D4-1111-4111-8111-111111111111",
+        "A1B2C3D4-2222-4222-8222-222222222222",
+        "A1B2C3D4-3333-4333-8333-333333333333",
+        "A1B2C3D4-4444-4444-8444-444444444444",
+        "A1B2C3D4-5555-4555-8555-555555555555",
+        "A1B2C3D4-6666-4666-8666-666666666666",
+        "A1B2C3D4-7777-4777-8777-777777777777",
+        "A1B2C3D4-8888-4888-8888-888888888888",
+        "A1B2C3D4-9999-4999-8999-999999999999",
+        "A1B2C3D4-AAAA-4AAA-8AAA-AAAAAAAAAAAA",
+        "A1B2C3D4-BBBB-4BBB-8BBB-BBBBBBBBBBBB"
+      ]
+    }
+  },
+  "fish": [
+    {
+      "id": "A1B2C3D4-1111-4111-8111-111111111111",
+      "title": "Sunny",
+      "imageName": "fish_sunny",
+      "description": "A bright golden fish that glows with warm light.",
+      "tier": 4,
+      "baseCatchChance": 0.35,
+      "effects": [{ "type": "radiance", "amount": 1 }]
+    },
+    {
+      "id": "A1B2C3D4-2222-4222-8222-222222222222",
+      "title": "Dewdrop",
+      "imageName": "fish_dewdrop",
+      "description": "A pale blue fish covered in glistening droplets.",
+      "tier": 4,
+      "baseCatchChance": 0.35,
+      "effects": [{ "type": "frost", "amount": 1 }]
+    },
+    {
+      "id": "A1B2C3D4-3333-4333-8333-333333333333",
+      "title": "Pebble",
+      "imageName": "fish_pebble",
+      "description": "A small grey fish with stone-like scales.",
+      "tier": 4,
+      "baseCatchChance": 0.35,
+      "effects": [{ "type": "arcane", "amount": 1 }]
+    },
+    {
+      "id": "A1B2C3D4-4444-4444-8444-444444444444",
+      "title": "Whisker",
+      "imageName": "fish_whisker",
+      "description": "A wise-looking fish with long sensory whiskers.",
+      "tier": 4,
+      "baseCatchChance": 0.30,
+      "effects": [{ "type": "spirit", "amount": 1 }]
+    },
+    {
+      "id": "A1B2C3D4-5555-4555-8555-555555555555",
+      "title": "Bristle",
+      "imageName": "fish_bristle",
+      "description": "A spiky fish with venomous fins.",
+      "tier": 3,
+      "baseCatchChance": 0.20,
+      "effects": [{ "type": "venom", "amount": 1 }, { "type": "shadow", "amount": 1 }]
+    },
+    {
+      "id": "A1B2C3D4-6666-4666-8666-666666666666",
+      "title": "Duskfin",
+      "imageName": "fish_duskfin",
+      "description": "A twilight fish that swims between light and shadow.",
+      "tier": 3,
+      "baseCatchChance": 0.20,
+      "effects": [{ "type": "shadow", "amount": 1 }, { "type": "frost", "amount": 1 }]
+    },
+    {
+      "id": "A1B2C3D4-7777-4777-8777-777777777777",
+      "title": "Ember",
+      "imageName": "fish_ember",
+      "description": "A warm fish with scales that flicker like flames.",
+      "tier": 3,
+      "baseCatchChance": 0.18,
+      "effects": [{ "type": "flame", "amount": 1 }, { "type": "arcane", "amount": 1 }]
+    },
+    {
+      "id": "A1B2C3D4-8888-4888-8888-888888888888",
+      "title": "Dancer",
+      "imageName": "fish_dancer",
+      "description": "An elegant fish that moves with supernatural grace.",
+      "tier": 2,
+      "baseCatchChance": 0.10,
+      "effects": [{ "type": "storm", "amount": 1 }, { "type": "spirit", "amount": 1 }, { "type": "arcane", "amount": 1 }]
+    },
+    {
+      "id": "A1B2C3D4-9999-4999-8999-999999999999",
+      "title": "Ribbontail",
+      "imageName": "fish_ribbontail",
+      "description": "A magnificent fish with flowing, ribbon-like fins.",
+      "tier": 2,
+      "baseCatchChance": 0.10,
+      "effects": [{ "type": "radiance", "amount": 2 }, { "type": "flame", "amount": 1 }]
+    },
+    {
+      "id": "A1B2C3D4-AAAA-4AAA-8AAA-AAAAAAAAAAAA",
+      "title": "Streamer",
+      "imageName": "fish_streamer",
+      "description": "A mystical fish trailing streams of pure magic.",
+      "tier": 1,
+      "baseCatchChance": 0.05,
+      "effects": [{ "type": "arcane", "amount": 2 }, { "type": "storm", "amount": 1 }, { "type": "spirit", "amount": 1 }]
+    },
+    {
+      "id": "A1B2C3D4-BBBB-4BBB-8BBB-BBBBBBBBBBBB",
+      "title": "Swallowtail",
+      "imageName": "fish_swallowtail",
+      "description": "A legendary fish embodying the balance of light and darkness.",
+      "tier": 1,
+      "baseCatchChance": 0.05,
+      "effects": [{ "type": "radiance", "amount": 2 }, { "type": "shadow", "amount": 1 }, { "type": "frost", "amount": 1 }]
+    }
+  ]
+}

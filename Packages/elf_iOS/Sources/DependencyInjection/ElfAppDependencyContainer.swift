@@ -47,6 +47,7 @@ public final class ElfAppDependencyContainer {
     public let duelPairingService: RandomDuelPairingService
     public let monsterRepository: ElfMonsterRepository
     public let materialRepository: ElfMaterialRepository
+    public let fishRepository: ElfFishRepository
 
     // Hunt and drop services
     public let huntService: ElfHuntService
@@ -164,6 +165,8 @@ public final class ElfAppDependencyContainer {
         let materialRepository = ElfMaterialRepository()
         self.materialRepository = materialRepository
 
+        self.fishRepository = ElfFishRepository()
+
         // Hunt and drop services
         let huntService = ElfHuntService()
         self.huntService = huntService
@@ -191,69 +194,8 @@ public final class ElfAppDependencyContainer {
 
     // MARK: - ViewModel Factories
 
-    // Type aliases for complex generic ViewModels
-    public typealias BattleSetupVM = BattleSetupViewModel<
-        ElfItemsRepository,
-        ElfAttributeService,
-        ElfArmorService,
-        ElfDamageService,
-        ElfWeaponValidator,
-        DefaultCombatantSnapshotBuilder,
-        ElfMonsterRepository
-    >
-
-    public typealias BattleFightVM = BattleFightViewModel<
-        ElfRandomBotAI,
-        ElfCombatRoundExecutor,
-        ElfBattleLogger,
-        DebugLoggerImpl,
-        RandomDuelPairingService,
-        DefaultGameService,
-        ElfMonsterRepository,
-        DefaultBattleResultCalculator
-    >
-
-    public typealias AutoBattleVM = AutoBattleViewModel<
-        ElfRandomBotAI,
-        ElfSnapshotCombatCalculator,
-        ElfDamageService,
-        ElfBattleStatisticsParser
-    >
-
-    public typealias MultiBattleVM = MultiBattleViewModel<ElfBattleSimulationService>
-
-    public typealias MainMenuVM = MainMenuViewModel<ElfItemsRepository, FileGameRepository>
-
-    public typealias CharacterCreationVM = CharacterCreationViewModel<
-        ElfAttributeService,
-        DefaultCharacterNameValidator,
-        DefaultCharacterBuilder,
-        DefaultFightStyleDescriptionService,
-        DefaultCharacterNameSuggestionService,
-        ElfGameInitializationService
-    >
-
-    public typealias SelectHeroItemVM = SelectHeroItemViewModel<ElfItemsRepository>
-
-    public typealias GameDayVM = GameDayViewModel<DefaultGameService>
-
-    public typealias HuntVM = HuntViewModel<
-        DefaultGameService,
-        ElfMonsterRepository,
-        ElfMaterialRepository,
-        DefaultCombatantSnapshotBuilder
-    >
-
-    public typealias FarmVM = FarmViewModel<DefaultGameService>
-
-    public typealias InventoryVM = InventoryViewModel<
-        DefaultGameService,
-        DefaultEquipmentService,
-        ElfMaterialRepository
-    >
-
     @MainActor
-    public func makeBattleSetupViewModel() -> BattleSetupVM {
+    public func makeBattleSetupViewModel() -> BattleSetupViewModel {
         return BattleSetupViewModel(
             itemsRepository: self.itemsRepository,
             attributeService: self.attributeService,
@@ -266,7 +208,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeBattleFightViewModel(battle: Battle) -> BattleFightVM {
+    public func makeBattleFightViewModel(battle: Battle) -> BattleFightViewModel {
         return BattleFightViewModel(
             battle: battle,
             botAI: self.botAI,
@@ -281,7 +223,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeAutoBattleViewModel(battle: Battle) -> AutoBattleVM {
+    public func makeAutoBattleViewModel(battle: Battle) -> AutoBattleViewModel {
         return AutoBattleViewModel(
             battle: battle,
             botAI: self.botAI,
@@ -292,7 +234,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeMultiBattleViewModel(battle: Battle) -> MultiBattleVM {
+    public func makeMultiBattleViewModel(battle: Battle) -> MultiBattleViewModel {
         return MultiBattleViewModel(
             battle: battle,
             battleSimulationService: self.battleSimulationService
@@ -305,7 +247,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeMainMenuViewModel() -> MainMenuVM {
+    public func makeMainMenuViewModel() -> MainMenuViewModel {
         return MainMenuViewModel(
             itemsRepository: self.itemsRepository,
             gameRepository: self.gameRepository
@@ -313,7 +255,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeCharacterCreationViewModel() -> CharacterCreationVM {
+    public func makeCharacterCreationViewModel() -> CharacterCreationViewModel {
         let nameValidator = DefaultCharacterNameValidator()
         let characterBuilder = DefaultCharacterBuilder()
 
@@ -332,7 +274,7 @@ public final class ElfAppDependencyContainer {
         heroType: HeroType,
         heroItemType: HeroItemType,
         currentItemId: UUID?
-    ) -> SelectHeroItemVM {
+    ) -> SelectHeroItemViewModel {
         return SelectHeroItemViewModel(
             heroType: heroType,
             heroItemType: heroItemType,
@@ -342,7 +284,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeGameDayViewModel(game: Game, playTime: TimeInterval = 0) -> GameDayVM {
+    public func makeGameDayViewModel(game: Game, playTime: TimeInterval = 0) -> GameDayViewModel {
         // Clean up previous game session if exists
         activeGameService = nil
 
@@ -357,7 +299,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeHuntViewModel() -> HuntVM {
+    public func makeHuntViewModel() -> HuntViewModel {
         guard let gameService = activeGameService else {
             fatalError("No active game session. HuntViewModel requires an active game.")
         }
@@ -365,16 +307,29 @@ public final class ElfAppDependencyContainer {
             gameService: gameService,
             monsterRepository: self.monsterRepository,
             materialRepository: self.materialRepository,
+            itemsRepository: self.itemsRepository,
             snapshotBuilder: self.snapshotBuilder
         )
     }
 
     @MainActor
-    public func makeFarmViewModel() -> FarmVM {
+    public func makeFarmViewModel() -> FarmViewModel {
         guard let gameService = activeGameService else {
             fatalError("No active game session. FarmViewModel requires an active game.")
         }
         return FarmViewModel(gameService: gameService)
+    }
+
+    @MainActor
+    public func makeFarmActivityViewModel(activity: FarmActivity) -> FarmActivityViewModel {
+        guard let gameService = activeGameService else {
+            fatalError("No active game session. FarmActivityViewModel requires an active game.")
+        }
+        return FarmActivityViewModel(
+            activity: activity,
+            gameService: gameService,
+            fishRepository: activity == .fishing ? fishRepository : nil
+        )
     }
 
     @MainActor
@@ -390,7 +345,7 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeInventoryViewModel() -> InventoryVM {
+    public func makeInventoryViewModel() -> InventoryViewModel {
         guard let gameService = activeGameService else {
             fatalError("No active game session. InventoryViewModel requires an active game.")
         }

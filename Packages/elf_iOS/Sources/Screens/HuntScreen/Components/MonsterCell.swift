@@ -33,37 +33,13 @@ struct MonsterCell: View {
     @ViewBuilder
     private var dropItemsRow: some View {
         HStack(spacing: ElfSpacing.small) {
-            ForEach(displayData.dropImageNames, id: \.self) { imageName in
-                dropItemView(imageName: imageName)
+            ForEach(displayData.drops) { drop in
+                ItemCard(
+                    imageName: drop.imageName,
+                    rarityColor: .tier(drop.tier)
+                )
             }
         }
-    }
-
-    @ViewBuilder
-    private func dropItemView(imageName: String) -> some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(ElfColors.Background.secondary)
-
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(ElfColors.primary, lineWidth: 2)
-
-            // Try to load image, fallback to placeholder
-            if let uiImage = UIImage(named: imageName) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFit()
-                    .padding(ElfSpacing.xxs)
-            } else {
-                Image(systemName: "gift.fill")
-                    .font(.system(size: 24))
-                    .foregroundColor(.orange)
-            }
-        }
-        .frame(
-            width: 50,
-            height: 50
-        )
     }
 
     // MARK: - Monster Image
@@ -100,7 +76,10 @@ struct MonsterCell: View {
         id: UUID(),
         title: "Wolf",
         imageName: "monster_wolf",
-        dropImageNames: ["sword_1", "material_monster_soul_gem"]
+        drops: [
+            DropDisplayData(imageName: "sword_1", tier: 2),
+            DropDisplayData(imageName: "material_monster_soul_gem", tier: 4)
+        ]
     )
 
     MonsterCell(displayData: mockDisplayData)

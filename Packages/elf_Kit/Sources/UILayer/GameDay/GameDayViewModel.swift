@@ -9,11 +9,11 @@ import Foundation
 
 @Observable
 @MainActor
-public final class GameDayViewModel<GameSvc: GameService> {
+public final class GameDayViewModel {
 
     // MARK: - Dependencies
 
-    private let gameService: GameSvc
+    private let gameService: any GameService
 
     // MARK: - UI State
 
@@ -91,7 +91,7 @@ public final class GameDayViewModel<GameSvc: GameService> {
 
     // MARK: - Initialization
 
-    public init(gameService: GameSvc) {
+    public init(gameService: any GameService) {
         self.gameService = gameService
         self.activeBuffs = []
     }

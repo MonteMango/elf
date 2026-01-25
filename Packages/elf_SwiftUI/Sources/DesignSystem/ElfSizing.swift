@@ -73,6 +73,13 @@ public enum ElfSizing {
         public static let large: CGFloat = 50
     }
 
+    // MARK: - Item Cards
+
+    public enum ItemCard {
+        public static let size: CGFloat = 45
+        public static let borderWidth: CGFloat = 2
+    }
+
     // MARK: - GameDay Screen Specific
 
     public enum GameDay {

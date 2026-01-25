@@ -17,9 +17,7 @@ struct FarmActivityCell: View {
 
     var body: some View {
         Button(action: action) {
-            Image(imageName)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
+            activityImage
                 .frame(
                     width: 200,
                     height: 200
@@ -35,6 +33,17 @@ struct FarmActivityCell: View {
     }
 
     @ViewBuilder
+    private var activityImage: some View {
+        if let uiImage = UIImage(named: imageName) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        } else {
+            Color.white
+        }
+    }
+
+    @ViewBuilder
     private var cellOverlay: some View {
         VStack {
             levelSection
@@ -44,9 +53,9 @@ struct FarmActivityCell: View {
             Spacer()
 
             Text(title)
-                .font(.system(size: 36, weight: .bold))
+                .font(.system(size: ElfFonts.Size.largeTitle, weight: .bold))
                 .foregroundStyle(ElfColors.Text.accent)
-                .textShadow()
+                .shadow(color: .black.opacity(0.5), radius: 2, x: 1, y: 1)
                 .padding(.bottom, ElfSpacing.xl)
         }
     }
@@ -55,9 +64,9 @@ struct FarmActivityCell: View {
     private var levelSection: some View {
         VStack(spacing: ElfSpacing.xxs) {
             Text("LVL \(level)")
-                .font(.system(size: 24, weight: .bold))
+                .font(.system(size: ElfFonts.Size.title2, weight: .bold))
                 .foregroundStyle(ElfColors.Text.primaryLight)
-                .textShadow()
+                .shadow(color: .black.opacity(0.5), radius: 2, x: 1, y: 1)
 
             Capsule()
                 .fill(ElfColors.Background.secondary)

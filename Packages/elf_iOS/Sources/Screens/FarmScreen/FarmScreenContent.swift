@@ -9,33 +9,14 @@ import elf_Kit
 import elf_SwiftUI
 import SwiftUI
 
-// MARK: - Farm Activity
-
-enum FarmActivity: String, CaseIterable, Identifiable {
-    case foraging
-    case fishing
-    case mining
-
-    var id: String { rawValue }
-    var title: String { rawValue.capitalized }
-    var imageName: String { rawValue }
-}
-
-// MARK: - View Extension
-
-extension View {
-    func textShadow() -> some View {
-        shadow(color: .black.opacity(0.5), radius: 2, x: 1, y: 1)
-    }
-}
-
 // MARK: - FarmScreenContent
 
 struct FarmScreenContent: View {
     @Environment(AppRouter.self) private var router
-    @State private var viewModel: ElfAppDependencyContainer.FarmVM
+    @Environment(\.farmZoomNamespace) private var zoomNamespace
+    @State private var viewModel: FarmViewModel
 
-    init(viewModel: ElfAppDependencyContainer.FarmVM) {
+    init(viewModel: FarmViewModel) {
         self._viewModel = State(initialValue: viewModel)
     }
 
@@ -102,9 +83,10 @@ struct FarmScreenContent: View {
                     level: level(for: activity),
                     skillProgress: progress(for: activity),
                     action: {
-                        // TODO: Navigate to activity
+                        router.navigate(to: .farmActivity(activity))
                     }
                 )
+                .modifier(FarmZoomSourceModifier(id: activity.id, namespace: zoomNamespace))
             }
         }
         .padding(.horizontal, ElfSpacing.screen)
@@ -129,6 +111,8 @@ struct FarmScreenContent: View {
     }
 }
 
+// MARK: - Preview
+
 #Preview {
     @Previewable @State var router = AppRouter()
     let container = ElfAppDependencyContainer()
@@ -139,5 +123,6 @@ struct FarmScreenContent: View {
             viewModel: container.makeFarmViewModel()
         )
         .environment(router)
+        .environment(container)
     }
 }

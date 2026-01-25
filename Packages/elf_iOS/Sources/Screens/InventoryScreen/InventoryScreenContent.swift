@@ -9,10 +9,10 @@ import elf_Kit
 import SwiftUI
 
 struct InventoryScreenContent: View {
-    @State private var viewModel: ElfAppDependencyContainer.InventoryVM
+    @State private var viewModel: InventoryViewModel
     let selectedItemId: UUID?
 
-    init(viewModel: ElfAppDependencyContainer.InventoryVM, selectedItemId: UUID? = nil) {
+    init(viewModel: InventoryViewModel, selectedItemId: UUID? = nil) {
         self._viewModel = State(initialValue: viewModel)
         self.selectedItemId = selectedItemId
     }
