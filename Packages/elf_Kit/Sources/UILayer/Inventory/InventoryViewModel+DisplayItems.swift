@@ -221,7 +221,10 @@ extension InventoryViewModel {
             imageName: materialData.imageName,
             quantity: material.quantity,
             category: .materials,
-            itemDetails: .material(MaterialDetails(description: "Material for crafting"))
+            itemDetails: .material(MaterialDetails(
+                description: materialData.description,
+                subcategory: materialData.category
+            ))
         )
     }
 }

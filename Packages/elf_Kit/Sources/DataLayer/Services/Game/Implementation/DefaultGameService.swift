@@ -84,6 +84,10 @@ public final class DefaultGameService: GameService {
         )
     }
 
+    public func addFishingExperience(_ amount: Int) {
+        player.fishingExp += amount
+    }
+
     public func addDropsToPlayerInventory(rewards: HuntRewards) {
         // Add materials (stackable)
         for material in rewards.materials {
@@ -104,6 +108,12 @@ public final class DefaultGameService: GameService {
            let defenseItem = itemsRepository?.getHeroItem(armorId) as? DefenseItem {
             let armor = ElfDefenseItem(defenseItem: defenseItem)
             player.inventory.addArmor(armor)
+        }
+    }
+
+    public func addFishToInventory(_ fish: [Fish]) {
+        for f in fish {
+            player.inventory.addMaterial(id: f.id, quantity: 1)
         }
     }
 

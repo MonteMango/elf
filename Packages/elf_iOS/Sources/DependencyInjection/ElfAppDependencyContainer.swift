@@ -54,6 +54,9 @@ public final class ElfAppDependencyContainer {
     public let huntService: ElfHuntService
     public let dropService: DefaultDropService
 
+    // Fishing service
+    public let fishingService: DefaultFishingService
+
     // Battle result calculation
     public let battleResultCalculator: DefaultBattleResultCalculator
 
@@ -163,10 +166,11 @@ public final class ElfAppDependencyContainer {
         self.duelPairingService = RandomDuelPairingService()
         self.monsterRepository = ElfMonsterRepository()
 
-        let materialRepository = ElfMaterialRepository()
-        self.materialRepository = materialRepository
+        let fishRepository = ElfFishRepository()
+        self.fishRepository = fishRepository
 
-        self.fishRepository = ElfFishRepository()
+        let materialRepository = ElfMaterialRepository(fishRepository: fishRepository)
+        self.materialRepository = materialRepository
 
         // Hunt and drop services
         let huntService = ElfHuntService()
@@ -177,6 +181,9 @@ public final class ElfAppDependencyContainer {
             itemsRepository: itemsRepository
         )
         self.dropService = dropService
+
+        // Fishing service
+        self.fishingService = DefaultFishingService()
 
         // Battle result calculation
         self.battleResultCalculator = DefaultBattleResultCalculator(
@@ -245,6 +252,11 @@ public final class ElfAppDependencyContainer {
     @MainActor
     public func makeBattleResultViewModel(result: ManualBattleResult) -> BattleResultViewModel {
         return BattleResultViewModel(result: result)
+    }
+
+    @MainActor
+    public func makeFishingResultViewModel(result: FishingResult) -> FishingResultViewModel {
+        return FishingResultViewModel(result: result)
     }
 
     @MainActor
@@ -329,7 +341,10 @@ public final class ElfAppDependencyContainer {
         return FarmActivityViewModel(
             activity: activity,
             gameService: gameService,
-            fishRepository: activity == .fishing ? fishRepository : nil
+            fishRepository: activity == .fishing ? fishRepository : nil,
+            fishingService: activity == .fishing ? fishingService : nil,
+            monsterRepository: monsterRepository,
+            snapshotBuilder: snapshotBuilder
         )
     }
 

@@ -14,6 +14,7 @@ import SwiftUI
 public enum ModalRoute: Identifiable {
 
     case battleResult(ManualBattleResult)
+    case fishingResult(FishingResult)
 
     // MARK: - Identifiable
 
@@ -21,6 +22,8 @@ public enum ModalRoute: Identifiable {
         switch self {
         case .battleResult:
             return "battleResult"
+        case .fishingResult:
+            return "fishingResult"
         }
     }
 }
@@ -35,6 +38,8 @@ extension ModalRoute {
         switch self {
         case .battleResult(let result):
             BattleResultScreen(result: result)
+        case .fishingResult(let result):
+            FishingResultScreen(result: result)
         }
     }
 }

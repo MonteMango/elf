@@ -36,9 +36,17 @@ public protocol GameStateService: AnyObject {
     /// - Parameter amount: Experience points to add
     func addPlayerExperience(_ amount: Int)
 
+    /// Adds fishing experience to the player
+    /// - Parameter amount: Fishing XP to add
+    func addFishingExperience(_ amount: Int)
+
     /// Adds hunt rewards (drops) to player's inventory
     /// - Parameter rewards: Hunt rewards containing materials, weapon, and armor drops
     func addDropsToPlayerInventory(rewards: HuntRewards)
+
+    /// Adds caught fish to player's inventory as materials
+    /// - Parameter fish: Array of fish to add
+    func addFishToInventory(_ fish: [Fish])
 
     // MARK: - Player HP Management
 

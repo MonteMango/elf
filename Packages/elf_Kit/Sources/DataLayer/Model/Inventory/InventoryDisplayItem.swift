@@ -248,10 +248,16 @@ public struct JewelryDetails: Equatable, Sendable {
 public struct MaterialDetails: Equatable, Sendable {
     public let description: String
     public let stackSize: Int
+    public let subcategory: MaterialSubcategory
 
-    public init(description: String, stackSize: Int = 99) {
+    public init(
+        description: String,
+        stackSize: Int = 99,
+        subcategory: MaterialSubcategory = .monsters
+    ) {
         self.description = description
         self.stackSize = stackSize
+        self.subcategory = subcategory
     }
 
     public var descriptionLines: [String] {

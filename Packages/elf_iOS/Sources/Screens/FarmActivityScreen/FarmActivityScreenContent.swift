@@ -11,10 +11,12 @@ import SwiftUI
 
 struct FarmActivityScreenContent: View {
     @Environment(ElfAppDependencyContainer.self) private var container
+    @Environment(AppRouter.self) private var router
     @Environment(\.dismiss) private var dismiss
     @Environment(\.farmZoomNamespace) private var zoomNamespace
     @State private var viewModel: FarmActivityViewModel
     @State private var showCalendar = false
+    @State private var navigatedToBattle = false
 
     init(viewModel: FarmActivityViewModel) {
         self._viewModel = State(initialValue: viewModel)
@@ -46,6 +48,12 @@ struct FarmActivityScreenContent: View {
         viewModel.availableFish.map { fish in
             GridItemData(id: fish.id, imageName: fish.imageName, tier: fish.tier)
         }
+    }
+
+    // MARK: - Fishing State
+
+    private var isFishing: Bool {
+        viewModel.fishingState == .fishing
     }
 
     // MARK: - Background
@@ -111,7 +119,11 @@ struct FarmActivityScreenContent: View {
                     .frame(maxWidth: 300, maxHeight: 0)
 
                 Button(viewModel.actionButtonTitle) {
-                    // No action yet - UI only
+                    if viewModel.activity == .fishing {
+                        Task {
+                            await viewModel.startFishing()
+                        }
+                    }
                 }
                 .buttonStyle(.elfPrimary(isEnabled: viewModel.canPerformAction))
                 .disabled(!viewModel.canPerformAction)
@@ -144,6 +156,38 @@ struct FarmActivityScreenContent: View {
                 )
             )
         }
+        .overlay {
+            // Local overlay for fishing progress
+            if isFishing {
+                FishingInProgressView()
+            }
+
+            // Monster attack alert overlay
+            if viewModel.attackingMonster != nil {
+                MonsterAttackAlertView(
+                    activityName: viewModel.activity.rawValue,
+                    onFight: {
+                        if let battle = viewModel.startBattle() {
+                            navigatedToBattle = true
+                            router.navigationPath.append(AppRoute.battleFight(battle))
+                        }
+                    }
+                )
+            }
+        }
+        .onChange(of: viewModel.fishingResult) { _, result in
+            if let result = result {
+                router.presentModal(.fishingResult(result))
+                viewModel.clearFishingResult()
+            }
+        }
+        .onChange(of: router.navigationPath.count) { oldCount, newCount in
+            // Handle return from battle (navigation stack decreased)
+            if navigatedToBattle && newCount < oldCount {
+                navigatedToBattle = false
+                viewModel.onReturnFromBattle()
+            }
+        }
     }
 
 }
@@ -161,5 +205,6 @@ struct FarmActivityScreenContent: View {
         )
         .environment(\.farmZoomNamespace, previewNamespace)
         .environment(container)
+        .environment(AppRouter())
     }
 }

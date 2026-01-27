@@ -144,4 +144,24 @@ public enum ElfSizing {
         public static let activityCellHeight: CGFloat = 60
         public static let skillBarHeight: CGFloat = 8
     }
+
+    // MARK: - Fishing Result Screen Specific
+
+    public enum FishingResult {
+        public static let cardWidth: CGFloat = 500
+        public static let cardHeight: CGFloat = 340
+    }
+
+    // MARK: - Fishing In Progress Overlay
+
+    public enum FishingProgress {
+        public static let width: CGFloat = 300
+        public static let height: CGFloat = 200
+    }
+
+    // MARK: - Monster Attack Alert Overlay
+
+    public enum MonsterAlert {
+        public static let width: CGFloat = 400
+    }
 }

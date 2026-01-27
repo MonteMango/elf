@@ -69,7 +69,7 @@ public enum PotionScrollSubcategory: String, CaseIterable, Sendable {
 
 // MARK: - Material Subcategories
 
-public enum MaterialSubcategory: String, CaseIterable, Sendable {
+public enum MaterialSubcategory: String, CaseIterable, Sendable, Codable {
     case all
     case monsters
     case herbs

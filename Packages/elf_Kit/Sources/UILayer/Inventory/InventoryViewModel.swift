@@ -199,7 +199,13 @@ public final class InventoryViewModel {
             return true
 
         case .materials:
-            return true
+            guard selectedMaterialSubcategory != .all else { return true }
+            switch item.itemDetails {
+            case .material(let details):
+                return details.subcategory == selectedMaterialSubcategory
+            default:
+                return false
+            }
         }
     }
 
