@@ -93,6 +93,49 @@ Fish provide magical essences used in crafting:
 
 ---
 
+## Herb Gathering System
+
+Herb gathering is a skill-based activity in the Forest that provides potion crafting materials.
+
+### Mechanics
+
+| Parameter | Value |
+|-----------|-------|
+| **Cost** | 20 Action Points per attempt |
+| **Max Gather** | Up to 4 herbs per attempt |
+| **Gather Method** | Each herb has independent probability check |
+
+### Herb Tiers
+
+| Tier | Gather Chance | XP Reward | Examples |
+|------|---------------|-----------|----------|
+| **Common** | 30-35% | 5 XP | Sunpetal, Moonbloom, Greenleaf, Ironroot |
+| **Uncommon** | 18-20% | 8 XP | Bloodberry, Swiftgrass, Bitterleaf |
+| **Rare** | 10% | 12 XP | Starbloom, Firethorn |
+| **Legendary** | 5% | 20 XP | Dragonheart, Ethereal Lily |
+
+### Herb Effects (8 types)
+
+Herbs provide essences used in potion crafting:
+
+| Effect | Description |
+|--------|-------------|
+| **Healing** | Restores health |
+| **Stamina** | Restores energy |
+| **Strength** | Increases attack power |
+| **Defense** | Increases protection |
+| **Speed** | Increases agility |
+| **Antidote** | Cures poison |
+| **Luck** | Increases luck |
+| **Mana** | Restores magic |
+
+### Skill Progression
+
+- **50 XP per level** for herb gathering skill
+- Higher skill levels may unlock rarer herb spots (future feature)
+
+---
+
 ## Farm Activity Hazards
 
 All farm activities (hunting, gathering, mining, fishing) carry risk of monster encounters.
