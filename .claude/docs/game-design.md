@@ -50,6 +50,70 @@
 
 ---
 
+## Fishing System
+
+Fishing is a skill-based activity at the Lake that provides magical crafting materials.
+
+### Mechanics
+
+| Parameter | Value |
+|-----------|-------|
+| **Cost** | 20 Action Points per attempt |
+| **Max Catch** | Up to 4 fish per attempt |
+| **Catch Method** | Each fish has independent probability check |
+
+### Fish Tiers
+
+| Tier | Catch Chance | XP Reward | Examples |
+|------|--------------|-----------|----------|
+| **Common** | 30-35% | 5 XP | Silverscale Minnow, Moonpearl Carp |
+| **Uncommon** | 20-25% | 8 XP | Crimson Flicker, Frostfin Trout |
+| **Rare** | 10-15% | 12 XP | Thundertail, Shadowgill |
+| **Legendary** | 5% | 20 XP | Spirit Koi, Venomspine Eel |
+
+### Fish Effects (8 types)
+
+Fish provide magical essences used in crafting:
+
+| Effect | Description |
+|--------|-------------|
+| **Arcane** | Pure magical energy |
+| **Flame** | Fire magic essence |
+| **Frost** | Ice magic essence |
+| **Storm** | Lightning/wind essence |
+| **Shadow** | Dark magic essence |
+| **Radiance** | Light magic essence |
+| **Spirit** | Spiritual energy |
+| **Venom** | Poison magic essence |
+
+### Skill Progression
+
+- **50 XP per level** for fishing skill
+- Higher skill levels may unlock better fishing spots (future feature)
+
+---
+
+## Farm Activity Hazards
+
+All farm activities (hunting, gathering, mining, fishing) carry risk of monster encounters.
+
+### Monster Attacks
+
+| Parameter | Value |
+|-----------|-------|
+| **Attack Chance** | 20% per activity |
+| **Battle Type** | 1v1 combat |
+| **Monster Level** | Scaled (max level 3) |
+
+### Mechanics
+
+- Monster attack interrupts the current activity
+- Player must defeat the monster before continuing
+- Standard combat rules apply
+- Rewards from the interrupted activity are still received if monster is defeated
+
+---
+
 ## Character Attributes
 
 All combat entities (elves, monsters, etc.) have the following stats:
