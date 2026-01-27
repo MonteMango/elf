@@ -133,9 +133,9 @@ class GameViewModel {
 }
 ```
 
-## ViewModels с Existential Types
+## ViewModels with Existential Types
 
-ViewModels используют `any Protocol` (existential types) для зависимостей. Это проще generics и безопасно работает с `@Observable`.
+ViewModels use `any Protocol` (existential types) for dependencies. This is simpler than generics and works safely with `@Observable`.
 
 ```swift
 @Observable
@@ -157,7 +157,7 @@ public final class HuntViewModel {
 ### Factory Methods
 
 ```swift
-// В ElfAppDependencyContainer.swift
+// In ElfAppDependencyContainer.swift
 @MainActor
 public func makeHuntViewModel() -> HuntViewModel {
     guard let gameService = activeGameService else {
@@ -171,7 +171,7 @@ public func makeHuntViewModel() -> HuntViewModel {
 }
 ```
 
-### Использование в ScreenContent
+### Usage in ScreenContent
 
 ```swift
 @State private var viewModel: HuntViewModel

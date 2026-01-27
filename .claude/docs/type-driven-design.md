@@ -4,27 +4,27 @@
 
 ## Core Principle
 
-**"Make impossible states unrepresentable"** — используй систему типов Swift для того, чтобы невалидные состояния не могли существовать в принципе.
+**"Make impossible states unrepresentable"** — use Swift's type system to make invalid states impossible to exist in the first place.
 
 ---
 
 ## 1. Using Types to Model Requirements
 
-### Проблема: Shotgun Parsing
-Валидация смешана с бизнес-логикой, инварианты теряются сразу после проверки.
+### Problem: Shotgun Parsing
+Validation is mixed with business logic, invariants are lost immediately after checking.
 
 ```swift
-// BAD: Инвариант (валидный email) теряется после guard
+// BAD: Invariant (valid email) is lost after guard
 func signIn(email: String, password: String) {
     guard isValidEmail(email) && password.count >= 8 else { return }
-    // Здесь email — просто String, валидность не гарантирована типом
+    // Here email is just a String, validity is not guaranteed by the type
 }
 ```
 
-### Решение: Захват инварианта в типе
+### Solution: Capture Invariant in Type
 
 ```swift
-// GOOD: Тип гарантирует валидность
+// GOOD: Type guarantees validity
 struct Email {
     let value: String
 
@@ -37,38 +37,38 @@ struct Email {
 }
 
 func signIn(credentials: Credentials) -> Result<User, AuthError> {
-    // credentials.email ВСЕГДА валиден — математическая гарантия
+    // credentials.email is ALWAYS valid — mathematical guarantee
 }
 ```
 
 ### Curry-Howard Correspondence
 
-| Программирование | Логика |
+| Programming | Logic |
 |------------------|--------|
-| Типы | Теоремы/Пропозиции |
-| Значения типов | Доказательства |
-| Функции | Следствия (implications) |
-| Struct (A, B) | Конъюнкция (A ∧ B) |
-| Enum (A \| B) | Дизъюнкция (A ∨ B) |
+| Types | Theorems/Propositions |
+| Values of types | Proofs |
+| Functions | Implications |
+| Struct (A, B) | Conjunction (A ∧ B) |
+| Enum (A \| B) | Disjunction (A ∨ B) |
 
 ---
 
 ## 2. Patterns of Data Types
 
 ### 2.1 Simple Wrapper
-Обёртка без валидации, для type-safety.
+Wrapper without validation, for type-safety.
 
 ```swift
 struct BearerToken {
     let value: String
 }
 
-// НЕ путать с typealias — он НЕ создаёт новый тип!
-typealias Token = String  // ЭТО НЕ НОВЫЙ ТИП!
+// DON'T confuse with typealias — it does NOT create a new type!
+typealias Token = String  // THIS IS NOT A NEW TYPE!
 ```
 
 ### 2.2 Wrapper with Parser
-Обёртка с валидацией при создании.
+Wrapper with validation at creation.
 
 ```swift
 struct CharacterName: Sendable, Equatable, Codable {
@@ -90,7 +90,7 @@ Struct = A AND B
 
 ```swift
 struct Credentials {
-    let email: Email      // Email И Password
+    let email: Email      // Email AND Password
     let password: Password
 }
 ```
@@ -101,20 +101,20 @@ Enum = A OR B
 ```swift
 enum User {
     case anonymous(AnonymousUser)
-    case signedIn(SignedInUser)  // Anonymous ИЛИ SignedIn
+    case signedIn(SignedInUser)  // Anonymous OR SignedIn
 }
 ```
 
 **Anti-pattern: Frankenstein Struct**
 ```swift
-// BAD: Много optionals = несколько типов в одном
+// BAD: Many optionals = multiple types in one
 struct User {
     let sessionId: UUID
-    let id: UserID?        // Optional означает "это может быть другой тип"
+    let id: UserID?        // Optional means "this could be a different type"
     let username: String?
 }
 
-// GOOD: Используй enum
+// GOOD: Use enum
 enum User {
     case anonymous(sessionId: UUID)
     case signedIn(id: UserID, username: String)
@@ -122,7 +122,7 @@ enum User {
 ```
 
 ### 2.5 Phantom Types (Tagged Wrapper)
-Type-safety без runtime overhead.
+Type-safety without runtime overhead.
 
 ```swift
 struct TypedID<Tag>: Hashable, Codable {
@@ -135,15 +135,15 @@ enum MonsterTag {}
 typealias ElfID = TypedID<ElfTag>
 typealias MonsterID = TypedID<MonsterTag>
 
-// Теперь нельзя перепутать!
+// Now you can't mix them up!
 func findElf(id: ElfID) -> Elf?
 func findMonster(id: MonsterID) -> Monster?
 
-// findElf(id: monsterId)  // Ошибка компиляции!
+// findElf(id: monsterId)  // Compile error!
 ```
 
 ### 2.6 NonEmpty Collection
-Гарантированно непустая коллекция.
+Guaranteed non-empty collection.
 
 ```swift
 struct NonEmptyArray<Element> {
@@ -153,9 +153,9 @@ struct NonEmptyArray<Element> {
     var asArray: [Element] { [first] + rest }
 }
 
-// Функция становится ПОЛНОЙ — всегда может вернуть результат
+// Function becomes TOTAL — can always return a result
 func findBest(in videos: NonEmptyArray<Video>) -> Video {
-    // Гарантированно есть хотя бы одно видео
+    // Guaranteed to have at least one video
 }
 ```
 
@@ -164,14 +164,14 @@ func findBest(in videos: NonEmptyArray<Video>) -> Video {
 ## 3. Patterns of Function Types
 
 ### Parser
-Частичная функция — может вернуть ошибку.
+Partial function — can return an error.
 
 ```swift
 static func parse(_ raw: String) -> Result<Email, ValidationError>
 ```
 
 ### Calculator/Transformer
-Полная чистая функция — всегда даёт результат.
+Total pure function — always produces a result.
 
 ```swift
 func isEven(_ number: Int) -> Bool {
@@ -180,7 +180,7 @@ func isEven(_ number: Int) -> Bool {
 ```
 
 ### Decision Maker
-Возвращает решение, но НЕ выполняет его.
+Returns a decision, but does NOT execute it.
 
 ```swift
 func getActions(for launchCount: Int) -> [Action] {
@@ -193,7 +193,7 @@ func getActions(for launchCount: Int) -> [Action] {
 ```
 
 ### Executor/Performer
-Выполняет side effects.
+Executes side effects.
 
 ```swift
 func perform(_ action: Action) {
@@ -208,25 +208,25 @@ func perform(_ action: Action) {
 
 ## 4. Making Partial Functions Total
 
-### Определения
-- **Полная функция** — даёт ответ на ЛЮБОЙ валидный input
-- **Частичная функция** — может упасть, вернуть nil, или зациклиться
+### Definitions
+- **Total function** — returns an answer for ANY valid input
+- **Partial function** — can crash, return nil, or loop forever
 
 ```swift
-// Частичная — crash при b == 0
+// Partial — crash when b == 0
 func divide(_ a: Int, by b: Int) -> Int { a / b }
 
-// Полная — работает для любого Int
+// Total — works for any Int
 func isEven(_ n: Int) -> Bool { n % 2 == 0 }
 ```
 
-### Решение: Ограничь input через типы
+### Solution: Restrict Input Through Types
 
 ```swift
-// Частичная: пустой массив → nil пузырится наверх
+// Partial: empty array → nil bubbles up
 func findBest(in videos: [Video]) -> Video?
 
-// Полная: NonEmpty гарантирует хотя бы один элемент
+// Total: NonEmpty guarantees at least one element
 func findBest(in videos: NonEmptyArray<Video>) -> Video
 ```
 
@@ -238,18 +238,18 @@ func findBest(in videos: NonEmptyArray<Video>) -> Video
 
 ```
 ┌─────────────────────────┐
-│   Side Effects (input)  │  ← Достаём данные
+│   Side Effects (input)  │  ← Get data
 ├─────────────────────────┤
-│   Pure Business Logic   │  ← Чистая логика (тестируемая!)
+│   Pure Business Logic   │  ← Pure logic (testable!)
 ├─────────────────────────┤
-│   Side Effects (output) │  ← Выполняем действия
+│   Side Effects (output) │  ← Execute actions
 └─────────────────────────┘
 ```
 
-### Пример
+### Example
 
 ```swift
-// BEFORE: Нечистая функция, невозможно тестировать
+// BEFORE: Impure function, impossible to test
 func handleAppLaunch() {
     let count = UserDefaults.standard.integer(forKey: "launchCount")
     UserDefaults.standard.set(count + 1, forKey: "launchCount")
@@ -262,14 +262,14 @@ enum Action {
     case showOnboarding
 }
 
-// ЧИСТАЯ функция — легко тестировать!
+// PURE function — easy to test!
 func getActions(for launchCount: Int) -> [Action] {
     var actions: [Action] = [.setUserDefaults(key: "launchCount", value: launchCount + 1)]
     if launchCount == 0 { actions.append(.showOnboarding) }
     return actions
 }
 
-// Нечистая — только выполнение
+// Impure — only execution
 func perform(_ action: Action) {
     switch action {
     case .setUserDefaults(let key, let value):
@@ -279,7 +279,7 @@ func perform(_ action: Action) {
     }
 }
 
-// Собираем вместе
+// Put it together
 func handleAppLaunch() {
     let count = UserDefaults.standard.integer(forKey: "launchCount")  // Side effect
     let actions = getActions(for: count)                               // Pure
@@ -287,7 +287,7 @@ func handleAppLaunch() {
 }
 ```
 
-### Unit-тесты стали тривиальными!
+### Unit tests became trivial!
 
 ```swift
 func testFirstLaunch() {
@@ -303,10 +303,10 @@ func testFirstLaunch() {
 
 ## 6. Value-Oriented Programming
 
-Вместо контроля потока (if/else, callbacks) работаем со значениями.
+Instead of control flow (if/else, callbacks), work with values.
 
 ```swift
-// Обогащаем действия событиями
+// Enrich actions with events
 struct LoggableAction {
     let action: Action
     let event: AnalyticsEvent?
@@ -319,29 +319,29 @@ func getEvent(for action: Action) -> AnalyticsEvent? {
     }
 }
 
-// Хотим убрать логирование? Просто убираем одну строку!
-actions.forEach(perform)  // Без логов
+// Want to remove logging? Just remove one line!
+actions.forEach(perform)  // Without logs
 ```
 
 ---
 
 ## 7. Functional Dependency Injection
 
-### Вместо протоколов — передаём функции
+### Instead of protocols — pass functions
 
 ```swift
-// Protocol-based (много boilerplate)
+// Protocol-based (lots of boilerplate)
 protocol UserDefaultsStorable {
     func integer(forKey: String) -> Int
 }
 
-// Function-based (простое)
+// Function-based (simple)
 func perform(
     _ action: Action,
     setUserDefaults: (Int, String) -> Void = { UserDefaults.standard.set($0, forKey: $1) }
 ) { ... }
 
-// В тестах
+// In tests
 func testAction() {
     var captured: (Int, String)?
     perform(.setUserDefaults(key: "test", value: 42)) { value, key in
@@ -351,7 +351,7 @@ func testAction() {
 }
 ```
 
-### Объединяем зависимости в структуру
+### Combine dependencies into a struct
 
 ```swift
 struct Dependencies {
@@ -360,16 +360,16 @@ struct Dependencies {
     var log: (String) -> Void = { print($0) }
 }
 
-// Можно подменить ЛЮБУЮ зависимость по отдельности!
+// Can substitute ANY dependency individually!
 var deps = Dependencies()
-deps.log = { _ in }  // Отключили логи
+deps.log = { _ in }  // Disabled logs
 ```
 
 ---
 
 ## 8. Modeling Async Actions
 
-### Рекурсивный enum для цепочек
+### Recursive enum for chains
 
 ```swift
 indirect enum Action {
@@ -400,12 +400,12 @@ func perform(_ action: Action) {
 
 ## 9. Advanced: Witness Pattern
 
-Доказательство через существование типа.
+Proof through type existence.
 
 ```swift
 struct Witness<T> {
-    // Пустая структура! Значение не используется.
-    // Сам факт существования — доказательство.
+    // Empty struct! The value is not used.
+    // The mere existence is the proof.
 }
 
 enum Action {
@@ -414,16 +414,16 @@ enum Action {
 }
 
 func showOnboarding(_ witness: Witness<OnboardingVC>) {
-    // witness не используется — важен только его ТИП
+    // witness is not used — only its TYPE matters
     navigator.show(OnboardingVC())
 }
 
 func perform(_ action: Action) {
     switch action {
     case .showOnboarding(let witness):
-        showOnboarding(witness)  // Компилятор проверяет тип!
+        showOnboarding(witness)  // Compiler checks the type!
 
-        // showFeedback(witness)  // Ошибка компиляции!
+        // showFeedback(witness)  // Compile error!
     }
 }
 ```
