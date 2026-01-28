@@ -114,6 +114,19 @@ final class ElfItemsRepositoryTests: XCTestCase {
             """
             return Data(json.utf8)
         }
+
+        func loadOresData() throws -> Data {
+            // Return minimal valid ores data for tests
+            let json = """
+            {
+              "version": "1.0",
+              "effects": [],
+              "areas": {},
+              "ores": []
+            }
+            """
+            return Data(json.utf8)
+        }
     }
     
     // MARK: - Тесты
