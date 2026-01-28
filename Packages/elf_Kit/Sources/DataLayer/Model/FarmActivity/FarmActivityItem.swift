@@ -37,6 +37,13 @@ extension FarmActivityItem {
         self.imageName = herb.imageName
         self.tier = herb.tier
     }
+
+    /// Create from Ore
+    public init(ore: Ore) {
+        self.id = ore.id.rawValue
+        self.imageName = ore.imageName
+        self.tier = ore.tier
+    }
 }
 
 // MARK: - Array Extensions
@@ -50,5 +57,11 @@ extension Array where Element == Fish {
 extension Array where Element == Herb {
     public var asFarmActivityItems: [FarmActivityItem] {
         map { FarmActivityItem(herb: $0) }
+    }
+}
+
+extension Array where Element == Ore {
+    public var asFarmActivityItems: [FarmActivityItem] {
+        map { FarmActivityItem(ore: $0) }
     }
 }

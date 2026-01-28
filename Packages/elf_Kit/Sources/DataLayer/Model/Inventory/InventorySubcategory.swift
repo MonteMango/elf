@@ -74,7 +74,7 @@ public enum MaterialSubcategory: String, CaseIterable, Sendable, Codable {
     case monsters
     case herbs
     case fish
-    case stones
+    case ores
 
     public var displayTitle: String {
         switch self {
@@ -86,8 +86,8 @@ public enum MaterialSubcategory: String, CaseIterable, Sendable, Codable {
             return "herbs"
         case .fish:
             return "fish"
-        case .stones:
-            return "stones"
+        case .ores:
+            return "ores"
         }
     }
 }

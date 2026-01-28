@@ -92,6 +92,10 @@ public final class DefaultGameService: GameService {
         player.foragingExp += amount
     }
 
+    public func addMiningExperience(_ amount: Int) {
+        player.miningExp += amount
+    }
+
     public func addDropsToPlayerInventory(rewards: HuntRewards) {
         // Add materials (stackable)
         for material in rewards.materials {
@@ -124,6 +128,12 @@ public final class DefaultGameService: GameService {
     public func addHerbsToInventory(_ herbs: [Herb]) {
         for herb in herbs {
             player.inventory.addMaterial(id: herb.id.rawValue, quantity: 1)
+        }
+    }
+
+    public func addOresToInventory(_ ores: [Ore]) {
+        for ore in ores {
+            player.inventory.addMaterial(id: ore.id.rawValue, quantity: 1)
         }
     }
 

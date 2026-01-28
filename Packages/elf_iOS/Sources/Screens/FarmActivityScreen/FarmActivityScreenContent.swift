@@ -179,6 +179,8 @@ struct FarmActivityScreenContent: View {
                     router.presentModal(.fishingResult(fishingResult))
                 case .foraging(let foragingResult):
                     router.presentModal(.foragingResult(foragingResult))
+                case .mining(let miningResult):
+                    router.presentModal(.miningResult(miningResult))
                 }
                 viewModel.clearActivityResult()
             }

@@ -136,6 +136,47 @@ Herbs provide essences used in potion crafting:
 
 ---
 
+## Ore Mining System
+
+Ore mining is a skill-based activity in the Mountains that provides crafting materials for weapons and armor.
+
+### Mechanics
+
+| Parameter | Value |
+|-----------|-------|
+| **Cost** | 20 Action Points per attempt |
+| **Max Mine** | Up to 4 ores per attempt |
+| **Mine Method** | Each ore has independent probability check |
+
+### Ore Tiers
+
+| Tier | Mine Chance | XP Reward | Examples |
+|------|-------------|-----------|----------|
+| **Common** | 30-35% | 5 XP | Copper Chunk, Iron Shard, Bronze Ore |
+| **Uncommon** | 18-20% | 8 XP | Silver Ore, Coal Crystal, Quartz Shard |
+| **Rare** | 10% | 12 XP | Gold Nugget, Mithril Fragment |
+| **Legendary** | 5% | 20 XP | Adamantite Core |
+
+### Ore Usage
+
+Ores are primary materials for crafting equipment:
+
+| Ore Type | Crafting Use |
+|----------|--------------|
+| **Copper, Iron, Bronze** | Basic weapons and armor (Tier 4) |
+| **Silver, Coal, Quartz** | Enhanced equipment (Tier 3) |
+| **Gold, Mithril** | Rare equipment (Tier 2) |
+| **Adamantite** | Legendary equipment (Tier 1) |
+
+*Note: Currently, ores do not have magical effects - they are purely crafting materials. Special ores with unique properties may be added in future updates.*
+
+### Skill Progression
+
+- **50 XP per level** for mining skill
+- Higher skill levels may unlock richer ore veins (future feature)
+
+---
+
 ## Farm Activity Hazards
 
 All farm activities (hunting, gathering, mining, fishing) carry risk of monster encounters.

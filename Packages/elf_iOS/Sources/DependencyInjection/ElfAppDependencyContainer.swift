@@ -50,6 +50,7 @@ public final class ElfAppDependencyContainer {
     public let materialRepository: ElfMaterialRepository
     public let fishRepository: ElfFishRepository
     public let herbRepository: ElfHerbRepository
+    public let oreRepository: ElfOreRepository
 
     // Hunt and drop services
     public let huntService: ElfHuntService
@@ -60,6 +61,9 @@ public final class ElfAppDependencyContainer {
 
     // Foraging service
     public let foragingService: DefaultForagingService
+
+    // Mining service
+    public let miningService: DefaultMiningService
 
     // Farm activity service (unified for all farm activities)
     public let farmActivityService: DefaultFarmActivityService
@@ -179,9 +183,13 @@ public final class ElfAppDependencyContainer {
         let herbRepository = ElfHerbRepository()
         self.herbRepository = herbRepository
 
+        let oreRepository = ElfOreRepository()
+        self.oreRepository = oreRepository
+
         let materialRepository = ElfMaterialRepository(
             fishRepository: fishRepository,
-            herbRepository: herbRepository
+            herbRepository: herbRepository,
+            oreRepository: oreRepository
         )
         self.materialRepository = materialRepository
 
@@ -203,12 +211,18 @@ public final class ElfAppDependencyContainer {
         let foragingService = DefaultForagingService()
         self.foragingService = foragingService
 
+        // Mining service
+        let miningService = DefaultMiningService()
+        self.miningService = miningService
+
         // Farm activity service (unified)
         self.farmActivityService = DefaultFarmActivityService(
             fishingService: fishingService,
             foragingService: foragingService,
+            miningService: miningService,
             fishRepository: fishRepository,
-            herbRepository: herbRepository
+            herbRepository: herbRepository,
+            oreRepository: oreRepository
         )
 
         // Battle result calculation
@@ -288,6 +302,11 @@ public final class ElfAppDependencyContainer {
     @MainActor
     public func makeForagingResultViewModel(result: ForagingResult) -> ForagingResultViewModel {
         return ForagingResultViewModel(result: result)
+    }
+
+    @MainActor
+    public func makeMiningResultViewModel(result: MiningResult) -> MiningResultViewModel {
+        return MiningResultViewModel(result: result)
     }
 
     @MainActor

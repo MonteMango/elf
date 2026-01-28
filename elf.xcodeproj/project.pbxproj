@@ -11,6 +11,7 @@
 		09259EDA2EE7651800DE5A84 /* Materials.json in Resources */ = {isa = PBXBuildFile; fileRef = 09259ED92EE7650D00DE5A84 /* Materials.json */; };
 		0993F1FD2EC2994000B568F3 /* ElfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0993F1FC2EC2993700B568F3 /* ElfApp.swift */; };
 		09A089D72F29529E001A1A85 /* Herbs.json in Resources */ = {isa = PBXBuildFile; fileRef = 09A089D62F29529E001A1A85 /* Herbs.json */; };
+		09A089D92F29AF2F001A1A85 /* Ores.json in Resources */ = {isa = PBXBuildFile; fileRef = 09A089D82F29AF2F001A1A85 /* Ores.json */; };
 		09A8CD6B2BE13E3300DDC851 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 09A8CD6A2BE13E3300DDC851 /* Assets.xcassets */; };
 		09A8CD6E2BE13E3300DDC851 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 09A8CD6D2BE13E3300DDC851 /* Base */; };
 		09D5060C2CB9D91200082EA0 /* HeroItems.json in Resources */ = {isa = PBXBuildFile; fileRef = 09D5060A2CB9D91200082EA0 /* HeroItems.json */; };
@@ -24,6 +25,7 @@
 		0993F1FC2EC2993700B568F3 /* ElfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElfApp.swift; sourceTree = "<group>"; };
 		0993F2002EC5063100B568F3 /* elf_SwiftUI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = elf_SwiftUI; path = Packages/elf_SwiftUI; sourceTree = "<group>"; };
 		09A089D62F29529E001A1A85 /* Herbs.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Herbs.json; sourceTree = "<group>"; };
+		09A089D82F29AF2F001A1A85 /* Ores.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Ores.json; sourceTree = "<group>"; };
 		09A8CD5E2BE13E3100DDC851 /* elf.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = elf.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		09A8CD6A2BE13E3300DDC851 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		09A8CD6D2BE13E3300DDC851 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -83,6 +85,7 @@
 		09D5060B2CB9D91200082EA0 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				09A089D82F29AF2F001A1A85 /* Ores.json */,
 				09A089D62F29529E001A1A85 /* Herbs.json */,
 				09F15C002EF8D00000DE5A84 /* Fish.json */,
 				09259ED92EE7650D00DE5A84 /* Materials.json */,
@@ -163,6 +166,7 @@
 			files = (
 				09F15C012EF8D00000DE5A84 /* Fish.json in Resources */,
 				09A089D72F29529E001A1A85 /* Herbs.json in Resources */,
+				09A089D92F29AF2F001A1A85 /* Ores.json in Resources */,
 				09259EDA2EE7651800DE5A84 /* Materials.json in Resources */,
 				09259ED82EE4C4E200DE5A84 /* Monsters.json in Resources */,
 				09A8CD6B2BE13E3300DDC851 /* Assets.xcassets in Resources */,

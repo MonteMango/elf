@@ -15,16 +15,19 @@ public final class ElfMaterialRepository: MaterialRepository {
     private let materialLookup: [UUID: Material]
     private let fishRepository: (any FishRepository)?
     private let herbRepository: (any HerbRepository)?
+    private let oreRepository: (any OreRepository)?
 
     // MARK: - Initialization
 
     public init(
         dataLoader: DataLoader = ElfDataLoader(),
         fishRepository: (any FishRepository)? = nil,
-        herbRepository: (any HerbRepository)? = nil
+        herbRepository: (any HerbRepository)? = nil,
+        oreRepository: (any OreRepository)? = nil
     ) {
         self.fishRepository = fishRepository
         self.herbRepository = herbRepository
+        self.oreRepository = oreRepository
 
         // Load data synchronously from bundle
         let data: Data
@@ -88,6 +91,17 @@ public final class ElfMaterialRepository: MaterialRepository {
             )
         }
 
+        // If not found, try ore repository
+        if let ore = oreRepository?.getOre(id: OreID(rawValue: id)) {
+            return Material(
+                id: ore.id.rawValue,
+                title: ore.title,
+                imageName: ore.imageName,
+                category: .ores,
+                description: ore.description
+            )
+        }
+
         return nil
     }
 
@@ -102,6 +116,10 @@ public final class ElfMaterialRepository: MaterialRepository {
 
         if herbRepository?.getHerb(id: HerbID(rawValue: id)) != nil {
             return .herbs
+        }
+
+        if oreRepository?.getOre(id: OreID(rawValue: id)) != nil {
+            return .ores
         }
 
         return nil
@@ -123,5 +141,5 @@ public final class ElfMaterialRepository: MaterialRepository {
 // MARK: - Sendable Conformance
 // Thread-safe: All stored properties are immutable (let) after initialization.
 // `_materialsData` is a value type, `materialLookup` is an immutable dictionary of value types.
-// `fishRepository` and `herbRepository` are optional and Sendable.
+// `fishRepository`, `herbRepository`, and `oreRepository` are optional and Sendable.
 extension ElfMaterialRepository: @unchecked Sendable {}

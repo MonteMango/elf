@@ -44,6 +44,10 @@ public protocol GameStateService: AnyObject {
     /// - Parameter amount: Foraging XP to add
     func addForagingExperience(_ amount: Int)
 
+    /// Adds mining experience to the player
+    /// - Parameter amount: Mining XP to add
+    func addMiningExperience(_ amount: Int)
+
     /// Adds hunt rewards (drops) to player's inventory
     /// - Parameter rewards: Hunt rewards containing materials, weapon, and armor drops
     func addDropsToPlayerInventory(rewards: HuntRewards)
@@ -55,6 +59,10 @@ public protocol GameStateService: AnyObject {
     /// Adds gathered herbs to player's inventory as materials
     /// - Parameter herbs: Array of herbs to add
     func addHerbsToInventory(_ herbs: [Herb])
+
+    /// Adds mined ores to player's inventory as materials
+    /// - Parameter ores: Array of ores to add
+    func addOresToInventory(_ ores: [Ore])
 
     // MARK: - Player HP Management
 

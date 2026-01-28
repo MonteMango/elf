@@ -33,6 +33,10 @@ public final class ElfDataLoader: DataLoader {
         try loadJSON("Herbs")
     }
 
+    public func loadOresData() throws -> Data {
+        try loadJSON("Ores")
+    }
+
     // MARK: - Private Helpers
 
     private func loadJSON(_ resourceName: String) throws -> Data {

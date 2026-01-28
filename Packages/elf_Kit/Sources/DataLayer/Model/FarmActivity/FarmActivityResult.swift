@@ -11,7 +11,7 @@ import Foundation
 public enum FarmActivityResult: Sendable, Equatable {
     case fishing(FishingResult)
     case foraging(ForagingResult)
-    // case mining(MiningResult) - future
+    case mining(MiningResult)
 
     // MARK: - Common Properties
 
@@ -21,6 +21,8 @@ public enum FarmActivityResult: Sendable, Equatable {
         case .fishing(let result):
             return result.skillProgress
         case .foraging(let result):
+            return result.skillProgress
+        case .mining(let result):
             return result.skillProgress
         }
     }
@@ -32,6 +34,8 @@ public enum FarmActivityResult: Sendable, Equatable {
             return result.isEmpty
         case .foraging(let result):
             return result.isEmpty
+        case .mining(let result):
+            return result.isEmpty
         }
     }
 
@@ -42,6 +46,8 @@ public enum FarmActivityResult: Sendable, Equatable {
             return result.fishCount
         case .foraging(let result):
             return result.herbCount
+        case .mining(let result):
+            return result.oreCount
         }
     }
 
@@ -52,6 +58,8 @@ public enum FarmActivityResult: Sendable, Equatable {
             return .fishing
         case .foraging:
             return .foraging
+        case .mining:
+            return .mining
         }
     }
 }
