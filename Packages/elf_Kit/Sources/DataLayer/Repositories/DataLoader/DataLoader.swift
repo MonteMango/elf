@@ -12,4 +12,5 @@ public protocol DataLoader {
     func loadMonstersData() throws -> Data
     func loadMaterialsData() throws -> Data
     func loadFishData() throws -> Data
+    func loadHerbsData() throws -> Data
 }

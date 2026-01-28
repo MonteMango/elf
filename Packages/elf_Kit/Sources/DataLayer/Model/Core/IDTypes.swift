@@ -33,6 +33,12 @@ public enum CharacterIDType: IDType {}
 /// Marker type for GameDay IDs
 public enum GameDayIDType: IDType {}
 
+/// Marker type for Fish definition IDs
+public enum FishIDType: IDType {}
+
+/// Marker type for Herb definition IDs
+public enum HerbIDType: IDType {}
+
 // MARK: - Type Aliases
 
 /// Type-safe ID for Elf entities
@@ -58,3 +64,9 @@ public typealias CharacterID = TypedID<CharacterIDType>
 
 /// Type-safe ID for GameDay entries
 public typealias GameDayID = TypedID<GameDayIDType>
+
+/// Type-safe ID for Fish definitions
+public typealias FishID = TypedID<FishIDType>
+
+/// Type-safe ID for Herb definitions
+public typealias HerbID = TypedID<HerbIDType>

@@ -101,6 +101,19 @@ final class ElfItemsRepositoryTests: XCTestCase {
             """
             return Data(json.utf8)
         }
+
+        func loadHerbsData() throws -> Data {
+            // Return minimal valid herbs data for tests
+            let json = """
+            {
+              "version": "1.0",
+              "effects": [],
+              "areas": {},
+              "herbs": []
+            }
+            """
+            return Data(json.utf8)
+        }
     }
     
     // MARK: - Тесты

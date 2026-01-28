@@ -25,3 +25,13 @@ public struct FishData: Codable, Sendable {
         self.fish = fish
     }
 }
+
+// MARK: - CollectionData
+
+extension FishData: CollectionData {
+    public var items: [Fish] { fish }
+
+    public static var empty: FishData {
+        FishData(version: "1.0-empty", effects: [], areas: [:], fish: [])
+    }
+}

@@ -40,6 +40,10 @@ public protocol GameStateService: AnyObject {
     /// - Parameter amount: Fishing XP to add
     func addFishingExperience(_ amount: Int)
 
+    /// Adds foraging experience to the player
+    /// - Parameter amount: Foraging XP to add
+    func addForagingExperience(_ amount: Int)
+
     /// Adds hunt rewards (drops) to player's inventory
     /// - Parameter rewards: Hunt rewards containing materials, weapon, and armor drops
     func addDropsToPlayerInventory(rewards: HuntRewards)
@@ -47,6 +51,10 @@ public protocol GameStateService: AnyObject {
     /// Adds caught fish to player's inventory as materials
     /// - Parameter fish: Array of fish to add
     func addFishToInventory(_ fish: [Fish])
+
+    /// Adds gathered herbs to player's inventory as materials
+    /// - Parameter herbs: Array of herbs to add
+    func addHerbsToInventory(_ herbs: [Herb])
 
     // MARK: - Player HP Management
 

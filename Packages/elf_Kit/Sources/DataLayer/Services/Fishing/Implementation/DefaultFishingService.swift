@@ -9,10 +9,6 @@ import Foundation
 
 public final class DefaultFishingService: FishingService {
 
-    // MARK: - Constants
-
-    private let maxCatch = 4
-
     // MARK: - Initialization
 
     public init() {}
@@ -26,29 +22,17 @@ public final class DefaultFishingService: FishingService {
         currentExp: Int,
         expPerLevel: Int
     ) -> FishingResult {
-        // Sort fish by tier ascending (rarest first: tier 1 -> 4)
-        let sortedFish = availableFish.sorted { $0.tier < $1.tier }
+        // Use unified gathering engine (uses GatheringEngine.defaultMaxCount)
+        let caughtFish = GatheringEngine.gather(from: availableFish)
 
-        // Roll for each fish
-        var caughtFish: [Fish] = []
-
-        for fish in sortedFish {
-            guard caughtFish.count < maxCatch else { break }
-
-            let roll = Double.random(in: 0..<1)
-            if roll < fish.baseCatchChance {
-                caughtFish.append(fish)
-            }
-        }
-
-        // Calculate fishing XP gained: (5 - tier) * 5 per fish
-        // Tier 1 (legendary) = 20 XP, Tier 4 (common) = 5 XP
+        // Calculate fishing XP gained based on GatherableTier.xpValue
         let expGained = caughtFish.reduce(0) { total, fish in
-            total + (5 - fish.tier) * 5
+            total + fish.tier.xpValue
         }
 
         // Calculate skill progress
-        let skillProgress = calculateSkillProgress(
+        let skillProgress = SkillProgressData.calculate(
+            skillName: "Fishing",
             currentLevel: currentLevel,
             currentExp: currentExp,
             expGained: expGained,
@@ -58,31 +42,6 @@ public final class DefaultFishingService: FishingService {
         return FishingResult(
             caughtFish: caughtFish,
             skillProgress: skillProgress
-        )
-    }
-
-    // MARK: - Private Helpers
-
-    private func calculateSkillProgress(
-        currentLevel: Int,
-        currentExp: Int,
-        expGained: Int,
-        expPerLevel: Int
-    ) -> SkillProgressData {
-        let previousExpInLevel = currentExp % expPerLevel
-        let newTotalExp = currentExp + expGained
-        let newLevel = newTotalExp / expPerLevel
-        let newExpInLevel = newTotalExp % expPerLevel
-
-        return SkillProgressData(
-            skillName: "Fishing",
-            experienceGained: expGained,
-            previousLevel: currentLevel,
-            previousExp: previousExpInLevel,
-            previousExpToNext: expPerLevel,
-            newLevel: newLevel,
-            newExp: newExpInLevel,
-            newExpToNext: expPerLevel
         )
     }
 }

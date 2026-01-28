@@ -15,6 +15,7 @@ public enum ModalRoute: Identifiable {
 
     case battleResult(ManualBattleResult)
     case fishingResult(FishingResult)
+    case foragingResult(ForagingResult)
 
     // MARK: - Identifiable
 
@@ -24,6 +25,8 @@ public enum ModalRoute: Identifiable {
             return "battleResult"
         case .fishingResult:
             return "fishingResult"
+        case .foragingResult:
+            return "foragingResult"
         }
     }
 }
@@ -40,6 +43,8 @@ extension ModalRoute {
             BattleResultScreen(result: result)
         case .fishingResult(let result):
             FishingResultScreen(result: result)
+        case .foragingResult(let result):
+            ForagingResultScreen(result: result)
         }
     }
 }

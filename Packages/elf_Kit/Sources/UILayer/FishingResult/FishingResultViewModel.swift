@@ -7,17 +7,5 @@
 
 import Foundation
 
-@Observable
-@MainActor
-public final class FishingResultViewModel {
-
-    // MARK: - Properties
-
-    public let result: FishingResult
-
-    // MARK: - Initialization
-
-    public init(result: FishingResult) {
-        self.result = result
-    }
-}
+/// ViewModel for displaying fishing results
+public typealias FishingResultViewModel = ResultViewModel<FishingResult>

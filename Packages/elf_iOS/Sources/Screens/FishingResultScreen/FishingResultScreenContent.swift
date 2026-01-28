@@ -158,20 +158,20 @@ struct FishingResultScreenContent: View {
             result: FishingResult(
                 caughtFish: [
                     Fish(
-                        id: UUID(),
+                        id: FishID(),
                         title: "Sunny",
                         imageName: "fish_sunny",
                         description: "A bright golden fish",
-                        tier: 4,
+                        tier: .common,
                         baseCatchChance: 0.35,
                         effects: []
                     ),
                     Fish(
-                        id: UUID(),
+                        id: FishID(),
                         title: "Ember",
                         imageName: "fish_ember",
                         description: "A fiery fish",
-                        tier: 3,
+                        tier: .uncommon,
                         baseCatchChance: 0.18,
                         effects: []
                     )

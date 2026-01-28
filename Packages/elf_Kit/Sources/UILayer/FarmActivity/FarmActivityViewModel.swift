@@ -14,22 +14,21 @@ public final class FarmActivityViewModel {
     // MARK: - Dependencies
 
     private let gameService: any GameService
-    private let fishRepository: (any FishRepository)?
-    private let fishingService: (any FishingService)?
+    private let farmActivityService: any FarmActivityService
     private let monsterRepository: (any MonsterRepository)?
     private let snapshotBuilder: (any CombatantSnapshotBuilder)?
 
-    // MARK: - Fishing State
+    // MARK: - Unified Activity State
 
-    public var fishingState: FishingState = .idle
+    public var activityState: ActivityState = .idle
 
-    public enum FishingState: Equatable {
+    public enum ActivityState: Equatable {
         case idle
-        case fishing
+        case performing
     }
 
-    /// Result for modal presentation via AppRouter
-    public var fishingResult: FishingResult?
+    /// Unified result for modal presentation via AppRouter
+    public var activityResult: FarmActivityResult?
 
     // MARK: - Monster Attack State
 
@@ -46,37 +45,24 @@ public final class FarmActivityViewModel {
 
     public let activity: FarmActivity
 
-    // MARK: - Skill Info
+    // MARK: - Skill Info (Delegated to Service)
 
-    public var skillTitle: String {
-        "\(activity.title) skill"
+    public var skillInfo: FarmSkillInfo {
+        farmActivityService.getSkillInfo(for: activity, player: gameService.game.player)
     }
 
-    public var skillLevel: Int {
-        switch activity {
-        case .fishing: return gameService.game.player.fishingLevel
-        case .foraging: return gameService.game.player.foragingLevel
-        case .mining: return gameService.game.player.miningLevel
-        }
-    }
+    // Convenience accessors for View compatibility
+    public var skillTitle: String { skillInfo.title }
+    public var skillLevel: Int { skillInfo.level }
+    public var skillProgress: Double { skillInfo.progress }
+    public var skillExpInLevel: Int { skillInfo.expInLevel }
+    public var expPerLevel: Int { skillInfo.expPerLevel }
 
-    public var skillProgress: Double {
-        switch activity {
-        case .fishing: return gameService.game.player.fishingProgress
-        case .foraging: return gameService.game.player.foragingProgress
-        case .mining: return gameService.game.player.miningProgress
-        }
-    }
+    // MARK: - Available Items (Delegated to Service)
 
-    public var skillExpInLevel: Int {
-        switch activity {
-        case .fishing: return gameService.game.player.fishingExp % 50
-        case .foraging: return gameService.game.player.foragingExp % 50
-        case .mining: return gameService.game.player.miningExp % 50
-        }
+    public var availableItems: [FarmActivityItem] {
+        farmActivityService.getAvailableItems(for: activity)
     }
-
-    public let expPerLevel: Int = 50
 
     // MARK: - Action
 
@@ -91,12 +77,6 @@ public final class FarmActivityViewModel {
 
     public var warningText: String {
         "Monsters could attack you during \(activity.rawValue)."
-    }
-
-    // MARK: - Fish (only for fishing activity)
-
-    public var availableFish: [Fish] {
-        fishRepository?.getAllFish() ?? []
     }
 
     // MARK: - Monster Attack Computed Properties
@@ -151,15 +131,13 @@ public final class FarmActivityViewModel {
     public init(
         activity: FarmActivity,
         gameService: any GameService,
-        fishRepository: (any FishRepository)? = nil,
-        fishingService: (any FishingService)? = nil,
+        farmActivityService: any FarmActivityService,
         monsterRepository: (any MonsterRepository)? = nil,
         snapshotBuilder: (any CombatantSnapshotBuilder)? = nil
     ) {
         self.activity = activity
         self.gameService = gameService
-        self.fishRepository = fishRepository
-        self.fishingService = fishingService
+        self.farmActivityService = farmActivityService
         self.monsterRepository = monsterRepository
         self.snapshotBuilder = snapshotBuilder
     }
@@ -173,47 +151,41 @@ public final class FarmActivityViewModel {
         }
     }
 
-    // MARK: - Fishing Actions
+    // MARK: - Unified Activity Action
 
-    /// Start fishing activity
-    public func startFishing() async {
-        guard activity == .fishing,
-              canPerformAction,
-              let fishingService = fishingService else { return }
+    /// Perform the current farm activity
+    public func performActivity() async {
+        guard canPerformAction else { return }
 
         // Spend action points
         gameService.spendActionPoints(actionCost)
 
-        // Set fishing state
-        fishingState = .fishing
+        // Set activity state
+        activityState = .performing
 
-        // Wait 2 seconds (fishing animation)
+        // Wait 2 seconds (activity animation)
         try? await Task.sleep(for: .seconds(2))
 
         // Check for monster attack (20% chance)
         if await checkMonsterAttack() {
-            fishingState = .idle
+            activityState = .idle
             return
         }
 
-        // Calculate result
-        let result = fishingService.performFishing(
-            areaId: "forest_pond",
-            availableFish: availableFish,
-            currentLevel: skillLevel,
-            currentExp: gameService.game.player.fishingExp,
-            expPerLevel: expPerLevel
+        // Perform activity via service
+        let result = farmActivityService.perform(
+            activity: activity,
+            currentLevel: skillInfo.level,
+            currentExp: currentActivityExp,
+            expPerLevel: skillInfo.expPerLevel
         )
 
-        // Award fishing XP to player
-        gameService.addFishingExperience(result.skillProgress.experienceGained)
-
-        // Add caught fish to inventory
-        gameService.addFishToInventory(result.caughtFish)
+        // Apply result to game state
+        farmActivityService.applyResult(result, to: gameService)
 
         // Set result (will trigger modal presentation via onChange in View)
-        fishingResult = result
-        fishingState = .idle
+        activityResult = result
+        activityState = .idle
 
         // Save game
         Task(priority: .userInitiated) {
@@ -221,9 +193,23 @@ public final class FarmActivityViewModel {
         }
     }
 
-    /// Clear fishing result after modal has been presented
-    public func clearFishingResult() {
-        fishingResult = nil
+    /// Clear activity result after modal has been presented
+    public func clearActivityResult() {
+        activityResult = nil
+    }
+
+    // MARK: - Private Helpers
+
+    /// Get current exp for the active activity
+    private var currentActivityExp: Int {
+        switch activity {
+        case .fishing:
+            return gameService.game.player.fishingExp
+        case .foraging:
+            return gameService.game.player.foragingExp
+        case .mining:
+            return gameService.game.player.miningExp
+        }
     }
 
     // MARK: - Monster Attack Actions

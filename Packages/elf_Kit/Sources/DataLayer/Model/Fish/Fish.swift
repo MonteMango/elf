@@ -8,20 +8,20 @@
 import Foundation
 
 public struct Fish: Codable, Sendable, Identifiable, Hashable {
-    public let id: UUID
+    public let id: FishID
     public let title: String
     public let imageName: String
     public let description: String
-    public let tier: Int
+    public let tier: GatherableTier
     public let baseCatchChance: Double
     public let effects: [FishEffect]
 
     public init(
-        id: UUID,
+        id: FishID,
         title: String,
         imageName: String,
         description: String,
-        tier: Int,
+        tier: GatherableTier,
         baseCatchChance: Double,
         effects: [FishEffect]
     ) {
@@ -33,4 +33,10 @@ public struct Fish: Codable, Sendable, Identifiable, Hashable {
         self.baseCatchChance = baseCatchChance
         self.effects = effects
     }
+}
+
+// MARK: - GatherableItem
+
+extension Fish: GatherableItem {
+    public var baseSuccessChance: Double { baseCatchChance }
 }

@@ -49,6 +49,7 @@ public final class ElfAppDependencyContainer {
     public let monsterRepository: ElfMonsterRepository
     public let materialRepository: ElfMaterialRepository
     public let fishRepository: ElfFishRepository
+    public let herbRepository: ElfHerbRepository
 
     // Hunt and drop services
     public let huntService: ElfHuntService
@@ -56,6 +57,12 @@ public final class ElfAppDependencyContainer {
 
     // Fishing service
     public let fishingService: DefaultFishingService
+
+    // Foraging service
+    public let foragingService: DefaultForagingService
+
+    // Farm activity service (unified for all farm activities)
+    public let farmActivityService: DefaultFarmActivityService
 
     // Battle result calculation
     public let battleResultCalculator: DefaultBattleResultCalculator
@@ -169,7 +176,13 @@ public final class ElfAppDependencyContainer {
         let fishRepository = ElfFishRepository()
         self.fishRepository = fishRepository
 
-        let materialRepository = ElfMaterialRepository(fishRepository: fishRepository)
+        let herbRepository = ElfHerbRepository()
+        self.herbRepository = herbRepository
+
+        let materialRepository = ElfMaterialRepository(
+            fishRepository: fishRepository,
+            herbRepository: herbRepository
+        )
         self.materialRepository = materialRepository
 
         // Hunt and drop services
@@ -183,7 +196,20 @@ public final class ElfAppDependencyContainer {
         self.dropService = dropService
 
         // Fishing service
-        self.fishingService = DefaultFishingService()
+        let fishingService = DefaultFishingService()
+        self.fishingService = fishingService
+
+        // Foraging service
+        let foragingService = DefaultForagingService()
+        self.foragingService = foragingService
+
+        // Farm activity service (unified)
+        self.farmActivityService = DefaultFarmActivityService(
+            fishingService: fishingService,
+            foragingService: foragingService,
+            fishRepository: fishRepository,
+            herbRepository: herbRepository
+        )
 
         // Battle result calculation
         self.battleResultCalculator = DefaultBattleResultCalculator(
@@ -257,6 +283,11 @@ public final class ElfAppDependencyContainer {
     @MainActor
     public func makeFishingResultViewModel(result: FishingResult) -> FishingResultViewModel {
         return FishingResultViewModel(result: result)
+    }
+
+    @MainActor
+    public func makeForagingResultViewModel(result: ForagingResult) -> ForagingResultViewModel {
+        return ForagingResultViewModel(result: result)
     }
 
     @MainActor
@@ -341,8 +372,7 @@ public final class ElfAppDependencyContainer {
         return FarmActivityViewModel(
             activity: activity,
             gameService: gameService,
-            fishRepository: activity == .fishing ? fishRepository : nil,
-            fishingService: activity == .fishing ? fishingService : nil,
+            farmActivityService: farmActivityService,
             monsterRepository: monsterRepository,
             snapshotBuilder: snapshotBuilder
         )

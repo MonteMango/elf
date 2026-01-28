@@ -42,18 +42,18 @@ struct FarmActivityScreenContent: View {
         }
     }
 
-    // MARK: - Fish Data
+    // MARK: - Items Grid Data
 
-    private var fishGridData: [GridItemData] {
-        viewModel.availableFish.map { fish in
-            GridItemData(id: fish.id, imageName: fish.imageName, tier: fish.tier)
+    private var itemsGridData: [GridItemData] {
+        viewModel.availableItems.map { item in
+            GridItemData(id: item.id, imageName: item.imageName, tier: item.tier.rawValue)
         }
     }
 
-    // MARK: - Fishing State
+    // MARK: - Activity State
 
-    private var isFishing: Bool {
-        viewModel.fishingState == .fishing
+    private var isPerformingActivity: Bool {
+        viewModel.activityState == .performing
     }
 
     // MARK: - Background
@@ -104,11 +104,9 @@ struct FarmActivityScreenContent: View {
 
             Spacer()
 
-            // Items Grid (fishing only)
-            if viewModel.activity == .fishing {
-                ItemsGridView(items: fishGridData)
-                    .padding(.horizontal, ElfSpacing.screen)
-            }
+            // Items Grid
+            ItemsGridView(items: itemsGridData)
+                .padding(.horizontal, ElfSpacing.screen)
 
             Spacer()
 
@@ -119,10 +117,8 @@ struct FarmActivityScreenContent: View {
                     .frame(maxWidth: 300, maxHeight: 0)
 
                 Button(viewModel.actionButtonTitle) {
-                    if viewModel.activity == .fishing {
-                        Task {
-                            await viewModel.startFishing()
-                        }
+                    Task {
+                        await viewModel.performActivity()
                     }
                 }
                 .buttonStyle(.elfPrimary(isEnabled: viewModel.canPerformAction))
@@ -157,9 +153,9 @@ struct FarmActivityScreenContent: View {
             )
         }
         .overlay {
-            // Local overlay for fishing progress
-            if isFishing {
-                FishingInProgressView()
+            // Local overlay for activity progress
+            if isPerformingActivity {
+                ActivityInProgressView(activity: viewModel.activity)
             }
 
             // Monster attack alert overlay
@@ -175,10 +171,16 @@ struct FarmActivityScreenContent: View {
                 )
             }
         }
-        .onChange(of: viewModel.fishingResult) { _, result in
+        .onChange(of: viewModel.activityResult) { _, result in
             if let result = result {
-                router.presentModal(.fishingResult(result))
-                viewModel.clearFishingResult()
+                // Route to appropriate modal based on result type
+                switch result {
+                case .fishing(let fishingResult):
+                    router.presentModal(.fishingResult(fishingResult))
+                case .foraging(let foragingResult):
+                    router.presentModal(.foragingResult(foragingResult))
+                }
+                viewModel.clearActivityResult()
             }
         }
         .onChange(of: router.navigationPath.count) { oldCount, newCount in

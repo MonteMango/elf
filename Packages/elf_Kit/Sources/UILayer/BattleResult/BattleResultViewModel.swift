@@ -7,17 +7,5 @@
 
 import Foundation
 
-@Observable
-@MainActor
-public final class BattleResultViewModel {
-
-    // MARK: - Properties
-
-    public let result: ManualBattleResult
-
-    // MARK: - Initialization
-
-    public init(result: ManualBattleResult) {
-        self.result = result
-    }
-}
+/// ViewModel for displaying battle results
+public typealias BattleResultViewModel = ResultViewModel<ManualBattleResult>

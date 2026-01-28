@@ -12,18 +12,18 @@ final class ElfFishRepositoryTests: XCTestCase {
 
     // MARK: - Fish UUIDs
 
-    enum FishID {
-        static let sunny = UUID(uuidString: "A1B2C3D4-1111-4111-8111-111111111111")!
-        static let dewdrop = UUID(uuidString: "A1B2C3D4-2222-4222-8222-222222222222")!
-        static let pebble = UUID(uuidString: "A1B2C3D4-3333-4333-8333-333333333333")!
-        static let whisker = UUID(uuidString: "A1B2C3D4-4444-4444-8444-444444444444")!
-        static let bristle = UUID(uuidString: "A1B2C3D4-5555-4555-8555-555555555555")!
-        static let duskfin = UUID(uuidString: "A1B2C3D4-6666-4666-8666-666666666666")!
-        static let ember = UUID(uuidString: "A1B2C3D4-7777-4777-8777-777777777777")!
-        static let dancer = UUID(uuidString: "A1B2C3D4-8888-4888-8888-888888888888")!
-        static let ribbontail = UUID(uuidString: "A1B2C3D4-9999-4999-8999-999999999999")!
-        static let streamer = UUID(uuidString: "A1B2C3D4-AAAA-4AAA-8AAA-AAAAAAAAAAAA")!
-        static let swallowtail = UUID(uuidString: "A1B2C3D4-BBBB-4BBB-8BBB-BBBBBBBBBBBB")!
+    enum TestFishID {
+        static let sunny = FishID(rawValue: UUID(uuidString: "A1B2C3D4-1111-4111-8111-111111111111")!)
+        static let dewdrop = FishID(rawValue: UUID(uuidString: "A1B2C3D4-2222-4222-8222-222222222222")!)
+        static let pebble = FishID(rawValue: UUID(uuidString: "A1B2C3D4-3333-4333-8333-333333333333")!)
+        static let whisker = FishID(rawValue: UUID(uuidString: "A1B2C3D4-4444-4444-8444-444444444444")!)
+        static let bristle = FishID(rawValue: UUID(uuidString: "A1B2C3D4-5555-4555-8555-555555555555")!)
+        static let duskfin = FishID(rawValue: UUID(uuidString: "A1B2C3D4-6666-4666-8666-666666666666")!)
+        static let ember = FishID(rawValue: UUID(uuidString: "A1B2C3D4-7777-4777-8777-777777777777")!)
+        static let dancer = FishID(rawValue: UUID(uuidString: "A1B2C3D4-8888-4888-8888-888888888888")!)
+        static let ribbontail = FishID(rawValue: UUID(uuidString: "A1B2C3D4-9999-4999-8999-999999999999")!)
+        static let streamer = FishID(rawValue: UUID(uuidString: "A1B2C3D4-AAAA-4AAA-8AAA-AAAAAAAAAAAA")!)
+        static let swallowtail = FishID(rawValue: UUID(uuidString: "A1B2C3D4-BBBB-4BBB-8BBB-BBBBBBBBBBBB")!)
     }
 
     // MARK: - Fake Data Loader
@@ -53,6 +53,12 @@ final class ElfFishRepositoryTests: XCTestCase {
 
         func loadMaterialsData() throws -> Data {
             return Data("{}".utf8)
+        }
+
+        func loadHerbsData() throws -> Data {
+            return Data("""
+            {"version": "1.0", "effects": [], "areas": {}, "herbs": []}
+            """.utf8)
         }
 
         func loadFishData() throws -> Data {
@@ -214,7 +220,7 @@ final class ElfFishRepositoryTests: XCTestCase {
         let repository = ElfFishRepository(dataLoader: loader)
 
         // Check Bristle effects (2 effects: venom and shadow)
-        let bristle = repository.getFish(id: FishID.bristle)
+        let bristle = repository.getFish(id: TestFishID.bristle)
         XCTAssertNotNil(bristle)
         XCTAssertEqual(bristle?.effects.count, 2)
         XCTAssertEqual(bristle?.effects[0].type, .venom)
@@ -223,7 +229,7 @@ final class ElfFishRepositoryTests: XCTestCase {
         XCTAssertEqual(bristle?.effects[1].amount, 1)
 
         // Check Ribbontail effects (radiance amount: 2)
-        let ribbontail = repository.getFish(id: FishID.ribbontail)
+        let ribbontail = repository.getFish(id: TestFishID.ribbontail)
         XCTAssertNotNil(ribbontail)
         XCTAssertEqual(ribbontail?.effects[0].type, .radiance)
         XCTAssertEqual(ribbontail?.effects[0].amount, 2)
@@ -238,9 +244,9 @@ final class ElfFishRepositoryTests: XCTestCase {
 
         // Check that all fish are present
         let fishIds = Set(forestPondFish.map { $0.id })
-        let expectedIds: Set<UUID> = [
-            FishID.sunny, FishID.dewdrop, FishID.pebble, FishID.whisker, FishID.bristle,
-            FishID.duskfin, FishID.ember, FishID.dancer, FishID.ribbontail, FishID.streamer, FishID.swallowtail
+        let expectedIds: Set<FishID> = [
+            TestFishID.sunny, TestFishID.dewdrop, TestFishID.pebble, TestFishID.whisker, TestFishID.bristle,
+            TestFishID.duskfin, TestFishID.ember, TestFishID.dancer, TestFishID.ribbontail, TestFishID.streamer, TestFishID.swallowtail
         ]
         XCTAssertEqual(fishIds, expectedIds)
     }
@@ -251,11 +257,11 @@ final class ElfFishRepositoryTests: XCTestCase {
         let loader = FakeDataLoader(mode: .valid)
         let repository = ElfFishRepository(dataLoader: loader)
 
-        let sunny = repository.getFish(id: FishID.sunny)
+        let sunny = repository.getFish(id: TestFishID.sunny)
         XCTAssertNotNil(sunny)
         XCTAssertEqual(sunny?.title, "Sunny")
         XCTAssertEqual(sunny?.imageName, "fish_sunny")
-        XCTAssertEqual(sunny?.tier, 4)
+        XCTAssertEqual(sunny?.tier, .common)
         XCTAssertEqual(sunny?.baseCatchChance, 0.35)
     }
 
@@ -263,7 +269,7 @@ final class ElfFishRepositoryTests: XCTestCase {
         let loader = FakeDataLoader(mode: .valid)
         let repository = ElfFishRepository(dataLoader: loader)
 
-        let unknown = repository.getFish(id: UUID())
+        let unknown = repository.getFish(id: FishID())
         XCTAssertNil(unknown)
     }
 
@@ -318,23 +324,23 @@ final class ElfFishRepositoryTests: XCTestCase {
         let loader = FakeDataLoader(mode: .valid)
         let repository = ElfFishRepository(dataLoader: loader)
 
-        // Tier 4 (common)
-        XCTAssertEqual(repository.getFish(id: FishID.sunny)?.tier, 4)
-        XCTAssertEqual(repository.getFish(id: FishID.dewdrop)?.tier, 4)
-        XCTAssertEqual(repository.getFish(id: FishID.pebble)?.tier, 4)
-        XCTAssertEqual(repository.getFish(id: FishID.whisker)?.tier, 4)
+        // Common (tier 4)
+        XCTAssertEqual(repository.getFish(id: TestFishID.sunny)?.tier, .common)
+        XCTAssertEqual(repository.getFish(id: TestFishID.dewdrop)?.tier, .common)
+        XCTAssertEqual(repository.getFish(id: TestFishID.pebble)?.tier, .common)
+        XCTAssertEqual(repository.getFish(id: TestFishID.whisker)?.tier, .common)
 
-        // Tier 3 (uncommon)
-        XCTAssertEqual(repository.getFish(id: FishID.bristle)?.tier, 3)
-        XCTAssertEqual(repository.getFish(id: FishID.duskfin)?.tier, 3)
-        XCTAssertEqual(repository.getFish(id: FishID.ember)?.tier, 3)
+        // Uncommon (tier 3)
+        XCTAssertEqual(repository.getFish(id: TestFishID.bristle)?.tier, .uncommon)
+        XCTAssertEqual(repository.getFish(id: TestFishID.duskfin)?.tier, .uncommon)
+        XCTAssertEqual(repository.getFish(id: TestFishID.ember)?.tier, .uncommon)
 
-        // Tier 2 (rare)
-        XCTAssertEqual(repository.getFish(id: FishID.dancer)?.tier, 2)
-        XCTAssertEqual(repository.getFish(id: FishID.ribbontail)?.tier, 2)
+        // Rare (tier 2)
+        XCTAssertEqual(repository.getFish(id: TestFishID.dancer)?.tier, .rare)
+        XCTAssertEqual(repository.getFish(id: TestFishID.ribbontail)?.tier, .rare)
 
-        // Tier 1 (legendary)
-        XCTAssertEqual(repository.getFish(id: FishID.streamer)?.tier, 1)
-        XCTAssertEqual(repository.getFish(id: FishID.swallowtail)?.tier, 1)
+        // Legendary (tier 1)
+        XCTAssertEqual(repository.getFish(id: TestFishID.streamer)?.tier, .legendary)
+        XCTAssertEqual(repository.getFish(id: TestFishID.swallowtail)?.tier, .legendary)
     }
 }

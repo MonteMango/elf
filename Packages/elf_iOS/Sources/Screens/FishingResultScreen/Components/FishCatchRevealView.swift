@@ -62,7 +62,7 @@ private struct FishItemCard: View {
     var body: some View {
         ItemCard(
             imageName: fish.imageName,
-            rarityColor: .tier(fish.tier),
+            rarityColor: .tier(fish.tier.rawValue),
             showLabel: fish.title
         )
         .scaleEffect(isVisible ? 1.0 : 0.3)
@@ -82,20 +82,20 @@ private struct FishItemCard: View {
         FishCatchRevealView(
             caughtFish: [
                 Fish(
-                    id: UUID(),
+                    id: FishID(),
                     title: "Sunny",
                     imageName: "fish_sunny",
                     description: "A bright golden fish",
-                    tier: 4,
+                    tier: .common,
                     baseCatchChance: 0.35,
                     effects: []
                 ),
                 Fish(
-                    id: UUID(),
+                    id: FishID(),
                     title: "Ember",
                     imageName: "fish_ember",
                     description: "A fiery fish",
-                    tier: 3,
+                    tier: .uncommon,
                     baseCatchChance: 0.18,
                     effects: []
                 )

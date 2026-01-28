@@ -9,9 +9,9 @@ import Foundation
 
 public struct FishArea: Codable, Sendable {
     public let title: String
-    public let fish: [UUID]
+    public let fish: [FishID]
 
-    public init(title: String, fish: [UUID]) {
+    public init(title: String, fish: [FishID]) {
         self.title = title
         self.fish = fish
     }

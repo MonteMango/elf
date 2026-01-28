@@ -14,14 +14,17 @@ public final class ElfMaterialRepository: MaterialRepository {
     private let _materialsData: MaterialsData
     private let materialLookup: [UUID: Material]
     private let fishRepository: (any FishRepository)?
+    private let herbRepository: (any HerbRepository)?
 
     // MARK: - Initialization
 
     public init(
         dataLoader: DataLoader = ElfDataLoader(),
-        fishRepository: (any FishRepository)? = nil
+        fishRepository: (any FishRepository)? = nil,
+        herbRepository: (any HerbRepository)? = nil
     ) {
         self.fishRepository = fishRepository
+        self.herbRepository = herbRepository
 
         // Load data synchronously from bundle
         let data: Data
@@ -64,13 +67,24 @@ public final class ElfMaterialRepository: MaterialRepository {
         }
 
         // If not found, try fish repository
-        if let fish = fishRepository?.getFish(id: id) {
+        if let fish = fishRepository?.getFish(id: FishID(rawValue: id)) {
             return Material(
-                id: fish.id,
+                id: fish.id.rawValue,
                 title: fish.title,
                 imageName: fish.imageName,
                 category: .fish,
                 description: fish.description
+            )
+        }
+
+        // If not found, try herb repository
+        if let herb = herbRepository?.getHerb(id: HerbID(rawValue: id)) {
+            return Material(
+                id: herb.id.rawValue,
+                title: herb.title,
+                imageName: herb.imageName,
+                category: .herbs,
+                description: herb.description
             )
         }
 
@@ -82,8 +96,12 @@ public final class ElfMaterialRepository: MaterialRepository {
             return material.category
         }
 
-        if fishRepository?.getFish(id: id) != nil {
+        if fishRepository?.getFish(id: FishID(rawValue: id)) != nil {
             return .fish
+        }
+
+        if herbRepository?.getHerb(id: HerbID(rawValue: id)) != nil {
+            return .herbs
         }
 
         return nil
@@ -105,5 +123,5 @@ public final class ElfMaterialRepository: MaterialRepository {
 // MARK: - Sendable Conformance
 // Thread-safe: All stored properties are immutable (let) after initialization.
 // `_materialsData` is a value type, `materialLookup` is an immutable dictionary of value types.
-// `fishRepository` is optional and Sendable.
+// `fishRepository` and `herbRepository` are optional and Sendable.
 extension ElfMaterialRepository: @unchecked Sendable {}

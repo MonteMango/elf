@@ -11,35 +11,38 @@ public final class ElfDataLoader: DataLoader {
 
     public init() {}
 
-    public func loadHeroItemsData() throws -> Data {
-        guard let fileURL = Bundle.main.url(forResource: "HeroItems", withExtension: "json") else {
-            throw NSError(domain: "File HeroItems.json not found in bundle", code: 404, userInfo: nil)
-        }
+    // MARK: - DataLoader
 
-        return try Data(contentsOf: fileURL)
+    public func loadHeroItemsData() throws -> Data {
+        try loadJSON("HeroItems")
     }
 
     public func loadMonstersData() throws -> Data {
-        guard let fileURL = Bundle.main.url(forResource: "Monsters", withExtension: "json") else {
-            throw NSError(domain: "File Monsters.json not found in bundle", code: 404, userInfo: nil)
-        }
-
-        return try Data(contentsOf: fileURL)
+        try loadJSON("Monsters")
     }
 
     public func loadMaterialsData() throws -> Data {
-        guard let fileURL = Bundle.main.url(forResource: "Materials", withExtension: "json") else {
-            throw NSError(domain: "File Materials.json not found in bundle", code: 404, userInfo: nil)
-        }
-
-        return try Data(contentsOf: fileURL)
+        try loadJSON("Materials")
     }
 
     public func loadFishData() throws -> Data {
-        guard let fileURL = Bundle.main.url(forResource: "Fish", withExtension: "json") else {
-            throw NSError(domain: "File Fish.json not found in bundle", code: 404, userInfo: nil)
-        }
+        try loadJSON("Fish")
+    }
 
-        return try Data(contentsOf: fileURL)
+    public func loadHerbsData() throws -> Data {
+        try loadJSON("Herbs")
+    }
+
+    // MARK: - Private Helpers
+
+    private func loadJSON(_ resourceName: String) throws -> Data {
+        guard let url = Bundle.main.url(forResource: resourceName, withExtension: "json") else {
+            throw NSError(
+                domain: "ElfDataLoader",
+                code: 404,
+                userInfo: [NSLocalizedDescriptionKey: "File \(resourceName).json not found in bundle"]
+            )
+        }
+        return try Data(contentsOf: url)
     }
 }
