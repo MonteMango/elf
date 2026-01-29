@@ -47,47 +47,6 @@ public enum WeaponConfiguration: Sendable, Equatable {
         }
     }
 
-    /// Returns the secondary weapon for dual-wield configuration
-    public var secondaryWeapon: ElfWeaponItem? {
-        switch self {
-        case .dualWield(_, let secondary):
-            return secondary
-        default:
-            return nil
-        }
-    }
-
-    /// Returns all weapon IDs in this configuration
-    public var allWeaponIds: [UUID] {
-        switch self {
-        case .oneHanded(let weapon),
-             .twoHanded(let weapon):
-            return [weapon.id]
-        case .oneHandedWithShield(let weapon, _):
-            return [weapon.id]
-        case .dualWield(let primary, let secondary):
-            return [primary.id, secondary.id]
-        }
-    }
-
-    /// Returns all item IDs in this configuration (weapons + shield)
-    public var allItemIds: Set<UUID> {
-        switch self {
-        case .oneHanded(let weapon),
-             .twoHanded(let weapon):
-            return [weapon.id]
-        case .oneHandedWithShield(let weapon, let shield):
-            return [weapon.id, shield.id]
-        case .dualWield(let primary, let secondary):
-            return [primary.id, secondary.id]
-        }
-    }
-
-    /// Checks if the given item ID is part of this configuration
-    public func contains(itemId: UUID) -> Bool {
-        allItemIds.contains(itemId)
-    }
-
     // MARK: - Equatable
 
     public static func == (lhs: WeaponConfiguration, rhs: WeaponConfiguration) -> Bool {

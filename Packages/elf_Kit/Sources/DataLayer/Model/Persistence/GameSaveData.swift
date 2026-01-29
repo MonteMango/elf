@@ -23,8 +23,14 @@ public struct GameSaveData: Codable, Sendable {
         self.playerMemberIndex = game.playerMemberIndex
     }
 
-    public func toGame(itemsRepository: ItemsRepository) throws -> Game {
-        let houses = try self.houses.map { try $0.toHouse(itemsRepository: itemsRepository) }
+    public func toGame(
+        itemsRepository: ItemsRepository,
+        inventoryService: InventoryService
+    ) throws -> Game {
+        let houses = try self.houses.map { try $0.toHouse(
+            itemsRepository: itemsRepository,
+            inventoryService: inventoryService
+        ) }
         let gameState = self.gameState.toGameState()
 
         return Game(

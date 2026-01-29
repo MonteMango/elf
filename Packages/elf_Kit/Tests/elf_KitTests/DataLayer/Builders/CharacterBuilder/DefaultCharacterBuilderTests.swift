@@ -371,9 +371,7 @@ final class DefaultCharacterBuilderTests: XCTestCase {
         let errors: [CharacterBuilderError] = [
             .missingAppearance,
             .missingName,
-            .invalidName("Test reason"),
-            .missingFightStyle,
-            .attributeLoadingFailed
+            .missingFightStyle
         ]
 
         // Then: All errors should have non-empty descriptions

@@ -480,14 +480,6 @@ public final class BattleSetupViewModel {
         setEquipmentTask(task, for: heroType)
     }
 
-    private func schedulePlayerEquipmentUpdate() {
-        scheduleEquipmentUpdate(for: .player)
-    }
-
-    private func scheduleBotEquipmentUpdate() {
-        scheduleEquipmentUpdate(for: .bot)
-    }
-
     // MARK: - Battle Creation
 
     /// Create a Battle instance from current player and bot configurations

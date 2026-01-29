@@ -14,8 +14,8 @@ import Foundation
 /// be no-op for production builds.
 ///
 /// **Usage**:
-/// - Debug builds: Use `ConsoleDebugBattleLogger` for detailed console output
-/// - Production builds: Use `NoOpDebugBattleLogger` for zero overhead
+/// Use `ConsoleDebugBattleLogger` with specific categories to enable logging,
+/// or with an empty set for zero output.
 public protocol DebugBattleLogger: Sendable {
 
     /// Logs the start of a battle round with combatant stats and selections
@@ -36,40 +36,6 @@ public protocol DebugBattleLogger: Sendable {
         playerDefense: [BodyPart],
         botAttack: [BodyPart],
         botDefense: [BodyPart]
-    )
-
-    /// Logs strength damage calculation with distribution details
-    ///
-    /// - Parameters:
-    ///   - hero: Hero name ("Player" or "Bot")
-    ///   - strength: Total strength attribute
-    ///   - distribution: Array of possible damage values
-    ///   - weights: Corresponding weights for each value
-    ///   - selectedValue: The randomly selected damage value
-    func logStrengthDamage(
-        hero: String,
-        strength: Int16,
-        distribution: [Int16],
-        weights: [Int],
-        selectedValue: Int16
-    )
-
-    /// Logs weapon damage calculation
-    ///
-    /// - Parameters:
-    ///   - hero: Hero name ("Player" or "Bot")
-    ///   - hand: Which hand ("left" or "right")
-    ///   - weaponName: Name of the weapon
-    ///   - minDamage: Minimum weapon damage
-    ///   - maxDamage: Maximum weapon damage
-    ///   - selectedValue: The randomly selected damage value
-    func logWeaponDamage(
-        hero: String,
-        hand: String,
-        weaponName: String,
-        minDamage: Int16,
-        maxDamage: Int16,
-        selectedValue: Int16
     )
 
     /// Logs dodge calculation with both stages

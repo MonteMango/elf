@@ -59,10 +59,6 @@ public final class ElfMaterialRepository: MaterialRepository {
 
     // MARK: - MaterialRepository
 
-    public var materialsData: MaterialsData {
-        return _materialsData
-    }
-
     public func getMaterial(id: UUID) -> Material? {
         // First, look up in materials
         if let material = materialLookup[id] {
@@ -100,26 +96,6 @@ public final class ElfMaterialRepository: MaterialRepository {
                 category: .ores,
                 description: ore.description
             )
-        }
-
-        return nil
-    }
-
-    public func getMaterialCategory(id: UUID) -> MaterialSubcategory? {
-        if let material = materialLookup[id] {
-            return material.category
-        }
-
-        if fishRepository?.getFish(id: FishID(rawValue: id)) != nil {
-            return .fish
-        }
-
-        if herbRepository?.getHerb(id: HerbID(rawValue: id)) != nil {
-            return .herbs
-        }
-
-        if oreRepository?.getOre(id: OreID(rawValue: id)) != nil {
-            return .ores
         }
 
         return nil

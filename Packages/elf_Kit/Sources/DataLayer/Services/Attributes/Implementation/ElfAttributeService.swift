@@ -129,12 +129,6 @@ public final class ElfAttributeService: AttributeService {
         }
         return updatedAttributes
     }
-
-    public func calculateTotalHP(from attributes: [HeroAttributes]) -> Int {
-        return attributes.reduce(0) { total, attrs in
-            total + attrs.hitPoints.intValue
-        }
-    }
 }
 
 // MARK: - Sendable Conformance

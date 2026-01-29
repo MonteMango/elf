@@ -18,10 +18,6 @@ public class BaseCollectionRepository<DataType: CollectionData>: @unchecked Send
     private let itemLookup: [DataType.Item.ID: DataType.Item]
     private let effectLookup: [String: EffectDefinition]
 
-    // MARK: - Public Accessors
-
-    public var data: DataType { _data }
-
     // MARK: - Initialization
 
     public init(data: DataType) {
@@ -85,10 +81,4 @@ public class BaseCollectionRepository<DataType: CollectionData>: @unchecked Send
         _data.items
     }
 
-    // MARK: - Effect Access
-
-    /// Get effect definition by effect type string
-    public func getEffectDefinition(_ id: String) -> EffectDefinition? {
-        effectLookup[id]
-    }
 }

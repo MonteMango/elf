@@ -19,11 +19,6 @@ public struct HeroAttributes: Sendable, Hashable, Equatable, Codable {
     public var power: Attribute
     public var instinct: Attribute
 
-    // MARK: - Static
-
-    /// Zero attributes
-    public static let zero = HeroAttributes()
-
     // MARK: - Initialization
 
     /// Creates attributes with default zero values
@@ -56,27 +51,4 @@ public struct HeroAttributes: Sendable, Hashable, Equatable, Codable {
 
     // MARK: - Arithmetic
 
-    /// Combines two HeroAttributes (addition)
-    public static func + (lhs: HeroAttributes, rhs: HeroAttributes) -> HeroAttributes {
-        HeroAttributes(
-            hitPoints: lhs.hitPoints + rhs.hitPoints,
-            manaPoints: lhs.manaPoints + rhs.manaPoints,
-            agility: lhs.agility + rhs.agility,
-            strength: lhs.strength + rhs.strength,
-            power: lhs.power + rhs.power,
-            instinct: lhs.instinct + rhs.instinct
-        )
-    }
-
-    /// Adds ItemAttributes to HeroAttributes
-    public static func + (lhs: HeroAttributes, rhs: ItemAttributes) -> HeroAttributes {
-        HeroAttributes(
-            hitPoints: lhs.hitPoints + rhs.hitPoints,
-            manaPoints: lhs.manaPoints + rhs.manaPoints,
-            agility: lhs.agility + rhs.agility,
-            strength: lhs.strength + rhs.strength,
-            power: lhs.power + rhs.power,
-            instinct: lhs.instinct + rhs.instinct
-        )
-    }
 }

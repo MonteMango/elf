@@ -221,15 +221,11 @@ public final class CharacterCreationViewModel {
         }.value
 
         // Create character and game using GameInitializationService
-        guard let character = createCharacter(),
-              let fightAttrs = fightStyleAttributes,
-              let randomAttrs = randomLevelAttributes else { return }
+        guard let character = createCharacter() else { return }
 
         do {
             createdGame = try await gameInitializationService.createNewGame(
-                playerCharacter: character,
-                fightStyleAttributes: fightAttrs,
-                randomLevelAttributes: randomAttrs
+                playerCharacter: character
             )
             isCharacterReady = true
         } catch {
@@ -259,9 +255,4 @@ public final class CharacterCreationViewModel {
         }
     }
 
-    /// Start the game with created character
-    public func startGame() {
-        _ = createCharacter()
-        // Navigation will be handled by the view
-    }
 }

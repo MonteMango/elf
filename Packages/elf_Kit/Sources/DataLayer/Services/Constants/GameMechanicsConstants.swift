@@ -10,7 +10,7 @@ import Foundation
 /// Constants for game mechanics tuning
 ///
 /// These values control probabilities, distributions, and other game balance parameters.
-public enum GameMechanicsConstants {
+enum GameMechanicsConstants {
 
     // MARK: - Distribution Peak Positions
 
@@ -24,7 +24,7 @@ public enum GameMechanicsConstants {
     /// - peakPosition=0.0 → peak at 27%
     /// - peakPosition=1.0 → peak at 36%
     /// - peakPosition=0.8 → peak at ~34%
-    public static let critPeakPosition: Double = 0.2
+    static let critPeakPosition: Double = 0.2
 
     /// Peak position for dodge chance distribution (0.0 - 1.0)
     ///
@@ -36,7 +36,7 @@ public enum GameMechanicsConstants {
     /// - peakPosition=0.0 → peak at 27%
     /// - peakPosition=1.0 → peak at 36%
     /// - peakPosition=0.8 → peak at ~34%
-    public static let dodgePeakPosition: Double = 0.4
+    static let dodgePeakPosition: Double = 0.4
 
     // MARK: - Crit Multiplier Distribution
 
@@ -49,7 +49,7 @@ public enum GameMechanicsConstants {
     /// - 1.50: Medium crit
     /// - 2.00: Strong crit
     /// - 3.00: Devastating crit
-    public static let critMultiplierValues: [Double] = [0.75, 1.00, 1.25, 1.5, 2.0, 3.0]
+    static let critMultiplierValues: [Double] = [0.75, 1.00, 1.25, 1.5, 2.0, 3.0]
 
     /// Default weights for crit multiplier distribution
     ///
@@ -60,7 +60,7 @@ public enum GameMechanicsConstants {
     /// - Index 3 (1.50x): 40 weight (40%)
     /// - Index 4 (2.00x): 30 weight (30%)
     /// - Index 5 (3.00x): 10 weight (10%)
-    public static let critMultiplierWeights: [Int] = [0, 5, 15, 40, 30, 10]
+    static let critMultiplierWeights: [Int] = [0, 5, 15, 40, 30, 10]
 
     // MARK: - Crit Multiplier Reduction (Agility-based)
 
@@ -74,10 +74,15 @@ public enum GameMechanicsConstants {
     /// Example with agility=36, power=36, coefficient=1.5:
     /// - decreaser = ((36 * 1.5) - 36) / 36 = 18/36 = 0.5
     /// - This means 50% of weights are redistributed from high to low multipliers
-    public static let critMultiplierAgilityCoefficient: Double = 1.8
+    static let critMultiplierAgilityCoefficient: Double = 1.8
 
     // MARK: - Character Creation
 
     /// Starting level for newly created characters
-    public static let startingLevel: Int16 = 1
+    static let startingLevel: Int16 = 1
+
+    // MARK: - Calendar
+
+    /// Number of upcoming days to show in the calendar preview
+    static let upcomingDaysCount: Int = 3
 }

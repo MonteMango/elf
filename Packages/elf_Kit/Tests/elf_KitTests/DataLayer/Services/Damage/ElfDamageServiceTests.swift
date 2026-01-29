@@ -69,77 +69,6 @@ final class ElfDamageServiceTests: XCTestCase {
 
     // MARK: - Strength Damage Tests
 
-    func testGetMinMaxStrengthDamage_ReturnsCorrectMinAndMax() async {
-        // Given
-        let distribution = DamageDistribution(values: [3, 4, 5, 6], weights: [1, 2, 2, 1])
-        let strategy = FakeStrategy(distributionToReturn: distribution)
-        let repository = FakeItemsRepository()
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
-
-        // When
-        let result = await service.getMinMaxStrengthDamage(10)
-
-        // Then
-        XCTAssertEqual(result?.minDmg, 3)
-        XCTAssertEqual(result?.maxDmg, 6)
-    }
-
-    func testGetMinMaxStrengthDamage_ReturnsNilWhenValuesIsEmpty() async {
-        // Given
-        let distribution = DamageDistribution(values: [], weights: [])
-        let strategy = FakeStrategy(distributionToReturn: distribution)
-        let repository = FakeItemsRepository()
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
-
-        // When
-        let result = await service.getMinMaxStrengthDamage(10)
-
-        // Then
-        XCTAssertNil(result)
-    }
-
-    func testGetMinMaxStrengthDamage_WorksWithSingleValue() async {
-        // Given
-        let distribution = DamageDistribution(values: [5], weights: [1])
-        let strategy = FakeStrategy(distributionToReturn: distribution)
-        let repository = FakeItemsRepository()
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
-
-        // When
-        let result = await service.getMinMaxStrengthDamage(3)
-
-        // Then
-        XCTAssertEqual(result?.minDmg, 5)
-        XCTAssertEqual(result?.maxDmg, 5)
-    }
-
-    func testGetStrengthDamageDistribution_ReturnsCorrectDistribution() async {
-        // Given
-        let distribution = DamageDistribution(values: [1, 2, 3], weights: [10, 20, 10])
-        let strategy = FakeStrategy(distributionToReturn: distribution)
-        let repository = FakeItemsRepository()
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
-
-        // When
-        let result = await service.getStrengthDamageDistribution(10)
-
-        // Then
-        XCTAssertEqual(result.distribution, [1, 2, 3])
-        XCTAssertEqual(result.weights, [10, 20, 10])
-    }
-
     func testGetRandomStrengthDamage_ReturnsValueInRange() async {
         // Given
         let distribution = DamageDistribution(values: [5, 6, 7], weights: [1, 1, 1])
@@ -234,29 +163,6 @@ final class ElfDamageServiceTests: XCTestCase {
         // Then
         XCTAssertEqual(result?.minDmg, 0)
         XCTAssertEqual(result?.maxDmg, 0)
-    }
-
-    func testGetRandomWeaponDamage_ReturnsValueInRange() async {
-        // Given
-        let weaponId = UUID()
-        let weapon = makeWeapon(id: weaponId, minDamage: 5, maxDamage: 10)
-        let distribution = DamageDistribution(values: [1], weights: [1])
-        let strategy = FakeStrategy(distributionToReturn: distribution)
-        let repository = FakeItemsRepository()
-        repository.items[weaponId] = weapon
-
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
-
-        // When: Run multiple times
-        for _ in 0..<50 {
-            let damage = await service.getRandomWeaponDamage(weaponId: weaponId)
-
-            // Then
-            XCTAssertTrue((5...10).contains(damage), "Damage \(damage) should be in range 5-10")
-        }
     }
 
     // MARK: - Calculate Total Damage Tests

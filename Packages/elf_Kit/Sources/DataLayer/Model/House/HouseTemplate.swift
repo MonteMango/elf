@@ -8,11 +8,11 @@
 import Foundation
 
 /// Template for house creation containing name and logo
-public struct HouseTemplate: Sendable {
-    public let name: String
-    public let logoImageName: String
+struct HouseTemplate: Sendable {
+    let name: String
+    let logoImageName: String
 
-    public init(name: String, logoImageName: String) {
+    init(name: String, logoImageName: String) {
         self.name = name
         self.logoImageName = logoImageName
     }

@@ -51,7 +51,7 @@ struct ArmorDisplay: View {
     // MARK: - Private Methods
 
     @ViewBuilder
-    private func armorIcon(for bodyPart: BodyPart, value: Int16) -> some View {
+    private func armorIcon(for _: BodyPart, value: Int16) -> some View {
         ZStack {
             Image(systemName: "shield.fill")
                 .resizable()

@@ -38,36 +38,21 @@ public struct SaveSlotInfo: Codable, Identifiable, Sendable {
 
     public var id: String { slotId }
 
-    // MARK: - Initialization
-
-    public init(
-        slotId: String,
-        savedAt: Date,
-        playTime: TimeInterval,
-        currentDay: Int,
-        playerName: String,
-        playerLevel: Int,
-        houseName: String
-    ) {
-        self.slotId = slotId
-        self.savedAt = savedAt
-        self.playTime = playTime
-        self.currentDay = currentDay
-        self.playerName = playerName
-        self.playerLevel = playerLevel
-        self.houseName = houseName
-    }
-
     // MARK: - Convenience
 
     /// Create slot info from a Game object
-    public init(slotId: String, game: Game, playTime: TimeInterval) {
+    /// - Parameters:
+    ///   - slotId: Unique slot identifier
+    ///   - game: Game object
+    ///   - playerLevel: Player's level (calculated via ProgressionService)
+    ///   - playTime: Total play time in seconds
+    public init(slotId: String, game: Game, playerLevel: Int, playTime: TimeInterval) {
         self.slotId = slotId
         self.savedAt = Date()
         self.playTime = playTime
         self.currentDay = game.gameState.currentDay.dayNumber
         self.playerName = game.player.name
-        self.playerLevel = game.player.level
+        self.playerLevel = playerLevel
         self.houseName = game.playerHouse.name
     }
 }

@@ -35,6 +35,8 @@ public actor FileGameRepository: GameRepository {
     private let decoder: JSONDecoder
     private let appVersion: String
     private let itemsRepository: ItemsRepository
+    private let progressionService: ProgressionService
+    private let inventoryService: InventoryService
 
     /// In-memory cache of slot info for fast access
     private var slotsCache: [SaveSlotInfo]?
@@ -43,9 +45,13 @@ public actor FileGameRepository: GameRepository {
 
     public init(
         itemsRepository: ItemsRepository,
+        progressionService: ProgressionService,
+        inventoryService: InventoryService,
         appVersion: String = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     ) {
         self.itemsRepository = itemsRepository
+        self.progressionService = progressionService
+        self.inventoryService = inventoryService
         self.fileManager = FileManager.default
         self.appVersion = appVersion
 
@@ -131,7 +137,8 @@ public actor FileGameRepository: GameRepository {
         }
 
         // Update slots index
-        let slotInfo = SaveSlotInfo(slotId: slotId, game: game, playTime: playTime)
+        let playerLevel = progressionService.calculateLevel(currentExp: game.player.currentExp)
+        let slotInfo = SaveSlotInfo(slotId: slotId, game: game, playerLevel: playerLevel, playTime: playTime)
         try updateSlotsIndex(adding: slotInfo)
         debugLog("💾 [GameRepository] Slots index updated")
         debugLog("💾 [GameRepository] ========== SAVE COMPLETE ==========")
@@ -175,7 +182,10 @@ public actor FileGameRepository: GameRepository {
                 }
 
                 // Step 4: Convert to Game
-                let game = try gameSave.toGame(itemsRepository: itemsRepository)
+                let game = try gameSave.toGame(
+                    itemsRepository: itemsRepository,
+                    inventoryService: inventoryService
+                )
                 debugLog("📂 [GameRepository] Game object created")
                 debugLog("📂 [GameRepository] - Game ID: \(game.id)")
                 debugLog("📂 [GameRepository] - Houses: \(game.houses.count)")
@@ -203,28 +213,6 @@ public actor FileGameRepository: GameRepository {
         throw GameSaveError.slotNotFound(slotId)
     }
 
-    public func listSlots() async -> [SaveSlotInfo] {
-        if let cached = slotsCache {
-            return cached
-        }
-
-        let slots = loadSlotsFromDisk()
-        slotsCache = slots
-        return slots
-    }
-
-    public func deleteSlot(_ slotId: String) async throws {
-        let slotURL = slotURL(for: slotId)
-        let backupURL = slotURL.appendingPathExtension(Self.backupExtension)
-
-        // Remove main file and backup
-        try? fileManager.removeItem(at: slotURL)
-        try? fileManager.removeItem(at: backupURL)
-
-        // Update slots index
-        try updateSlotsIndex(removing: slotId)
-    }
-
     public nonisolated func hasAnySave() -> Bool {
         let slotURL = saveDirectory.appendingPathComponent(
             "\(Self.slotFilePrefix)\(SaveSlotInfo.defaultSlotId).\(Self.slotFileExtension)"
@@ -234,19 +222,22 @@ public actor FileGameRepository: GameRepository {
         return exists
     }
 
-    public nonisolated func hasSlot(_ slotId: String) -> Bool {
-        let slotURL = saveDirectory.appendingPathComponent(
-            "\(Self.slotFilePrefix)\(slotId).\(Self.slotFileExtension)"
-        )
-        return FileManager.default.fileExists(atPath: slotURL.path)
-    }
-
     public func getPlayTime(slotId: String) async -> TimeInterval {
-        let slots = await listSlots()
+        let slots = listSlots()
         return slots.first { $0.slotId == slotId }?.playTime ?? 0
     }
 
     // MARK: - Private Helpers
+
+    private func listSlots() -> [SaveSlotInfo] {
+        if let cached = slotsCache {
+            return cached
+        }
+
+        let slots = loadSlotsFromDisk()
+        slotsCache = slots
+        return slots
+    }
 
     private func slotURL(for slotId: String) -> URL {
         saveDirectory.appendingPathComponent("\(Self.slotFilePrefix)\(slotId).\(Self.slotFileExtension)")
@@ -289,13 +280,6 @@ public actor FileGameRepository: GameRepository {
         slotsCache = slots
     }
 
-    private func updateSlotsIndex(removing slotId: String) throws {
-        var slots = slotsCache ?? loadSlotsFromDisk()
-        slots.removeAll { $0.slotId == slotId }
-
-        try saveSlotsIndex(slots)
-        slotsCache = slots
-    }
 
     private func saveSlotsIndex(_ slots: [SaveSlotInfo]) throws {
         do {
@@ -315,7 +299,10 @@ public actor FileGameRepository: GameRepository {
         case 1:
             // Current version, no migration needed
             let gameSave = try decoder.decode(GameSave.self, from: data)
-            return try gameSave.toGame(itemsRepository: itemsRepository)
+            return try gameSave.toGame(
+                itemsRepository: itemsRepository,
+                inventoryService: inventoryService
+            )
         default:
             throw GameSaveError.unsupportedVersion(fromVersion)
         }

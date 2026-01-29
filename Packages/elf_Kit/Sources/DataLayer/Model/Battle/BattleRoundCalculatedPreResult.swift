@@ -21,11 +21,7 @@ public struct BattleRoundCalculatedPreResult: Sendable {
     public var leftWeaponAttackDamage: Int // calculation of weapon damage
     public var rightWeaponAttackDamage: Int?
 
-    // calculation based on hero agility att and enemy instinct att. (Done by DodgeService)
-    @available(*, deprecated, message: "Use detailed dodge fields (dodgeDistribution, dodgeStage1Roll, selectedDodgeChance, dodgeStage2Roll) instead")
-    public var dodgeChance: Double // DEPRECATED: old simple dodge chance calculation
-
-    // detailed dodge calculation (two-stage probability system)
+    // detailed dodge calculation based on hero agility att and enemy instinct att (Done by DodgeService)
     public var dodgeDistribution: DodgeDistribution? // the probability distribution used for dodge
     public var dodgeStage1Roll: Int? // stage 1 roll (1-100) to select dodge chance
     public var selectedDodgeChance: Int16? // dodge chance selected from distribution

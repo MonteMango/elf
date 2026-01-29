@@ -136,33 +136,6 @@ struct HeroItemsGrid: View {
     private func handleItemTap(_ itemType: HeroItemType) {
         onItemTap(itemType)
     }
-
-    private func iconName(for itemType: HeroItemType) -> String {
-        switch itemType {
-        case .helmet:
-            return "crown.fill"
-        case .gloves:
-            return "hand.raised.fill"
-        case .shoes:
-            return "shoe.fill"
-        case .upperBody:
-            return "tshirt.fill"
-        case .bottomBody:
-            return "figure.stand"
-        case .shirt:
-            return "rectangle.fill"
-        case .ring:
-            return "circle.fill"
-        case .necklace:
-            return "link.circle.fill"
-        case .earrings:
-            return "staroflife.fill"
-        case .weapons:
-            return "sword.fill"
-        case .shields:
-            return "shield.fill"
-        }
-    }
 }
 
 // MARK: - Preview

@@ -39,12 +39,6 @@ public struct ActionPoints: Sendable, Hashable, Equatable {
         return Double(current) / Double(maximum)
     }
 
-    /// Whether all action points have been spent
-    public var isEmpty: Bool { current <= 0 }
-
-    /// Whether action points are at maximum
-    public var isFull: Bool { current >= maximum }
-
     /// How many action points are remaining
     public var remaining: Int { current }
 
@@ -52,37 +46,6 @@ public struct ActionPoints: Sendable, Hashable, Equatable {
     private init(current: Int, maximum: Int) {
         self.current = current
         self.maximum = maximum
-    }
-
-    /// Creates ActionPoints with validation.
-    ///
-    /// - Parameters:
-    ///   - current: Current points (will be clamped to 0...maximum)
-    ///   - maximum: Maximum points (must be > 0)
-    /// - Returns: A Result containing ActionPoints or an error
-    public static func create(current: Int, maximum: Int) -> Result<ActionPoints, ActionPointsError> {
-        guard maximum > 0 else {
-            return .failure(.invalidMaximum)
-        }
-
-        let clampedCurrent = max(0, min(current, maximum))
-        return .success(ActionPoints(current: clampedCurrent, maximum: maximum))
-    }
-
-    /// Creates ActionPoints at full capacity.
-    ///
-    /// - Parameter maximum: Maximum points (must be > 0)
-    /// - Returns: A Result containing full ActionPoints or an error
-    public static func full(maximum: Int) -> Result<ActionPoints, ActionPointsError> {
-        create(current: maximum, maximum: maximum)
-    }
-
-    /// Creates ActionPoints at zero.
-    ///
-    /// - Parameter maximum: Maximum points (must be > 0)
-    /// - Returns: A Result containing empty ActionPoints or an error
-    public static func empty(maximum: Int) -> Result<ActionPoints, ActionPointsError> {
-        create(current: 0, maximum: maximum)
     }
 
     /// Unsafe creation for internal use (e.g., loading from storage).
@@ -108,15 +71,6 @@ public struct ActionPoints: Sendable, Hashable, Equatable {
         return .success(ActionPoints(current: current - amount, maximum: maximum))
     }
 
-    /// Restores the specified amount of action points (clamped to maximum).
-    ///
-    /// - Parameter amount: The amount to restore
-    /// - Returns: New ActionPoints with restored value
-    public func restore(_ amount: Int) -> ActionPoints {
-        let newCurrent = min(current + max(0, amount), maximum)
-        return ActionPoints(current: newCurrent, maximum: maximum)
-    }
-
     /// Resets action points to maximum.
     ///
     /// - Returns: New ActionPoints at full capacity
@@ -124,13 +78,6 @@ public struct ActionPoints: Sendable, Hashable, Equatable {
         ActionPoints(current: maximum, maximum: maximum)
     }
 
-    /// Creates a copy with a new maximum (current is clamped if needed).
-    ///
-    /// - Parameter newMaximum: The new maximum value
-    /// - Returns: Result with adjusted ActionPoints or error
-    public func withMaximum(_ newMaximum: Int) -> Result<ActionPoints, ActionPointsError> {
-        ActionPoints.create(current: current, maximum: newMaximum)
-    }
 }
 
 // MARK: - Error

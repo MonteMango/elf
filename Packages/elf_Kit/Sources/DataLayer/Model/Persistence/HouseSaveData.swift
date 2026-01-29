@@ -22,13 +22,21 @@ public struct HouseSaveData: Codable, Sendable {
         self.members = house.members.map { ElfSaveData(from: $0) }
     }
 
-    public func toHouse(itemsRepository: ItemsRepository) throws -> House {
-        House(
+    public func toHouse(
+        itemsRepository: ItemsRepository,
+        inventoryService: InventoryService
+    ) throws -> House {
+        let restoredMembers = try members.map { try $0.toElfInfo(
+            itemsRepository: itemsRepository,
+            inventoryService: inventoryService
+        ) }
+
+        return House(
             id: id,
             name: name,
             logoImageName: logoImageName,
             isEliminated: isEliminated,
-            members: try members.map { try $0.toElfInfo(itemsRepository: itemsRepository) }
+            members: restoredMembers
         )
     }
 }

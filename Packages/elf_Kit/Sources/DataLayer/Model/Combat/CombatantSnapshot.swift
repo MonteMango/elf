@@ -184,12 +184,6 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
         currentHP > 0
     }
 
-    /// HP as a percentage (0.0 to 1.0)
-    public var hpPercentage: Double {
-        guard maxHP > 0 else { return 0 }
-        return Double(currentHP) / Double(maxHP)
-    }
-
     /// Whether the combatant has any equipment
     public var hasEquipment: Bool {
         helmetItem != nil ||

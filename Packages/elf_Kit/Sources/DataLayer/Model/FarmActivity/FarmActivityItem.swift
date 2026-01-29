@@ -12,12 +12,6 @@ public struct FarmActivityItem: Identifiable, Sendable, Equatable {
     public let id: UUID
     public let imageName: String
     public let tier: GatherableTier
-
-    public init(id: UUID, imageName: String, tier: GatherableTier) {
-        self.id = id
-        self.imageName = imageName
-        self.tier = tier
-    }
 }
 
 // MARK: - Conversions

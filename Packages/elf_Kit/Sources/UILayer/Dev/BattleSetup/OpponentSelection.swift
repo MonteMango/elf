@@ -14,14 +14,4 @@ public enum OpponentSelection: Hashable, Sendable {
 
     /// Fight against a specific monster
     case monster(Monster)
-
-    /// Display name for the picker
-    public var displayName: String {
-        switch self {
-        case .elf:
-            return "Elf"
-        case .monster(let monster):
-            return monster.title
-        }
-    }
 }

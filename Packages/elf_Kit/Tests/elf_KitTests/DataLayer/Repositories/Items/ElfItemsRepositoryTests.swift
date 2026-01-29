@@ -135,7 +135,7 @@ final class ElfItemsRepositoryTests: XCTestCase {
         let loader = FakeDataLoader(mode: .valid)
         let repository = ElfItemsRepository(dataLoader: loader)
 
-        XCTAssertEqual(repository.heroItems.weapons.count, 1)
+        XCTAssertEqual(repository.getItems(for: .weapons).count, 1)
     }
 
     func testGetHeroItemReturnsCorrectItem() throws {
@@ -181,8 +181,8 @@ final class ElfItemsRepositoryTests: XCTestCase {
         let repository = ElfItemsRepository(dataLoader: loader)
 
         // Verify empty data was used
-        XCTAssertEqual(repository.heroItems.weapons.count, 0)
-        XCTAssertEqual(repository.heroItems.helmets.count, 0)
+        XCTAssertEqual(repository.getItems(for: .weapons).count, 0)
+        XCTAssertEqual(repository.getItems(for: .helmet).count, 0)
     }
 
     func testInitializationFallsBackToEmptyDataOnDataLoaderError() {
@@ -193,7 +193,7 @@ final class ElfItemsRepositoryTests: XCTestCase {
         let repository = ElfItemsRepository(dataLoader: loader)
 
         // Verify empty data was used
-        XCTAssertEqual(repository.heroItems.weapons.count, 0)
-        XCTAssertEqual(repository.heroItems.helmets.count, 0)
+        XCTAssertEqual(repository.getItems(for: .weapons).count, 0)
+        XCTAssertEqual(repository.getItems(for: .helmet).count, 0)
     }
 }

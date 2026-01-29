@@ -207,13 +207,6 @@ final class ElfFishRepositoryTests: XCTestCase {
 
     // MARK: - JSON Loading Tests
 
-    func testJSONParsesWithoutErrors() throws {
-        let loader = FakeDataLoader(mode: .valid)
-        let repository = ElfFishRepository(dataLoader: loader)
-
-        XCTAssertEqual(repository.fishData.version, "1.0")
-    }
-
     func testAllElevenFishLoaded() throws {
         let loader = FakeDataLoader(mode: .valid)
         let repository = ElfFishRepository(dataLoader: loader)
@@ -241,22 +234,6 @@ final class ElfFishRepositoryTests: XCTestCase {
         XCTAssertEqual(ribbontail?.effects[0].amount, 2)
     }
 
-    func testForestPondAreaContainsAllFish() throws {
-        let loader = FakeDataLoader(mode: .valid)
-        let repository = ElfFishRepository(dataLoader: loader)
-
-        let forestPondFish = repository.getFishForArea("forest_pond")
-        XCTAssertEqual(forestPondFish.count, 11)
-
-        // Check that all fish are present
-        let fishIds = Set(forestPondFish.map { $0.id })
-        let expectedIds: Set<FishID> = [
-            TestFishID.sunny, TestFishID.dewdrop, TestFishID.pebble, TestFishID.whisker, TestFishID.bristle,
-            TestFishID.duskfin, TestFishID.ember, TestFishID.dancer, TestFishID.ribbontail, TestFishID.streamer, TestFishID.swallowtail
-        ]
-        XCTAssertEqual(fishIds, expectedIds)
-    }
-
     // MARK: - Method Tests
 
     func testGetFishReturnsCorrectFish() throws {
@@ -279,33 +256,6 @@ final class ElfFishRepositoryTests: XCTestCase {
         XCTAssertNil(unknown)
     }
 
-    func testGetEffectDefinitionReturnsCorrectEffect() throws {
-        let loader = FakeDataLoader(mode: .valid)
-        let repository = ElfFishRepository(dataLoader: loader)
-
-        let arcane = repository.getEffectDefinition("arcane")
-        XCTAssertNotNil(arcane)
-        XCTAssertEqual(arcane?.effectType, "arcane")
-        XCTAssertEqual(arcane?.title, "Arcane")
-        XCTAssertEqual(arcane?.description, "Pure magical energy")
-    }
-
-    func testGetEffectDefinitionReturnsNilForUnknownId() throws {
-        let loader = FakeDataLoader(mode: .valid)
-        let repository = ElfFishRepository(dataLoader: loader)
-
-        let unknown = repository.getEffectDefinition("unknown_effect")
-        XCTAssertNil(unknown)
-    }
-
-    func testGetFishForAreaReturnsEmptyForUnknownArea() throws {
-        let loader = FakeDataLoader(mode: .valid)
-        let repository = ElfFishRepository(dataLoader: loader)
-
-        let fish = repository.getFishForArea("unknown_area")
-        XCTAssertTrue(fish.isEmpty)
-    }
-
     // MARK: - Error Handling Tests
 
     func testInitializationFallsBackToEmptyDataOnInvalidJSON() {
@@ -313,7 +263,6 @@ final class ElfFishRepositoryTests: XCTestCase {
         let repository = ElfFishRepository(dataLoader: loader)
 
         XCTAssertEqual(repository.getAllFish().count, 0)
-        XCTAssertEqual(repository.fishData.version, "1.0-empty")
     }
 
     func testInitializationFallsBackToEmptyDataOnDataLoaderError() {
@@ -321,7 +270,6 @@ final class ElfFishRepositoryTests: XCTestCase {
         let repository = ElfFishRepository(dataLoader: loader)
 
         XCTAssertEqual(repository.getAllFish().count, 0)
-        XCTAssertEqual(repository.fishData.version, "1.0-empty")
     }
 
     // MARK: - Fish Tier Tests

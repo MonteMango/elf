@@ -16,11 +16,6 @@ public struct MaterialSaveData: Sendable, Equatable, Codable {
     /// Quantity of this material (stackable)
     public let quantity: Int
 
-    public init(id: UUID, quantity: Int) {
-        self.id = id
-        self.quantity = quantity
-    }
-
     /// Create from InventoryMaterial
     public init(from material: InventoryMaterial) {
         self.id = material.id

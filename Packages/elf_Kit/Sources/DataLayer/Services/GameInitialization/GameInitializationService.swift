@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - GameInitializationError
 
-public enum GameInitializationError: Error, LocalizedError {
+enum GameInitializationError: Error, LocalizedError {
     case failedToCreateHouses
     case failedToSaveGame(Error)
 
@@ -32,13 +32,9 @@ public protocol GameInitializationService: Sendable {
     /// Create a new game with the given player character
     /// - Parameters:
     ///   - playerCharacter: The player's created character
-    ///   - fightStyleAttributes: Attributes from the selected fight style
-    ///   - randomLevelAttributes: Random attributes generated for the level
     /// - Returns: A fully initialized Game object
     /// - Throws: GameInitializationError if creation fails
     func createNewGame(
-        playerCharacter: PlayerCharacter,
-        fightStyleAttributes: HeroAttributes,
-        randomLevelAttributes: HeroAttributes
+        playerCharacter: PlayerCharacter
     ) async throws -> Game
 }

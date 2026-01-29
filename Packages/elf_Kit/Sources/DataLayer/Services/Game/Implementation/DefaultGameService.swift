@@ -29,6 +29,7 @@ public final class DefaultGameService: GameService {
 
     private let gameRepository: GameRepository?
     private let itemsRepository: ItemsRepository?
+    private let inventoryService: InventoryService
     private let slotId: String
 
     // MARK: - Initialization
@@ -37,12 +38,14 @@ public final class DefaultGameService: GameService {
         game: Game,
         gameRepository: GameRepository? = nil,
         itemsRepository: ItemsRepository? = nil,
+        inventoryService: InventoryService,
         slotId: String = SaveSlotInfo.defaultSlotId,
         playTime: TimeInterval = 0
     ) {
         self.game = game
         self.gameRepository = gameRepository
         self.itemsRepository = itemsRepository
+        self.inventoryService = inventoryService
         self.slotId = slotId
         self.playTime = playTime
     }
@@ -70,18 +73,15 @@ public final class DefaultGameService: GameService {
         }
     }
 
-    public func restoreActionPoints() {
+    private func restoreActionPoints() {
         game.gameState.actionPoints = game.gameState.actionPoints.reset()
     }
 
     // MARK: - Player Progression
 
     public func addPlayerExperience(_ amount: Int) {
-        addElfExperience(
-            houseIndex: game.playerHouseIndex,
-            memberIndex: game.playerMemberIndex,
-            amount: amount
-        )
+        // Simply add XP - level is computed automatically (TDD: single source of truth)
+        player.currentExp += amount
     }
 
     public func addFishingExperience(_ amount: Int) {
@@ -99,7 +99,11 @@ public final class DefaultGameService: GameService {
     public func addDropsToPlayerInventory(rewards: HuntRewards) {
         // Add materials (stackable)
         for material in rewards.materials {
-            player.inventory.addMaterial(id: material.id, quantity: material.amount)
+            player.inventory = inventoryService.addMaterial(
+                id: material.id,
+                quantity: material.amount,
+                to: player.inventory
+            )
         }
 
         // Add weapon if dropped
@@ -107,7 +111,7 @@ public final class DefaultGameService: GameService {
            let weaponId = UUID(uuidString: weaponIdString),
            let weaponItem = itemsRepository?.getHeroItem(weaponId) as? WeaponItem {
             let weapon = ElfWeaponItem(weaponItem: weaponItem)
-            player.inventory.addWeapon(weapon)
+            player.inventory = inventoryService.addWeapon(weapon, to: player.inventory)
         }
 
         // Add armor if dropped
@@ -115,63 +119,38 @@ public final class DefaultGameService: GameService {
            let armorId = UUID(uuidString: armorIdString),
            let defenseItem = itemsRepository?.getHeroItem(armorId) as? DefenseItem {
             let armor = ElfDefenseItem(defenseItem: defenseItem)
-            player.inventory.addArmor(armor)
+            player.inventory = inventoryService.addArmor(armor, to: player.inventory)
         }
     }
 
     public func addFishToInventory(_ fish: [Fish]) {
         for f in fish {
-            player.inventory.addMaterial(id: f.id.rawValue, quantity: 1)
+            player.inventory = inventoryService.addMaterial(
+                id: f.id.rawValue,
+                quantity: 1,
+                to: player.inventory
+            )
         }
     }
 
     public func addHerbsToInventory(_ herbs: [Herb]) {
         for herb in herbs {
-            player.inventory.addMaterial(id: herb.id.rawValue, quantity: 1)
+            player.inventory = inventoryService.addMaterial(
+                id: herb.id.rawValue,
+                quantity: 1,
+                to: player.inventory
+            )
         }
     }
 
     public func addOresToInventory(_ ores: [Ore]) {
         for ore in ores {
-            player.inventory.addMaterial(id: ore.id.rawValue, quantity: 1)
+            player.inventory = inventoryService.addMaterial(
+                id: ore.id.rawValue,
+                quantity: 1,
+                to: player.inventory
+            )
         }
-    }
-
-    // MARK: - Player HP Management
-
-    public func healPlayer(_ amount: Int16) {
-        healElf(
-            houseIndex: game.playerHouseIndex,
-            memberIndex: game.playerMemberIndex,
-            amount: amount
-        )
-    }
-
-    public func damagePlayer(_ amount: Int16) {
-        damageElf(
-            houseIndex: game.playerHouseIndex,
-            memberIndex: game.playerMemberIndex,
-            amount: amount
-        )
-    }
-
-    public func restorePlayerFullHP() {
-        player.currentHP = player.maxHP
-    }
-
-    // MARK: - Player MP Management
-
-    public func restorePlayerMP(_ amount: Int16) {
-        let newMP = player.currentMP + amount
-        player.currentMP = min(newMP, player.maxMP)
-    }
-
-    public func consumePlayerMP(_ amount: Int16) {
-        player.currentMP = max(0, player.currentMP - amount)
-    }
-
-    public func restorePlayerFullMP() {
-        player.currentMP = player.maxMP
     }
 
     // MARK: - Player Equipment
@@ -210,75 +189,10 @@ public final class DefaultGameService: GameService {
         player.equipped.shirt = shirt
     }
 
-    // MARK: - House Management
-
-    public func swapElves(
-        house1Index: Int, member1Index: Int,
-        house2Index: Int, member2Index: Int
-    ) {
-        // Validate indices
-        guard house1Index >= 0 && house1Index < Game.housesCount,
-              house2Index >= 0 && house2Index < Game.housesCount,
-              member1Index >= 0 && member1Index < House.membersCount,
-              member2Index >= 0 && member2Index < House.membersCount else {
-            return
-        }
-
-        // Perform swap
-        let temp = game.houses[house1Index].members[member1Index]
-        game.houses[house1Index].members[member1Index] = game.houses[house2Index].members[member2Index]
-        game.houses[house2Index].members[member2Index] = temp
-
-        // Update player indices if player was swapped
-        if house1Index == game.playerHouseIndex && member1Index == game.playerMemberIndex {
-            game.playerHouseIndex = house2Index
-            game.playerMemberIndex = member2Index
-        } else if house2Index == game.playerHouseIndex && member2Index == game.playerMemberIndex {
-            game.playerHouseIndex = house1Index
-            game.playerMemberIndex = member1Index
-        }
-    }
-
-    public func eliminateHouse(_ houseIndex: Int) {
-        guard houseIndex >= 0 && houseIndex < Game.housesCount else { return }
-        game.houses[houseIndex].isEliminated = true
-    }
-
-    // MARK: - Elf Management (Any Elf)
-
-    public func healElf(houseIndex: Int, memberIndex: Int, amount: Int16) {
-        guard houseIndex >= 0 && houseIndex < Game.housesCount,
-              memberIndex >= 0 && memberIndex < House.membersCount else { return }
-
-        let newHP = game.houses[houseIndex].members[memberIndex].currentHP + amount
-        let maxHP = game.houses[houseIndex].members[memberIndex].maxHP
-        game.houses[houseIndex].members[memberIndex].currentHP = min(newHP, maxHP)
-    }
-
-    public func damageElf(houseIndex: Int, memberIndex: Int, amount: Int16) {
-        guard houseIndex >= 0 && houseIndex < Game.housesCount,
-              memberIndex >= 0 && memberIndex < House.membersCount else { return }
-
-        game.houses[houseIndex].members[memberIndex].currentHP =
-            max(0, game.houses[houseIndex].members[memberIndex].currentHP - amount)
-    }
-
-    public func addElfExperience(houseIndex: Int, memberIndex: Int, amount: Int) {
-        guard houseIndex >= 0 && houseIndex < Game.housesCount,
-              memberIndex >= 0 && memberIndex < House.membersCount else { return }
-
-        // Simply add XP - level is computed automatically (TDD: single source of truth)
-        game.houses[houseIndex].members[memberIndex].currentExp += amount
-    }
-
     // MARK: - Persistence
 
     public func saveGame() async throws {
         guard let repository = gameRepository else { return }
         try await repository.save(game, slotId: slotId, playTime: playTime)
-    }
-
-    public func updatePlayTime(_ time: TimeInterval) {
-        playTime = time
     }
 }

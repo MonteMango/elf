@@ -9,12 +9,12 @@ import Foundation
 
 /// Data Transfer Object for game persistence
 /// Wraps game data with versioning, timestamps, and integrity checksum
-public struct GameSave: Codable, Sendable {
+struct GameSave: Codable, Sendable {
 
     // MARK: - Version
 
     /// Current save format version
-    public static let currentVersion = 1
+    static let currentVersion = 1
 
     // MARK: - Properties
 
@@ -36,7 +36,7 @@ public struct GameSave: Codable, Sendable {
     // MARK: - Initialization
 
     /// Create a new GameSave from a Game object
-    public init(from game: Game, playTime: TimeInterval, appVersion: String) {
+    init(from game: Game, playTime: TimeInterval, appVersion: String) {
         self.version = Self.currentVersion
         self.savedAt = Date()
         self.appVersion = appVersion
@@ -47,7 +47,13 @@ public struct GameSave: Codable, Sendable {
     // MARK: - Conversion
 
     /// Convert back to Game domain model
-    public func toGame(itemsRepository: ItemsRepository) throws -> Game {
-        try data.toGame(itemsRepository: itemsRepository)
+    func toGame(
+        itemsRepository: ItemsRepository,
+        inventoryService: InventoryService
+    ) throws -> Game {
+        try data.toGame(
+            itemsRepository: itemsRepository,
+            inventoryService: inventoryService
+        )
     }
 }

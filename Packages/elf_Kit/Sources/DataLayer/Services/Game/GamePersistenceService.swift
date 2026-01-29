@@ -16,11 +16,4 @@ public protocol GamePersistenceService: AnyObject {
     /// Saves the current game state
     /// File I/O is handled by actor-isolated repository (runs on background thread)
     func saveGame() async throws
-
-    /// Current play time in seconds
-    var playTime: TimeInterval { get }
-
-    /// Updates play time
-    /// - Parameter time: New play time value
-    func updatePlayTime(_ time: TimeInterval)
 }

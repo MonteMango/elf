@@ -20,21 +20,6 @@ public final class ElfDamageService: DamageService {
         self.distributionStrategy = distributionStrategy
     }
 
-    public func getMinMaxStrengthDamage(_ strengthAttribute: Int16) async -> (minDmg: Int16, maxDmg: Int16)? {
-        let dmgStrengthDistribution = distributionStrategy.distribution(for: strengthAttribute)
-        guard
-            let minDmg = dmgStrengthDistribution.values.first,
-            let maxDmg = dmgStrengthDistribution.values.last
-        else { return nil }
-
-        return (minDmg: minDmg, maxDmg: maxDmg)
-    }
-
-    public func getStrengthDamageDistribution(_ strengthAttribute: Int16) async -> (distribution: [Int16], weights: [Int]) {
-        let dmgStrengthDistribution = distributionStrategy.distribution(for: strengthAttribute)
-        return (distribution: dmgStrengthDistribution.values, weights: dmgStrengthDistribution.weights)
-    }
-
     public func getWeaponDamage(weaponId: UUID?) async -> (minDmg: Int16, maxDmg: Int16)? {
         // No weapon equipped
         guard let weaponId = weaponId else {
@@ -77,16 +62,6 @@ public final class ElfDamageService: DamageService {
 
         // Fallback (should never reach here)
         return distribution.values.last ?? 0
-    }
-
-    public func getRandomWeaponDamage(weaponId: UUID?) async -> Int16 {
-        // Get weapon damage range
-        guard let weaponDamage = await getWeaponDamage(weaponId: weaponId) else {
-            return 0
-        }
-
-        // Return random value in range [minDamage, maxDamage]
-        return Int16.random(in: weaponDamage.minDmg...weaponDamage.maxDmg)
     }
 
     public func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) -> Int {

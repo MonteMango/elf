@@ -15,11 +15,6 @@ public struct DefenseSaveData: Codable, Sendable, Equatable {
     /// Base item ID from HeroItems.json
     public let itemId: UUID
 
-    public init(id: UUID, itemId: UUID) {
-        self.id = id
-        self.itemId = itemId
-    }
-
     /// Create from ElfDefenseItem
     public init(from defense: ElfDefenseItem) {
         self.id = defense.id

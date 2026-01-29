@@ -17,6 +17,8 @@ public final class FarmActivityViewModel {
     private let farmActivityService: any FarmActivityService
     private let monsterRepository: (any MonsterRepository)?
     private let snapshotBuilder: (any CombatantSnapshotBuilder)?
+    private let progressionService: any ProgressionService
+    private let equipmentQueryService: any EquipmentQueryService
 
     // MARK: - Unified Activity State
 
@@ -83,7 +85,7 @@ public final class FarmActivityViewModel {
 
     /// Player's current level (determines monster level)
     private var playerLevel: Int {
-        Int(gameService.game.player.level)
+        progressionService.calculateLevel(currentExp: gameService.game.player.currentExp)
     }
 
     /// Current world (for now, always upper world)
@@ -132,12 +134,16 @@ public final class FarmActivityViewModel {
         activity: FarmActivity,
         gameService: any GameService,
         farmActivityService: any FarmActivityService,
+        progressionService: any ProgressionService,
+        equipmentQueryService: any EquipmentQueryService,
         monsterRepository: (any MonsterRepository)? = nil,
         snapshotBuilder: (any CombatantSnapshotBuilder)? = nil
     ) {
         self.activity = activity
         self.gameService = gameService
         self.farmActivityService = farmActivityService
+        self.progressionService = progressionService
+        self.equipmentQueryService = equipmentQueryService
         self.monsterRepository = monsterRepository
         self.snapshotBuilder = snapshotBuilder
     }
@@ -241,12 +247,12 @@ public final class FarmActivityViewModel {
 
         // Build player snapshot
         let player = gameService.game.player
-        let selectedItems: [HeroItemType: UUID?] = player.equippedItemIds.mapValues { $0 }
+        let selectedItems: [HeroItemType: UUID?] = equipmentQueryService.equippedBaseItemIds(from: player.equipped).mapValues { $0 }
 
         guard let playerSnapshot = await snapshotBuilder.buildSnapshot(
             name: player.name,
             imageName: player.imageName,
-            level: player.level,
+            level: progressionService.calculateLevel(currentExp: player.currentExp),
             fightStyleAttributes: player.fightStyleAttributes,
             randomLevelAttributes: player.randomLevelAttributes,
             selectedItems: selectedItems

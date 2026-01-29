@@ -62,10 +62,6 @@ public final class ElfMonsterRepository: MonsterRepository {
 
     // MARK: - MonsterRepository
 
-    public var monstersData: MonstersData {
-        return _monstersData
-    }
-
     public func getMonster(id: UUID) -> Monster? {
         return monsterLookup[id]
     }
@@ -82,11 +78,6 @@ public final class ElfMonsterRepository: MonsterRepository {
         }
 
         return worldLevels.monsters(for: level)
-    }
-
-    public func getRandomMonster(world: WorldType, level: Int) -> Monster? {
-        let monsters = getMonsters(world: world, level: level)
-        return monsters.randomElement()
     }
 
     // MARK: - Private Helpers

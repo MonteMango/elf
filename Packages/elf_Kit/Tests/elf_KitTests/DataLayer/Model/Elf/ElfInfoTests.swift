@@ -8,7 +8,7 @@
 import XCTest
 @testable import elf_Kit
 
-/// Tests for ElfInfo computed properties following Type-Driven Design
+/// Tests for ElfProgressionService following Type-Driven Design
 ///
 /// TDD principle: "Make impossible states unrepresentable"
 /// - `currentExp` is the single source of truth
@@ -18,234 +18,217 @@ final class ElfInfoTests: XCTestCase {
 
     // MARK: - Test Helpers
 
-    private func makeTestWeaponConfiguration() -> WeaponConfiguration {
-        let json: [String: Any] = [
-            "id": UUID().uuidString,
-            "title": "Test Sword",
-            "tier": 1,
-            "minimumAttackPoint": 1,
-            "maximumAttackPoint": 5,
-            "handUse": "primary"
-        ]
-        let data = try! JSONSerialization.data(withJSONObject: json)
-        let weaponItem = try! JSONDecoder().decode(WeaponItem.self, from: data)
-        let elfWeapon = ElfWeaponItem(weaponItem: weaponItem)
-        return .oneHanded(weapon: elfWeapon)
+    private var progressionService: ProgressionService!
+
+    override func setUp() {
+        super.setUp()
+        progressionService = ElfProgressionService()
     }
 
-    private func makeElf(currentExp: Int) -> ElfInfo {
-        ElfInfo(
-            name: "Test Elf",
-            imageName: "elf_1",
-            fightStyle: .crit,
-            currentExp: currentExp,
-            fightStyleAttributes: HeroAttributes.zero,
-            randomLevelAttributes: HeroAttributes.zero,
-            currentHP: 100,
-            currentMP: 50,
-            equipped: EquippedItems(weapons: makeTestWeaponConfiguration())
-        )
+    override func tearDown() {
+        progressionService = nil
+        super.tearDown()
     }
 
     // MARK: - Level Calculation Tests
 
     func testLevel_zeroXP_returnsOne() {
         // Given
-        let elf = makeElf(currentExp: 0)
+        let level = progressionService.calculateLevel(currentExp: 0)
 
         // Then
-        XCTAssertEqual(elf.level, 1)
+        XCTAssertEqual(level, 1)
     }
 
     func testLevel_99XP_returnsOne() {
         // Given
-        let elf = makeElf(currentExp: 99)
+        let level = progressionService.calculateLevel(currentExp: 99)
 
         // Then
-        XCTAssertEqual(elf.level, 1)
+        XCTAssertEqual(level, 1)
     }
 
     func testLevel_100XP_returnsOne() {
         // Given: 100 XP is still within level 1 range (0-199)
-        let elf = makeElf(currentExp: 100)
+        let level = progressionService.calculateLevel(currentExp: 100)
 
         // Then
-        XCTAssertEqual(elf.level, 1)
+        XCTAssertEqual(level, 1)
     }
 
     func testLevel_199XP_returnsOne() {
         // Given: 199 XP is the max for level 1
-        let elf = makeElf(currentExp: 199)
+        let level = progressionService.calculateLevel(currentExp: 199)
 
         // Then
-        XCTAssertEqual(elf.level, 1)
+        XCTAssertEqual(level, 1)
     }
 
     func testLevel_200XP_returnsTwo() {
         // Given: 200 XP starts level 2
-        let elf = makeElf(currentExp: 200)
+        let level = progressionService.calculateLevel(currentExp: 200)
 
         // Then
-        XCTAssertEqual(elf.level, 2)
+        XCTAssertEqual(level, 2)
     }
 
     func testLevel_299XP_returnsTwo() {
         // Given
-        let elf = makeElf(currentExp: 299)
+        let level = progressionService.calculateLevel(currentExp: 299)
 
         // Then
-        XCTAssertEqual(elf.level, 2)
+        XCTAssertEqual(level, 2)
     }
 
     func testLevel_300XP_returnsThree() {
         // Given
-        let elf = makeElf(currentExp: 300)
+        let level = progressionService.calculateLevel(currentExp: 300)
 
         // Then
-        XCTAssertEqual(elf.level, 3)
+        XCTAssertEqual(level, 3)
     }
 
     func testLevel_445XP_returnsFour() {
         // Given: 445 XP falls within level 4 (400-499)
-        let elf = makeElf(currentExp: 445)
+        let level = progressionService.calculateLevel(currentExp: 445)
 
         // Then
-        XCTAssertEqual(elf.level, 4)
+        XCTAssertEqual(level, 4)
     }
 
     func testLevel_1100XP_returnsEleven() {
         // Given
-        let elf = makeElf(currentExp: 1100)
+        let level = progressionService.calculateLevel(currentExp: 1100)
 
         // Then
-        XCTAssertEqual(elf.level, 11)
+        XCTAssertEqual(level, 11)
     }
 
     func testLevel_1200XP_returnsTwelve() {
         // Given: 1200 XP is minimum for max level 12
-        let elf = makeElf(currentExp: 1200)
+        let level = progressionService.calculateLevel(currentExp: 1200)
 
         // Then
-        XCTAssertEqual(elf.level, 12)
+        XCTAssertEqual(level, 12)
     }
 
     func testLevel_9999XP_returnsTwelve_maxCap() {
         // Given: Even with massive XP, level is capped at 12
-        let elf = makeElf(currentExp: 9999)
+        let level = progressionService.calculateLevel(currentExp: 9999)
 
         // Then
-        XCTAssertEqual(elf.level, 12)
+        XCTAssertEqual(level, 12)
     }
 
     func testLevel_negativeXP_returnsOne_minCap() {
         // Given: Negative XP should default to level 1
-        let elf = makeElf(currentExp: -100)
+        let level = progressionService.calculateLevel(currentExp: -100)
 
         // Then
-        XCTAssertEqual(elf.level, 1)
+        XCTAssertEqual(level, 1)
     }
 
     // MARK: - expToNextLevel Tests
 
     func testExpToNextLevel_level1_returns200() {
         // Given: Level 1 elf needs to reach 200 XP for level 2
-        let elf = makeElf(currentExp: 0)
+        let expToNext = progressionService.expToNextLevel(currentExp: 0)
 
         // Then
-        XCTAssertEqual(elf.level, 1)
-        XCTAssertEqual(elf.expToNextLevel, 200)
+        XCTAssertEqual(progressionService.calculateLevel(currentExp: 0), 1)
+        XCTAssertEqual(expToNext, 200)
     }
 
     func testExpToNextLevel_level2_returns300() {
         // Given
-        let elf = makeElf(currentExp: 200)
+        let expToNext = progressionService.expToNextLevel(currentExp: 200)
 
         // Then
-        XCTAssertEqual(elf.level, 2)
-        XCTAssertEqual(elf.expToNextLevel, 300)
+        XCTAssertEqual(progressionService.calculateLevel(currentExp: 200), 2)
+        XCTAssertEqual(expToNext, 300)
     }
 
     func testExpToNextLevel_level11_returns1200() {
         // Given
-        let elf = makeElf(currentExp: 1100)
+        let expToNext = progressionService.expToNextLevel(currentExp: 1100)
 
         // Then
-        XCTAssertEqual(elf.level, 11)
-        XCTAssertEqual(elf.expToNextLevel, 1200)
+        XCTAssertEqual(progressionService.calculateLevel(currentExp: 1100), 11)
+        XCTAssertEqual(expToNext, 1200)
     }
 
     func testExpToNextLevel_level12_returnsZero() {
         // Given: Max level has no next level
-        let elf = makeElf(currentExp: 1200)
+        let expToNext = progressionService.expToNextLevel(currentExp: 1200)
 
         // Then
-        XCTAssertEqual(elf.level, 12)
-        XCTAssertEqual(elf.expToNextLevel, 0)
+        XCTAssertEqual(progressionService.calculateLevel(currentExp: 1200), 12)
+        XCTAssertEqual(expToNext, 0)
     }
 
     // MARK: - expProgress Tests
 
     func testExpProgress_0XP_returnsZero() {
         // Given: 0 XP means 0% progress in level 1
-        let elf = makeElf(currentExp: 0)
+        let progress = progressionService.expProgress(currentExp: 0)
 
         // Then
-        XCTAssertEqual(elf.expProgress, 0.0, accuracy: 0.001)
+        XCTAssertEqual(progress, 0.0, accuracy: 0.001)
     }
 
     func testExpProgress_100XP_level1_returnsHalf() {
         // Given: Level 1 spans 0-199 (200 XP range)
         // 100 XP = 50% progress
-        let elf = makeElf(currentExp: 100)
+        let progress = progressionService.expProgress(currentExp: 100)
 
         // Then
-        XCTAssertEqual(elf.level, 1)
-        XCTAssertEqual(elf.expProgress, 0.5, accuracy: 0.001)
+        XCTAssertEqual(progressionService.calculateLevel(currentExp: 100), 1)
+        XCTAssertEqual(progress, 0.5, accuracy: 0.001)
     }
 
     func testExpProgress_199XP_level1_almostFull() {
         // Given: 199 XP is almost at level 2
-        let elf = makeElf(currentExp: 199)
+        let progress = progressionService.expProgress(currentExp: 199)
 
         // Then
-        XCTAssertEqual(elf.level, 1)
-        XCTAssertEqual(elf.expProgress, 199.0 / 200.0, accuracy: 0.001)
+        XCTAssertEqual(progressionService.calculateLevel(currentExp: 199), 1)
+        XCTAssertEqual(progress, 199.0 / 200.0, accuracy: 0.001)
     }
 
     func testExpProgress_200XP_level2_returnsZero() {
         // Given: Just started level 2 (200-299 range)
-        let elf = makeElf(currentExp: 200)
+        let progress = progressionService.expProgress(currentExp: 200)
 
         // Then
-        XCTAssertEqual(elf.level, 2)
-        XCTAssertEqual(elf.expProgress, 0.0, accuracy: 0.001)
+        XCTAssertEqual(progressionService.calculateLevel(currentExp: 200), 2)
+        XCTAssertEqual(progress, 0.0, accuracy: 0.001)
     }
 
     func testExpProgress_250XP_level2_returnsHalf() {
         // Given: 250 XP is halfway through level 2 (200-299)
-        let elf = makeElf(currentExp: 250)
+        let progress = progressionService.expProgress(currentExp: 250)
 
         // Then
-        XCTAssertEqual(elf.level, 2)
-        XCTAssertEqual(elf.expProgress, 0.5, accuracy: 0.001)
+        XCTAssertEqual(progressionService.calculateLevel(currentExp: 250), 2)
+        XCTAssertEqual(progress, 0.5, accuracy: 0.001)
     }
 
     func testExpProgress_level12_returnsOne() {
         // Given: Max level always shows 100% progress
-        let elf = makeElf(currentExp: 1200)
+        let progress = progressionService.expProgress(currentExp: 1200)
 
         // Then
-        XCTAssertEqual(elf.level, 12)
-        XCTAssertEqual(elf.expProgress, 1.0, accuracy: 0.001)
+        XCTAssertEqual(progressionService.calculateLevel(currentExp: 1200), 12)
+        XCTAssertEqual(progress, 1.0, accuracy: 0.001)
     }
 
     func testExpProgress_level12_excessXP_returnsOne() {
         // Given: Even with excess XP, progress is capped at 100%
-        let elf = makeElf(currentExp: 9999)
+        let progress = progressionService.expProgress(currentExp: 9999)
 
         // Then
-        XCTAssertEqual(elf.level, 12)
-        XCTAssertEqual(elf.expProgress, 1.0, accuracy: 0.001)
+        XCTAssertEqual(progressionService.calculateLevel(currentExp: 9999), 12)
+        XCTAssertEqual(progress, 1.0, accuracy: 0.001)
     }
 
     // MARK: - TDD Consistency Tests
@@ -262,10 +245,10 @@ final class ElfInfoTests: XCTestCase {
 
         for (xp, expectedLevel) in testCases {
             // When
-            let elf = makeElf(currentExp: xp)
+            let level = progressionService.calculateLevel(currentExp: xp)
 
             // Then - impossible to have inconsistent state
-            XCTAssertEqual(elf.level, expectedLevel, "XP \(xp) should be level \(expectedLevel)")
+            XCTAssertEqual(level, expectedLevel, "XP \(xp) should be level \(expectedLevel)")
         }
     }
 
@@ -273,14 +256,15 @@ final class ElfInfoTests: XCTestCase {
         // Given: Various levels
         for level in 1...12 {
             let xp = level <= 1 ? 0 : level * 100
-            let elf = makeElf(currentExp: xp)
+            let calculatedLevel = progressionService.calculateLevel(currentExp: xp)
+            let expToNext = progressionService.expToNextLevel(currentExp: xp)
 
             // Then
-            XCTAssertEqual(elf.level, level)
+            XCTAssertEqual(calculatedLevel, level)
             if level < 12 {
-                XCTAssertEqual(elf.expToNextLevel, (level + 1) * 100)
+                XCTAssertEqual(expToNext, (level + 1) * 100)
             } else {
-                XCTAssertEqual(elf.expToNextLevel, 0)
+                XCTAssertEqual(expToNext, 0)
             }
         }
     }

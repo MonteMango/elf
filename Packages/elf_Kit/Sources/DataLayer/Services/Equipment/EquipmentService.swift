@@ -20,9 +20,6 @@ public protocol EquipmentService: AnyObject {
     /// Unequips weapon (only works for secondary in dual-wield mode)
     func unequipWeapon(id: UUID)
 
-    /// Returns true if any weapon can be unequipped (dual-wield mode only)
-    func canUnequipWeapon() -> Bool
-
     // MARK: - Shield
 
     /// Equips shield from inventory (only if current weapon config allows)

@@ -55,9 +55,4 @@ public struct DodgeDistribution: Equatable, Sendable {
     public var hasRange: Bool {
         return !rangeValues.isEmpty
     }
-
-    /// Total number of possible dodge chance values
-    public var totalValues: Int {
-        return rangeValues.count
-    }
 }

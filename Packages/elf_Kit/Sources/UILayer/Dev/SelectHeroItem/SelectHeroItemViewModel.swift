@@ -17,9 +17,7 @@ public final class SelectHeroItemViewModel {
 
     // MARK: - Input
 
-    public let heroType: HeroType
     public let heroItemType: HeroItemType
-    public let currentItemId: UUID?
 
     // MARK: - State
 
@@ -35,9 +33,7 @@ public final class SelectHeroItemViewModel {
         currentItemId: UUID?,
         itemsRepository: any ItemsRepository
     ) {
-        self.heroType = heroType
         self.heroItemType = heroItemType
-        self.currentItemId = currentItemId
         self.itemsRepository = itemsRepository
         self.selectedItemId = currentItemId
 

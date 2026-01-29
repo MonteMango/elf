@@ -19,11 +19,6 @@ public final class ElfShieldItem: ElfItem, Hashable, Equatable, @unchecked Senda
         self.item = item
     }
 
-    public init(shieldItem: ShieldItem) {
-        self.id = UUID()
-        self.item = shieldItem
-    }
-
     // MARK: - Hashable & Equatable
 
     public static func == (lhs: ElfShieldItem, rhs: ElfShieldItem) -> Bool {

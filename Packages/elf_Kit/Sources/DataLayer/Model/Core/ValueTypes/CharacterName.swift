@@ -27,47 +27,9 @@ public struct CharacterName: Sendable, Hashable, Equatable {
     /// The validated name string
     public let value: String
 
-    /// Minimum allowed length
-    public static let minLength = 2
-
-    /// Maximum allowed length
-    public static let maxLength = 30
-
-    /// Private initializer — use `parse` to create instances
+    /// Private initializer — use `unsafeCreate` to create instances
     private init(validated: String) {
         self.value = validated
-    }
-
-    /// Parses a raw string into a validated CharacterName.
-    ///
-    /// - Parameter raw: The raw input string
-    /// - Returns: A Result containing either the validated name or a validation error
-    public static func parse(_ raw: String) -> Result<CharacterName, NameValidationError> {
-        let trimmed = raw.trimmingCharacters(in: .whitespaces)
-
-        guard !trimmed.isEmpty else {
-            return .failure(.empty)
-        }
-
-        guard trimmed.count >= minLength else {
-            return .failure(.tooShort(minimum: minLength))
-        }
-
-        guard trimmed.count <= maxLength else {
-            return .failure(.tooLong(maximum: maxLength))
-        }
-
-        let allowedCharacters = CharacterSet.letters.union(.whitespaces)
-        guard trimmed.unicodeScalars.allSatisfy({ allowedCharacters.contains($0) }) else {
-            return .failure(.invalidCharacters)
-        }
-
-        // Check for multiple consecutive spaces
-        if trimmed.contains("  ") {
-            return .failure(.invalidCharacters)
-        }
-
-        return .success(CharacterName(validated: trimmed))
     }
 
     /// Creates a CharacterName unsafely (for internal use only).
@@ -77,36 +39,6 @@ public struct CharacterName: Sendable, Hashable, Equatable {
     /// - Returns: A CharacterName
     public static func unsafeCreate(_ value: String) -> CharacterName {
         CharacterName(validated: value)
-    }
-}
-
-// MARK: - Validation Error
-
-/// Errors that can occur when validating a character name
-public enum NameValidationError: Error, Equatable, Sendable, LocalizedError {
-    /// The name is empty
-    case empty
-
-    /// The name is shorter than the minimum length
-    case tooShort(minimum: Int)
-
-    /// The name is longer than the maximum length
-    case tooLong(maximum: Int)
-
-    /// The name contains invalid characters
-    case invalidCharacters
-
-    public var errorDescription: String? {
-        switch self {
-        case .empty:
-            return "Name cannot be empty"
-        case .tooShort(let minimum):
-            return "Name must be at least \(minimum) characters"
-        case .tooLong(let maximum):
-            return "Name must be at most \(maximum) characters"
-        case .invalidCharacters:
-            return "Name can only contain letters and spaces"
-        }
     }
 }
 

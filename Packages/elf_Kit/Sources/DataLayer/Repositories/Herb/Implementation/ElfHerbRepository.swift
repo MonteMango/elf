@@ -27,10 +27,6 @@ public final class ElfHerbRepository: HerbRepository {
 
     // MARK: - HerbRepository
 
-    public var herbData: HerbData {
-        base.data
-    }
-
     public func getHerb(id: HerbID) -> Herb? {
         base.getItem(id: id)
     }
@@ -39,18 +35,6 @@ public final class ElfHerbRepository: HerbRepository {
         base.getAllItems()
     }
 
-    public func getHerbsForArea(_ areaId: String) -> [Herb] {
-        guard let area = base.data.areas[areaId] else {
-            return []
-        }
-        return area.herbs.compactMap { herbId in
-            base.getItem(id: herbId)
-        }
-    }
-
-    public func getEffectDefinition(_ id: String) -> EffectDefinition? {
-        base.getEffectDefinition(id)
-    }
 }
 
 // MARK: - Sendable Conformance

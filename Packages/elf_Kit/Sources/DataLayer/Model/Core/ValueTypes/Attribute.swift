@@ -34,13 +34,6 @@ public struct Attribute: Sendable, Hashable, Equatable {
         self.value = max(0, value)
     }
 
-    /// Creates an attribute from an Int, clamping to Int16 range
-    /// - Parameter value: The raw value
-    public init(_ value: Int) {
-        let clamped = Int16(clamping: value)
-        self.value = max(0, clamped)
-    }
-
     /// Convenience accessor for Int value
     public var intValue: Int {
         Int(value)
@@ -79,57 +72,12 @@ extension Attribute: AdditiveArithmetic {
     }
 }
 
-// MARK: - Numeric Operations
+// MARK: - Int16 Operations
 
 extension Attribute {
-    /// Multiplies by a factor, returning a new Attribute
-    public func multiplied(by factor: Double) -> Attribute {
-        let result = Double(value) * factor
-        return Attribute(Int16(clamping: Int(result.rounded())))
-    }
-
-    /// Adds an Int16 value
-    public static func + (lhs: Attribute, rhs: Int16) -> Attribute {
-        lhs + Attribute(rhs)
-    }
-
-    /// Adds an Int value
-    public static func + (lhs: Attribute, rhs: Int) -> Attribute {
-        lhs + Attribute(rhs)
-    }
-
-    /// Subtracts an Int16 value
-    public static func - (lhs: Attribute, rhs: Int16) -> Attribute {
-        lhs - Attribute(rhs)
-    }
-}
-
-// MARK: - Compound Assignment Operators
-
-extension Attribute {
-    /// Adds another Attribute in place
-    public static func += (lhs: inout Attribute, rhs: Attribute) {
-        lhs = lhs + rhs
-    }
-
     /// Adds an Int16 value in place
     public static func += (lhs: inout Attribute, rhs: Int16) {
         lhs = lhs + Attribute(rhs)
-    }
-
-    /// Adds an Int value in place
-    public static func += (lhs: inout Attribute, rhs: Int) {
-        lhs = lhs + Attribute(rhs)
-    }
-
-    /// Subtracts another Attribute in place
-    public static func -= (lhs: inout Attribute, rhs: Attribute) {
-        lhs = lhs - rhs
-    }
-
-    /// Subtracts an Int16 value in place
-    public static func -= (lhs: inout Attribute, rhs: Int16) {
-        lhs = lhs - Attribute(rhs)
     }
 }
 

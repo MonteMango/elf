@@ -39,21 +39,4 @@ public struct House: Sendable, Identifiable, Equatable {
         self.isEliminated = isEliminated
         self.members = members
     }
-
-    // MARK: - Computed Properties
-
-    /// Number of alive members in the house
-    public var aliveMembersCount: Int {
-        members.filter { $0.currentHP > 0 }.count
-    }
-
-    /// Total level of all members
-    public var totalLevel: Int {
-        members.reduce(0) { $0 + Int($1.level) }
-    }
-
-    /// Average level of members
-    public var averageLevel: Double {
-        Double(totalLevel) / Double(House.membersCount)
-    }
 }

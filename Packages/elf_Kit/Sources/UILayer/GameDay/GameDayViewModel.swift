@@ -14,6 +14,8 @@ public final class GameDayViewModel {
     // MARK: - Dependencies
 
     private let gameService: any GameService
+    private let progressionService: any ProgressionService
+    private let equipmentQueryService: any EquipmentQueryService
 
     // MARK: - UI State
 
@@ -36,7 +38,7 @@ public final class GameDayViewModel {
     }
 
     public var characterLevel: Int {
-        game.player.level
+        progressionService.calculateLevel(currentExp: game.player.currentExp)
     }
 
     public var characterImageName: String {
@@ -51,16 +53,8 @@ public final class GameDayViewModel {
         Int(game.player.currentHP)
     }
 
-    public var maxHP: Int {
-        Int(game.player.maxHP)
-    }
-
     public var currentMP: Int {
         Int(game.player.currentMP)
-    }
-
-    public var maxMP: Int {
-        Int(game.player.maxMP)
     }
 
     public var reputation: Int {
@@ -68,7 +62,7 @@ public final class GameDayViewModel {
     }
 
     public var equippedItems: [HeroItemType: UUID] {
-        game.player.equippedItemIds
+        equipmentQueryService.equippedBaseItemIds(from: game.player.equipped)
     }
 
     public var currentExp: Int {
@@ -76,11 +70,11 @@ public final class GameDayViewModel {
     }
 
     public var expToNextLevel: Int {
-        game.player.expToNextLevel
+        progressionService.expToNextLevel(currentExp: game.player.currentExp)
     }
 
     public var xpProgress: Double {
-        game.player.expProgress
+        progressionService.expProgress(currentExp: game.player.currentExp)
     }
 
     // MARK: - Computed Properties (Game State)
@@ -91,8 +85,14 @@ public final class GameDayViewModel {
 
     // MARK: - Initialization
 
-    public init(gameService: any GameService) {
+    public init(
+        gameService: any GameService,
+        progressionService: any ProgressionService,
+        equipmentQueryService: any EquipmentQueryService
+    ) {
         self.gameService = gameService
+        self.progressionService = progressionService
+        self.equipmentQueryService = equipmentQueryService
         self.activeBuffs = []
     }
 
@@ -123,7 +123,7 @@ public final class GameDayViewModel {
     /// Called when an equipment slot is tapped
     public func onEquipmentSlotTapped(_ slotType: HeroItemType) {
         // Get the equipped item's instance ID for this slot
-        let itemId = game.player.equipped.equippedItemId(for: slotType)
+        let itemId = equipmentQueryService.equippedItemId(for: slotType, in: game.player.equipped)
         pendingInventoryItemId = itemId
         isInventoryVisible = true
     }
@@ -143,10 +143,5 @@ public final class GameDayViewModel {
         Task {
             try? await gameService.saveGame()
         }
-    }
-
-    /// Save game (called when app goes to background)
-    public func saveGame() async {
-        try? await gameService.saveGame()
     }
 }

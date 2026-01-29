@@ -14,6 +14,7 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
 
     private let attributeService: AttributeService
     private let itemsRepository: ItemsRepository
+    private let inventoryService: InventoryService
 
     // MARK: - Constants
 
@@ -33,9 +34,14 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
 
     // MARK: - Initialization
 
-    public init(attributeService: AttributeService, itemsRepository: ItemsRepository) {
+    public init(
+        attributeService: AttributeService,
+        itemsRepository: ItemsRepository,
+        inventoryService: InventoryService
+    ) {
         self.attributeService = attributeService
         self.itemsRepository = itemsRepository
+        self.inventoryService = inventoryService
     }
 
     // MARK: - Private Helpers
@@ -64,9 +70,9 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
         let shirt = createDefaultShirt()
 
         var inventory = ElfInventory()
-        inventory.addWeapon(weapon)
+        inventory = inventoryService.addWeapon(weapon, to: inventory)
         if let shirt {
-            inventory.addRobe(shirt)
+            inventory = inventoryService.addRobe(shirt, to: inventory)
         }
 
         let equipped = EquippedItems(

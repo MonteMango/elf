@@ -205,6 +205,6 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
 
         // Then
         XCTAssertTrue(distribution.hasRange)
-        XCTAssertEqual(distribution.totalValues, 11)
+        XCTAssertEqual(distribution.rangeValues.count, 11)
     }
 }

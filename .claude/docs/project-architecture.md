@@ -14,8 +14,81 @@ Models (Data)
 
 ### Principles:
 - **View** — clean, no business logic, only depends on ViewModel
-- **ViewModel** — clean, no business logic, only uses Services/Repositories/Builders
-- **Services** — all business logic
+- **ViewModel** — orchestration only, no business logic, delegates to Services
+- **Model** — pure data containers, no business logic
+- **Services/Repositories/Builders/Validators** — all business logic lives here
+
+---
+
+## Business Logic Rules
+
+### What IS business logic:
+- Calculations that use game constants (exp formulas, damage formulas)
+- Validation rules (name validation, equipment compatibility)
+- Factory methods that depend on services
+- Data transformation with game rules
+- UI formatting (description lines, stat display)
+
+### What is NOT business logic (can stay in Models):
+- Simple getters (count, isEmpty)
+- Simple math (progress = current / max)
+- Identity checks (isAlive = hp > 0)
+- Collection accessors (filter by simple condition)
+
+### Where business logic should live:
+
+| Type | Location | Example |
+|------|----------|---------|
+| Level calculations | `ProgressionService` | `calculateLevel(exp:)` |
+| Item creation | `*Factory` | `ElfInfoFactory` |
+| Stat calculations | `*Calculator` | `BattleResultCalculator` |
+| Validation | `*Validator` | `CharacterNameValidator` |
+| Data queries | `*Repository` | `MonsterRepository` |
+| UI formatting | `*Formatter` | `ItemDetailsFormatter` |
+| Aggregation | `*Aggregator` | `BattleStatisticsAggregator` |
+
+### ❌ Anti-patterns (avoid):
+
+```swift
+// BAD: Business logic in Model
+struct House {
+    var totalLevel: Int {
+        members.reduce(0) { $0 + max(1, min(12, $1.exp / 100)) }
+    }
+}
+
+// BAD: Factory method with service dependency in Model
+extension FarmSkillInfo {
+    static func make(for activity: FarmActivity,
+                     progressionService: ProgressionService) -> FarmSkillInfo
+}
+
+// BAD: UI formatting in Model
+struct WeaponDetails {
+    var descriptionLines: [String] {
+        ["Attack: \(attackMin)-\(attackMax)", ...]
+    }
+}
+```
+
+### ✅ Correct patterns:
+
+```swift
+// GOOD: Pure data container
+struct House {
+    let totalLevel: Int  // Computed by HouseService at creation
+}
+
+// GOOD: Service handles creation
+class DefaultFarmActivityService {
+    func getSkillInfo(for activity: FarmActivity, player: ElfInfo) -> FarmSkillInfo
+}
+
+// GOOD: Formatter in UILayer
+struct ItemDetailsFormatter {
+    func descriptionLines(for details: ItemDetails) -> [String]
+}
+```
 
 ---
 

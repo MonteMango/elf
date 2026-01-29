@@ -33,9 +33,7 @@ public final class ElfGameInitializationService: GameInitializationService {
     // MARK: - GameInitializationService
 
     public func createNewGame(
-        playerCharacter: PlayerCharacter,
-        fightStyleAttributes: HeroAttributes,
-        randomLevelAttributes: HeroAttributes
+        playerCharacter: PlayerCharacter
     ) async throws -> Game {
         // Create ElfInfo from player character
         let playerElfInfo = elfInfoFactory.create(from: playerCharacter)

@@ -9,14 +9,19 @@ import Foundation
 
 public final class DefaultMiningService: MiningService {
 
+    // MARK: - Dependencies
+
+    private let skillProgressCalculator: any SkillProgressCalculator
+
     // MARK: - Initialization
 
-    public init() {}
+    public init(skillProgressCalculator: any SkillProgressCalculator) {
+        self.skillProgressCalculator = skillProgressCalculator
+    }
 
     // MARK: - MiningService
 
     public func performMining(
-        areaId: String,
         availableOres: [Ore],
         currentLevel: Int,
         currentExp: Int,
@@ -25,17 +30,12 @@ public final class DefaultMiningService: MiningService {
         // Use unified gathering engine (uses GatheringEngine.defaultMaxCount)
         let minedOres = GatheringEngine.gather(from: availableOres)
 
-        // Calculate mining XP gained based on GatherableTier.xpValue
-        let expGained = minedOres.reduce(0) { total, ore in
-            total + ore.tier.xpValue
-        }
-
-        // Calculate skill progress
-        let skillProgress = SkillProgressData.calculate(
+        // Calculate skill progress from gathered ores
+        let skillProgress = skillProgressCalculator.calculateFromGathered(
+            minedOres,
             skillName: "Mining",
             currentLevel: currentLevel,
             currentExp: currentExp,
-            expGained: expGained,
             expPerLevel: expPerLevel
         )
 

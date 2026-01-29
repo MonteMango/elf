@@ -41,18 +41,6 @@ public struct WeaponConfigSaveData: Codable, Sendable, Equatable {
     public let shield: ShieldSaveData?
     public let secondaryWeapon: WeaponSaveData?
 
-    public init(
-        type: ConfigType,
-        weapon: WeaponSaveData? = nil,
-        shield: ShieldSaveData? = nil,
-        secondaryWeapon: WeaponSaveData? = nil
-    ) {
-        self.type = type
-        self.weapon = weapon
-        self.shield = shield
-        self.secondaryWeapon = secondaryWeapon
-    }
-
     /// Create from WeaponConfiguration
     public init(from config: WeaponConfiguration) {
         switch config {
@@ -153,30 +141,6 @@ public struct EquippedItemsSaveData: Codable, Sendable, Equatable {
     public let earrings: JewelrySaveData?
 
     // MARK: - Initialization
-
-    public init(
-        weaponConfig: WeaponConfigSaveData,
-        helmet: DefenseSaveData? = nil,
-        gloves: DefenseSaveData? = nil,
-        shoes: DefenseSaveData? = nil,
-        upperBody: DefenseSaveData? = nil,
-        bottomBody: DefenseSaveData? = nil,
-        shirt: RobeSaveData? = nil,
-        ring: JewelrySaveData? = nil,
-        necklace: JewelrySaveData? = nil,
-        earrings: JewelrySaveData? = nil
-    ) {
-        self.weaponConfig = weaponConfig
-        self.helmet = helmet
-        self.gloves = gloves
-        self.shoes = shoes
-        self.upperBody = upperBody
-        self.bottomBody = bottomBody
-        self.shirt = shirt
-        self.ring = ring
-        self.necklace = necklace
-        self.earrings = earrings
-    }
 
     /// Create from EquippedItems
     public init(from equipped: EquippedItems) {

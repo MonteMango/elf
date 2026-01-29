@@ -13,12 +13,14 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
 
     private let huntService: HuntService
     private let dropService: DropService
+    private let progressionService: ProgressionService
 
     // MARK: - Initialization
 
-    public init(huntService: HuntService, dropService: DropService) {
+    public init(huntService: HuntService, dropService: DropService, progressionService: ProgressionService) {
         self.huntService = huntService
         self.dropService = dropService
+        self.progressionService = progressionService
     }
 
     // MARK: - BattleResultCalculator
@@ -52,9 +54,9 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
 
         if let gameService = gameService {
             let player = gameService.game.player
-            previousLevel = player.level
+            previousLevel = progressionService.calculateLevel(currentExp: player.currentExp)
             previousExp = player.currentExp
-            previousExpToNext = player.expToNextLevel
+            previousExpToNext = progressionService.expToNextLevel(currentExp: player.currentExp)
         } else {
             // Fallback for non-game battles
             previousLevel = 1
@@ -85,9 +87,9 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
 
         if let gameService = gameService {
             let player = gameService.game.player
-            newLevel = player.level
+            newLevel = progressionService.calculateLevel(currentExp: player.currentExp)
             newExp = player.currentExp
-            newExpToNext = player.expToNextLevel
+            newExpToNext = progressionService.expToNextLevel(currentExp: player.currentExp)
         } else {
             // Fallback: simulate simple XP addition using new formula
             let totalExp = previousExp + experienceGained

@@ -127,7 +127,11 @@ enum PreviewMockData {
                     members.append(createMockAIElf())
                 }
             }
-            houses.append(House(name: template.0, logoImageName: template.1, members: members))
+            houses.append(House(
+                name: template.0,
+                logoImageName: template.1,
+                members: members
+            ))
         }
 
         let calendarService = DefaultCalendarService()
@@ -150,12 +154,19 @@ enum PreviewMockData {
 
     @MainActor
     static func createMockGameService() -> DefaultGameService {
-        DefaultGameService(game: createMockGame())
+        DefaultGameService(
+            game: createMockGame(),
+            inventoryService: ElfInventoryService()
+        )
     }
 
     @MainActor
     static func createMockGameDayViewModel() -> GameDayViewModel {
-        GameDayViewModel(gameService: createMockGameService())
+        GameDayViewModel(
+            gameService: createMockGameService(),
+            progressionService: ElfProgressionService(),
+            equipmentQueryService: ElfEquipmentQueryService()
+        )
     }
 
     @MainActor
@@ -165,16 +176,8 @@ enum PreviewMockData {
         return InventoryViewModel(
             gameService: gameService,
             equipmentService: equipmentService,
-            materialRepository: ElfMaterialRepository()
-        )
-    }
-
-    static func createMockSnapshotBuilder() -> DefaultCombatantSnapshotBuilder {
-        let itemsRepository = ElfItemsRepository()
-        let armorService = ElfArmorService(itemsRepository: itemsRepository)
-        return DefaultCombatantSnapshotBuilder(
-            itemsRepository: itemsRepository,
-            armorService: armorService
+            materialRepository: ElfMaterialRepository(),
+            equipmentQueryService: ElfEquipmentQueryService()
         )
     }
 }

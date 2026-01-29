@@ -41,7 +41,7 @@ public struct GameState: Sendable, Equatable, Codable {
         }
         let nextIndex = currentIndex + 1
         guard nextIndex < calendar.count else { return [] }
-        let endIndex = min(nextIndex + 3, calendar.count)
+        let endIndex = min(nextIndex + GameMechanicsConstants.upcomingDaysCount, calendar.count)
         return Array(calendar[nextIndex..<endIndex])
     }
 

@@ -8,7 +8,7 @@
 import Foundation
 
 /// Errors that can occur during game save/load operations
-public enum GameSaveError: Error, LocalizedError {
+enum GameSaveError: Error, LocalizedError {
     case checksumMismatch
     case unsupportedVersion(Int)
     case migrationFailed(from: Int, to: Int)

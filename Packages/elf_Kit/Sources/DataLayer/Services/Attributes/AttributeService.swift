@@ -13,8 +13,6 @@ import Foundation
 /// - Fight style attributes
 /// - Random level attributes
 /// - Item attributes
-/// - HP calculation
 public protocol AttributeService: FightStyleAttributeProvider,
                                   RandomAttributeGenerator,
-                                  ItemAttributeAggregator,
-                                  HPCalculator {}
+                                  ItemAttributeAggregator {}

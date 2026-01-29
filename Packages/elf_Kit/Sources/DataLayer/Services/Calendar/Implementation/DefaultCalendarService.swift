@@ -22,9 +22,11 @@ public final class DefaultCalendarService: CalendarService {
 
     // MARK: - CalendarService Properties
 
-    public let totalDays: Int = 160
     public let daysPerIteration: Int = 16
-    public let totalIterations: Int = 10
+
+    // MARK: - Private Properties
+
+    private let totalDays: Int = 160
 
     // MARK: - Initialization
 
@@ -38,7 +40,9 @@ public final class DefaultCalendarService: CalendarService {
         }
     }
 
-    public func dayType(for dayNumber: Int) -> DayType {
+    // MARK: - Private Helpers
+
+    private func dayType(for dayNumber: Int) -> DayType {
         // Position within iteration (1-16)
         let positionInIteration = ((dayNumber - 1) % daysPerIteration) + 1
 
@@ -52,18 +56,5 @@ public final class DefaultCalendarService: CalendarService {
         default:
             return .normal
         }
-    }
-
-    public func updateDayType(dayNumber: Int, newType: DayType, in calendar: inout [GameDay]) {
-        guard let index = calendar.firstIndex(where: { $0.dayNumber == dayNumber }) else {
-            return
-        }
-
-        let existingDay = calendar[index]
-        calendar[index] = GameDay(
-            id: existingDay.id,
-            dayNumber: dayNumber,
-            dayType: newType
-        )
     }
 }

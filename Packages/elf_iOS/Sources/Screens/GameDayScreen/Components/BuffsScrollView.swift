@@ -31,7 +31,7 @@ struct BuffsScrollView: View {
     }
 
     @ViewBuilder
-    private func buffSlot(isEmpty: Bool, buffName: String? = nil) -> some View {
+    private func buffSlot(isEmpty _: Bool, buffName: String? = nil) -> some View {
         RoundedRectangle(cornerRadius: 0)
             .fill(ElfColors.Interactive.slotBackground)
             .frame(

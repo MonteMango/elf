@@ -305,7 +305,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             imageName: "",
             level: 1,
             fightStyleAttributes: attributes,
-            randomLevelAttributes: .zero,
+            randomLevelAttributes: HeroAttributes(),
             selectedItems: [:]
         )
 
@@ -334,7 +334,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             imageName: "",
             level: 1,
             fightStyleAttributes: attributes,
-            randomLevelAttributes: .zero,
+            randomLevelAttributes: HeroAttributes(),
             selectedItems: [:]
         )
 

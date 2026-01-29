@@ -13,7 +13,6 @@ public final class MainMenuViewModel {
 
     // MARK: - Dependencies
 
-    private let itemsRepository: any ItemsRepository
     private let gameRepository: any GameRepository
 
     // MARK: - State
@@ -35,8 +34,7 @@ public final class MainMenuViewModel {
 
     // MARK: - Initialization
 
-    public init(itemsRepository: any ItemsRepository, gameRepository: any GameRepository) {
-        self.itemsRepository = itemsRepository
+    public init(gameRepository: any GameRepository) {
         self.gameRepository = gameRepository
         self.hasSavedGame = gameRepository.hasAnySave()
     }

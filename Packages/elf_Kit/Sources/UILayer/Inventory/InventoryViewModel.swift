@@ -16,6 +16,7 @@ public final class InventoryViewModel {
     let gameService: any GameService
     let equipmentService: any EquipmentService
     let materialRepository: any MaterialRepository
+    let equipmentQueryService: any EquipmentQueryService
 
     // MARK: - State
 
@@ -86,11 +87,13 @@ public final class InventoryViewModel {
     public init(
         gameService: any GameService,
         equipmentService: any EquipmentService,
-        materialRepository: any MaterialRepository
+        materialRepository: any MaterialRepository,
+        equipmentQueryService: any EquipmentQueryService
     ) {
         self.gameService = gameService
         self.equipmentService = equipmentService
         self.materialRepository = materialRepository
+        self.equipmentQueryService = equipmentQueryService
     }
 
     // MARK: - Actions

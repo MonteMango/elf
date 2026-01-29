@@ -61,13 +61,6 @@ public final class DefaultEquipmentService: EquipmentService {
         }
     }
 
-    public func canUnequipWeapon() -> Bool {
-        if case .dualWield = player.equipped.weapons {
-            return true
-        }
-        return false
-    }
-
     // MARK: - Shield
 
     public func equipShield(id: UUID) {

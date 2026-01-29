@@ -53,11 +53,6 @@ public struct CritMultiplierDistribution: Equatable, Sendable {
         return weights.reduce(0, +)
     }
 
-    /// Number of available multipliers
-    public var count: Int {
-        return values.count
-    }
-
     // MARK: - Agility-based Adjustment
 
     /// Creates an adjusted distribution based on defender's agility advantage

@@ -14,6 +14,10 @@ xcodebuild -scheme elf -destination 'platform=iOS Simulator,name=iPhone 17 Pro' 
 
 # Tests
 xcodebuild test -scheme elf_Kit -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+
+# Dead code detection (requires: brew install peripheryapp/periphery/periphery)
+./scripts/periphery-scan.sh              # all packages
+./scripts/periphery-scan.sh elf_Kit      # single package
 ```
 
 **Note:** Always run unit tests after making code changes to ensure nothing is broken.
@@ -47,13 +51,23 @@ App supports **landscape orientation only**.
 ---
 
 ## Documentation
-- **Architecture:** `.claude/docs/project-architecture.md`
-- **Design System:** `.claude/docs/project-architecture.md#design-system` (Colors, Fonts, Spacing in elf_SwiftUI)
-- **SwiftUI patterns:** `.claude/docs/swiftui-patterns.md`
-- **Persistence:** `.claude/docs/persistence-patterns.md`
-- **Common mistakes:** `.claude/docs/common-mistakes.md`
-- **Game design:** `.claude/docs/game-design.md`
 
-Before writing code, check `.claude/docs/` for current patterns.
+**Read before specific tasks:**
+
+| Task | Read first |
+|------|------------|
+| Adding new screen | `project-architecture.md` — Screen/ScreenContent pattern, DI |
+| Creating ViewModel or Service | `project-architecture.md` — Business Logic Rules |
+| Writing SwiftUI views | `swiftui-patterns.md` — @Observable, .task{}, @Bindable |
+| Saving/loading game data | `persistence-patterns.md` — ID-Reference pattern, migrations |
+| Creating new types/models | `type-driven-design.md` — Make impossible states unrepresentable |
+| Working with async/actors | `threading-model.md` — @MainActor, actors, thread safety |
+| Using colors, fonts, spacing | `project-architecture.md` — Design System section |
+| Unsure about something | `common-mistakes.md` — check anti-patterns first! |
+| Game mechanics questions | `game-design.md` — Combat, Activities, Attributes |
+
+**Quick reference:**
+- All docs: `.claude/docs/`
+- Design tokens: `elf_SwiftUI/Sources/DesignSystem/`
 
 **Important:** All UI styles (colors, fonts, spacing, sizing) are in `elf_SwiftUI/Sources/DesignSystem/`. Do NOT create local style constants in `elf_iOS` - extend the central design system instead.

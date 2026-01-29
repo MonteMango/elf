@@ -12,6 +12,10 @@ import Foundation
 @MainActor
 public final class DefaultFarmActivityService: FarmActivityService {
 
+    // MARK: - Constants
+
+    private let farmExpPerLevel = 50
+
     // MARK: - Dependencies
 
     private let fishingService: any FishingService
@@ -20,6 +24,7 @@ public final class DefaultFarmActivityService: FarmActivityService {
     private let fishRepository: any FishRepository
     private let herbRepository: any HerbRepository
     private let oreRepository: any OreRepository
+    private let progressionService: any ProgressionService
 
     // MARK: - Initialization
 
@@ -29,7 +34,8 @@ public final class DefaultFarmActivityService: FarmActivityService {
         miningService: any MiningService,
         fishRepository: any FishRepository,
         herbRepository: any HerbRepository,
-        oreRepository: any OreRepository
+        oreRepository: any OreRepository,
+        progressionService: any ProgressionService
     ) {
         self.fishingService = fishingService
         self.foragingService = foragingService
@@ -37,6 +43,7 @@ public final class DefaultFarmActivityService: FarmActivityService {
         self.fishRepository = fishRepository
         self.herbRepository = herbRepository
         self.oreRepository = oreRepository
+        self.progressionService = progressionService
     }
 
     // MARK: - FarmActivityService
@@ -50,7 +57,6 @@ public final class DefaultFarmActivityService: FarmActivityService {
         switch activity {
         case .fishing:
             let result = fishingService.performFishing(
-                areaId: "forest_pond",
                 availableFish: fishRepository.getAllFish(),
                 currentLevel: currentLevel,
                 currentExp: currentExp,
@@ -60,7 +66,6 @@ public final class DefaultFarmActivityService: FarmActivityService {
 
         case .foraging:
             let result = foragingService.performForaging(
-                areaId: "forest_glade",
                 availableHerbs: herbRepository.getAllHerbs(),
                 currentLevel: currentLevel,
                 currentExp: currentExp,
@@ -70,7 +75,6 @@ public final class DefaultFarmActivityService: FarmActivityService {
 
         case .mining:
             let result = miningService.performMining(
-                areaId: "crystal_cave",
                 availableOres: oreRepository.getAllOres(),
                 currentLevel: currentLevel,
                 currentExp: currentExp,
@@ -92,7 +96,19 @@ public final class DefaultFarmActivityService: FarmActivityService {
     }
 
     public func getSkillInfo(for activity: FarmActivity, player: ElfInfo) -> FarmSkillInfo {
-        FarmSkillInfo.make(for: activity, player: player)
+        let (exp, title) = switch activity {
+        case .fishing: (player.fishingExp, "\(activity.title) skill")
+        case .foraging: (player.foragingExp, "\(activity.title) skill")
+        case .mining: (player.miningExp, "\(activity.title) skill")
+        }
+
+        return FarmSkillInfo(
+            title: title,
+            level: progressionService.farmingLevel(exp: exp),
+            progress: progressionService.farmingProgress(exp: exp),
+            expInLevel: exp % farmExpPerLevel,
+            expPerLevel: farmExpPerLevel
+        )
     }
 
     public func applyResult(_ result: FarmActivityResult, to gameService: any GameStateService) {

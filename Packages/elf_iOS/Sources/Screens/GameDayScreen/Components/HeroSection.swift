@@ -14,14 +14,10 @@ struct HeroSection: View {
     let imageName: String
     let equippedItems: [HeroItemType: UUID]
     let currentHP: Int
-    let maxHP: Int
     let currentMP: Int
-    let maxMP: Int
     let reputation: Int
     let onEquipmentSlotTapped: (HeroItemType) -> Void
     let onPocketTapped: (Int) -> Void
-
-    private let maxHeroSectionWidth: CGFloat = 350
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -96,10 +92,6 @@ struct HeroSection: View {
         jewelrySlotSize + ElfSpacing.medium + ElfSizing.GameDay.pocketSize
     }
 
-    private var sideSpacing: CGFloat {
-        40
-    }
-
     private var jewelryTypes: Set<HeroItemType> {
         [.ring, .necklace, .earrings]
     }
@@ -156,9 +148,7 @@ struct HeroSection: View {
         imageName: "Yuuki Asuna",
         equippedItems: [:],
         currentHP: 83,
-        maxHP: 100,
         currentMP: 24,
-        maxMP: 50,
         reputation: 148,
         onEquipmentSlotTapped: { _ in },
         onPocketTapped: { _ in }

@@ -27,10 +27,6 @@ public final class ElfFishRepository: FishRepository {
 
     // MARK: - FishRepository
 
-    public var fishData: FishData {
-        base.data
-    }
-
     public func getFish(id: FishID) -> Fish? {
         base.getItem(id: id)
     }
@@ -39,18 +35,6 @@ public final class ElfFishRepository: FishRepository {
         base.getAllItems()
     }
 
-    public func getFishForArea(_ areaId: String) -> [Fish] {
-        guard let area = base.data.areas[areaId] else {
-            return []
-        }
-        return area.fish.compactMap { fishId in
-            base.getItem(id: fishId)
-        }
-    }
-
-    public func getEffectDefinition(_ id: String) -> EffectDefinition? {
-        base.getEffectDefinition(id)
-    }
 }
 
 // MARK: - Sendable Conformance

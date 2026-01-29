@@ -87,7 +87,7 @@ struct CreateCharacterStageView: View {
         }
     }
 
-    private func stageBorderColor(isVisited: Bool, isCurrent: Bool) -> Color {
+    private func stageBorderColor(isVisited _: Bool, isCurrent: Bool) -> Color {
         if isCurrent {
             return Color(red: 0.9, green: 0.3, blue: 0.4)
         }

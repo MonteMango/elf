@@ -16,7 +16,7 @@ public final class DefaultHouseService: HouseService {
 
     // MARK: - Properties
 
-    public let templates: [HouseTemplate] = [
+    private let templates: [HouseTemplate] = [
         HouseTemplate(name: "Phoenix", logoImageName: "house_phoenix"),
         HouseTemplate(name: "Dragon", logoImageName: "house_dragon"),
         HouseTemplate(name: "Wolf", logoImageName: "house_wolf"),
@@ -35,7 +35,45 @@ public final class DefaultHouseService: HouseService {
 
     // MARK: - HouseService
 
-    public func createHouse(templateIndex: Int, level: Int) async -> House {
+    public func createAllHouses(
+        playerElfInfo: ElfInfo
+    ) async -> (houses: [House], playerHouseIndex: Int, playerMemberIndex: Int) {
+        // Randomly select house and position for the player
+        let playerHouseIndex = Int.random(in: 0..<Game.housesCount)
+        let playerMemberIndex = Int.random(in: 0..<House.membersCount)
+
+        // Create all 8 houses in parallel
+        let houses = await withTaskGroup(of: (Int, House).self) { group in
+            for houseIndex in 0..<Game.housesCount {
+                group.addTask {
+                    let house: House
+                    if houseIndex == playerHouseIndex {
+                        house = await self.createHouse(
+                            templateIndex: houseIndex,
+                            level: 1,
+                            playerElfInfo: playerElfInfo,
+                            playerMemberIndex: playerMemberIndex
+                        )
+                    } else {
+                        house = await self.createHouse(templateIndex: houseIndex, level: 1)
+                    }
+                    return (houseIndex, house)
+                }
+            }
+
+            var results: [(Int, House)] = []
+            for await result in group {
+                results.append(result)
+            }
+            return results.sorted { $0.0 < $1.0 }.map { $0.1 }
+        }
+
+        return (houses, playerHouseIndex, playerMemberIndex)
+    }
+
+    // MARK: - Private Helpers
+
+    private func createHouse(templateIndex: Int, level: Int) async -> House {
         precondition(templateIndex >= 0 && templateIndex < templates.count, "Invalid template index")
 
         let template = templates[templateIndex]
@@ -61,7 +99,7 @@ public final class DefaultHouseService: HouseService {
         )
     }
 
-    public func createHouse(
+    private func createHouse(
         templateIndex: Int,
         level: Int,
         playerElfInfo: ElfInfo,
@@ -98,41 +136,5 @@ public final class DefaultHouseService: HouseService {
             logoImageName: template.logoImageName,
             members: members
         )
-    }
-
-    public func createAllHouses(
-        playerElfInfo: ElfInfo
-    ) async -> (houses: [House], playerHouseIndex: Int, playerMemberIndex: Int) {
-        // Randomly select house and position for the player
-        let playerHouseIndex = Int.random(in: 0..<Game.housesCount)
-        let playerMemberIndex = Int.random(in: 0..<House.membersCount)
-
-        // Create all 8 houses in parallel
-        let houses = await withTaskGroup(of: (Int, House).self) { group in
-            for houseIndex in 0..<Game.housesCount {
-                group.addTask {
-                    let house: House
-                    if houseIndex == playerHouseIndex {
-                        house = await self.createHouse(
-                            templateIndex: houseIndex,
-                            level: 1,
-                            playerElfInfo: playerElfInfo,
-                            playerMemberIndex: playerMemberIndex
-                        )
-                    } else {
-                        house = await self.createHouse(templateIndex: houseIndex, level: 1)
-                    }
-                    return (houseIndex, house)
-                }
-            }
-
-            var results: [(Int, House)] = []
-            for await result in group {
-                results.append(result)
-            }
-            return results.sorted { $0.0 < $1.0 }.map { $0.1 }
-        }
-
-        return (houses, playerHouseIndex, playerMemberIndex)
     }
 }

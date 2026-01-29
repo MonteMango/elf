@@ -45,23 +45,6 @@ public enum ItemDetails: Equatable, Sendable {
     case jewelry(JewelryDetails)
     case material(MaterialDetails)
     case potionScroll(PotionScrollDetails)
-
-    public var descriptionLines: [String] {
-        switch self {
-        case .weapon(let details):
-            return details.descriptionLines
-        case .armor(let details):
-            return details.descriptionLines
-        case .shield(let details):
-            return details.descriptionLines
-        case .jewelry(let details):
-            return details.descriptionLines
-        case .material(let details):
-            return details.descriptionLines
-        case .potionScroll(let details):
-            return details.descriptionLines
-        }
-    }
 }
 
 // MARK: - Weapon Details
@@ -101,23 +84,6 @@ public struct WeaponDetails: Equatable, Sendable {
         self.hitPoints = hitPoints
         self.enchantLevel = enchantLevel
     }
-
-    public var descriptionLines: [String] {
-        var lines: [String] = []
-        lines.append("Attack: \(attackMin)-\(attackMax)")
-        lines.append("Attack points: \(attackPoints)")
-        lines.append("Hands use: \(handUse)")
-        lines.append("")
-        if strength > 0 { lines.append("Strength: \(strength)") }
-        if agility > 0 { lines.append("Agility: \(agility)") }
-        if power > 0 { lines.append("Power: \(power)") }
-        if instinct > 0 { lines.append("Instinct: \(instinct)") }
-        if hitPoints > 0 { lines.append("HP: \(hitPoints)") }
-        if let enchant = enchantLevel, enchant > 0 {
-            lines.append("Enchant: +\(enchant)")
-        }
-        return lines
-    }
 }
 
 // MARK: - Armor Details
@@ -148,21 +114,6 @@ public struct ArmorDetails: Equatable, Sendable {
         self.instinct = instinct
         self.hitPoints = hitPoints
     }
-
-    public var descriptionLines: [String] {
-        var lines: [String] = []
-        lines.append("Defense: \(defense)")
-        if !protectedParts.isEmpty {
-            lines.append("Protects: \(protectedParts.joined(separator: ", "))")
-        }
-        lines.append("")
-        if strength > 0 { lines.append("Strength: \(strength)") }
-        if agility > 0 { lines.append("Agility: \(agility)") }
-        if power > 0 { lines.append("Power: \(power)") }
-        if instinct > 0 { lines.append("Instinct: \(instinct)") }
-        if hitPoints > 0 { lines.append("HP: \(hitPoints)") }
-        return lines
-    }
 }
 
 // MARK: - Shield Details
@@ -186,17 +137,6 @@ public struct ShieldDetails: Equatable, Sendable {
         self.strength = strength
         self.agility = agility
         self.hitPoints = hitPoints
-    }
-
-    public var descriptionLines: [String] {
-        var lines: [String] = []
-        lines.append("Defense: \(defense)")
-        lines.append("Block points: +\(blockPoints)")
-        lines.append("")
-        if strength > 0 { lines.append("Strength: \(strength)") }
-        if agility > 0 { lines.append("Agility: \(agility)") }
-        if hitPoints > 0 { lines.append("HP: \(hitPoints)") }
-        return lines
     }
 }
 
@@ -228,19 +168,6 @@ public struct JewelryDetails: Equatable, Sendable {
         self.hitPoints = hitPoints
         self.manaPoints = manaPoints
     }
-
-    public var descriptionLines: [String] {
-        var lines: [String] = []
-        if magicDefense > 0 { lines.append("Magic defense: \(magicDefense)") }
-        lines.append("")
-        if strength > 0 { lines.append("Strength: \(strength)") }
-        if agility > 0 { lines.append("Agility: \(agility)") }
-        if power > 0 { lines.append("Power: \(power)") }
-        if instinct > 0 { lines.append("Instinct: \(instinct)") }
-        if hitPoints > 0 { lines.append("HP: \(hitPoints)") }
-        if manaPoints > 0 { lines.append("MP: \(manaPoints)") }
-        return lines
-    }
 }
 
 // MARK: - Material Details
@@ -259,10 +186,6 @@ public struct MaterialDetails: Equatable, Sendable {
         self.stackSize = stackSize
         self.subcategory = subcategory
     }
-
-    public var descriptionLines: [String] {
-        [description]
-    }
 }
 
 // MARK: - Potion/Scroll Details (placeholder)
@@ -274,13 +197,5 @@ public struct PotionScrollDetails: Equatable, Sendable {
     public init(effect: String, duration: Int? = nil) {
         self.effect = effect
         self.duration = duration
-    }
-
-    public var descriptionLines: [String] {
-        var lines = [effect]
-        if let dur = duration {
-            lines.append("Duration: \(dur) turns")
-        }
-        return lines
     }
 }

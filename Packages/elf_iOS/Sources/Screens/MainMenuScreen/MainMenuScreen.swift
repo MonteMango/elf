@@ -8,10 +8,10 @@
 import elf_Kit
 import SwiftUI
 
-public struct MainMenuScreen: View {
+struct MainMenuScreen: View {
     @Environment(ElfAppDependencyContainer.self) private var container
 
-    public init() {}
+    init() {}
 
     public var body: some View {
         MainMenuScreenContent(

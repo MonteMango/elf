@@ -48,8 +48,11 @@ public struct ElfSaveData: Codable, Sendable {
         self.reputation = elf.reputation
     }
 
-    /// Convert to ElfInfo using ItemsRepository
-    public func toElfInfo(itemsRepository: ItemsRepository) throws -> ElfInfo {
+    /// Convert to ElfInfo using ItemsRepository and InventoryService
+    public func toElfInfo(
+        itemsRepository: ItemsRepository,
+        inventoryService: InventoryService
+    ) throws -> ElfInfo {
         ElfInfo(
             id: id,
             name: name,
@@ -64,7 +67,10 @@ public struct ElfSaveData: Codable, Sendable {
             currentHP: currentHP,
             currentMP: currentMP,
             equipped: equipped.toEquippedItems(using: itemsRepository),
-            inventory: try inventory.toElfInventory(itemsRepository: itemsRepository),
+            inventory: try inventory.toElfInventory(
+                itemsRepository: itemsRepository,
+                inventoryService: inventoryService
+            ),
             reputation: reputation
         )
     }

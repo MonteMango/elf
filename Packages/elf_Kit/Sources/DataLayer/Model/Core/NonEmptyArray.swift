@@ -35,9 +35,6 @@ public struct NonEmptyArray<Element: Sendable>: Sendable {
     /// Whether this collection has exactly one element
     public var isSingle: Bool { rest.isEmpty }
 
-    /// The last element
-    public var last: Element { rest.last ?? first }
-
     /// Creates a NonEmptyArray with a guaranteed first element
     /// - Parameters:
     ///   - first: The first element
@@ -70,36 +67,6 @@ public struct NonEmptyArray<Element: Sendable>: Sendable {
         [first] + rest
     }
 
-    /// Returns true if all elements satisfy the predicate
-    public func allSatisfy(_ predicate: (Element) -> Bool) -> Bool {
-        predicate(first) && rest.allSatisfy(predicate)
-    }
-
-    /// Returns true if any element satisfies the predicate
-    public func contains(where predicate: (Element) -> Bool) -> Bool {
-        predicate(first) || rest.contains(where: predicate)
-    }
-
-    /// Maps each element using the transform function
-    public func map<T: Sendable>(_ transform: (Element) -> T) -> NonEmptyArray<T> {
-        NonEmptyArray<T>(first: transform(first), rest: rest.map(transform))
-    }
-
-    /// Appends an element to the end
-    public func appending(_ element: Element) -> NonEmptyArray<Element> {
-        NonEmptyArray(first: first, rest: rest + [element])
-    }
-
-    /// Prepends an element to the beginning
-    public func prepending(_ element: Element) -> NonEmptyArray<Element> {
-        NonEmptyArray(first: element, rest: [first] + rest)
-    }
-
-    /// Returns element at index, or nil if out of bounds
-    public func safeElement(at index: Int) -> Element? {
-        guard index >= 0 && index < count else { return nil }
-        return index == 0 ? first : rest[index - 1]
-    }
 }
 
 // MARK: - Equatable

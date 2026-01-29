@@ -88,9 +88,7 @@ internal struct GameDayScreenContent: View {
                 imageName: viewModel.characterImageName,
                 equippedItems: viewModel.equippedItems,
                 currentHP: viewModel.currentHP,
-                maxHP: viewModel.maxHP,
                 currentMP: viewModel.currentMP,
-                maxMP: viewModel.maxMP,
                 reputation: viewModel.reputation,
                 onEquipmentSlotTapped: viewModel.onEquipmentSlotTapped,
                 onPocketTapped: viewModel.onPocketTapped

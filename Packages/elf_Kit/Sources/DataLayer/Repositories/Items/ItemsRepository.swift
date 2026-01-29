@@ -9,8 +9,6 @@ import Foundation
 
 public protocol ItemsRepository: Sendable {
 
-    var heroItems: HeroItems { get }
-
     func getHeroItem(_ id: UUID) -> Item?
 
     /// Get all items of a specific type

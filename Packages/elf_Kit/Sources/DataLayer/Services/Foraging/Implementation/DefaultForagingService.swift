@@ -9,14 +9,19 @@ import Foundation
 
 public final class DefaultForagingService: ForagingService {
 
+    // MARK: - Dependencies
+
+    private let skillProgressCalculator: any SkillProgressCalculator
+
     // MARK: - Initialization
 
-    public init() {}
+    public init(skillProgressCalculator: any SkillProgressCalculator) {
+        self.skillProgressCalculator = skillProgressCalculator
+    }
 
     // MARK: - ForagingService
 
     public func performForaging(
-        areaId: String,
         availableHerbs: [Herb],
         currentLevel: Int,
         currentExp: Int,
@@ -25,17 +30,12 @@ public final class DefaultForagingService: ForagingService {
         // Use unified gathering engine (uses GatheringEngine.defaultMaxCount)
         let gatheredHerbs = GatheringEngine.gather(from: availableHerbs)
 
-        // Calculate foraging XP gained based on GatherableTier.xpValue
-        let expGained = gatheredHerbs.reduce(0) { total, herb in
-            total + herb.tier.xpValue
-        }
-
-        // Calculate skill progress
-        let skillProgress = SkillProgressData.calculate(
+        // Calculate skill progress from gathered herbs
+        let skillProgress = skillProgressCalculator.calculateFromGathered(
+            gatheredHerbs,
             skillName: "Foraging",
             currentLevel: currentLevel,
             currentExp: currentExp,
-            expGained: expGained,
             expPerLevel: expPerLevel
         )
 

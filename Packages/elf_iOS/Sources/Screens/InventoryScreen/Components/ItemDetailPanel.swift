@@ -14,6 +14,8 @@ struct ItemDetailPanel: View {
     let onEquip: () -> Void
     let onUnequip: () -> Void
 
+    private let formatter = ItemDetailsFormatter()
+
     var body: some View {
         VStack(spacing: 0) {
             if let item = item {
@@ -73,7 +75,7 @@ struct ItemDetailPanel: View {
     @ViewBuilder
     private func itemStats(_ item: InventoryDisplayItem) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            ForEach(item.itemDetails.descriptionLines, id: \.self) { line in
+            ForEach(formatter.descriptionLines(for: item.itemDetails), id: \.self) { line in
                 if line.isEmpty {
                     Spacer().frame(height: 8)
                 } else {

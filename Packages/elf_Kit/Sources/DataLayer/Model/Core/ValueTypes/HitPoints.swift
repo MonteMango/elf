@@ -64,69 +64,6 @@ public struct HitPoints: Sendable, Hashable, Equatable {
         return HitPoints(current: clampedCurrent, maximum: safeMax)
     }
 
-    /// Creates HitPoints at full health.
-    ///
-    /// - Parameter maximum: Maximum HP
-    /// - Returns: Full HitPoints
-    public static func full(maximum: Int) -> HitPoints {
-        let safeMax = max(1, maximum)
-        return HitPoints(current: safeMax, maximum: safeMax)
-    }
-
-    /// Creates HitPoints at zero (dead).
-    ///
-    /// - Parameter maximum: Maximum HP
-    /// - Returns: Dead HitPoints
-    public static func dead(maximum: Int) -> HitPoints {
-        HitPoints(current: 0, maximum: max(1, maximum))
-    }
-
-    /// Applies damage to current HP.
-    ///
-    /// - Parameter amount: Damage amount (must be >= 0)
-    /// - Returns: New HitPoints after damage
-    public func damage(_ amount: Int) -> HitPoints {
-        let actualDamage = max(0, amount)
-        return HitPoints(current: current - actualDamage, maximum: maximum)
-    }
-
-    /// Heals current HP (clamped to maximum).
-    ///
-    /// - Parameter amount: Heal amount (must be >= 0)
-    /// - Returns: New HitPoints after healing
-    public func heal(_ amount: Int) -> HitPoints {
-        let actualHeal = max(0, amount)
-        let newCurrent = min(current + actualHeal, maximum)
-        return HitPoints(current: newCurrent, maximum: maximum)
-    }
-
-    /// Fully restores HP to maximum.
-    ///
-    /// - Returns: Full HitPoints
-    public func fullRestore() -> HitPoints {
-        HitPoints(current: maximum, maximum: maximum)
-    }
-
-    /// Creates a copy with a new maximum.
-    /// Current is adjusted proportionally if needed.
-    ///
-    /// - Parameter newMaximum: New maximum HP
-    /// - Returns: Adjusted HitPoints
-    public func withMaximum(_ newMaximum: Int) -> HitPoints {
-        let safeMax = max(1, newMaximum)
-        // Adjust current proportionally
-        let ratio = Double(safeMax) / Double(maximum)
-        let newCurrent = Int((Double(current) * ratio).rounded())
-        return HitPoints(current: min(newCurrent, safeMax), maximum: safeMax)
-    }
-
-    /// Sets current HP to a specific value.
-    ///
-    /// - Parameter value: New current value
-    /// - Returns: New HitPoints
-    public func setCurrent(_ value: Int) -> HitPoints {
-        HitPoints(current: min(value, maximum), maximum: maximum)
-    }
 }
 
 // MARK: - Comparable

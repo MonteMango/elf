@@ -17,22 +17,6 @@ public struct InventorySaveData: Sendable, Equatable, Codable {
     public let jewelry: [JewelrySaveData]
     public let materials: [MaterialSaveData]
 
-    public init(
-        weapons: [WeaponSaveData] = [],
-        shields: [ShieldSaveData] = [],
-        armor: [DefenseSaveData] = [],
-        robes: [RobeSaveData] = [],
-        jewelry: [JewelrySaveData] = [],
-        materials: [MaterialSaveData] = []
-    ) {
-        self.weapons = weapons
-        self.shields = shields
-        self.armor = armor
-        self.robes = robes
-        self.jewelry = jewelry
-        self.materials = materials
-    }
-
     /// Create from ElfInventory
     public init(from inventory: ElfInventory) {
         self.weapons = inventory.weapons.map { WeaponSaveData(from: $0) }
@@ -43,9 +27,12 @@ public struct InventorySaveData: Sendable, Equatable, Codable {
         self.materials = inventory.materials.map { MaterialSaveData(from: $0) }
     }
 
-    /// Convert back to ElfInventory using ItemsRepository
+    /// Convert back to ElfInventory using ItemsRepository and InventoryService
     /// - Throws: `GameSaveError.missingItemData` if any item cannot be restored
-    public func toElfInventory(itemsRepository: ItemsRepository) throws -> ElfInventory {
+    public func toElfInventory(
+        itemsRepository: ItemsRepository,
+        inventoryService: InventoryService
+    ) throws -> ElfInventory {
         var inventory = ElfInventory()
 
         // Restore weapons
@@ -53,7 +40,7 @@ public struct InventorySaveData: Sendable, Equatable, Codable {
             guard let weapon = weaponData.toElfWeaponItem(using: itemsRepository) else {
                 throw GameSaveError.missingItemData(itemId: weaponData.itemId, itemType: "weapon")
             }
-            inventory.addWeapon(weapon)
+            inventory = inventoryService.addWeapon(weapon, to: inventory)
         }
 
         // Restore shields
@@ -61,7 +48,7 @@ public struct InventorySaveData: Sendable, Equatable, Codable {
             guard let shield = shieldData.toElfShieldItem(using: itemsRepository) else {
                 throw GameSaveError.missingItemData(itemId: shieldData.itemId, itemType: "shield")
             }
-            inventory.addShield(shield)
+            inventory = inventoryService.addShield(shield, to: inventory)
         }
 
         // Restore armor
@@ -69,7 +56,7 @@ public struct InventorySaveData: Sendable, Equatable, Codable {
             guard let defense = armorData.toElfDefenseItem(using: itemsRepository) else {
                 throw GameSaveError.missingItemData(itemId: armorData.itemId, itemType: "armor")
             }
-            inventory.addArmor(defense)
+            inventory = inventoryService.addArmor(defense, to: inventory)
         }
 
         // Restore robes
@@ -77,7 +64,7 @@ public struct InventorySaveData: Sendable, Equatable, Codable {
             guard let robe = robeData.toElfRobeItem(using: itemsRepository) else {
                 throw GameSaveError.missingItemData(itemId: robeData.itemId, itemType: "robe")
             }
-            inventory.addRobe(robe)
+            inventory = inventoryService.addRobe(robe, to: inventory)
         }
 
         // Restore jewelry
@@ -85,12 +72,12 @@ public struct InventorySaveData: Sendable, Equatable, Codable {
             guard let jewelryItem = jewelryData.toElfJewelryItem(using: itemsRepository) else {
                 throw GameSaveError.missingItemData(itemId: jewelryData.itemId, itemType: "jewelry")
             }
-            inventory.addJewelry(jewelryItem)
+            inventory = inventoryService.addJewelry(jewelryItem, to: inventory)
         }
 
         // Restore materials (simple copy)
         for materialData in materials {
-            inventory.addMaterial(id: materialData.id, quantity: materialData.quantity)
+            inventory = inventoryService.addMaterial(id: materialData.id, quantity: materialData.quantity, to: inventory)
         }
 
         return inventory

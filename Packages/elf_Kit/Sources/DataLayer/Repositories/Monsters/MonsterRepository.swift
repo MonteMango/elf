@@ -8,9 +8,6 @@
 import Foundation
 
 public protocol MonsterRepository: Sendable {
-    /// All loaded monsters data
-    var monstersData: MonstersData { get }
-
     /// Get a monster by its ID
     /// - Parameter id: Monster's unique identifier
     /// - Returns: Monster if found, nil otherwise
@@ -23,10 +20,4 @@ public protocol MonsterRepository: Sendable {
     /// - Returns: Array of monsters for that world/level combination
     func getMonsters(world: WorldType, level: Int) -> [Monster]
 
-    /// Get a random monster for a specific world and level
-    /// - Parameters:
-    ///   - world: The world type (upper, middle, lower)
-    ///   - level: The level within the world (1, 2, or 3)
-    /// - Returns: A random monster if available, nil if no monsters exist for that combination
-    func getRandomMonster(world: WorldType, level: Int) -> Monster?
 }

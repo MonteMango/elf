@@ -31,10 +31,4 @@ extension InventoryViewModel {
         }
     }
 
-    func canUnequipItem(_ item: InventoryDisplayItem) -> Bool {
-        switch item.itemDetails {
-        case .weapon: return equipmentService.canUnequipWeapon()
-        default:      return true
-        }
-    }
 }

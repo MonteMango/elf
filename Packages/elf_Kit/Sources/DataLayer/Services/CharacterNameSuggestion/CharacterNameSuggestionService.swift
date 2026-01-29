@@ -12,8 +12,4 @@ public protocol CharacterNameSuggestionService: Sendable {
     /// Generate a random character name
     /// - Returns: Random character name
     func generateRandomName() -> String
-
-    /// Get all available name suggestions
-    /// - Returns: Array of suggested names
-    func getAllSuggestions() -> [String]
 }

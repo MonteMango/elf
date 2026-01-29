@@ -14,6 +14,7 @@ public final class FarmViewModel {
     // MARK: - Dependencies
 
     private let gameService: any GameService
+    private let progressionService: any ProgressionService
 
     // MARK: - Computed Properties
 
@@ -46,33 +47,34 @@ public final class FarmViewModel {
     // MARK: - Farming Skills
 
     public var foragingLevel: Int {
-        gameService.game.player.foragingLevel
+        progressionService.farmingLevel(exp: gameService.game.player.foragingExp)
     }
 
     public var foragingProgress: Double {
-        gameService.game.player.foragingProgress
+        progressionService.farmingProgress(exp: gameService.game.player.foragingExp)
     }
 
     public var fishingLevel: Int {
-        gameService.game.player.fishingLevel
+        progressionService.farmingLevel(exp: gameService.game.player.fishingExp)
     }
 
     public var fishingProgress: Double {
-        gameService.game.player.fishingProgress
+        progressionService.farmingProgress(exp: gameService.game.player.fishingExp)
     }
 
     public var miningLevel: Int {
-        gameService.game.player.miningLevel
+        progressionService.farmingLevel(exp: gameService.game.player.miningExp)
     }
 
     public var miningProgress: Double {
-        gameService.game.player.miningProgress
+        progressionService.farmingProgress(exp: gameService.game.player.miningExp)
     }
 
     // MARK: - Initialization
 
-    public init(gameService: any GameService) {
+    public init(gameService: any GameService, progressionService: any ProgressionService) {
         self.gameService = gameService
+        self.progressionService = progressionService
     }
 
     // MARK: - Actions

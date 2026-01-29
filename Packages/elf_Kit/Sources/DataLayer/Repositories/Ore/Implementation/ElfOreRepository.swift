@@ -27,10 +27,6 @@ public final class ElfOreRepository: OreRepository {
 
     // MARK: - OreRepository
 
-    public var oreData: OreData {
-        base.data
-    }
-
     public func getOre(id: OreID) -> Ore? {
         base.getItem(id: id)
     }
@@ -39,18 +35,6 @@ public final class ElfOreRepository: OreRepository {
         base.getAllItems()
     }
 
-    public func getOresForArea(_ areaId: String) -> [Ore] {
-        guard let area = base.data.areas[areaId] else {
-            return []
-        }
-        return area.ores.compactMap { oreId in
-            base.getItem(id: oreId)
-        }
-    }
-
-    public func getEffectDefinition(_ id: String) -> EffectDefinition? {
-        base.getEffectDefinition(id)
-    }
 }
 
 // MARK: - Sendable Conformance

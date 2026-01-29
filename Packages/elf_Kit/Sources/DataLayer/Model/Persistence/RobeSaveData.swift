@@ -16,11 +16,6 @@ public struct RobeSaveData: Sendable, Equatable, Codable {
     /// Base item ID from HeroItems (robes)
     public let itemId: UUID
 
-    public init(id: UUID, itemId: UUID) {
-        self.id = id
-        self.itemId = itemId
-    }
-
     /// Create from ElfRobeItem
     public init(from elfRobe: ElfRobeItem) {
         self.id = elfRobe.id

@@ -5,7 +5,6 @@
 //  Created by Vitalii Lytvynov on 12.11.25.
 //
 
-import elf_Kit
 import SwiftUI
 
 public struct RootScreen: View {

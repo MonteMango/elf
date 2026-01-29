@@ -18,6 +18,8 @@ public final class HuntViewModel {
     private let materialRepository: any MaterialRepository
     private let itemsRepository: any ItemsRepository
     private let snapshotBuilder: any CombatantSnapshotBuilder
+    private let progressionService: any ProgressionService
+    private let equipmentQueryService: any EquipmentQueryService
 
     // MARK: - Constants
 
@@ -61,7 +63,7 @@ public final class HuntViewModel {
 
     /// Player's current level (determines monster level)
     public var playerLevel: Int {
-        Int(gameService.game.player.level)
+        progressionService.calculateLevel(currentExp: gameService.game.player.currentExp)
     }
 
     /// Current world (for now, always upper world)
@@ -89,13 +91,17 @@ public final class HuntViewModel {
         monsterRepository: any MonsterRepository,
         materialRepository: any MaterialRepository,
         itemsRepository: any ItemsRepository,
-        snapshotBuilder: any CombatantSnapshotBuilder
+        snapshotBuilder: any CombatantSnapshotBuilder,
+        progressionService: any ProgressionService,
+        equipmentQueryService: any EquipmentQueryService
     ) {
         self.gameService = gameService
         self.monsterRepository = monsterRepository
         self.materialRepository = materialRepository
         self.itemsRepository = itemsRepository
         self.snapshotBuilder = snapshotBuilder
+        self.progressionService = progressionService
+        self.equipmentQueryService = equipmentQueryService
     }
 
     // MARK: - Actions
@@ -123,12 +129,12 @@ public final class HuntViewModel {
 
         // 3. Build player snapshot from ElfInfo
         let player = gameService.game.player
-        let selectedItems: [HeroItemType: UUID?] = player.equippedItemIds.mapValues { $0 }
+        let selectedItems: [HeroItemType: UUID?] = equipmentQueryService.equippedBaseItemIds(from: player.equipped).mapValues { $0 }
 
         guard let playerSnapshot = await snapshotBuilder.buildSnapshot(
             name: player.name,
             imageName: player.imageName,
-            level: player.level,
+            level: progressionService.calculateLevel(currentExp: player.currentExp),
             fightStyleAttributes: player.fightStyleAttributes,
             randomLevelAttributes: player.randomLevelAttributes,
             selectedItems: selectedItems

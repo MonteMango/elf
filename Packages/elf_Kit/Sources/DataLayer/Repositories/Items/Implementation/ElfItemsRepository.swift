@@ -69,10 +69,6 @@ public final class ElfItemsRepository: ItemsRepository {
 
     // MARK: ItemsRepository
 
-    public var heroItems: HeroItems {
-        return _heroItems
-    }
-
     public func getHeroItem(_ id: UUID) -> Item? {
         return heroItemLookup[id]
     }

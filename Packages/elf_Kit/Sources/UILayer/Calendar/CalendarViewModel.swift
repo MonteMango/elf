@@ -51,17 +51,4 @@ public final class CalendarViewModel {
         self.daysPerIteration = daysPerIteration
     }
 
-    // MARK: - Methods
-
-    public func isCurrentDay(_ day: GameDay) -> Bool {
-        day.dayNumber == currentDayNumber
-    }
-
-    public func isPastDay(_ day: GameDay) -> Bool {
-        day.dayNumber < currentDayNumber
-    }
-
-    public func isFutureDay(_ day: GameDay) -> Bool {
-        day.dayNumber > currentDayNumber
-    }
 }

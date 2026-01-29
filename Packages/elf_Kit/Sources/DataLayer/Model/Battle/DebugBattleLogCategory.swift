@@ -24,10 +24,10 @@ public enum DebugBattleLogCategory: Sendable {
     /// Log round start information including hero stats, attack/defense selections
     case roundStart
 
-    /// Log strength damage calculations with distribution and weights
+    /// Log strength-based damage calculations
     case strengthDamage
 
-    /// Log weapon damage calculations for left and right hands
+    /// Log weapon-based damage calculations
     case weaponDamage
 
     /// Log dodge chance calculations with two-stage system details

@@ -16,11 +16,6 @@ public struct ShieldSaveData: Sendable, Equatable, Codable {
     /// Base item ID from HeroItems (shields)
     public let itemId: UUID
 
-    public init(id: UUID, itemId: UUID) {
-        self.id = id
-        self.itemId = itemId
-    }
-
     /// Create from ElfShieldItem
     public init(from elfShield: ElfShieldItem) {
         self.id = elfShield.id

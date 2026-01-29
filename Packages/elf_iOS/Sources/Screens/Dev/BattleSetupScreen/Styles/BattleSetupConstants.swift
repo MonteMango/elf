@@ -30,12 +30,9 @@ enum BattleSetupConstants {
     enum Spacing {
         static let fightStyleButtonSpacing: CGFloat = 20
         static let sectionVerticalSpacing: CGFloat = 15
-        static let panelHorizontalPadding: CGFloat = 20
-        static let panelTopPadding: CGFloat = 10
         static let labelToControlSpacing: CGFloat = 5
         static let attributeRowSpacing: CGFloat = 8
         static let itemGridSpacing: CGFloat = 10
-        static let jewelrySpacing: CGFloat = 15
     }
 
     // MARK: - Sizing

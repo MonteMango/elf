@@ -16,6 +16,7 @@ public final class MultiBattleViewModel {
 
     private let battle: Battle
     private let battleSimulationService: any BattleSimulationService
+    private let statisticsAggregator: any BattleStatisticsAggregator
 
     // MARK: - Configuration
 
@@ -52,11 +53,13 @@ public final class MultiBattleViewModel {
     public init(
         battle: Battle,
         battleSimulationService: any BattleSimulationService,
+        statisticsAggregator: any BattleStatisticsAggregator,
         totalBattles: Int = 1000,
         batchSize: Int = 25
     ) {
         self.battle = battle
         self.battleSimulationService = battleSimulationService
+        self.statisticsAggregator = statisticsAggregator
         self.totalBattles = totalBattles
         self.batchSize = batchSize
     }
@@ -138,8 +141,8 @@ public final class MultiBattleViewModel {
         let bot2Level = Int(battle.rightTeam.first?.level ?? 1)
 
         // Aggregate statistics
-        let bot1Stats = AggregatedBattleStatistics.aggregate(from: allResults, forBot1: true)
-        let bot2Stats = AggregatedBattleStatistics.aggregate(from: allResults, forBot1: false)
+        let bot1Stats = statisticsAggregator.aggregate(from: allResults, forBot1: true)
+        let bot2Stats = statisticsAggregator.aggregate(from: allResults, forBot1: false)
 
         // Create final result
         result = MultiBattleResult(
@@ -158,13 +161,6 @@ public final class MultiBattleViewModel {
         logResults()
 
         isRunning = false
-    }
-
-    /// Start running all battles in a cancellable task
-    public func startBattles() {
-        runningTask = Task {
-            await runAllBattles()
-        }
     }
 
     /// Cancel the currently running battles

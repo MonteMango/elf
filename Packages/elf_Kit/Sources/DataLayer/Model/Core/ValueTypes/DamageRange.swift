@@ -32,16 +32,6 @@ public struct DamageRange: Sendable, Hashable, Equatable {
     /// Maximum damage (always >= minimum)
     public let maximum: Int
 
-    /// Average damage
-    public var average: Double {
-        Double(minimum + maximum) / 2.0
-    }
-
-    /// Damage spread (max - min)
-    public var spread: Int {
-        maximum - minimum
-    }
-
     /// Whether this is a fixed damage (min == max)
     public var isFixed: Bool {
         minimum == maximum
@@ -51,30 +41,6 @@ public struct DamageRange: Sendable, Hashable, Equatable {
     private init(minimum: Int, maximum: Int) {
         self.minimum = minimum
         self.maximum = maximum
-    }
-
-    /// Creates a DamageRange with validation.
-    ///
-    /// - Parameters:
-    ///   - minimum: Minimum damage (must be >= 0)
-    ///   - maximum: Maximum damage (must be >= minimum)
-    /// - Returns: Result containing DamageRange or error
-    public static func create(minimum: Int, maximum: Int) -> Result<DamageRange, DamageRangeError> {
-        guard minimum >= 0 else {
-            return .failure(.negativeMinimum)
-        }
-        guard maximum >= minimum else {
-            return .failure(.maximumLessThanMinimum)
-        }
-        return .success(DamageRange(minimum: minimum, maximum: maximum))
-    }
-
-    /// Creates a fixed damage (min == max).
-    ///
-    /// - Parameter value: The fixed damage value
-    /// - Returns: Result containing DamageRange or error
-    public static func fixed(_ value: Int) -> Result<DamageRange, DamageRangeError> {
-        create(minimum: value, maximum: value)
     }
 
     /// Unsafe creation for internal use (e.g., loading from JSON).
@@ -90,59 +56,6 @@ public struct DamageRange: Sendable, Hashable, Equatable {
         return DamageRange(minimum: safeMin, maximum: safeMax)
     }
 
-    /// Zero damage range
-    public static let zero = DamageRange(minimum: 0, maximum: 0)
-
-    /// Adds a flat bonus to both minimum and maximum.
-    ///
-    /// - Parameter bonus: The bonus to add
-    /// - Returns: New DamageRange with bonus applied
-    public func adding(_ bonus: Int) -> DamageRange {
-        let newMin = max(0, minimum + bonus)
-        let newMax = max(newMin, maximum + bonus)
-        return DamageRange(minimum: newMin, maximum: newMax)
-    }
-
-    /// Multiplies both minimum and maximum by a factor.
-    ///
-    /// - Parameter factor: The multiplication factor
-    /// - Returns: New DamageRange with factor applied
-    public func multiplied(by factor: Double) -> DamageRange {
-        let newMin = max(0, Int((Double(minimum) * factor).rounded()))
-        let newMax = max(newMin, Int((Double(maximum) * factor).rounded()))
-        return DamageRange(minimum: newMin, maximum: newMax)
-    }
-
-    /// Combines two damage ranges.
-    ///
-    /// - Parameter other: The other range to add
-    /// - Returns: Combined DamageRange
-    public static func + (lhs: DamageRange, rhs: DamageRange) -> DamageRange {
-        DamageRange(
-            minimum: lhs.minimum + rhs.minimum,
-            maximum: lhs.maximum + rhs.maximum
-        )
-    }
-}
-
-// MARK: - Error
-
-/// Errors that can occur when creating a DamageRange
-public enum DamageRangeError: Error, Equatable, Sendable, LocalizedError {
-    /// Minimum damage cannot be negative
-    case negativeMinimum
-
-    /// Maximum must be >= minimum
-    case maximumLessThanMinimum
-
-    public var errorDescription: String? {
-        switch self {
-        case .negativeMinimum:
-            return "Minimum damage cannot be negative"
-        case .maximumLessThanMinimum:
-            return "Maximum damage must be greater than or equal to minimum"
-        }
-    }
 }
 
 // MARK: - Codable

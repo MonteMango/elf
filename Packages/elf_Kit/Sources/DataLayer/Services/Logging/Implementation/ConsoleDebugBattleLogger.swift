@@ -15,7 +15,7 @@ import Foundation
 /// - Section dividers
 /// - Color-coded important events
 ///
-/// **For debug builds only** - use NoOpDebugBattleLogger in production
+/// Pass an empty `categories` set to disable all output.
 public final class ConsoleDebugBattleLogger: DebugBattleLogger {
 
     private let categories: Set<DebugBattleLogCategory>
@@ -54,38 +54,6 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         print("  ⚔️ Attack: \(formatBodyParts(botAttack))")
         print("  🛡️ Defense: \(formatBodyParts(botDefense))")
         print("")
-    }
-
-    public func logStrengthDamage(
-        hero: String,
-        strength: Int16,
-        distribution: [Int16],
-        weights: [Int],
-        selectedValue: Int16
-    ) {
-        guard categories.contains(.strengthDamage) else { return }
-
-        print("  💪 \(hero) Strength Damage:")
-        print("    Total Strength: \(strength)")
-        print("    Distribution: \(distribution)")
-        print("    Weights: \(weights)")
-        print("    Total Weight: \(weights.reduce(0, +))")
-        print("    → Selected: \(selectedValue)")
-    }
-
-    public func logWeaponDamage(
-        hero: String,
-        hand: String,
-        weaponName: String,
-        minDamage: Int16,
-        maxDamage: Int16,
-        selectedValue: Int16
-    ) {
-        guard categories.contains(.weaponDamage) else { return }
-
-        print("  ⚔️ \(hero) \(hand.capitalized) Hand Weapon (\(weaponName)):")
-        print("    Range: [\(minDamage), \(maxDamage)]")
-        print("    → Selected: \(selectedValue)")
     }
 
     public func logDodgeCalculation(

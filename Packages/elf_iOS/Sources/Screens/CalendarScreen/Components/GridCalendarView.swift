@@ -16,7 +16,6 @@ struct GridCalendarView: View {
     let daysPerIteration: Int
 
     private let spacing: CGFloat = 4
-    private let maxCellSize: CGFloat = 80
     private let columns: [GridItem]
 
     init(calendar: [GameDay], currentDayNumber: Int, daysPerIteration: Int) {

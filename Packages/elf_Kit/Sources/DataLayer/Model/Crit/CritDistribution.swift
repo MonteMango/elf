@@ -55,9 +55,4 @@ public struct CritDistribution: Equatable, Sendable {
     public var hasRange: Bool {
         return !rangeValues.isEmpty
     }
-
-    /// Total number of possible crit chance values
-    public var totalValues: Int {
-        return rangeValues.count
-    }
 }

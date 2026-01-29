@@ -9,14 +9,19 @@ import Foundation
 
 public final class DefaultFishingService: FishingService {
 
+    // MARK: - Dependencies
+
+    private let skillProgressCalculator: any SkillProgressCalculator
+
     // MARK: - Initialization
 
-    public init() {}
+    public init(skillProgressCalculator: any SkillProgressCalculator) {
+        self.skillProgressCalculator = skillProgressCalculator
+    }
 
     // MARK: - FishingService
 
     public func performFishing(
-        areaId: String,
         availableFish: [Fish],
         currentLevel: Int,
         currentExp: Int,
@@ -25,17 +30,12 @@ public final class DefaultFishingService: FishingService {
         // Use unified gathering engine (uses GatheringEngine.defaultMaxCount)
         let caughtFish = GatheringEngine.gather(from: availableFish)
 
-        // Calculate fishing XP gained based on GatherableTier.xpValue
-        let expGained = caughtFish.reduce(0) { total, fish in
-            total + fish.tier.xpValue
-        }
-
-        // Calculate skill progress
-        let skillProgress = SkillProgressData.calculate(
+        // Calculate skill progress from gathered fish
+        let skillProgress = skillProgressCalculator.calculateFromGathered(
+            caughtFish,
             skillName: "Fishing",
             currentLevel: currentLevel,
             currentExp: currentExp,
-            expGained: expGained,
             expPerLevel: expPerLevel
         )
 

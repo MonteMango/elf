@@ -63,16 +63,4 @@ public struct Game: Sendable, Equatable {
         self.playerHouseIndex = playerHouseIndex
         self.playerMemberIndex = playerMemberIndex
     }
-
-    // MARK: - House Statistics
-
-    /// Number of active (not eliminated) houses
-    public var activeHousesCount: Int {
-        houses.filter { !$0.isEliminated }.count
-    }
-
-    /// All active houses
-    public var activeHouses: [House] {
-        houses.filter { !$0.isEliminated }
-    }
 }

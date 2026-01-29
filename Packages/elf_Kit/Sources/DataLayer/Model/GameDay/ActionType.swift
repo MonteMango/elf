@@ -13,14 +13,4 @@ public enum ActionType: String, CaseIterable, Sendable {
     case hunt = "Hunt"
     case craft = "Craft"
     case quests = "Quests"
-
-    /// SF Symbol icon name for the action
-    public var iconName: String {
-        switch self {
-        case .farm: return "leaf.fill"
-        case .hunt: return "target"
-        case .craft: return "hammer.fill"
-        case .quests: return "scroll.fill"
-        }
-    }
 }

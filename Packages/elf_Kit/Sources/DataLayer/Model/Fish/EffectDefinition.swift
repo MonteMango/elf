@@ -12,11 +12,4 @@ public struct EffectDefinition: Codable, Sendable, Identifiable {
     public let effectType: String
     public let title: String
     public let description: String
-
-    public init(id: UUID, effectType: String, title: String, description: String) {
-        self.id = id
-        self.effectType = effectType
-        self.title = title
-        self.description = description
-    }
 }

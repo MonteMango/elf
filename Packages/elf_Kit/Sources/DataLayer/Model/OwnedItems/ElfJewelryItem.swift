@@ -19,11 +19,6 @@ public final class ElfJewelryItem: ElfItem, Hashable, Equatable, @unchecked Send
         self.item = item
     }
 
-    public init(jewelryItem: JewelryItem) {
-        self.id = UUID()
-        self.item = jewelryItem
-    }
-
     // MARK: - Hashable & Equatable
 
     public static func == (lhs: ElfJewelryItem, rhs: ElfJewelryItem) -> Bool {

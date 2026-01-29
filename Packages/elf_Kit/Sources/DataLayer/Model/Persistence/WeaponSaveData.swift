@@ -19,12 +19,6 @@ public struct WeaponSaveData: Sendable, Equatable, Codable {
     /// Enchantment level of this weapon instance
     public let enchantLevel: Int
 
-    public init(id: UUID, itemId: UUID, enchantLevel: Int = 0) {
-        self.id = id
-        self.itemId = itemId
-        self.enchantLevel = enchantLevel
-    }
-
     /// Create from ElfWeaponItem
     public init(from elfWeapon: ElfWeaponItem) {
         self.id = elfWeapon.id
