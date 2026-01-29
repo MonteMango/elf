@@ -298,3 +298,4 @@ CLAUDE.local.md
 
 # Periphery dead code detection config
 .periphery.yml
+scripts/
