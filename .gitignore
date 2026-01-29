@@ -295,3 +295,6 @@ DerivedData/
 
 # Claude Code local settings (personal, not for git)
 CLAUDE.local.md
+
+# Periphery dead code detection config
+.periphery.yml
