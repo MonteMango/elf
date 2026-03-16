@@ -9,7 +9,6 @@ import Foundation
 
 /// Default implementation of FarmActivityService
 /// Delegates to specific services (FishingService, ForagingService, MiningService)
-@MainActor
 public final class DefaultFarmActivityService: FarmActivityService {
 
     // MARK: - Constants
@@ -111,6 +110,7 @@ public final class DefaultFarmActivityService: FarmActivityService {
         )
     }
 
+    @MainActor
     public func applyResult(_ result: FarmActivityResult, to gameService: any GameStateService) {
         switch result {
         case .fishing(let fishingResult):

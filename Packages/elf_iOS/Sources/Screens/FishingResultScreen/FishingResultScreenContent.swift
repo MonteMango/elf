@@ -42,7 +42,14 @@ struct FishingResultScreenContent: View {
 
                 // Skill progress
                 SkillProgressView(
-                    progress: viewModel.result.skillProgress,
+                    experienceGained: viewModel.result.skillProgress.experienceGained,
+                    previousLevel: viewModel.result.skillProgress.previousLevel,
+                    previousExp: viewModel.result.skillProgress.previousExp,
+                    previousExpToNext: viewModel.result.skillProgress.previousExpToNext,
+                    newLevel: viewModel.result.skillProgress.newLevel,
+                    newExp: viewModel.result.skillProgress.newExp,
+                    newExpToNext: viewModel.result.skillProgress.newExpToNext,
+                    didLevelUp: viewModel.result.skillProgress.didLevelUp,
                     isVisible: showSkillProgress,
                     showProgress: startSkillProgressAnimation
                 )

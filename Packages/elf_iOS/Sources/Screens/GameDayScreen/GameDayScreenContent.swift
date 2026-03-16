@@ -124,6 +124,8 @@ internal struct GameDayScreenContent: View {
                     router.navigate(to: .hunt)
                 case .farm:
                     router.navigate(to: .farm)
+                case .craft:
+                    router.navigate(to: .craft)
                 default:
                     viewModel.onActionTapped(action)
                 }
@@ -161,7 +163,10 @@ internal struct GameDayScreenContent: View {
                 Spacer()
 
                 elf_SwiftUI.CloseButton {
-                    router.popToRoot()
+                    Task {
+                        await viewModel.exitGame()
+                        router.popToRoot()
+                    }
                 }
             }
 

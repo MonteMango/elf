@@ -49,6 +49,27 @@ public final class ElfInventoryService: InventoryService {
         return newInventory
     }
 
+    // MARK: - Add Crafted Item
+
+    public func addCraftedItem(_ item: Item, to inventory: ElfInventory) -> ElfInventory {
+        switch item {
+        case let weapon as WeaponItem:
+            let elfWeapon = ElfWeaponItem(id: UUID(), item: weapon, enchantLevel: 0)
+            return addWeapon(elfWeapon, to: inventory)
+        case let defense as DefenseItem:
+            let elfArmor = ElfDefenseItem(id: UUID(), item: defense)
+            return addArmor(elfArmor, to: inventory)
+        case let shield as ShieldItem:
+            let elfShield = ElfShieldItem(id: UUID(), item: shield)
+            return addShield(elfShield, to: inventory)
+        case let robe as RobeItem:
+            let elfRobe = ElfRobeItem(id: UUID(), item: robe)
+            return addRobe(elfRobe, to: inventory)
+        default:
+            return inventory
+        }
+    }
+
     // MARK: - Add Materials
 
     public func addMaterial(id: UUID, quantity: Int, to inventory: ElfInventory) -> ElfInventory {
@@ -65,5 +86,3 @@ public final class ElfInventoryService: InventoryService {
         return newInventory
     }
 }
-
-

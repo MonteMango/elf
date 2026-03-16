@@ -66,4 +66,3 @@ public final class ElfProgressionService: ProgressionService {
         return Double(exp - levelStartXP) / Double(levelEndXP - levelStartXP)
     }
 }
-

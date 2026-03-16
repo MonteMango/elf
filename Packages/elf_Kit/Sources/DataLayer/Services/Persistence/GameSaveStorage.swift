@@ -1,5 +1,5 @@
 //
-//  GameRepository.swift
+//  GameSaveStorage.swift
 //  elf_Kit
 //
 //  Created by Vitalii Lytvynov on 04.12.25.
@@ -9,7 +9,7 @@ import Foundation
 
 /// Repository protocol for game persistence
 /// Abstracts storage implementation (file system, cloud, etc.)
-public protocol GameRepository: Sendable {
+public protocol GameSaveStorage: Sendable {
 
     /// Save a game to a specific slot
     /// - Parameters:
@@ -35,7 +35,7 @@ public protocol GameRepository: Sendable {
 
 // MARK: - Convenience Extension
 
-public extension GameRepository {
+public extension GameSaveStorage {
 
     /// Load from default slot
     func loadDefault() async throws -> Game {

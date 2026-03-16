@@ -16,7 +16,7 @@ struct DropItemCard: View {
     var body: some View {
         ItemCard(
             imageName: item.icon,
-            rarityColor: .rarity(item.rarity.cardRarityLevel),
+            rarityColor: item.tier.cardColor,
             quantity: item.quantity > 1 ? item.quantity : nil,
             showLabel: item.name
         )
@@ -38,7 +38,7 @@ struct DropItemCard: View {
                     itemType: .material,
                     name: "Soul Gem",
                     icon: "material_monster_soul_gem",
-                    rarity: .common,
+                    tier: .common,
                     quantity: 3
                 ),
                 isVisible: true
@@ -49,7 +49,7 @@ struct DropItemCard: View {
                     itemType: .weapon,
                     name: "Steel Sword",
                     icon: "fa0b6893-6896-4689-a299-b8d271c76b68",
-                    rarity: .rare,
+                    tier: .rare,
                     quantity: 1
                 ),
                 isVisible: true
@@ -60,7 +60,7 @@ struct DropItemCard: View {
                     itemType: .armor,
                     name: "Goblin Shield",
                     icon: "c4af732e-4912-4f09-aa2b-77b5bcb6fc11",
-                    rarity: .legendary,
+                    tier: .legendary,
                     quantity: 1
                 ),
                 isVisible: true

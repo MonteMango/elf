@@ -11,11 +11,16 @@ public final class DefaultFishingService: FishingService {
 
     // MARK: - Dependencies
 
+    private let gatheringEngine: any GatheringEngine
     private let skillProgressCalculator: any SkillProgressCalculator
 
     // MARK: - Initialization
 
-    public init(skillProgressCalculator: any SkillProgressCalculator) {
+    public init(
+        gatheringEngine: any GatheringEngine,
+        skillProgressCalculator: any SkillProgressCalculator
+    ) {
+        self.gatheringEngine = gatheringEngine
         self.skillProgressCalculator = skillProgressCalculator
     }
 
@@ -28,7 +33,7 @@ public final class DefaultFishingService: FishingService {
         expPerLevel: Int
     ) -> FishingResult {
         // Use unified gathering engine (uses GatheringEngine.defaultMaxCount)
-        let caughtFish = GatheringEngine.gather(from: availableFish)
+        let caughtFish = gatheringEngine.gather(from: availableFish, maxCount: DefaultGatheringEngine.defaultMaxCount)
 
         // Calculate skill progress from gathered fish
         let skillProgress = skillProgressCalculator.calculateFromGathered(

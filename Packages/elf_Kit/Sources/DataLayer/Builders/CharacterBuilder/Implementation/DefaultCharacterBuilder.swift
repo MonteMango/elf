@@ -8,7 +8,6 @@
 import Foundation
 
 /// Default implementation of CharacterBuilder
-@MainActor
 public final class DefaultCharacterBuilder: CharacterBuilder {
 
     // MARK: - Private Properties

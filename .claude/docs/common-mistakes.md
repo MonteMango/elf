@@ -90,6 +90,20 @@ let vm = container.makeViewModel()
 App supports **landscape orientation only**.
 Keep this in mind when creating layouts.
 
+### Hardcoded Colors, Fonts, and Sizes in UI
+```swift
+// ❌ Magic numbers and raw colors in views
+Color.black.opacity(0.5)
+Font.system(size: 24, weight: .semibold)
+.frame(width: 300, height: 200)
+
+// ✅ Use design tokens from elf_SwiftUI/Sources/DesignSystem/
+ElfColors.Background.overlayMedium
+ElfFonts.Component.sectionTitle
+.frame(width: ElfSizing.FishingProgress.width, height: ElfSizing.FishingProgress.height)
+```
+All UI styles (colors, fonts, spacing, sizing) must come from `elf_SwiftUI/Sources/DesignSystem/`. If a token doesn't exist, add it there first.
+
 ### Force Unwrap
 ```swift
 // ❌ Never

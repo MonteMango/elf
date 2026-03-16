@@ -50,7 +50,9 @@ public enum ElfColors {
         public static let dark = Color.black
         public static let panel = Color(red: 0.15, green: 0.15, blue: 0.2)
         public static let overlay = Color.black.opacity(0.7)
+        public static let overlayMedium = Color.black.opacity(0.5)
         public static let overlayLight = Color.black.opacity(0.3)
+        public static let card = Color(white: 0.96)
     }
 
     // Legacy background colors (for backwards compatibility)
@@ -101,16 +103,6 @@ public enum ElfColors {
         public static let critHit = Color.orange
         public static let dodged = Color.yellow
         public static let nothing = Color.gray.opacity(0.5)
-    }
-
-    // MARK: - Rarity Colors
-
-    public enum Rarity {
-        public static let common = Color.gray
-        public static let uncommon = Color.green
-        public static let rare = Color.blue
-        public static let epic = Color.purple
-        public static let legendary = Color.orange
     }
 
     // MARK: - Tier Colors (Fish, Items)
@@ -171,6 +163,25 @@ public enum ElfColors {
             case 2: return eventDay
             case 3: return houseWarDay
             default: return unknownDay
+            }
+        }
+    }
+}
+
+// MARK: - Selection Border
+
+public extension View {
+    @ViewBuilder
+    func elfSelectionBorder(_ isSelected: Bool, cornerRadius: CGFloat = 0) -> some View {
+        if cornerRadius > 0 {
+            self.overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .strokeBorder(isSelected ? ElfColors.primary : Color.clear, lineWidth: 3)
+            )
+        } else {
+            self.overlay {
+                Rectangle()
+                    .strokeBorder(isSelected ? ElfColors.primary : Color.clear, lineWidth: 3)
             }
         }
     }

@@ -67,6 +67,12 @@ final class ElfFishRepositoryTests: XCTestCase {
             """.utf8)
         }
 
+        func loadRecipesData() throws -> Data {
+            return Data("""
+            {"version": "1.0", "weapons": [], "armor": []}
+            """.utf8)
+        }
+
         func loadFishData() throws -> Data {
             switch mode {
             case .valid:

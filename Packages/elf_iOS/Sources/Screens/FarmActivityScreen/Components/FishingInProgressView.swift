@@ -31,7 +31,7 @@ struct FishingInProgressView: View {
 
 #Preview {
     ZStack {
-        Color.black.opacity(0.5).ignoresSafeArea()
+        ElfColors.Background.overlayMedium.ignoresSafeArea()
         FishingInProgressView()
     }
 }

@@ -7,17 +7,7 @@
 
 import Foundation
 
-/// Errors that can occur during character building
-enum CharacterBuilderError: Error, Sendable, Equatable {
-    case missingAppearance
-    case missingName
-    case missingFightStyle
-
-}
-
 /// Protocol for building PlayerCharacter with validation
-/// Note: @MainActor because it holds mutable state used in character creation flow
-@MainActor
 public protocol CharacterBuilder {
     func setAppearance(_ appearance: CharacterAppearance)
 

@@ -74,4 +74,9 @@ public protocol GameStateService: AnyObject {
 
     /// Equips or unequips a shirt
     func equipShirt(_ shirt: ElfRobeItem?)
+
+    // MARK: - Crafting
+
+    /// Applies crafting result by replacing player inventory
+    func applyCraftResult(_ inventory: ElfInventory)
 }

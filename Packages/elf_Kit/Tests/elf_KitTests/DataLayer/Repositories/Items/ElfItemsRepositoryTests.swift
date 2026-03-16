@@ -127,6 +127,17 @@ final class ElfItemsRepositoryTests: XCTestCase {
             """
             return Data(json.utf8)
         }
+
+        func loadRecipesData() throws -> Data {
+            let json = """
+            {
+              "version": "1.0",
+              "weapons": [],
+              "armor": []
+            }
+            """
+            return Data(json.utf8)
+        }
     }
     
     // MARK: - Тесты

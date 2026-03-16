@@ -93,10 +93,7 @@ struct FightStyleSelectionView: View {
                 .foregroundStyle(.white)
                 .frame(width: 150, height: 50)
                 .background(styleColor(for: style), in: RoundedRectangle(cornerRadius: 8))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(isSelected ? Color.orange : Color.clear, lineWidth: 3)
-                )
+                .elfSelectionBorder(isSelected, cornerRadius: 8)
         }
     }
 

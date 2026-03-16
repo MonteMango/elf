@@ -7,34 +7,17 @@
 
 import SwiftUI
 
-// MARK: - Rarity Color Abstraction
+// MARK: - Tier Color Abstraction
 
-/// Defines background color for ItemCard based on rarity/tier.
+/// Defines background color for ItemCard based on tier.
 public enum ItemCardColor: Sendable {
     case tier(Int)
-    case rarity(RarityLevel)
     case custom(Color)
-
-    public enum RarityLevel: Sendable {
-        case common
-        case uncommon
-        case rare
-        case epic
-        case legendary
-    }
 
     public var color: Color {
         switch self {
         case .tier(let tier):
             return ElfColors.Tier.color(for: tier)
-        case .rarity(let level):
-            switch level {
-            case .common: return .gray
-            case .uncommon: return .green.opacity(0.7)
-            case .rare: return .green
-            case .epic: return .purple
-            case .legendary: return .blue
-            }
         case .custom(let color):
             return color
         }
@@ -191,23 +174,23 @@ public struct ItemCard: View {
     .background(Color.white)
 }
 
-#Preview("Rarity-based (Drops)") {
+#Preview("Tier-based (Drops)") {
     HStack(spacing: 12) {
         ItemCard(
             imageName: "material_monster_soul_gem",
-            rarityColor: .rarity(.common),
+            rarityColor: .tier(4),
             quantity: 3,
             showLabel: "Soul Gem"
         )
         ItemCard(
             imageName: "material_monster_soul_gem",
-            rarityColor: .rarity(.rare),
+            rarityColor: .tier(2),
             quantity: 1,
             showLabel: "Rare Gem"
         )
         ItemCard(
             imageName: "material_monster_soul_gem",
-            rarityColor: .rarity(.legendary),
+            rarityColor: .tier(1),
             showLabel: "Legend"
         )
     }

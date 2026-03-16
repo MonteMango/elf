@@ -8,7 +8,6 @@
 import Foundation
 
 /// Unified service for all farm activities (fishing, foraging, mining)
-@MainActor
 public protocol FarmActivityService: AnyObject, Sendable {
 
     /// Perform the specified activity and calculate results
@@ -41,5 +40,6 @@ public protocol FarmActivityService: AnyObject, Sendable {
     /// - Parameters:
     ///   - result: The farm activity result to apply
     ///   - gameService: The game service to update
+    @MainActor
     func applyResult(_ result: FarmActivityResult, to gameService: any GameStateService)
 }

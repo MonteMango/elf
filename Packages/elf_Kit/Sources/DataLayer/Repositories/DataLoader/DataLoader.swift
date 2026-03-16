@@ -14,4 +14,5 @@ public protocol DataLoader {
     func loadFishData() throws -> Data
     func loadHerbsData() throws -> Data
     func loadOresData() throws -> Data
+    func loadRecipesData() throws -> Data
 }

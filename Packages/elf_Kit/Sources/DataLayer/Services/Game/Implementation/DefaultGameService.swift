@@ -27,7 +27,7 @@ public final class DefaultGameService: GameService {
 
     // MARK: - Dependencies
 
-    private let gameRepository: GameRepository?
+    private let gameRepository: GameSaveStorage?
     private let itemsRepository: ItemsRepository?
     private let inventoryService: InventoryService
     private let slotId: String
@@ -36,7 +36,7 @@ public final class DefaultGameService: GameService {
 
     public init(
         game: Game,
-        gameRepository: GameRepository? = nil,
+        gameRepository: GameSaveStorage? = nil,
         itemsRepository: ItemsRepository? = nil,
         inventoryService: InventoryService,
         slotId: String = SaveSlotInfo.defaultSlotId,
@@ -187,6 +187,10 @@ public final class DefaultGameService: GameService {
 
     public func equipShirt(_ shirt: ElfRobeItem?) {
         player.equipped.shirt = shirt
+    }
+
+    public func applyCraftResult(_ inventory: ElfInventory) {
+        player.inventory = inventory
     }
 
     // MARK: - Persistence

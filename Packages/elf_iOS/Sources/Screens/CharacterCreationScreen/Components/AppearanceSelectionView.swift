@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 /// Stage 1: Select character appearance
@@ -58,10 +59,7 @@ struct AppearanceSelectionView: View {
                 .frame(width: width, height: height)
                 .background(Color.white)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3)
-                )
+                .elfSelectionBorder(isSelected, cornerRadius: 12)
                 .shadow(color: isSelected ? Color.blue.opacity(0.5) : Color.black.opacity(0.2), radius: isSelected ? 8 : 2)
         }
         .buttonStyle(.plain)

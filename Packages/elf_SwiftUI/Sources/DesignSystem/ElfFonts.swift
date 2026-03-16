@@ -136,5 +136,8 @@ public enum ElfFonts {
 
         // Calendar
         public static let calendarHeader = Font.system(size: Size.caption, weight: .medium)
+
+        // Craft
+        public static let ingredientCount = Font.system(size: Size.small, weight: .regular)
     }
 }

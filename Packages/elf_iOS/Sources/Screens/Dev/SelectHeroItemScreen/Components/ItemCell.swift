@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 internal struct ItemCell: View {
@@ -46,10 +47,7 @@ internal struct ItemCell: View {
                         )
                     )
             }
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3)
-            )
+            .elfSelectionBorder(isSelected, cornerRadius: 8)
             .shadow(color: isSelected ? Color.blue.opacity(0.5) : Color.clear, radius: 8)
     }
 }

@@ -63,7 +63,7 @@ public final class DefaultDropService: DropService {
             itemType: .material,
             name: material.title,
             icon: material.imageName,
-            rarity: .common,  // Materials are common by default
+            tier: .common,
             quantity: reward.amount
         )
     }
@@ -77,8 +77,8 @@ public final class DefaultDropService: DropService {
             id: UUID(),
             itemType: .weapon,
             name: weapon.title,
-            icon: "sword",  // Default weapon icon
-            rarity: rarityFromTier(weapon.tier),
+            icon: "sword",
+            tier: itemTier(from: weapon.tier),
             quantity: 1
         )
     }
@@ -92,27 +92,18 @@ public final class DefaultDropService: DropService {
             id: UUID(),
             itemType: .armor,
             name: armor.title,
-            icon: "shield",  // Default armor icon
-            rarity: rarityFromTier(armor.tier),
+            icon: "shield",
+            tier: itemTier(from: armor.tier),
             quantity: 1
         )
     }
 
-    /// Convert item tier to rarity
-    /// Tier 1-2: common, Tier 3: uncommon, Tier 4: rare, Tier 5: epic, Tier 6+: legendary
-    private func rarityFromTier(_ tier: Int16) -> ItemRarity {
-        switch tier {
-        case 1...2:
+    private func itemTier(from tier: Int16) -> ItemTier {
+        guard let result = ItemTier(rawValue: Int(tier)) else {
+            assertionFailure("Unknown item tier: \(tier)")
             return .common
-        case 3:
-            return .uncommon
-        case 4:
-            return .rare
-        case 5:
-            return .epic
-        default:
-            return .legendary
         }
+        return result
     }
 }
 

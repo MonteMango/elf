@@ -11,11 +11,16 @@ public final class DefaultForagingService: ForagingService {
 
     // MARK: - Dependencies
 
+    private let gatheringEngine: any GatheringEngine
     private let skillProgressCalculator: any SkillProgressCalculator
 
     // MARK: - Initialization
 
-    public init(skillProgressCalculator: any SkillProgressCalculator) {
+    public init(
+        gatheringEngine: any GatheringEngine,
+        skillProgressCalculator: any SkillProgressCalculator
+    ) {
+        self.gatheringEngine = gatheringEngine
         self.skillProgressCalculator = skillProgressCalculator
     }
 
@@ -28,7 +33,7 @@ public final class DefaultForagingService: ForagingService {
         expPerLevel: Int
     ) -> ForagingResult {
         // Use unified gathering engine (uses GatheringEngine.defaultMaxCount)
-        let gatheredHerbs = GatheringEngine.gather(from: availableHerbs)
+        let gatheredHerbs = gatheringEngine.gather(from: availableHerbs, maxCount: DefaultGatheringEngine.defaultMaxCount)
 
         // Calculate skill progress from gathered herbs
         let skillProgress = skillProgressCalculator.calculateFromGathered(

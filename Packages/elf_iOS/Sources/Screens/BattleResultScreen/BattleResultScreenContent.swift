@@ -155,14 +155,14 @@ struct BattleResultScreenContent: View {
                         itemType: .material,
                         name: "Soul Gem",
                         icon: "material_monster_soul_gem",
-                        rarity: .common,
+                        tier: .common,
                         quantity: 2
                     ),
                     DropItem(
                         itemType: .weapon,
                         name: "Steel Sword",
                         icon: "fa0b6893-6896-4689-a299-b8d271c76b68",
-                        rarity: .rare,
+                        tier: .rare,
                         quantity: 1
                     )
                 ],

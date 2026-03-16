@@ -128,6 +128,11 @@ public final class GameDayViewModel {
         isInventoryVisible = true
     }
 
+    /// Saves game and prepares for exit
+    public func exitGame() async {
+        try? await gameService.saveGame()
+    }
+
     /// Called when a pocket slot is tapped
     public func onPocketTapped(_ index: Int) {
         // UI only - logic will be implemented later

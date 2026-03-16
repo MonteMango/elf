@@ -61,14 +61,14 @@ struct DropsRevealView: View {
                     itemType: .material,
                     name: "Wolf Pelt",
                     icon: "leaf",
-                    rarity: .common,
+                    tier: .common,
                     quantity: 2
                 ),
                 DropItem(
                     itemType: .weapon,
                     name: "Iron Sword",
                     icon: "sword",
-                    rarity: .uncommon,
+                    tier: .uncommon,
                     quantity: 1
                 )
             ],

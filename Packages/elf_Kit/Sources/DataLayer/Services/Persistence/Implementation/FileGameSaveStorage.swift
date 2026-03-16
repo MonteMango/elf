@@ -1,5 +1,5 @@
 //
-//  FileGameRepository.swift
+//  FileGameSaveStorage.swift
 //  elf_Kit
 //
 //  Created by Vitalii Lytvynov on 04.12.25.
@@ -15,9 +15,9 @@ private func debugLog(_ message: String) {
     #endif
 }
 
-/// File system implementation of GameRepository
+/// File system implementation of GameSaveStorage
 /// Stores saves as JSON files in Application Support directory
-public actor FileGameRepository: GameRepository {
+public actor FileGameSaveStorage: GameSaveStorage {
 
     // MARK: - Constants
 
@@ -74,22 +74,22 @@ public actor FileGameRepository: GameRepository {
         // Create directories if needed
         do {
             try fileManager.createDirectory(at: saveDirectory, withIntermediateDirectories: true)
-            debugLog("📁 [GameRepository] Save directory created/verified: \(saveDirectory.path)")
+            debugLog("📁 [GameSaveStorage] Save directory created/verified: \(saveDirectory.path)")
         } catch {
-            debugLog("❌ [GameRepository] Failed to create save directory: \(error)")
+            debugLog("❌ [GameSaveStorage] Failed to create save directory: \(error)")
         }
     }
 
-    // MARK: - GameRepository
+    // MARK: - GameSaveStorage
 
     public func save(_ game: Game, slotId: String, playTime: TimeInterval) async throws {
-        debugLog("💾 [GameRepository] ========== SAVE START ==========")
-        debugLog("💾 [GameRepository] Slot ID: \(slotId)")
-        debugLog("💾 [GameRepository] Game ID: \(game.id)")
-        debugLog("💾 [GameRepository] Houses count: \(game.houses.count)")
-        debugLog("💾 [GameRepository] Player house: \(game.playerHouse.name)")
-        debugLog("💾 [GameRepository] Current day: \(game.gameState.currentDay.dayNumber)")
-        debugLog("💾 [GameRepository] Play time: \(playTime)s")
+        debugLog("💾 [GameSaveStorage] ========== SAVE START ==========")
+        debugLog("💾 [GameSaveStorage] Slot ID: \(slotId)")
+        debugLog("💾 [GameSaveStorage] Game ID: \(game.id)")
+        debugLog("💾 [GameSaveStorage] Houses count: \(game.houses.count)")
+        debugLog("💾 [GameSaveStorage] Player house: \(game.playerHouse.name)")
+        debugLog("💾 [GameSaveStorage] Current day: \(game.gameState.currentDay.dayNumber)")
+        debugLog("💾 [GameSaveStorage] Play time: \(playTime)s")
 
         // Create GameSave DTO
         let gameSave = GameSave(from: game, playTime: playTime, appVersion: appVersion)
@@ -98,9 +98,9 @@ public actor FileGameRepository: GameRepository {
         let data: Data
         do {
             data = try encoder.encode(gameSave)
-            debugLog("💾 [GameRepository] Encoded to JSON, size: \(data.count) bytes")
+            debugLog("💾 [GameSaveStorage] Encoded to JSON, size: \(data.count) bytes")
         } catch {
-            debugLog("❌ [GameRepository] Encoding FAILED: \(error)")
+            debugLog("❌ [GameSaveStorage] Encoding FAILED: \(error)")
             throw GameSaveError.encodingFailed(error)
         }
 
@@ -108,29 +108,29 @@ public actor FileGameRepository: GameRepository {
         let slotURL = slotURL(for: slotId)
         let backupURL = slotURL.appendingPathExtension(Self.backupExtension)
         let tempURL = slotURL.appendingPathExtension("tmp")
-        debugLog("💾 [GameRepository] Target file: \(slotURL.path)")
+        debugLog("💾 [GameSaveStorage] Target file: \(slotURL.path)")
 
         do {
             // 1. Write to temp file
             try data.write(to: tempURL, options: .atomic)
-            debugLog("💾 [GameRepository] Temp file written: \(tempURL.path)")
+            debugLog("💾 [GameSaveStorage] Temp file written: \(tempURL.path)")
 
             // 2. Create backup of existing save
             if fileManager.fileExists(atPath: slotURL.path) {
                 try? fileManager.removeItem(at: backupURL)
                 try? fileManager.moveItem(at: slotURL, to: backupURL)
-                debugLog("💾 [GameRepository] Backup created: \(backupURL.path)")
+                debugLog("💾 [GameSaveStorage] Backup created: \(backupURL.path)")
             }
 
             // 3. Move temp to final location
             try fileManager.moveItem(at: tempURL, to: slotURL)
-            debugLog("✅ [GameRepository] Save file created: \(slotURL.path)")
+            debugLog("✅ [GameSaveStorage] Save file created: \(slotURL.path)")
 
             // Verify file exists
             let exists = fileManager.fileExists(atPath: slotURL.path)
-            debugLog("💾 [GameRepository] Verification - file exists: \(exists)")
+            debugLog("💾 [GameSaveStorage] Verification - file exists: \(exists)")
         } catch {
-            debugLog("❌ [GameRepository] File write FAILED: \(error)")
+            debugLog("❌ [GameSaveStorage] File write FAILED: \(error)")
             // Cleanup temp file if it exists
             try? fileManager.removeItem(at: tempURL)
             throw GameSaveError.fileWriteFailed(error)
@@ -140,44 +140,44 @@ public actor FileGameRepository: GameRepository {
         let playerLevel = progressionService.calculateLevel(currentExp: game.player.currentExp)
         let slotInfo = SaveSlotInfo(slotId: slotId, game: game, playerLevel: playerLevel, playTime: playTime)
         try updateSlotsIndex(adding: slotInfo)
-        debugLog("💾 [GameRepository] Slots index updated")
-        debugLog("💾 [GameRepository] ========== SAVE COMPLETE ==========")
+        debugLog("💾 [GameSaveStorage] Slots index updated")
+        debugLog("💾 [GameSaveStorage] ========== SAVE COMPLETE ==========")
     }
 
     public func load(slotId: String) async throws -> Game {
-        debugLog("📂 [GameRepository] ========== LOAD START ==========")
-        debugLog("📂 [GameRepository] Slot ID: \(slotId)")
+        debugLog("📂 [GameSaveStorage] ========== LOAD START ==========")
+        debugLog("📂 [GameSaveStorage] Slot ID: \(slotId)")
 
         let slotURL = slotURL(for: slotId)
         let backupURL = slotURL.appendingPathExtension(Self.backupExtension)
 
-        debugLog("📂 [GameRepository] Main file path: \(slotURL.path)")
-        debugLog("📂 [GameRepository] Backup file path: \(backupURL.path)")
+        debugLog("📂 [GameSaveStorage] Main file path: \(slotURL.path)")
+        debugLog("📂 [GameSaveStorage] Backup file path: \(backupURL.path)")
 
         // Try main file first, then backup
         let urlsToTry = [slotURL, backupURL]
 
         for url in urlsToTry {
             let fileExists = fileManager.fileExists(atPath: url.path)
-            debugLog("📂 [GameRepository] Checking: \(url.lastPathComponent) - exists: \(fileExists)")
+            debugLog("📂 [GameSaveStorage] Checking: \(url.lastPathComponent) - exists: \(fileExists)")
 
             guard fileExists else { continue }
 
             do {
                 // Step 1: Read file
                 let data = try Data(contentsOf: url)
-                debugLog("📂 [GameRepository] File read, size: \(data.count) bytes")
+                debugLog("📂 [GameSaveStorage] File read, size: \(data.count) bytes")
 
                 // Step 2: Decode JSON
                 let gameSave = try decoder.decode(GameSave.self, from: data)
-                debugLog("📂 [GameRepository] JSON decoded successfully")
-                debugLog("📂 [GameRepository] - Version: \(gameSave.version)")
-                debugLog("📂 [GameRepository] - Saved at: \(gameSave.savedAt)")
-                debugLog("📂 [GameRepository] - App version: \(gameSave.appVersion)")
+                debugLog("📂 [GameSaveStorage] JSON decoded successfully")
+                debugLog("📂 [GameSaveStorage] - Version: \(gameSave.version)")
+                debugLog("📂 [GameSaveStorage] - Saved at: \(gameSave.savedAt)")
+                debugLog("📂 [GameSaveStorage] - App version: \(gameSave.appVersion)")
 
                 // Step 3: Check version and migrate if needed
                 if gameSave.version < GameSave.currentVersion {
-                    debugLog("📂 [GameRepository] Migration needed from v\(gameSave.version) to v\(GameSave.currentVersion)")
+                    debugLog("📂 [GameSaveStorage] Migration needed from v\(gameSave.version) to v\(GameSave.currentVersion)")
                     return try migrate(data: data, fromVersion: gameSave.version)
                 }
 
@@ -186,30 +186,30 @@ public actor FileGameRepository: GameRepository {
                     itemsRepository: itemsRepository,
                     inventoryService: inventoryService
                 )
-                debugLog("📂 [GameRepository] Game object created")
-                debugLog("📂 [GameRepository] - Game ID: \(game.id)")
-                debugLog("📂 [GameRepository] - Houses: \(game.houses.count)")
-                debugLog("📂 [GameRepository] - Player house: \(game.playerHouse.name)")
-                debugLog("✅ [GameRepository] ========== LOAD COMPLETE ==========")
+                debugLog("📂 [GameSaveStorage] Game object created")
+                debugLog("📂 [GameSaveStorage] - Game ID: \(game.id)")
+                debugLog("📂 [GameSaveStorage] - Houses: \(game.houses.count)")
+                debugLog("📂 [GameSaveStorage] - Player house: \(game.playerHouse.name)")
+                debugLog("✅ [GameSaveStorage] ========== LOAD COMPLETE ==========")
                 return game
             } catch let error as GameSaveError {
-                debugLog("❌ [GameRepository] GameSaveError: \(error.errorDescription ?? "unknown")")
+                debugLog("❌ [GameSaveStorage] GameSaveError: \(error.errorDescription ?? "unknown")")
                 // If main file failed, try backup
                 if url == slotURL { continue }
                 throw error
             } catch let error as DecodingError {
-                debugLog("❌ [GameRepository] DecodingError: \(error)")
+                debugLog("❌ [GameSaveStorage] DecodingError: \(error)")
                 // Try backup on decode errors
                 if url == slotURL { continue }
                 throw GameSaveError.corruptedData
             } catch {
-                debugLog("❌ [GameRepository] Other error: \(error)")
+                debugLog("❌ [GameSaveStorage] Other error: \(error)")
                 throw GameSaveError.fileReadFailed(error)
             }
         }
 
-        debugLog("❌ [GameRepository] No valid save file found!")
-        debugLog("❌ [GameRepository] ========== LOAD FAILED ==========")
+        debugLog("❌ [GameSaveStorage] No valid save file found!")
+        debugLog("❌ [GameSaveStorage] ========== LOAD FAILED ==========")
         throw GameSaveError.slotNotFound(slotId)
     }
 
@@ -218,7 +218,7 @@ public actor FileGameRepository: GameRepository {
             "\(Self.slotFilePrefix)\(SaveSlotInfo.defaultSlotId).\(Self.slotFileExtension)"
         )
         let exists = FileManager.default.fileExists(atPath: slotURL.path)
-        debugLog("🔍 [GameRepository] hasAnySave() - path: \(slotURL.path) - exists: \(exists)")
+        debugLog("🔍 [GameSaveStorage] hasAnySave() - path: \(slotURL.path) - exists: \(exists)")
         return exists
     }
 
@@ -279,7 +279,6 @@ public actor FileGameRepository: GameRepository {
         // Update cache
         slotsCache = slots
     }
-
 
     private func saveSlotsIndex(_ slots: [SaveSlotInfo]) throws {
         do {

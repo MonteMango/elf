@@ -14,7 +14,7 @@ public final class ElfGameInitializationService: GameInitializationService {
     private let houseService: HouseService
     private let elfInfoFactory: ElfInfoFactory
     private let calendarService: CalendarService
-    private let gameRepository: GameRepository?
+    private let gameRepository: GameSaveStorage?
 
     // MARK: - Initialization
 
@@ -22,7 +22,7 @@ public final class ElfGameInitializationService: GameInitializationService {
         houseService: HouseService,
         elfInfoFactory: ElfInfoFactory,
         calendarService: CalendarService,
-        gameRepository: GameRepository? = nil
+        gameRepository: GameSaveStorage? = nil
     ) {
         self.houseService = houseService
         self.elfInfoFactory = elfInfoFactory
@@ -77,5 +77,5 @@ public final class ElfGameInitializationService: GameInitializationService {
 
 // MARK: - Sendable Conformance
 // Thread-safe: All stored properties are immutable (let) after initialization.
-// All dependencies are Sendable protocols: HouseService, ElfInfoFactory, CalendarService, GameRepository.
+// All dependencies are Sendable protocols: HouseService, ElfInfoFactory, CalendarService, GameSaveStorage.
 extension ElfGameInitializationService: @unchecked Sendable {}

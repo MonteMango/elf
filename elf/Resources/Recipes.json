@@ -1,0 +1,183 @@
+{
+    "version": "1.0",
+    "weapons": [
+        {
+            "id": "A0000001-0001-4001-8001-000000000001",
+            "resultItemId": "37a82c8a-5356-4a0d-8be2-e5a5f5f3198c",
+            "category": "weapon",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 21 },
+                { "itemId": "C1B2C3D4-1111-4111-8111-111111111111", "type": "ore", "amount": 5 },
+                { "itemId": "C1B2C3D4-2222-4222-8222-222222222222", "type": "ore", "amount": 2 }
+            ]
+        },
+        {
+            "id": "A0000001-0001-4001-8001-000000000002",
+            "resultItemId": "b59d8295-f948-46b6-8ff7-13342be9a9b6",
+            "category": "weapon",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 13 },
+                { "itemId": "C1B2C3D4-1111-4111-8111-111111111111", "type": "ore", "amount": 2 },
+                { "itemId": "C1B2C3D4-2222-4222-8222-222222222222", "type": "ore", "amount": 1 },
+                { "itemId": "C1B2C3D4-3333-4333-8333-333333333333", "type": "ore", "amount": 1 }
+            ]
+        },
+        {
+            "id": "A0000001-0001-4001-8001-000000000004",
+            "resultItemId": "ff81624c-5da6-4302-8432-70e802e94159",
+            "category": "weapon",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 10 },
+                { "itemId": "C1B2C3D4-1111-4111-8111-111111111111", "type": "ore", "amount": 3 },
+                { "itemId": "C1B2C3D4-2222-4222-8222-222222222222", "type": "ore", "amount": 1 }
+            ]
+        },
+        {
+            "id": "A0000001-0001-4001-8001-000000000005",
+            "resultItemId": "50c98297-08ea-4f6a-ae80-54d5d2830ec2",
+            "category": "weapon",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 35 },
+                { "itemId": "C1B2C3D4-3333-4333-8333-333333333333", "type": "ore", "amount": 5 },
+                { "itemId": "C1B2C3D4-4444-4444-8444-444444444444", "type": "ore", "amount": 3 },
+                { "itemId": "C1B2C3D4-5555-4555-8555-555555555555", "type": "ore", "amount": 2 }
+            ]
+        },
+        {
+            "id": "A0000001-0001-4001-8001-000000000006",
+            "resultItemId": "d90bce80-202a-4e83-85c8-b5d5f52d8a9f",
+            "category": "weapon",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 30 },
+                { "itemId": "C1B2C3D4-3333-4333-8333-333333333333", "type": "ore", "amount": 4 },
+                { "itemId": "C1B2C3D4-4444-4444-8444-444444444444", "type": "ore", "amount": 3 },
+                { "itemId": "C1B2C3D4-6666-4666-8666-666666666666", "type": "ore", "amount": 1 }
+            ]
+        },
+        {
+            "id": "A0000001-0001-4001-8001-000000000007",
+            "resultItemId": "ba01059d-f04d-4d1d-8170-57ab9ec2a958",
+            "category": "weapon",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 22 },
+                { "itemId": "C1B2C3D4-3333-4333-8333-333333333333", "type": "ore", "amount": 3 },
+                { "itemId": "C1B2C3D4-4444-4444-8444-444444444444", "type": "ore", "amount": 2 },
+                { "itemId": "C1B2C3D4-5555-4555-8555-555555555555", "type": "ore", "amount": 1 }
+            ]
+        },
+        {
+            "id": "A0000001-0001-4001-8001-000000000008",
+            "resultItemId": "8313bc77-0cc6-423b-ba59-ead9c360e0eb",
+            "category": "weapon",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 25 },
+                { "itemId": "C1B2C3D4-3333-4333-8333-333333333333", "type": "ore", "amount": 4 },
+                { "itemId": "C1B2C3D4-4444-4444-8444-444444444444", "type": "ore", "amount": 2 },
+                { "itemId": "C1B2C3D4-5555-4555-8555-555555555555", "type": "ore", "amount": 2 }
+            ]
+        }
+    ],
+    "armor": [
+        {
+            "id": "A0000001-0002-4001-8001-000000000001",
+            "resultItemId": "6023cc65-b183-4d41-8742-f1ecb0172942",
+            "category": "armor",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 8 },
+                { "itemId": "C1B2C3D4-1111-4111-8111-111111111111", "type": "ore", "amount": 2 }
+            ]
+        },
+        {
+            "id": "A0000001-0002-4001-8001-000000000002",
+            "resultItemId": "d3244c78-55a2-4417-8754-c57a0d88b9eb",
+            "category": "armor",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 6 },
+                { "itemId": "C1B2C3D4-1111-4111-8111-111111111111", "type": "ore", "amount": 2 }
+            ]
+        },
+        {
+            "id": "A0000001-0002-4001-8001-000000000003",
+            "resultItemId": "898a28b5-7189-4b21-b821-6b67ad2e8269",
+            "category": "armor",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 7 },
+                { "itemId": "C1B2C3D4-1111-4111-8111-111111111111", "type": "ore", "amount": 2 },
+                { "itemId": "C1B2C3D4-2222-4222-8222-222222222222", "type": "ore", "amount": 1 }
+            ]
+        },
+        {
+            "id": "A0000001-0002-4001-8001-000000000004",
+            "resultItemId": "097a72d3-4533-4276-84aa-1a2c310a7b16",
+            "category": "armor",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 12 },
+                { "itemId": "C1B2C3D4-1111-4111-8111-111111111111", "type": "ore", "amount": 3 },
+                { "itemId": "C1B2C3D4-2222-4222-8222-222222222222", "type": "ore", "amount": 2 }
+            ]
+        },
+        {
+            "id": "A0000001-0002-4001-8001-000000000005",
+            "resultItemId": "f2347e9b-f22d-47d7-85d3-8ffb9f1fd6bb",
+            "category": "armor",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 10 },
+                { "itemId": "C1B2C3D4-1111-4111-8111-111111111111", "type": "ore", "amount": 3 },
+                { "itemId": "C1B2C3D4-2222-4222-8222-222222222222", "type": "ore", "amount": 1 }
+            ]
+        },
+        {
+            "id": "A0000001-0002-4001-8001-000000000007",
+            "resultItemId": "a9d587dd-c44a-466b-87d2-3601f142ac02",
+            "category": "armor",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 20 },
+                { "itemId": "C1B2C3D4-3333-4333-8333-333333333333", "type": "ore", "amount": 3 },
+                { "itemId": "C1B2C3D4-4444-4444-8444-444444444444", "type": "ore", "amount": 2 }
+            ]
+        },
+        {
+            "id": "A0000001-0002-4001-8001-000000000008",
+            "resultItemId": "6b02e612-fe4c-469b-9730-b3125dbd4a57",
+            "category": "armor",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 16 },
+                { "itemId": "C1B2C3D4-3333-4333-8333-333333333333", "type": "ore", "amount": 2 },
+                { "itemId": "C1B2C3D4-4444-4444-8444-444444444444", "type": "ore", "amount": 2 }
+            ]
+        },
+        {
+            "id": "A0000001-0002-4001-8001-000000000009",
+            "resultItemId": "dc79de7c-4144-4b1e-9011-f7475c08eb6a",
+            "category": "armor",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 18 },
+                { "itemId": "C1B2C3D4-3333-4333-8333-333333333333", "type": "ore", "amount": 3 },
+                { "itemId": "C1B2C3D4-4444-4444-8444-444444444444", "type": "ore", "amount": 2 },
+                { "itemId": "C1B2C3D4-5555-4555-8555-555555555555", "type": "ore", "amount": 1 }
+            ]
+        },
+        {
+            "id": "A0000001-0002-4001-8001-000000000010",
+            "resultItemId": "98b16004-2135-4b46-939e-7e6704f95ce1",
+            "category": "armor",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 30 },
+                { "itemId": "C1B2C3D4-3333-4333-8333-333333333333", "type": "ore", "amount": 5 },
+                { "itemId": "C1B2C3D4-4444-4444-8444-444444444444", "type": "ore", "amount": 3 },
+                { "itemId": "C1B2C3D4-5555-4555-8555-555555555555", "type": "ore", "amount": 2 }
+            ]
+        },
+        {
+            "id": "A0000001-0002-4001-8001-000000000011",
+            "resultItemId": "10b1edc0-bd3e-4f5a-9b89-e1fe43c131a6",
+            "category": "armor",
+            "ingredients": [
+                { "itemId": "550E8400-E29B-41D4-A716-446655440101", "type": "material", "amount": 25 },
+                { "itemId": "C1B2C3D4-3333-4333-8333-333333333333", "type": "ore", "amount": 4 },
+                { "itemId": "C1B2C3D4-4444-4444-8444-444444444444", "type": "ore", "amount": 2 },
+                { "itemId": "C1B2C3D4-5555-4555-8555-555555555555", "type": "ore", "amount": 1 }
+            ]
+        }
+    ]
+}

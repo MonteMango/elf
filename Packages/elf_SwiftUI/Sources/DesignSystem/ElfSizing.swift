@@ -164,4 +164,14 @@ public enum ElfSizing {
     public enum MonsterAlert {
         public static let width: CGFloat = 400
     }
+
+    // MARK: - Craft Screen Specific
+
+    public enum Craft {
+        public static let detailPanelWidth: CGFloat = 350
+        public static let categoryButtonSize: CGFloat = 50
+        public static let detailImageSize: CGFloat = 60
+        public static let ingredientIconSize: CGFloat = 16
+        public static let warningIconSize: CGFloat = 14
+    }
 }

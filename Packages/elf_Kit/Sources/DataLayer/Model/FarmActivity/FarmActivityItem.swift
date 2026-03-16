@@ -11,7 +11,7 @@ import Foundation
 public struct FarmActivityItem: Identifiable, Sendable, Equatable {
     public let id: UUID
     public let imageName: String
-    public let tier: GatherableTier
+    public let tier: ItemTier
 }
 
 // MARK: - Conversions

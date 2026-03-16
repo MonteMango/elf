@@ -6,6 +6,7 @@
 //
 
 import elf_iOS
+import elf_SwiftUI
 import SwiftUI
 
 @main
@@ -28,13 +29,13 @@ internal struct ElfApp: App {
 
     private func configureAppearance() {
         // Segmented control styling
-        UISegmentedControl.appearance().selectedSegmentTintColor = UIColor.orange
+        UISegmentedControl.appearance().selectedSegmentTintColor = UIColor(ElfColors.primary)
         UISegmentedControl.appearance().setTitleTextAttributes(
-            [.foregroundColor: UIColor.white],
+            [.foregroundColor: UIColor(ElfColors.Text.primaryLight)],
             for: .selected
         )
         UISegmentedControl.appearance().setTitleTextAttributes(
-            [.foregroundColor: UIColor.black],
+            [.foregroundColor: UIColor(ElfColors.Text.primary)],
             for: .normal
         )
     }

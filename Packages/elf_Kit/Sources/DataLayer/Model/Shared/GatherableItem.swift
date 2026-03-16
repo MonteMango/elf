@@ -12,7 +12,7 @@ public protocol GatherableItem: Codable, Sendable, Identifiable, Hashable {
     var title: String { get }
     var imageName: String { get }
     var description: String { get }
-    var tier: GatherableTier { get }
+    var tier: ItemTier { get }
 
     /// Base chance to successfully gather this item (0.0 - 1.0)
     var baseSuccessChance: Double { get }

@@ -12,7 +12,7 @@ public struct Herb: Codable, Sendable, Identifiable, Hashable {
     public let title: String
     public let imageName: String
     public let description: String
-    public let tier: GatherableTier
+    public let tier: ItemTier
     public let baseGatherChance: Double
     public let effects: [HerbEffect]
 
@@ -21,7 +21,7 @@ public struct Herb: Codable, Sendable, Identifiable, Hashable {
         title: String,
         imageName: String,
         description: String,
-        tier: GatherableTier,
+        tier: ItemTier,
         baseGatherChance: Double,
         effects: [HerbEffect]
     ) {

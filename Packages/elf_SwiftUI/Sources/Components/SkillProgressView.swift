@@ -1,27 +1,56 @@
 //
 //  SkillProgressView.swift
-//  elf_iOS
+//  elf_SwiftUI
 //
 //  Created by Vitalii Lytvynov
 //
 
-import elf_Kit
-import elf_SwiftUI
 import SwiftUI
 
 /// Generic skill progress view that can be used for any skill type (battle XP, fishing, foraging, etc.)
-struct SkillProgressView: View {
-    let progress: SkillProgressData
+public struct SkillProgressView: View {
+    let experienceGained: Int
+    let previousLevel: Int
+    let previousExp: Int
+    let previousExpToNext: Int
+    let newLevel: Int
+    let newExp: Int
+    let newExpToNext: Int
+    let didLevelUp: Bool
     let isVisible: Bool
     let showProgress: Bool
 
     @State private var animatedProgress: Double = 0
     @State private var showLevelUp: Bool = false
 
-    var body: some View {
+    public init(
+        experienceGained: Int,
+        previousLevel: Int,
+        previousExp: Int,
+        previousExpToNext: Int,
+        newLevel: Int,
+        newExp: Int,
+        newExpToNext: Int,
+        didLevelUp: Bool,
+        isVisible: Bool,
+        showProgress: Bool
+    ) {
+        self.experienceGained = experienceGained
+        self.previousLevel = previousLevel
+        self.previousExp = previousExp
+        self.previousExpToNext = previousExpToNext
+        self.newLevel = newLevel
+        self.newExp = newExp
+        self.newExpToNext = newExpToNext
+        self.didLevelUp = didLevelUp
+        self.isVisible = isVisible
+        self.showProgress = showProgress
+    }
+
+    public var body: some View {
         VStack(spacing: 0) {
             // XP gained text
-            Text("+\(progress.experienceGained) XP")
+            Text("+\(experienceGained) XP")
                 .font(ElfFonts.Component.xpGained)
                 .foregroundStyle(ElfColors.ProgressBar.xp)
                 .opacity(isVisible ? 1.0 : 0.0)
@@ -29,7 +58,7 @@ struct SkillProgressView: View {
             // Level and progress bar
             HStack(spacing: ElfSizing.BattleResult.smallSpacing) {
                 // Current level badge
-                levelBadge(level: progress.didLevelUp ? progress.newLevel : progress.previousLevel)
+                levelBadge(level: didLevelUp ? newLevel : previousLevel)
 
                 // Progress bar
                 ZStack(alignment: .leading) {
@@ -48,13 +77,13 @@ struct SkillProgressView: View {
                 )
 
                 // Next level badge
-                levelBadge(level: progress.newLevel + 1)
+                levelBadge(level: newLevel + 1)
                     .opacity(0.5)
             }
             .opacity(isVisible ? 1.0 : 0.0)
 
             // Level up text
-            if progress.didLevelUp && showLevelUp {
+            if didLevelUp && showLevelUp {
                 Text("LEVEL UP!")
                     .font(ElfFonts.Component.levelUpText)
                     .foregroundStyle(ElfColors.ProgressBar.levelUpGlow)
@@ -87,10 +116,10 @@ struct SkillProgressView: View {
 
     private func animateProgress() async {
         // Calculate target progress
-        let targetProgress = Double(progress.newExp) / Double(progress.newExpToNext)
+        let targetProgress = Double(newExp) / Double(newExpToNext)
 
         // If leveled up, animate to 100% then reset to new progress
-        if progress.didLevelUp {
+        if didLevelUp {
             // First animate to 100%
             withAnimation(.easeInOut(duration: ElfAnimations.BattleResult.xpBarFillDuration * 0.6)) {
                 animatedProgress = 1.0
@@ -109,7 +138,7 @@ struct SkillProgressView: View {
             }
         } else {
             // Simple animation from previous to new
-            let startProgress = Double(progress.previousExp) / Double(progress.previousExpToNext)
+            let startProgress = Double(previousExp) / Double(previousExpToNext)
             animatedProgress = startProgress
 
             withAnimation(.easeInOut(duration: ElfAnimations.BattleResult.xpBarFillDuration)) {
@@ -125,16 +154,14 @@ struct SkillProgressView: View {
     ZStack {
         Color.black.ignoresSafeArea()
         SkillProgressView(
-            progress: SkillProgressData(
-                skillName: "Fishing",
-                experienceGained: 15,
-                previousLevel: 1,
-                previousExp: 30,
-                previousExpToNext: 50,
-                newLevel: 1,
-                newExp: 45,
-                newExpToNext: 50
-            ),
+            experienceGained: 15,
+            previousLevel: 1,
+            previousExp: 30,
+            previousExpToNext: 50,
+            newLevel: 1,
+            newExp: 45,
+            newExpToNext: 50,
+            didLevelUp: false,
             isVisible: true,
             showProgress: true
         )
@@ -145,16 +172,14 @@ struct SkillProgressView: View {
     ZStack {
         Color.black.ignoresSafeArea()
         SkillProgressView(
-            progress: SkillProgressData(
-                skillName: "Fishing",
-                experienceGained: 25,
-                previousLevel: 1,
-                previousExp: 40,
-                previousExpToNext: 50,
-                newLevel: 2,
-                newExp: 15,
-                newExpToNext: 50
-            ),
+            experienceGained: 25,
+            previousLevel: 1,
+            previousExp: 40,
+            previousExpToNext: 50,
+            newLevel: 2,
+            newExp: 15,
+            newExpToNext: 50,
+            didLevelUp: true,
             isVisible: true,
             showProgress: true
         )

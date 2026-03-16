@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 14.11.25.
 //
 
+import elf_SwiftUI
 import SwiftUI
 
 internal struct EmptyItemCell: View {
@@ -47,10 +48,7 @@ internal struct EmptyItemCell: View {
                     )
                 )
         }
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3)
-        )
+        .elfSelectionBorder(isSelected, cornerRadius: 8)
         .shadow(color: isSelected ? Color.blue.opacity(0.5) : Color.clear, radius: 8)
     }
 }

@@ -14,6 +14,8 @@
 		09A089D92F29AF2F001A1A85 /* Ores.json in Resources */ = {isa = PBXBuildFile; fileRef = 09A089D82F29AF2F001A1A85 /* Ores.json */; };
 		09A8CD6B2BE13E3300DDC851 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 09A8CD6A2BE13E3300DDC851 /* Assets.xcassets */; };
 		09A8CD6E2BE13E3300DDC851 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 09A8CD6D2BE13E3300DDC851 /* Base */; };
+		09C0BB092F2CB8AA0095867F /* Recipes.json in Resources */ = {isa = PBXBuildFile; fileRef = 09C0BB082F2CB8AA0095867F /* Recipes.json */; };
+		09C0BB0B2F2F5CAF0095867F /* elf_SwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 09C0BB0A2F2F5CAF0095867F /* elf_SwiftUI */; };
 		09D5060C2CB9D91200082EA0 /* HeroItems.json in Resources */ = {isa = PBXBuildFile; fileRef = 09D5060A2CB9D91200082EA0 /* HeroItems.json */; };
 		09F15C012EF8D00000DE5A84 /* Fish.json in Resources */ = {isa = PBXBuildFile; fileRef = 09F15C002EF8D00000DE5A84 /* Fish.json */; };
 		09F2ACCE2C3274EF004139A1 /* elf_iOS in Frameworks */ = {isa = PBXBuildFile; productRef = 09F2ACCD2C3274EF004139A1 /* elf_iOS */; };
@@ -33,6 +35,7 @@
 		09A8CD912BE13E7000DDC851 /* elf_iOS */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = elf_iOS; path = Packages/elf_iOS; sourceTree = "<group>"; };
 		09A8CD932BE13EB300DDC851 /* elf_Kit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = elf_Kit; path = Packages/elf_Kit; sourceTree = "<group>"; };
 		09AFC6C22E203CB500C0C2A8 /* elf_Kit_Tests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = elf_Kit_Tests.xctestplan; sourceTree = "<group>"; };
+		09C0BB082F2CB8AA0095867F /* Recipes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Recipes.json; sourceTree = "<group>"; };
 		09D5060A2CB9D91200082EA0 /* HeroItems.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = HeroItems.json; path = elf/Resources/HeroItems.json; sourceTree = SOURCE_ROOT; };
 		09F15C002EF8D00000DE5A84 /* Fish.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Fish.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -42,6 +45,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				09C0BB0B2F2F5CAF0095867F /* elf_SwiftUI in Frameworks */,
 				09F2ACCE2C3274EF004139A1 /* elf_iOS in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -85,6 +89,7 @@
 		09D5060B2CB9D91200082EA0 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				09C0BB082F2CB8AA0095867F /* Recipes.json */,
 				09A089D82F29AF2F001A1A85 /* Ores.json */,
 				09A089D62F29529E001A1A85 /* Herbs.json */,
 				09F15C002EF8D00000DE5A84 /* Fish.json */,
@@ -121,6 +126,7 @@
 			name = elf;
 			packageProductDependencies = (
 				09F2ACCD2C3274EF004139A1 /* elf_iOS */,
+				09C0BB0A2F2F5CAF0095867F /* elf_SwiftUI */,
 			);
 			productName = elf;
 			productReference = 09A8CD5E2BE13E3100DDC851 /* elf.app */;
@@ -171,6 +177,7 @@
 				09259ED82EE4C4E200DE5A84 /* Monsters.json in Resources */,
 				09A8CD6B2BE13E3300DDC851 /* Assets.xcassets in Resources */,
 				09A8CD6E2BE13E3300DDC851 /* Base in Resources */,
+				09C0BB092F2CB8AA0095867F /* Recipes.json in Resources */,
 				09D5060C2CB9D91200082EA0 /* HeroItems.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -350,11 +357,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = L39YW86E89;
+				DEVELOPMENT_TEAM = L39YW86E89;
 				ENABLE_CODE_COVERAGE = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -372,7 +378,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "de.michael-mueller-verlag.mmtravel-app";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development de.michael-mueller-verlag.mmtravel-app";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -384,11 +389,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = L39YW86E89;
+				DEVELOPMENT_TEAM = L39YW86E89;
 				ENABLE_CODE_COVERAGE = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -406,7 +410,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "de.michael-mueller-verlag.mmtravel-app";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development de.michael-mueller-verlag.mmtravel-app";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -437,6 +440,10 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		09C0BB0A2F2F5CAF0095867F /* elf_SwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = elf_SwiftUI;
+		};
 		09F2ACCD2C3274EF004139A1 /* elf_iOS */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = elf_iOS;

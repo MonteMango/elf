@@ -34,21 +34,21 @@ struct ActivityInProgressView: View {
 
 #Preview("Fishing") {
     ZStack {
-        Color.black.opacity(0.5).ignoresSafeArea()
+        ElfColors.Background.overlayMedium.ignoresSafeArea()
         ActivityInProgressView(activity: .fishing)
     }
 }
 
 #Preview("Foraging") {
     ZStack {
-        Color.black.opacity(0.5).ignoresSafeArea()
+        ElfColors.Background.overlayMedium.ignoresSafeArea()
         ActivityInProgressView(activity: .foraging)
     }
 }
 
 #Preview("Mining") {
     ZStack {
-        Color.black.opacity(0.5).ignoresSafeArea()
+        ElfColors.Background.overlayMedium.ignoresSafeArea()
         ActivityInProgressView(activity: .mining)
     }
 }

@@ -12,7 +12,7 @@ public struct Fish: Codable, Sendable, Identifiable, Hashable {
     public let title: String
     public let imageName: String
     public let description: String
-    public let tier: GatherableTier
+    public let tier: ItemTier
     public let baseCatchChance: Double
     public let effects: [FishEffect]
 
@@ -21,7 +21,7 @@ public struct Fish: Codable, Sendable, Identifiable, Hashable {
         title: String,
         imageName: String,
         description: String,
-        tier: GatherableTier,
+        tier: ItemTier,
         baseCatchChance: Double,
         effects: [FishEffect]
     ) {

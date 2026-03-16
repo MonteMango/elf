@@ -23,7 +23,7 @@ public final class ElfAppDependencyContainer {
     public let fightStyleDescriptionService: DefaultFightStyleDescriptionService
     public let nameSuggestionService: DefaultCharacterNameSuggestionService
     public let houseService: DefaultHouseService
-    public let gameRepository: FileGameRepository
+    public let gameRepository: FileGameSaveStorage
     public let calendarService: DefaultCalendarService
 
     // Battle services (concrete types for static dispatch)
@@ -117,7 +117,7 @@ public final class ElfAppDependencyContainer {
         )
 
         // Initialize persistence
-        let gameRepository = FileGameRepository(
+        let gameRepository = FileGameSaveStorage(
             itemsRepository: itemsRepository,
             progressionService: progressionService,
             inventoryService: inventoryService
@@ -178,11 +178,22 @@ public final class ElfAppDependencyContainer {
             itemsRepository: itemsRepository
         )
 
-        let fishingService = DefaultFishingService(skillProgressCalculator: self.skillProgressCalculator)
+        let gatheringEngine = DefaultGatheringEngine()
 
-        let foragingService = DefaultForagingService(skillProgressCalculator: self.skillProgressCalculator)
+        let fishingService = DefaultFishingService(
+            gatheringEngine: gatheringEngine,
+            skillProgressCalculator: self.skillProgressCalculator
+        )
 
-        let miningService = DefaultMiningService(skillProgressCalculator: self.skillProgressCalculator)
+        let foragingService = DefaultForagingService(
+            gatheringEngine: gatheringEngine,
+            skillProgressCalculator: self.skillProgressCalculator
+        )
+
+        let miningService = DefaultMiningService(
+            gatheringEngine: gatheringEngine,
+            skillProgressCalculator: self.skillProgressCalculator
+        )
 
         // Farm activity service (unified)
         self.farmActivityService = DefaultFarmActivityService(
@@ -389,6 +400,23 @@ public final class ElfAppDependencyContainer {
             calendar: calendar,
             currentDayNumber: currentDayNumber,
             daysPerIteration: self.calendarService.daysPerIteration
+        )
+    }
+
+    @MainActor
+    public func makeCraftViewModel() -> CraftViewModel {
+        guard let gameService = activeGameService else {
+            fatalError("No active game session. CraftViewModel requires an active game.")
+        }
+        let recipeRepository = ElfRecipeRepository()
+        let craftService = DefaultCraftService()
+        return CraftViewModel(
+            gameService: gameService,
+            recipeRepository: recipeRepository,
+            itemsRepository: self.itemsRepository,
+            materialRepository: self.materialRepository,
+            craftService: craftService,
+            inventoryService: self.inventoryService
         )
     }
 
