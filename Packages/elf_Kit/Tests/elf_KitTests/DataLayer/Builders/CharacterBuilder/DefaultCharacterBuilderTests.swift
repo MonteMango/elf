@@ -14,7 +14,6 @@ import XCTest
 /// - Appearance must be set
 /// - Name must be non-empty (after trimming)
 /// - Fight style must be set
-@MainActor
 final class DefaultCharacterBuilderTests: XCTestCase {
 
     // MARK: - Test Helpers
@@ -36,17 +35,17 @@ final class DefaultCharacterBuilderTests: XCTestCase {
 
     // MARK: - Successful Build Tests
 
-    func testBuild_WithAllFieldsSet_ReturnsCharacter() throws {
+    func testBuild_WithAllFieldsSet_ReturnsCharacter() async throws {
         // Given
         let builder = makeBuilder()
-        builder.setAppearance(.appearance1)
-        builder.setName("TestElf")
-        builder.setFightStyle(.crit)
+        await builder.setAppearance(.appearance1)
+        await builder.setName("TestElf")
+        await builder.setFightStyle(.crit)
         let fightStyleAttrs = makeValidAttributes()
         let randomAttrs = HeroAttributes()
 
         // When
-        let character = try builder.build(
+        let character = try await builder.build(
             fightStyleAttributes: fightStyleAttrs,
             randomLevelAttributes: randomAttrs
         )
@@ -59,15 +58,15 @@ final class DefaultCharacterBuilderTests: XCTestCase {
         XCTAssertEqual(character.fightStyleAttributes.agility, 10)
     }
 
-    func testBuild_TrimsWhitespaceFromName() throws {
+    func testBuild_TrimsWhitespaceFromName() async throws {
         // Given
         let builder = makeBuilder()
-        builder.setAppearance(.appearance2)
-        builder.setName("  Trimmed Name  ")
-        builder.setFightStyle(.dodge)
+        await builder.setAppearance(.appearance2)
+        await builder.setName("  Trimmed Name  ")
+        await builder.setFightStyle(.dodge)
 
         // When
-        let character = try builder.build(
+        let character = try await builder.build(
             fightStyleAttributes: makeValidAttributes(),
             randomLevelAttributes: HeroAttributes()
         )
@@ -76,19 +75,19 @@ final class DefaultCharacterBuilderTests: XCTestCase {
         XCTAssertEqual(character.name, "Trimmed Name")
     }
 
-    func testBuild_AllFightStyles() throws {
+    func testBuild_AllFightStyles() async throws {
         // Test all fight styles can be built
         let fightStyles: [FightStyle] = [.crit, .dodge, .def]
 
         for fightStyle in fightStyles {
             // Given
             let builder = makeBuilder()
-            builder.setAppearance(.appearance1)
-            builder.setName("TestElf")
-            builder.setFightStyle(fightStyle)
+            await builder.setAppearance(.appearance1)
+            await builder.setName("TestElf")
+            await builder.setFightStyle(fightStyle)
 
             // When
-            let character = try builder.build(
+            let character = try await builder.build(
                 fightStyleAttributes: makeValidAttributes(),
                 randomLevelAttributes: HeroAttributes()
             )
@@ -98,17 +97,17 @@ final class DefaultCharacterBuilderTests: XCTestCase {
         }
     }
 
-    func testBuild_AllAppearances() throws {
+    func testBuild_AllAppearances() async throws {
         // Test all appearances can be built
         for appearance in CharacterAppearance.allCases {
             // Given
             let builder = makeBuilder()
-            builder.setAppearance(appearance)
-            builder.setName("TestElf")
-            builder.setFightStyle(.crit)
+            await builder.setAppearance(appearance)
+            await builder.setName("TestElf")
+            await builder.setFightStyle(.crit)
 
             // When
-            let character = try builder.build(
+            let character = try await builder.build(
                 fightStyleAttributes: makeValidAttributes(),
                 randomLevelAttributes: HeroAttributes()
             )
@@ -120,140 +119,146 @@ final class DefaultCharacterBuilderTests: XCTestCase {
 
     // MARK: - Missing Fields Tests
 
-    func testBuild_WithoutAppearance_ThrowsMissingAppearance() {
+    func testBuild_WithoutAppearance_ThrowsMissingAppearance() async {
         // Given
         let builder = makeBuilder()
-        builder.setName("TestElf")
-        builder.setFightStyle(.crit)
+        await builder.setName("TestElf")
+        await builder.setFightStyle(.crit)
 
         // When/Then
-        XCTAssertThrowsError(
-            try builder.build(
+        do {
+            _ = try await builder.build(
                 fightStyleAttributes: makeValidAttributes(),
                 randomLevelAttributes: HeroAttributes()
             )
-        ) { error in
+            XCTFail("Expected CharacterBuilderError.missingAppearance")
+        } catch {
             XCTAssertEqual(error as? CharacterBuilderError, .missingAppearance)
         }
     }
 
-    func testBuild_WithoutName_ThrowsMissingName() {
+    func testBuild_WithoutName_ThrowsMissingName() async {
         // Given
         let builder = makeBuilder()
-        builder.setAppearance(.appearance1)
-        builder.setFightStyle(.crit)
+        await builder.setAppearance(.appearance1)
+        await builder.setFightStyle(.crit)
         // Name not set (empty by default)
 
         // When/Then
-        XCTAssertThrowsError(
-            try builder.build(
+        do {
+            _ = try await builder.build(
                 fightStyleAttributes: makeValidAttributes(),
                 randomLevelAttributes: HeroAttributes()
             )
-        ) { error in
+            XCTFail("Expected CharacterBuilderError.missingName")
+        } catch {
             XCTAssertEqual(error as? CharacterBuilderError, .missingName)
         }
     }
 
-    func testBuild_WithEmptyName_ThrowsMissingName() {
+    func testBuild_WithEmptyName_ThrowsMissingName() async {
         // Given
         let builder = makeBuilder()
-        builder.setAppearance(.appearance1)
-        builder.setName("")
-        builder.setFightStyle(.crit)
+        await builder.setAppearance(.appearance1)
+        await builder.setName("")
+        await builder.setFightStyle(.crit)
 
         // When/Then
-        XCTAssertThrowsError(
-            try builder.build(
+        do {
+            _ = try await builder.build(
                 fightStyleAttributes: makeValidAttributes(),
                 randomLevelAttributes: HeroAttributes()
             )
-        ) { error in
+            XCTFail("Expected CharacterBuilderError.missingName")
+        } catch {
             XCTAssertEqual(error as? CharacterBuilderError, .missingName)
         }
     }
 
-    func testBuild_WithWhitespaceOnlyName_ThrowsMissingName() {
+    func testBuild_WithWhitespaceOnlyName_ThrowsMissingName() async {
         // Given
         let builder = makeBuilder()
-        builder.setAppearance(.appearance1)
-        builder.setName("   ")
-        builder.setFightStyle(.crit)
+        await builder.setAppearance(.appearance1)
+        await builder.setName("   ")
+        await builder.setFightStyle(.crit)
 
         // When/Then
-        XCTAssertThrowsError(
-            try builder.build(
+        do {
+            _ = try await builder.build(
                 fightStyleAttributes: makeValidAttributes(),
                 randomLevelAttributes: HeroAttributes()
             )
-        ) { error in
+            XCTFail("Expected CharacterBuilderError.missingName")
+        } catch {
             XCTAssertEqual(error as? CharacterBuilderError, .missingName)
         }
     }
 
-    func testBuild_WithoutFightStyle_ThrowsMissingFightStyle() {
+    func testBuild_WithoutFightStyle_ThrowsMissingFightStyle() async {
         // Given
         let builder = makeBuilder()
-        builder.setAppearance(.appearance1)
-        builder.setName("TestElf")
+        await builder.setAppearance(.appearance1)
+        await builder.setName("TestElf")
         // Fight style not set
 
         // When/Then
-        XCTAssertThrowsError(
-            try builder.build(
+        do {
+            _ = try await builder.build(
                 fightStyleAttributes: makeValidAttributes(),
                 randomLevelAttributes: HeroAttributes()
             )
-        ) { error in
+            XCTFail("Expected CharacterBuilderError.missingFightStyle")
+        } catch {
             XCTAssertEqual(error as? CharacterBuilderError, .missingFightStyle)
         }
     }
 
     // MARK: - Reset Tests
 
-    func testReset_ClearsAllFields() {
+    func testReset_ClearsAllFields() async {
         // Given
         let builder = makeBuilder()
-        builder.setAppearance(.appearance1)
-        builder.setName("TestElf")
-        builder.setFightStyle(.crit)
+        await builder.setAppearance(.appearance1)
+        await builder.setName("TestElf")
+        await builder.setFightStyle(.crit)
 
         // When
-        builder.reset()
+        await builder.reset()
 
         // Then: Build should fail because all fields are cleared
-        XCTAssertThrowsError(
-            try builder.build(
+        do {
+            _ = try await builder.build(
                 fightStyleAttributes: makeValidAttributes(),
                 randomLevelAttributes: HeroAttributes()
             )
-        ) { error in
+            XCTFail("Expected CharacterBuilderError.missingAppearance")
+        } catch {
             // First validation is appearance
             XCTAssertEqual(error as? CharacterBuilderError, .missingAppearance)
         }
     }
 
-    func testReset_AllowsRebuildingWithNewValues() throws {
+    func testReset_AllowsRebuildingWithNewValues() async throws {
         // Given
         let builder = makeBuilder()
-        builder.setAppearance(.appearance1)
-        builder.setName("FirstElf")
-        builder.setFightStyle(.crit)
+        await builder.setAppearance(.appearance1)
+        await builder.setName("FirstElf")
+        await builder.setFightStyle(.crit)
 
         // Build first character
-        let firstCharacter = try builder.build(
+        let firstCharacter = try await builder.build(
             fightStyleAttributes: makeValidAttributes(),
             randomLevelAttributes: HeroAttributes()
         )
 
         // Reset and set new values
-        builder.reset()
-        builder.setAppearance(.appearance2)
-        builder.setName("SecondElf")
-        builder.setFightStyle(.dodge)
+        await builder.reset()
+        await builder.setAppearance(.appearance2)
+        await builder.setName("SecondElf")
+        await builder.setFightStyle(.dodge)
 
         // When
-        let secondCharacter = try builder.build(
+        let secondCharacter = try await builder.build(
             fightStyleAttributes: makeValidAttributes(),
             randomLevelAttributes: HeroAttributes()
         )
@@ -270,20 +275,20 @@ final class DefaultCharacterBuilderTests: XCTestCase {
 
     // MARK: - Reusability Tests
 
-    func testBuilder_CanBuildMultipleCharactersWithoutReset() throws {
+    func testBuilder_CanBuildMultipleCharactersWithoutReset() async throws {
         // Given
         let builder = makeBuilder()
-        builder.setAppearance(.appearance1)
-        builder.setName("TestElf")
-        builder.setFightStyle(.crit)
+        await builder.setAppearance(.appearance1)
+        await builder.setName("TestElf")
+        await builder.setFightStyle(.crit)
 
         // When: Build multiple times without reset
-        let character1 = try builder.build(
+        let character1 = try await builder.build(
             fightStyleAttributes: makeValidAttributes(),
             randomLevelAttributes: HeroAttributes()
         )
 
-        let character2 = try builder.build(
+        let character2 = try await builder.build(
             fightStyleAttributes: makeValidAttributes(),
             randomLevelAttributes: HeroAttributes()
         )
@@ -296,25 +301,25 @@ final class DefaultCharacterBuilderTests: XCTestCase {
         XCTAssertNotEqual(character1.id, character2.id)
     }
 
-    func testBuilder_CanOverwriteValuesBetweenBuilds() throws {
+    func testBuilder_CanOverwriteValuesBetweenBuilds() async throws {
         // Given
         let builder = makeBuilder()
-        builder.setAppearance(.appearance1)
-        builder.setName("FirstElf")
-        builder.setFightStyle(.crit)
+        await builder.setAppearance(.appearance1)
+        await builder.setName("FirstElf")
+        await builder.setFightStyle(.crit)
 
         // Build first
-        _ = try builder.build(
+        _ = try await builder.build(
             fightStyleAttributes: makeValidAttributes(),
             randomLevelAttributes: HeroAttributes()
         )
 
         // Overwrite values (without reset)
-        builder.setName("UpdatedElf")
-        builder.setFightStyle(.def)
+        await builder.setName("UpdatedElf")
+        await builder.setFightStyle(.def)
 
         // When
-        let character = try builder.build(
+        let character = try await builder.build(
             fightStyleAttributes: makeValidAttributes(),
             randomLevelAttributes: HeroAttributes()
         )
@@ -327,12 +332,12 @@ final class DefaultCharacterBuilderTests: XCTestCase {
 
     // MARK: - Attributes Tests
 
-    func testBuild_PassesThroughAttributes() throws {
+    func testBuild_PassesThroughAttributes() async throws {
         // Given
         let builder = makeBuilder()
-        builder.setAppearance(.appearance1)
-        builder.setName("TestElf")
-        builder.setFightStyle(.crit)
+        await builder.setAppearance(.appearance1)
+        await builder.setName("TestElf")
+        await builder.setFightStyle(.crit)
 
         let fightStyleAttrs = HeroAttributes(
             hitPoints: 120,
@@ -352,7 +357,7 @@ final class DefaultCharacterBuilderTests: XCTestCase {
         )
 
         // When
-        let character = try builder.build(
+        let character = try await builder.build(
             fightStyleAttributes: fightStyleAttrs,
             randomLevelAttributes: randomAttrs
         )

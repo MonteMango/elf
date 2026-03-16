@@ -8,7 +8,7 @@
 import Foundation
 
 /// Default implementation of CharacterBuilder
-public final class DefaultCharacterBuilder: CharacterBuilder {
+public actor DefaultCharacterBuilder: CharacterBuilder {
 
     // MARK: - Private Properties
 

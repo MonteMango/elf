@@ -40,7 +40,7 @@ public final class CharacterCreationViewModel {
     public var selectedAppearance: CharacterAppearance? {
         didSet {
             if let appearance = selectedAppearance {
-                characterBuilder.setAppearance(appearance)
+                Task { await characterBuilder.setAppearance(appearance) }
             }
         }
     }
@@ -50,7 +50,8 @@ public final class CharacterCreationViewModel {
     /// Character name input
     public var characterName: String = "" {
         didSet {
-            characterBuilder.setName(characterName)
+            let name = characterName
+            Task { await characterBuilder.setName(name) }
         }
     }
 
@@ -63,7 +64,7 @@ public final class CharacterCreationViewModel {
     public var selectedFightStyle: FightStyle? = .dodge {
         didSet {
             if let style = selectedFightStyle {
-                characterBuilder.setFightStyle(style)
+                Task { await characterBuilder.setFightStyle(style) }
             }
         }
     }
@@ -126,7 +127,7 @@ public final class CharacterCreationViewModel {
 
         // Set default fight style in builder (didSet doesn't trigger on initial value)
         if let style = selectedFightStyle {
-            characterBuilder.setFightStyle(style)
+            Task { await characterBuilder.setFightStyle(style) }
         }
     }
 
@@ -221,7 +222,7 @@ public final class CharacterCreationViewModel {
         }.value
 
         // Create character and game using GameInitializationService
-        guard let character = createCharacter() else { return }
+        guard let character = await createCharacter() else { return }
 
         do {
             createdGame = try await gameInitializationService.createNewGame(
@@ -234,7 +235,7 @@ public final class CharacterCreationViewModel {
     }
 
     /// Create and return the final character using builder
-    public func createCharacter() -> PlayerCharacter? {
+    public func createCharacter() async -> PlayerCharacter? {
         guard let fightAttrs = fightStyleAttributes,
               let randomAttrs = randomLevelAttributes else {
             print("❌ createCharacter failed: missing attributes")
@@ -242,7 +243,7 @@ public final class CharacterCreationViewModel {
         }
 
         do {
-            let character = try characterBuilder.build(
+            let character = try await characterBuilder.build(
                 fightStyleAttributes: fightAttrs,
                 randomLevelAttributes: randomAttrs
             )
