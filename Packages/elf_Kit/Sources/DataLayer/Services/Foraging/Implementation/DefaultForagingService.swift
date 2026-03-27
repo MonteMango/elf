@@ -36,7 +36,7 @@ public final class DefaultForagingService: ForagingService {
         let gatheredHerbs = await gatheringEngine.gather(from: availableHerbs, maxCount: DefaultGatheringEngine.defaultMaxCount)
 
         // Calculate skill progress from gathered herbs
-        let skillProgress = skillProgressCalculator.calculateFromGathered(
+        let skillProgress = await skillProgressCalculator.calculateFromGathered(
             gatheredHerbs,
             skillName: "Foraging",
             currentLevel: currentLevel,
@@ -50,7 +50,3 @@ public final class DefaultForagingService: ForagingService {
         )
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: Stateless class with no mutable stored properties.
-extension DefaultForagingService: Sendable {}

@@ -36,7 +36,7 @@ public final class DefaultMiningService: MiningService {
         let minedOres = await gatheringEngine.gather(from: availableOres, maxCount: DefaultGatheringEngine.defaultMaxCount)
 
         // Calculate skill progress from gathered ores
-        let skillProgress = skillProgressCalculator.calculateFromGathered(
+        let skillProgress = await skillProgressCalculator.calculateFromGathered(
             minedOres,
             skillName: "Mining",
             currentLevel: currentLevel,
@@ -50,7 +50,3 @@ public final class DefaultMiningService: MiningService {
         )
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: Stateless class with no mutable stored properties.
-extension DefaultMiningService: Sendable {}

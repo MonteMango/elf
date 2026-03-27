@@ -36,7 +36,7 @@ public final class DefaultFishingService: FishingService {
         let caughtFish = await gatheringEngine.gather(from: availableFish, maxCount: DefaultGatheringEngine.defaultMaxCount)
 
         // Calculate skill progress from gathered fish
-        let skillProgress = skillProgressCalculator.calculateFromGathered(
+        let skillProgress = await skillProgressCalculator.calculateFromGathered(
             caughtFish,
             skillName: "Fishing",
             currentLevel: currentLevel,
@@ -50,7 +50,3 @@ public final class DefaultFishingService: FishingService {
         )
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: Stateless class with no mutable stored properties.
-extension DefaultFishingService: Sendable {}

@@ -27,26 +27,22 @@ public protocol SkillProgressCalculator: Sendable {
         currentExp: Int,
         expGained: Int,
         expPerLevel: Int
-    ) -> SkillProgressData
-}
-
-extension SkillProgressCalculator {
+    ) async -> SkillProgressData
 
     /// Calculates skill progress from gathered items using their tier XP values
+    ///
+    /// - Parameters:
+    ///   - items: Array of gathered items
+    ///   - skillName: Name of the skill (e.g., "Fishing", "Foraging")
+    ///   - currentLevel: Current level before gaining experience
+    ///   - currentExp: Total experience before gaining more
+    ///   - expPerLevel: Experience required per level
+    /// - Returns: A SkillProgressData instance with calculated progress
     func calculateFromGathered<T: GatherableItem>(
         _ items: [T],
         skillName: String,
         currentLevel: Int,
         currentExp: Int,
         expPerLevel: Int
-    ) -> SkillProgressData {
-        let expGained = items.reduce(0) { $0 + $1.tier.xpValue }
-        return calculate(
-            skillName: skillName,
-            currentLevel: currentLevel,
-            currentExp: currentExp,
-            expGained: expGained,
-            expPerLevel: expPerLevel
-        )
-    }
+    ) async -> SkillProgressData
 }
