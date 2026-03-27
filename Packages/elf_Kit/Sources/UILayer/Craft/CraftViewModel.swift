@@ -100,7 +100,7 @@ public final class CraftViewModel {
     public func craft() async {
         guard let recipeId = selectedRecipeId,
               let recipe = await recipeRepository.getById(id: recipeId),
-              craftService.canCraft(recipe: recipe, inventory: inventory) else { return }
+              await craftService.canCraft(recipe: recipe, inventory: inventory) else { return }
 
         // Validate item exists BEFORE deducting materials
         guard let item = await itemsRepository.getHeroItem(recipe.resultItemId) else { return }
@@ -108,7 +108,7 @@ public final class CraftViewModel {
         isCrafting = true
         try? await Task.sleep(for: .seconds(2))
 
-        var updatedInventory = craftService.deductMaterials(recipe: recipe, from: inventory)
+        var updatedInventory = await craftService.deductMaterials(recipe: recipe, from: inventory)
         updatedInventory = inventoryService.addCraftedItem(item, to: updatedInventory)
 
         gameService.applyCraftResult(updatedInventory)
@@ -165,8 +165,8 @@ public final class CraftViewModel {
             ))
         }
 
-        let canCraft = craftService.canCraft(recipe: recipe, inventory: inventory)
-        let missing = craftService.getMissingIngredients(recipe: recipe, inventory: inventory)
+        let canCraft = await craftService.canCraft(recipe: recipe, inventory: inventory)
+        let missing = await craftService.getMissingIngredients(recipe: recipe, inventory: inventory)
 
         return CraftRecipeDetail(
             recipeId: recipe.id,
