@@ -13,58 +13,68 @@ public final class MainMenuViewModel {
 
     // MARK: - Dependencies
 
-    private let gameRepository: any GameSaveStorage
+    /// Set when game data finishes loading. Nil before that.
+    private var gameRepository: (any GameSaveStorage)?
 
     // MARK: - State
 
-    /// Whether a saved game exists
-    public var hasSavedGame: Bool
+    /// Whether a saved game exists. False until game data is loaded.
+    public var hasSavedGame: Bool = false
 
-    /// Whether the load operation is in progress
+    /// Whether game data repos are ready.
+    public var isGameDataReady: Bool = false
+
+    /// Whether the load operation is in progress.
     public var isLoading: Bool = false
 
-    /// Error message to display in alert
+    /// Error message to display in alert.
     public var loadError: String?
 
-    /// Loaded game (set after successful load)
-    public var loadedGame: Game?
+    /// Loaded game — triggers navigation when set.
+    public private(set) var loadedGame: Game?
 
-    /// Play time from loaded save
-    public var loadedPlayTime: TimeInterval = 0
+    /// Play time from loaded save.
+    public private(set) var loadedPlayTime: TimeInterval = 0
 
-    // MARK: - Initialization
+    public init() {}
 
-    public init(gameRepository: any GameSaveStorage) {
+    // MARK: - Game Data Ready
+
+    /// Called when ElfGameContainer finishes loading.
+    /// Receives the game repository for save/load operations.
+    public func onGameDataReady(gameRepository: any GameSaveStorage) {
         self.gameRepository = gameRepository
-        self.hasSavedGame = gameRepository.hasAnySave()
+        isGameDataReady = true
+        hasSavedGame = gameRepository.hasAnySave()
     }
 
     // MARK: - Actions
 
-    /// Load saved game from default slot
+    /// Loads saved game from the default slot.
     public func loadGame() async {
+        guard let gameRepository else { return }
         isLoading = true
-        loadError = nil
 
         do {
-            loadedPlayTime = await gameRepository.getPlayTime(slotId: SaveSlotInfo.defaultSlotId)
-            loadedGame = try await gameRepository.loadDefault()
-        } catch let error as GameSaveError {
-            loadError = error.errorDescription
+            let playTime = await gameRepository.getPlayTime(slotId: SaveSlotInfo.defaultSlotId)
+            let game = try await gameRepository.loadDefault()
+            loadedPlayTime = playTime
+            loadedGame = game
         } catch {
-            loadError = "Failed to load game: \(error.localizedDescription)"
+            loadError = error.localizedDescription
         }
 
         isLoading = false
     }
 
-    /// Dismiss error alert
-    public func dismissError() {
-        loadError = nil
+    /// Clears loaded game state after navigation.
+    public func consumeLoadedGame() {
+        loadedGame = nil
+        loadedPlayTime = 0
     }
 
-    /// Refresh saved game status
-    public func refreshSaveStatus() {
-        hasSavedGame = gameRepository.hasAnySave()
+    /// Dismiss error alert.
+    public func dismissError() {
+        loadError = nil
     }
 }

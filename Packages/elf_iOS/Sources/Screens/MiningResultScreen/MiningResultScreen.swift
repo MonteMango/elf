@@ -9,12 +9,12 @@ import elf_Kit
 import SwiftUI
 
 struct MiningResultScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
+    @Environment(ElfGameContainer.self) private var gameContainer
     let result: MiningResult
 
     var body: some View {
         MiningResultScreenContent(
-            viewModel: container.makeMiningResultViewModel(result: result)
+            viewModel: gameContainer.makeMiningResultViewModel(result: result)
         )
     }
 }

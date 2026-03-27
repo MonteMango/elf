@@ -10,14 +10,14 @@ import SwiftUI
 
 /// Screen for displaying the full game calendar
 struct CalendarScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
+    @Environment(ElfGameContainer.self) private var gameContainer
 
     let calendar: [GameDay]
     let currentDayNumber: Int
 
     var body: some View {
         CalendarScreenContent(
-            viewModel: container.makeCalendarViewModel(
+            viewModel: gameContainer.makeCalendarViewModel(
                 calendar: calendar,
                 currentDayNumber: currentDayNumber
             )

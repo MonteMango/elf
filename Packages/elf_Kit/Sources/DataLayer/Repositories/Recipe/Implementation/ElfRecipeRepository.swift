@@ -7,46 +7,31 @@
 
 import Foundation
 
-public final class ElfRecipeRepository: RecipeRepository {
+public final class ElfRecipeRepository: RecipeRepository, Sendable {
 
     private let recipesData: RecipesData
-    private let recipeLookup: [UUID: Recipe]
+    private let items: [Recipe]
+    private let lookup: [UUID: Recipe]
 
-    public init(dataLoader: DataLoader = ElfDataLoader()) {
-        let data: Data
-        do {
-            data = try dataLoader.loadRecipesData()
-        } catch {
-            print("Warning: Could not load Recipes.json, using empty data: \(error)")
-            data = Data("{\"version\":\"1.0\",\"weapons\":[],\"armor\":[]}".utf8)
-        }
-
-        let decoded: RecipesData
-        do {
-            decoded = try JSONDecoder().decode(RecipesData.self, from: data)
-        } catch {
-            print("Warning: Failed to decode recipes, using empty fallback: \(error)")
-            decoded = RecipesData()
-        }
-
-        self.recipesData = decoded
+    public init(recipesData: RecipesData) {
+        self.recipesData = recipesData
 
         var lookup: [UUID: Recipe] = [:]
-        for recipe in decoded.weapons { lookup[recipe.id] = recipe }
-        for recipe in decoded.armor { lookup[recipe.id] = recipe }
-        self.recipeLookup = lookup
+        for recipe in recipesData.weapons { lookup[recipe.id] = recipe }
+        for recipe in recipesData.armor { lookup[recipe.id] = recipe }
+
+        self.lookup = lookup
+        self.items = recipesData.weapons + recipesData.armor
     }
 
-    public func getRecipes(for category: RecipeCategory) -> [Recipe] {
+    public func getAll() async -> [Recipe] { items }
+
+    public func getById(id: UUID) async -> Recipe? { lookup[id] }
+
+    public func recipes(for category: RecipeCategory) async -> [Recipe] {
         switch category {
         case .weapon: return recipesData.weapons
         case .armor: return recipesData.armor
         }
     }
-
-    public func getRecipe(id: UUID) -> Recipe? {
-        recipeLookup[id]
-    }
 }
-
-extension ElfRecipeRepository: @unchecked Sendable {}

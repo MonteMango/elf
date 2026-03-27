@@ -13,7 +13,7 @@ public protocol ElfInfoFactory: Sendable {
     /// Create ElfInfo from PlayerCharacter
     /// - Parameter character: The player character to convert
     /// - Returns: ElfInfo with data from the character
-    func create(from character: PlayerCharacter) -> ElfInfo
+    func create(from character: PlayerCharacter) async -> ElfInfo
 
     /// Create random AI elf with specified level
     /// - Parameter level: The level for the AI elf (1-12)

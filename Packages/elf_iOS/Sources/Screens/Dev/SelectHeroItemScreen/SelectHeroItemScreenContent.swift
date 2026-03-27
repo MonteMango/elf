@@ -108,17 +108,22 @@ internal struct SelectHeroItemScreenContent: View {
 }
 
 #Preview {
-    let container = ElfAppDependencyContainer()
+    @Previewable @State var gameContainer: ElfGameContainer?
 
-    SelectHeroItemScreenContent(
-        viewModel: container.makeSelectHeroItemViewModel(
-            heroType: .player,
+    if let gameContainer {
+        SelectHeroItemScreenContent(
+            viewModel: gameContainer.makeSelectHeroItemViewModel(
+                heroType: .player,
+                heroItemType: .weapons,
+                currentItemId: nil
+            ),
             heroItemType: .weapons,
-            currentItemId: nil
-        ),
-        heroItemType: .weapons,
-        onEquip: { itemId in
-            print("Selected item: \(itemId?.uuidString ?? "none")")
-        }
-    )
+            onEquip: { itemId in
+                print("Selected item: \(itemId?.uuidString ?? "none")")
+            }
+        )
+    } else {
+        ProgressView()
+            .task { gameContainer = await ElfGameContainer() }
+    }
 }

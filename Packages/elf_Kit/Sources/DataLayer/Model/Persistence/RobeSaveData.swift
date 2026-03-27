@@ -23,8 +23,8 @@ public struct RobeSaveData: Sendable, Equatable, Codable {
     }
 
     /// Convert to ElfRobeItem using items repository
-    public func toElfRobeItem(using repository: ItemsRepository) -> ElfRobeItem? {
-        guard let item = repository.getHeroItem(itemId) as? RobeItem else {
+    public func toElfRobeItem(using repository: ItemsRepository) async -> ElfRobeItem? {
+        guard let item = await repository.getHeroItem(itemId) as? RobeItem else {
             return nil
         }
         return ElfRobeItem(id: id, item: item)

@@ -9,14 +9,14 @@ import elf_Kit
 import SwiftUI
 
 internal struct AutoBattleResultScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
+    @Environment(ElfGameContainer.self) private var gameContainer
     @Environment(\.dismiss) private var dismiss
 
     let battle: Battle
 
     internal var body: some View {
         AutoBattleResultScreenContent(
-            viewModel: container.makeAutoBattleViewModel(battle: battle),
+            viewModel: gameContainer.makeAutoBattleViewModel(battle: battle),
             onClose: { dismiss() }
         )
     }

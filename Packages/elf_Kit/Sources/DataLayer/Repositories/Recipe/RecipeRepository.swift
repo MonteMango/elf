@@ -7,10 +7,8 @@
 
 import Foundation
 
-public protocol RecipeRepository: Sendable {
-    /// Get all recipes for a given category
-    func getRecipes(for category: RecipeCategory) -> [Recipe]
+public protocol RecipeRepository: Repository<Recipe> {
 
-    /// Get a single recipe by ID
-    func getRecipe(id: UUID) -> Recipe?
+    /// Get all recipes for a given category.
+    func recipes(for category: RecipeCategory) async -> [Recipe]
 }

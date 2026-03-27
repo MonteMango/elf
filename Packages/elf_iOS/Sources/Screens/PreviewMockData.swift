@@ -17,12 +17,6 @@ enum PreviewMockData {
     private static let defaultWeaponId = UUID(uuidString: "dfbd2742-5470-4f97-84ea-fb17b5f3a6d2")!
 
     private static func createDefaultEquipped() -> EquippedItems {
-        let repository = ElfItemsRepository()
-        if let weaponItem = repository.getHeroItem(defaultWeaponId) as? WeaponItem {
-            let weapon = ElfWeaponItem(weaponItem: weaponItem)
-            return EquippedItems(weapons: .twoHanded(weapon: weapon))
-        }
-        // Fallback for Preview when HeroItems.json is not available
         let mockWeapon = ElfWeaponItem(weaponItem: createMockWeaponItem())
         return EquippedItems(weapons: .twoHanded(weapon: mockWeapon))
     }
@@ -176,7 +170,7 @@ enum PreviewMockData {
         return InventoryViewModel(
             gameService: gameService,
             equipmentService: equipmentService,
-            materialRepository: ElfMaterialRepository(),
+            materialRepository: ArrayRepository(items: []),
             equipmentQueryService: ElfEquipmentQueryService()
         )
     }

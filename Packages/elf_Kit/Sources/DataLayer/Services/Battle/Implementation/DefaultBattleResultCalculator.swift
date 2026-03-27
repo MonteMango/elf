@@ -30,7 +30,7 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
         outcome: BattleOutcome,
         monster: Monster?,
         gameService: GameService?
-    ) -> ManualBattleResult {
+    ) async -> ManualBattleResult {
         // Calculate rewards if we have monster data
         var experienceGained = 0
         var drops: [DropItem] = []
@@ -40,10 +40,10 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
             if didWin {
                 let rewards = huntService.calculateRewards(for: monster)
                 experienceGained = rewards.experience
-                drops = dropService.convertToDropItems(rewards: rewards, didWin: didWin)
+                drops = await dropService.convertToDropItems(rewards: rewards, didWin: didWin)
 
                 // Add drops to player inventory
-                gameService?.addDropsToPlayerInventory(rewards: rewards)
+                await gameService?.addDropsToPlayerInventory(rewards: rewards)
             }
         }
 

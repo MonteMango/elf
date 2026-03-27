@@ -9,11 +9,11 @@ import elf_Kit
 import SwiftUI
 
 struct CharacterCreationScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
+    @Environment(ElfGameContainer.self) private var gameContainer
 
     var body: some View {
         CharacterCreationScreenContent(
-            viewModel: container.makeCharacterCreationViewModel()
+            viewModel: gameContainer.makeCharacterCreationViewModel()
         )
     }
 }

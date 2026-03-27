@@ -9,11 +9,11 @@ import Foundation
 
 public final class DefaultDropService: DropService {
 
-    private let materialRepository: MaterialRepository
+    private let materialRepository: any Repository<Material>
     private let itemsRepository: ItemsRepository
 
     public init(
-        materialRepository: MaterialRepository,
+        materialRepository: any Repository<Material>,
         itemsRepository: ItemsRepository
     ) {
         self.materialRepository = materialRepository
@@ -22,14 +22,14 @@ public final class DefaultDropService: DropService {
 
     // MARK: - DropService
 
-    public func convertToDropItems(rewards: HuntRewards, didWin: Bool) -> [DropItem] {
+    public func convertToDropItems(rewards: HuntRewards, didWin: Bool) async -> [DropItem] {
         guard didWin else { return [] }
 
         var dropItems: [DropItem] = []
 
         // Convert materials
         for materialReward in rewards.materials {
-            if let dropItem = createMaterialDropItem(from: materialReward) {
+            if let dropItem = await createMaterialDropItem(from: materialReward) {
                 dropItems.append(dropItem)
             }
         }
@@ -37,14 +37,14 @@ public final class DefaultDropService: DropService {
         // Convert weapon if dropped
         if let weaponIdString = rewards.weaponId,
            let weaponId = UUID(uuidString: weaponIdString),
-           let dropItem = createWeaponDropItem(id: weaponId) {
+           let dropItem = await createWeaponDropItem(id: weaponId) {
             dropItems.append(dropItem)
         }
 
         // Convert armor if dropped
         if let armorIdString = rewards.armorId,
            let armorId = UUID(uuidString: armorIdString),
-           let dropItem = createArmorDropItem(id: armorId) {
+           let dropItem = await createArmorDropItem(id: armorId) {
             dropItems.append(dropItem)
         }
 
@@ -53,8 +53,8 @@ public final class DefaultDropService: DropService {
 
     // MARK: - Private Helpers
 
-    private func createMaterialDropItem(from reward: MaterialReward) -> DropItem? {
-        guard let material = materialRepository.getMaterial(id: reward.id) else {
+    private func createMaterialDropItem(from reward: MaterialReward) async -> DropItem? {
+        guard let material = await materialRepository.getById(id: reward.id) else {
             return nil
         }
 
@@ -68,8 +68,8 @@ public final class DefaultDropService: DropService {
         )
     }
 
-    private func createWeaponDropItem(id: UUID) -> DropItem? {
-        guard let weapon = itemsRepository.getHeroItem(id) else {
+    private func createWeaponDropItem(id: UUID) async -> DropItem? {
+        guard let weapon = await itemsRepository.getHeroItem(id) else {
             return nil
         }
 
@@ -83,8 +83,8 @@ public final class DefaultDropService: DropService {
         )
     }
 
-    private func createArmorDropItem(id: UUID) -> DropItem? {
-        guard let armor = itemsRepository.getHeroItem(id) else {
+    private func createArmorDropItem(id: UUID) async -> DropItem? {
+        guard let armor = await itemsRepository.getHeroItem(id) else {
             return nil
         }
 
@@ -109,5 +109,5 @@ public final class DefaultDropService: DropService {
 
 // MARK: - Sendable Conformance
 // Thread-safe: All stored properties are immutable (let) after initialization.
-// All dependencies are Sendable protocols: MaterialRepository, ItemsRepository.
+// All dependencies are Sendable protocols: any Repository<Material>, ItemsRepository.
 extension DefaultDropService: @unchecked Sendable {}

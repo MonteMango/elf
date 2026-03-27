@@ -5,14 +5,15 @@
 //  Created by Vitalii Lytvynov on 09.07.25.
 //
 
+import os.log
 import XCTest
 @testable import elf_Kit
 
 final class ElfItemsRepositoryTests: XCTestCase {
-    
-    // MARK: - Фейковый загрузчик
-    
-    final class FakeDataLoader: DataLoader {
+
+    // MARK: - Fake Data Loader
+
+    final class FakeDataLoader: DataLoader, @unchecked Sendable {
         enum Mode {
             case valid
             case invalidJSON
@@ -27,129 +28,66 @@ final class ElfItemsRepositoryTests: XCTestCase {
             self.customJSON = customJSON
         }
 
-        func loadHeroItemsData() throws -> Data {
-            switch mode {
-            case .valid:
-                let json = customJSON ?? """
-                {
-                  "version": "1.0",
-                  "helmets": [],
-                  "gloves": [],
-                  "shoes": [],
-                  "upperBodies": [],
-                  "bottomBodies": [],
-                  "robes": [],
-                  "weapons": [
+        func loadJSON(_ resourceName: String) throws -> Data {
+            switch resourceName {
+            case "HeroItems":
+                switch mode {
+                case .valid:
+                    let json = customJSON ?? """
                     {
-                      "id": "\(UUID())",
-                      "title": "Sword of Truth",
-                      "tier": 4,
-                      "minimumAttackPoint": 3,
-                      "maximumAttackPoint": 5,
-                      "handUse": "secondary"
+                      "version": "1.0",
+                      "helmets": [],
+                      "gloves": [],
+                      "shoes": [],
+                      "upperBodies": [],
+                      "bottomBodies": [],
+                      "robes": [],
+                      "weapons": [
+                        {
+                          "id": "\(UUID())",
+                          "title": "Sword of Truth",
+                          "tier": 4,
+                          "minimumAttackPoint": 3,
+                          "maximumAttackPoint": 5,
+                          "handUse": "secondary"
+                        }
+                      ],
+                      "shields": [],
+                      "rings": [],
+                      "necklaces": [],
+                      "earrings": []
                     }
-                  ],
-                  "shields": [],
-                  "rings": [],
-                  "necklaces": [],
-                  "earrings": []
+                    """
+                    return Data(json.utf8)
+                case .invalidJSON:
+                    return Data("INVALID JSON".utf8)
+                case .error:
+                    throw NSError(domain: "FakeError", code: 999, userInfo: nil)
                 }
-                """
-                return Data(json.utf8)
-
-            case .invalidJSON:
-                return Data("INVALID JSON".utf8)
-
-            case .error:
-                throw NSError(domain: "FakeError", code: 999, userInfo: nil)
+            default:
+                return Data("{}".utf8)
             }
-        }
-
-        func loadMonstersData() throws -> Data {
-            // Return minimal valid monsters data for tests
-            let json = """
-            {
-              "version": "1.0",
-              "upperWorld": {},
-              "middleWorld": {},
-              "lowerWorld": {}
-            }
-            """
-            return Data(json.utf8)
-        }
-
-        func loadMaterialsData() throws -> Data {
-            // Return minimal valid materials data for tests
-            let json = """
-            {
-              "version": "1.0",
-              "monsters_drop": []
-            }
-            """
-            return Data(json.utf8)
-        }
-
-        func loadFishData() throws -> Data {
-            // Return minimal valid fish data for tests
-            let json = """
-            {
-              "version": "1.0",
-              "effects": [],
-              "areas": {},
-              "fish": []
-            }
-            """
-            return Data(json.utf8)
-        }
-
-        func loadHerbsData() throws -> Data {
-            // Return minimal valid herbs data for tests
-            let json = """
-            {
-              "version": "1.0",
-              "effects": [],
-              "areas": {},
-              "herbs": []
-            }
-            """
-            return Data(json.utf8)
-        }
-
-        func loadOresData() throws -> Data {
-            // Return minimal valid ores data for tests
-            let json = """
-            {
-              "version": "1.0",
-              "effects": [],
-              "areas": {},
-              "ores": []
-            }
-            """
-            return Data(json.utf8)
-        }
-
-        func loadRecipesData() throws -> Data {
-            let json = """
-            {
-              "version": "1.0",
-              "weapons": [],
-              "armor": []
-            }
-            """
-            return Data(json.utf8)
         }
     }
-    
-    // MARK: - Тесты
 
-    func testInitializationLoadsHeroItems() throws {
-        let loader = FakeDataLoader(mode: .valid)
-        let repository = ElfItemsRepository(dataLoader: loader)
+    // MARK: - Helpers
 
-        XCTAssertEqual(repository.getItems(for: .weapons).count, 1)
+    private func makeRepository(loader: FakeDataLoader) -> ElfItemsRepository {
+        let log = OSLog(subsystem: "com.elfy.kit.tests", category: "ItemsRepository")
+        let data: HeroItems = loader.loadAndDecode(resourceName: "HeroItems", fallback: .empty, log: log)
+        return ElfItemsRepository(heroItems: data)
     }
 
-    func testGetHeroItemReturnsCorrectItem() throws {
+    // MARK: - Tests
+
+    func testInitializationLoadsHeroItems() async throws {
+        let repository = makeRepository(loader: FakeDataLoader(mode: .valid))
+
+        let weapons = await repository.getItems(for: .weapons)
+        XCTAssertEqual(weapons.count, 1)
+    }
+
+    func testGetHeroItemReturnsCorrectItem() async throws {
         let weaponID = UUID()
         let json = """
         {
@@ -176,35 +114,28 @@ final class ElfItemsRepositoryTests: XCTestCase {
           "earrings": []
         }
         """
-        let loader = FakeDataLoader(mode: .valid, customJSON: json)
-        let repository = ElfItemsRepository(dataLoader: loader)
+        let repository = makeRepository(loader: FakeDataLoader(mode: .valid, customJSON: json))
 
-        let found = repository.getHeroItem(weaponID)
+        let found = await repository.getHeroItem(weaponID)
         XCTAssertNotNil(found)
         XCTAssertEqual(found?.title, "Sword of Truth")
     }
 
-    func testInitializationFallsBackToEmptyDataOnInvalidJSON() {
-        let loader = FakeDataLoader(mode: .invalidJSON)
+    func testInitializationFallsBackToEmptyDataOnInvalidJSON() async {
+        let repository = makeRepository(loader: FakeDataLoader(mode: .invalidJSON))
 
-        // With the new graceful fallback, this should not crash
-        // Instead it should use empty hero items
-        let repository = ElfItemsRepository(dataLoader: loader)
-
-        // Verify empty data was used
-        XCTAssertEqual(repository.getItems(for: .weapons).count, 0)
-        XCTAssertEqual(repository.getItems(for: .helmet).count, 0)
+        let weapons = await repository.getItems(for: .weapons)
+        let helmets = await repository.getItems(for: .helmet)
+        XCTAssertEqual(weapons.count, 0)
+        XCTAssertEqual(helmets.count, 0)
     }
 
-    func testInitializationFallsBackToEmptyDataOnDataLoaderError() {
-        let loader = FakeDataLoader(mode: .error)
+    func testInitializationFallsBackToEmptyDataOnDataLoaderError() async {
+        let repository = makeRepository(loader: FakeDataLoader(mode: .error))
 
-        // With the new graceful fallback, this should not crash
-        // Instead it should use empty hero items
-        let repository = ElfItemsRepository(dataLoader: loader)
-
-        // Verify empty data was used
-        XCTAssertEqual(repository.getItems(for: .weapons).count, 0)
-        XCTAssertEqual(repository.getItems(for: .helmet).count, 0)
+        let weapons = await repository.getItems(for: .weapons)
+        let helmets = await repository.getItems(for: .helmet)
+        XCTAssertEqual(weapons.count, 0)
+        XCTAssertEqual(helmets.count, 0)
     }
 }

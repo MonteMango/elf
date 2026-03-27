@@ -1,19 +1,17 @@
 //
 //  ItemsRepository.swift
+//  elf_Kit
 //
-//
-//  Created by Vitalii Lytvynov on 24.09.24.
+//  Created by Vitalii Lytvynov
 //
 
 import Foundation
 
 public protocol ItemsRepository: Sendable {
 
-    func getHeroItem(_ id: UUID) -> Item?
+    /// Get a hero item by UUID.
+    func getHeroItem(_ id: UUID) async -> Item?
 
-    /// Get all items of a specific type
-    ///
-    /// - Parameter type: The type of items to retrieve
-    /// - Returns: Array of items matching the type
-    func getItems(for type: HeroItemType) -> [Item]
+    /// Get all items of a specific type.
+    func getItems(for type: HeroItemType) async -> [Item]
 }

@@ -11,7 +11,7 @@ import SwiftUI
 
 @main
 internal struct ElfApp: App {
-    @State private var container = ElfAppDependencyContainer()
+    @State private var appContainer = ElfAppContainer()
 
     init() {
         configureAppearance()
@@ -20,8 +20,11 @@ internal struct ElfApp: App {
     internal var body: some Scene {
         WindowGroup {
             RootScreen()
-                .environment(container)
-                .onScenePhaseChange(container: container)
+                .environment(appContainer)
+                .onScenePhaseChange(appContainer: appContainer)
+                .task {
+                    await appContainer.createGameContainer()
+                }
         }
     }
 
@@ -46,14 +49,14 @@ internal struct ElfApp: App {
 /// View modifier that handles scene phase changes without causing App body re-evaluation
 private struct ScenePhaseChangeModifier: ViewModifier {
     @Environment(\.scenePhase) private var scenePhase
-    let container: ElfAppDependencyContainer
+    let appContainer: ElfAppContainer
 
     func body(content: Content) -> some View {
         content
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .background || newPhase == .inactive {
                     Task { @MainActor in
-                        await container.saveActiveGameIfNeeded()
+                        await appContainer.gameContainer?.saveActiveGameIfNeeded()
                     }
                 }
             }
@@ -61,7 +64,7 @@ private struct ScenePhaseChangeModifier: ViewModifier {
 }
 
 extension View {
-    func onScenePhaseChange(container: ElfAppDependencyContainer) -> some View {
-        modifier(ScenePhaseChangeModifier(container: container))
+    func onScenePhaseChange(appContainer: ElfAppContainer) -> some View {
+        modifier(ScenePhaseChangeModifier(appContainer: appContainer))
     }
 }

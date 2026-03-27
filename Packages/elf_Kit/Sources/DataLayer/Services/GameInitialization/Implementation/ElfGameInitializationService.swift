@@ -36,7 +36,7 @@ public final class ElfGameInitializationService: GameInitializationService {
         playerCharacter: PlayerCharacter
     ) async throws -> Game {
         // Create ElfInfo from player character
-        let playerElfInfo = elfInfoFactory.create(from: playerCharacter)
+        let playerElfInfo = await elfInfoFactory.create(from: playerCharacter)
 
         // Create all houses with the player assigned to one of them
         let (houses, houseIndex, memberIndex) = await houseService.createAllHouses(

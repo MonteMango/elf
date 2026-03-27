@@ -60,7 +60,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 
                 // Check what's in the shield slot - could be weapon (dual wield) or shield
                 if let shieldSlotItemId = selectedItems[.shields] ?? nil,
-                   let shieldSlotItem = itemsRepository.getHeroItem(shieldSlotItemId) {
+                   let shieldSlotItem = await itemsRepository.getHeroItem(shieldSlotItemId) {
                     if shieldSlotItem is WeaponItem {
                         // Dual wielding - second weapon in left hand
                         leftWeapon = await convertToElfWeaponItem(shieldSlotItemId)
@@ -183,7 +183,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 
     private func convertToElfDefenseItem(_ itemId: UUID?) async -> ElfDefenseItem? {
         guard let itemId = itemId else { return nil }
-        guard let item = itemsRepository.getHeroItem(itemId) else { return nil }
+        guard let item = await itemsRepository.getHeroItem(itemId) else { return nil }
         guard item is DefenseItem else { return nil }
 
         return ElfDefenseItem(id: itemId, item: item)
@@ -191,7 +191,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 
     private func convertToElfRobeItem(_ itemId: UUID?) async -> ElfRobeItem? {
         guard let itemId = itemId else { return nil }
-        guard let item = itemsRepository.getHeroItem(itemId) else { return nil }
+        guard let item = await itemsRepository.getHeroItem(itemId) else { return nil }
         guard item is RobeItem else { return nil }
 
         return ElfRobeItem(id: itemId, item: item)
@@ -199,7 +199,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 
     private func convertToElfWeaponItem(_ itemId: UUID?) async -> ElfWeaponItem? {
         guard let itemId = itemId else { return nil }
-        guard let item = itemsRepository.getHeroItem(itemId) else { return nil }
+        guard let item = await itemsRepository.getHeroItem(itemId) else { return nil }
         guard item is WeaponItem else { return nil }
 
         return ElfWeaponItem(id: itemId, item: item, enchantLevel: 0)
@@ -207,7 +207,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 
     private func convertToElfShieldItem(_ itemId: UUID?) async -> ElfShieldItem? {
         guard let itemId = itemId else { return nil }
-        guard let item = itemsRepository.getHeroItem(itemId) else { return nil }
+        guard let item = await itemsRepository.getHeroItem(itemId) else { return nil }
         guard item is ShieldItem else { return nil }
 
         return ElfShieldItem(id: itemId, item: item)
@@ -215,7 +215,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 
     private func convertToElfJewelryItem(_ itemId: UUID?) async -> ElfJewelryItem? {
         guard let itemId = itemId else { return nil }
-        guard let item = itemsRepository.getHeroItem(itemId) else { return nil }
+        guard let item = await itemsRepository.getHeroItem(itemId) else { return nil }
         guard item is JewelryItem else { return nil }
 
         return ElfJewelryItem(id: itemId, item: item)

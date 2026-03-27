@@ -172,14 +172,22 @@ struct CharacterCreationScreenContent: View {
 }
 
 #Preview {
+    @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @State var router = AppRouter()
-    let container = ElfAppDependencyContainer()
 
-    NavigationStack(path: $router.navigationPath) {
-        CharacterCreationScreenContent(
-            viewModel: container.makeCharacterCreationViewModel()
-        )
-        .environment(router)
-        .environment(container)
+    if let gameContainer {
+        NavigationStack(path: $router.navigationPath) {
+            CharacterCreationScreenContent(
+                viewModel: gameContainer.makeCharacterCreationViewModel()
+            )
+            .environment(router)
+            .environment(gameContainer)
+        }
+    } else {
+        ProgressView()
+            .task {
+                let container = await ElfGameContainer()
+                gameContainer = container
+            }
     }
 }

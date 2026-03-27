@@ -22,12 +22,12 @@ public protocol FarmActivityService: AnyObject, Sendable {
         currentLevel: Int,
         currentExp: Int,
         expPerLevel: Int
-    ) -> FarmActivityResult
+    ) async -> FarmActivityResult
 
     /// Get available items for the activity (fish, herbs, minerals)
     /// - Parameter activity: The farm activity
     /// - Returns: Array of items that can be obtained
-    func getAvailableItems(for activity: FarmActivity) -> [FarmActivityItem]
+    func getAvailableItems(for activity: FarmActivity) async -> [FarmActivityItem]
 
     /// Get skill info for a specific activity and player
     /// - Parameters:

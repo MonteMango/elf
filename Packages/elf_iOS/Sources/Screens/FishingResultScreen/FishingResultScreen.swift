@@ -9,12 +9,12 @@ import elf_Kit
 import SwiftUI
 
 struct FishingResultScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
+    @Environment(ElfGameContainer.self) private var gameContainer
     let result: FishingResult
 
     var body: some View {
         FishingResultScreenContent(
-            viewModel: container.makeFishingResultViewModel(result: result)
+            viewModel: gameContainer.makeFishingResultViewModel(result: result)
         )
     }
 }

@@ -9,9 +9,9 @@ import elf_Kit
 import SwiftUI
 
 struct FarmScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
+    @Environment(ElfGameContainer.self) private var gameContainer
 
     var body: some View {
-        FarmScreenContent(viewModel: container.makeFarmViewModel())
+        FarmScreenContent(viewModel: gameContainer.makeFarmViewModel())
     }
 }

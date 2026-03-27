@@ -24,4 +24,12 @@ public struct HeroItems: Decodable, Sendable {
     public let rings: [JewelryItem]
     public let necklaces: [JewelryItem]
     public let earrings: [JewelryItem]
+
+    static let empty = HeroItems(
+        version: "1.0-empty",
+        helmets: [], gloves: [], shoes: [],
+        upperBodies: [], bottomBodies: [], robes: [],
+        weapons: [], shields: [],
+        rings: [], necklaces: [], earrings: []
+    )
 }

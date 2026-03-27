@@ -1,5 +1,5 @@
 //
-//  ElfAppDependencyContainer.swift
+//  ElfGameContainer.swift
 //  elf_iOS
 //
 //  Created by Vitalii Lytvynov on 12.11.25.
@@ -8,13 +8,13 @@
 import elf_Kit
 import Foundation
 
+/// Contains all game services, repositories, and ViewModel factories.
+/// Created asynchronously — loads JSON data on the cooperative thread pool.
 @Observable
-@MainActor
-public final class ElfAppDependencyContainer {
+public final class ElfGameContainer {
 
     // MARK: - Long-lived dependencies (concrete types for static dispatch)
 
-    public let itemsRepository: ElfItemsRepository
     public let attributeService: ElfAttributeService
     public let armorService: ElfArmorService
     public let damageService: ElfDamageService
@@ -35,8 +35,7 @@ public final class ElfAppDependencyContainer {
     public let battleSimulationService: ElfBattleSimulationService
     public let combatRoundExecutor: ElfCombatRoundExecutor
     public let duelPairingService: RandomDuelPairingService
-    public let monsterRepository: ElfMonsterRepository
-    public let materialRepository: ElfMaterialRepository
+    public let gameDataRepository: DefaultGameDataRepository
 
     // Farm activity service (unified for all farm activities)
     public let farmActivityService: DefaultFarmActivityService
@@ -57,24 +56,24 @@ public final class ElfAppDependencyContainer {
     // MARK: - Game Session State
 
     /// Currently active game service (nil when not in game)
-    /// @ObservationIgnored prevents view re-renders when this changes
     @ObservationIgnored
     public private(set) var activeGameService: DefaultGameService?
 
     // MARK: - Initialization
 
-    public init() {
-        let itemsRepository = ElfItemsRepository()
-        let attributeService = ElfAttributeService(itemsRepository: itemsRepository)
+    public init() async {
+        let gameDataRepository = await DefaultGameDataRepository()
+        self.gameDataRepository = gameDataRepository
+
+        let attributeService = ElfAttributeService(itemsRepository: gameDataRepository.items)
         let inventoryService = ElfInventoryService()
         let elfInfoFactory = DefaultElfInfoFactory(
             attributeService: attributeService,
-            itemsRepository: itemsRepository,
+            itemsRepository: gameDataRepository.items,
             inventoryService: inventoryService
         )
-        let armorService = ElfArmorService(itemsRepository: itemsRepository)
+        let armorService = ElfArmorService(itemsRepository: gameDataRepository.items)
 
-        self.itemsRepository = itemsRepository
         self.attributeService = attributeService
         self.armorService = armorService
 
@@ -82,7 +81,7 @@ public final class ElfAppDependencyContainer {
         let debugBattleLogger = ConsoleDebugBattleLogger(categories: [])
         self.debugBattleLogger = debugBattleLogger
 
-        let damageService = ElfDamageService(itemsRepository: itemsRepository)
+        let damageService = ElfDamageService(itemsRepository: gameDataRepository.items)
         self.damageService = damageService
 
         // Initialize dodge service with distribution strategy
@@ -93,9 +92,9 @@ public final class ElfAppDependencyContainer {
         let critDistributionStrategy = ElfCritDistributionStrategy()
         let critService = ElfCritService(distributionStrategy: critDistributionStrategy)
 
-        self.weaponValidator = ElfWeaponValidator(itemsRepository: itemsRepository)
+        self.weaponValidator = ElfWeaponValidator(itemsRepository: gameDataRepository.items)
         self.snapshotBuilder = DefaultCombatantSnapshotBuilder(
-            itemsRepository: itemsRepository,
+            itemsRepository: gameDataRepository.items,
             armorService: armorService
         )
 
@@ -118,7 +117,7 @@ public final class ElfAppDependencyContainer {
 
         // Initialize persistence
         let gameRepository = FileGameSaveStorage(
-            itemsRepository: itemsRepository,
+            itemsRepository: gameDataRepository.items,
             progressionService: progressionService,
             inventoryService: inventoryService
         )
@@ -156,26 +155,12 @@ public final class ElfAppDependencyContainer {
             damageService: damageService
         )
         self.duelPairingService = RandomDuelPairingService()
-        self.monsterRepository = ElfMonsterRepository()
-
-        let fishRepository = ElfFishRepository()
-
-        let herbRepository = ElfHerbRepository()
-
-        let oreRepository = ElfOreRepository()
-
-        let materialRepository = ElfMaterialRepository(
-            fishRepository: fishRepository,
-            herbRepository: herbRepository,
-            oreRepository: oreRepository
-        )
-        self.materialRepository = materialRepository
 
         let huntService = ElfHuntService()
 
         let dropService = DefaultDropService(
-            materialRepository: materialRepository,
-            itemsRepository: itemsRepository
+            materialRepository: gameDataRepository.materials,
+            itemsRepository: gameDataRepository.items
         )
 
         let gatheringEngine = DefaultGatheringEngine()
@@ -200,9 +185,9 @@ public final class ElfAppDependencyContainer {
             fishingService: fishingService,
             foragingService: foragingService,
             miningService: miningService,
-            fishRepository: fishRepository,
-            herbRepository: herbRepository,
-            oreRepository: oreRepository,
+            fishRepository: gameDataRepository.fish,
+            herbRepository: gameDataRepository.herbs,
+            oreRepository: gameDataRepository.ores,
             progressionService: progressionService
         )
 
@@ -227,13 +212,13 @@ public final class ElfAppDependencyContainer {
     @MainActor
     public func makeBattleSetupViewModel() -> BattleSetupViewModel {
         return BattleSetupViewModel(
-            itemsRepository: self.itemsRepository,
+            itemsRepository: self.gameDataRepository.items,
             attributeService: self.attributeService,
             armorService: self.armorService,
             damageService: self.damageService,
             weaponValidator: self.weaponValidator,
             snapshotBuilder: self.snapshotBuilder,
-            monsterRepository: self.monsterRepository
+            monsterRepository: self.gameDataRepository.monsters
         )
     }
 
@@ -247,7 +232,7 @@ public final class ElfAppDependencyContainer {
             debugLogger: self.debugBattleLogger,
             duelPairingService: self.duelPairingService,
             gameService: self.activeGameService,
-            monsterRepository: self.monsterRepository,
+            monsterRepository: self.gameDataRepository.monsters,
             battleResultCalculator: self.battleResultCalculator
         )
     }
@@ -293,13 +278,6 @@ public final class ElfAppDependencyContainer {
     }
 
     @MainActor
-    public func makeMainMenuViewModel() -> MainMenuViewModel {
-        return MainMenuViewModel(
-            gameRepository: self.gameRepository
-        )
-    }
-
-    @MainActor
     public func makeCharacterCreationViewModel() -> CharacterCreationViewModel {
         let nameValidator = DefaultCharacterNameValidator()
         let characterBuilder = DefaultCharacterBuilder()
@@ -324,7 +302,7 @@ public final class ElfAppDependencyContainer {
             heroType: heroType,
             heroItemType: heroItemType,
             currentItemId: currentItemId,
-            itemsRepository: self.itemsRepository
+            itemsRepository: self.gameDataRepository.items
         )
     }
 
@@ -336,7 +314,7 @@ public final class ElfAppDependencyContainer {
         let gameService = DefaultGameService(
             game: game,
             gameRepository: self.gameRepository,
-            itemsRepository: self.itemsRepository,
+            itemsRepository: self.gameDataRepository.items,
             inventoryService: self.inventoryService,
             playTime: playTime
         )
@@ -355,9 +333,9 @@ public final class ElfAppDependencyContainer {
         }
         return HuntViewModel(
             gameService: gameService,
-            monsterRepository: self.monsterRepository,
-            materialRepository: self.materialRepository,
-            itemsRepository: self.itemsRepository,
+            monsterRepository: self.gameDataRepository.monsters,
+            materialRepository: self.gameDataRepository.materials,
+            itemsRepository: self.gameDataRepository.items,
             snapshotBuilder: self.snapshotBuilder,
             progressionService: self.progressionService,
             equipmentQueryService: self.equipmentQueryService
@@ -386,7 +364,7 @@ public final class ElfAppDependencyContainer {
             farmActivityService: farmActivityService,
             progressionService: self.progressionService,
             equipmentQueryService: self.equipmentQueryService,
-            monsterRepository: monsterRepository,
+            monsterRepository: self.gameDataRepository.monsters,
             snapshotBuilder: snapshotBuilder
         )
     }
@@ -408,13 +386,12 @@ public final class ElfAppDependencyContainer {
         guard let gameService = activeGameService else {
             fatalError("No active game session. CraftViewModel requires an active game.")
         }
-        let recipeRepository = ElfRecipeRepository()
         let craftService = DefaultCraftService()
         return CraftViewModel(
             gameService: gameService,
-            recipeRepository: recipeRepository,
-            itemsRepository: self.itemsRepository,
-            materialRepository: self.materialRepository,
+            recipeRepository: self.gameDataRepository.recipes,
+            itemsRepository: self.gameDataRepository.items,
+            materialRepository: self.gameDataRepository.materials,
             craftService: craftService,
             inventoryService: self.inventoryService
         )
@@ -429,7 +406,7 @@ public final class ElfAppDependencyContainer {
         return InventoryViewModel(
             gameService: gameService,
             equipmentService: equipmentService,
-            materialRepository: self.materialRepository,
+            materialRepository: self.gameDataRepository.materials,
             equipmentQueryService: self.equipmentQueryService
         )
     }
@@ -452,7 +429,7 @@ public final class ElfAppDependencyContainer {
         activeGameService = DefaultGameService(
             game: game,
             gameRepository: self.gameRepository,
-            itemsRepository: self.itemsRepository,
+            itemsRepository: self.gameDataRepository.items,
             inventoryService: self.inventoryService,
             playTime: 0
         )

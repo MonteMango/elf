@@ -178,11 +178,11 @@ public actor FileGameSaveStorage: GameSaveStorage {
                 // Step 3: Check version and migrate if needed
                 if gameSave.version < GameSave.currentVersion {
                     debugLog("📂 [GameSaveStorage] Migration needed from v\(gameSave.version) to v\(GameSave.currentVersion)")
-                    return try migrate(data: data, fromVersion: gameSave.version)
+                    return try await migrate(data: data, fromVersion: gameSave.version)
                 }
 
                 // Step 4: Convert to Game
-                let game = try gameSave.toGame(
+                let game = try await gameSave.toGame(
                     itemsRepository: itemsRepository,
                     inventoryService: inventoryService
                 )
@@ -291,14 +291,14 @@ public actor FileGameSaveStorage: GameSaveStorage {
 
     // MARK: - Migration
 
-    private func migrate(data: Data, fromVersion: Int) throws -> Game {
+    private func migrate(data: Data, fromVersion: Int) async throws -> Game {
         // Future migration logic will go here
         // For now, only version 1 exists
         switch fromVersion {
         case 1:
             // Current version, no migration needed
             let gameSave = try decoder.decode(GameSave.self, from: data)
-            return try gameSave.toGame(
+            return try await gameSave.toGame(
                 itemsRepository: itemsRepository,
                 inventoryService: inventoryService
             )

@@ -47,7 +47,7 @@ public protocol GameStateService: AnyObject {
 
     /// Adds hunt rewards (drops) to player's inventory
     /// - Parameter rewards: Hunt rewards containing materials, weapon, and armor drops
-    func addDropsToPlayerInventory(rewards: HuntRewards)
+    func addDropsToPlayerInventory(rewards: HuntRewards) async
 
     /// Adds caught fish to player's inventory as materials
     /// - Parameter fish: Array of fish to add

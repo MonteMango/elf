@@ -10,7 +10,7 @@ import elf_SwiftUI
 import SwiftUI
 
 struct FarmActivityScreenContent: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
+    @Environment(ElfGameContainer.self) private var gameContainer
     @Environment(AppRouter.self) private var router
     @Environment(\.dismiss) private var dismiss
     @Environment(\.farmZoomNamespace) private var zoomNamespace
@@ -142,11 +142,12 @@ struct FarmActivityScreenContent: View {
         .background {
             activityBackground
         }
+        .task { await viewModel.loadData() }
         .toolbar(.hidden, for: .navigationBar)
         .modifier(FarmZoomTransitionModifier(sourceID: viewModel.activity.id, namespace: zoomNamespace))
         .navigationDestination(isPresented: $showCalendar) {
             CalendarScreenContent(
-                viewModel: container.makeCalendarViewModel(
+                viewModel: gameContainer.makeCalendarViewModel(
                     calendar: viewModel.calendar,
                     currentDayNumber: viewModel.currentDay.dayNumber
                 )
@@ -199,16 +200,24 @@ struct FarmActivityScreenContent: View {
 // MARK: - Preview
 
 #Preview {
+    @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @Namespace var previewNamespace
-    let container = ElfAppDependencyContainer()
-    container.initializePreviewSession(game: PreviewMockData.createMockGame())
 
-    return NavigationStack {
-        FarmActivityScreenContent(
-            viewModel: container.makeFarmActivityViewModel(activity: .fishing)
-        )
-        .environment(\.farmZoomNamespace, previewNamespace)
-        .environment(container)
-        .environment(AppRouter())
+    if let gameContainer {
+        NavigationStack {
+            FarmActivityScreenContent(
+                viewModel: gameContainer.makeFarmActivityViewModel(activity: .fishing)
+            )
+            .environment(\.farmZoomNamespace, previewNamespace)
+            .environment(gameContainer)
+            .environment(AppRouter())
+        }
+    } else {
+        ProgressView()
+            .task {
+                let container = await ElfGameContainer()
+                container.initializePreviewSession(game: PreviewMockData.createMockGame())
+                gameContainer = container
+            }
     }
 }

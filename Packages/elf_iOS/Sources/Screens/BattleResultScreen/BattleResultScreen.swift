@@ -9,12 +9,12 @@ import elf_Kit
 import SwiftUI
 
 struct BattleResultScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
+    @Environment(ElfGameContainer.self) private var gameContainer
     let result: ManualBattleResult
 
     var body: some View {
         BattleResultScreenContent(
-            viewModel: container.makeBattleResultViewModel(result: result)
+            viewModel: gameContainer.makeBattleResultViewModel(result: result)
         )
     }
 }

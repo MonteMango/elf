@@ -60,11 +60,9 @@ public final class FarmActivityViewModel {
     public var skillExpInLevel: Int { skillInfo.expInLevel }
     public var expPerLevel: Int { skillInfo.expPerLevel }
 
-    // MARK: - Available Items (Delegated to Service)
+    // MARK: - Available Items
 
-    public var availableItems: [FarmActivityItem] {
-        farmActivityService.getAvailableItems(for: activity)
-    }
+    public var availableItems: [FarmActivityItem] = []
 
     // MARK: - Action
 
@@ -93,12 +91,8 @@ public final class FarmActivityViewModel {
         .upper
     }
 
-    /// Available monsters for farm activity attacks based on current world and player level
-    private var availableMonsters: [Monster] {
-        guard let repo = monsterRepository else { return [] }
-        let monsterLevel = min(playerLevel, 3)
-        return repo.getMonsters(world: currentWorld, level: monsterLevel)
-    }
+    /// Cached available monsters for farm activity attacks
+    private var availableMonsters: [Monster] = []
 
     // MARK: - Computed Properties
 
@@ -148,6 +142,17 @@ public final class FarmActivityViewModel {
         self.snapshotBuilder = snapshotBuilder
     }
 
+    // MARK: - Data Loading
+
+    /// Loads available items and monsters. Call from View's .task {} modifier.
+    public func loadData() async {
+        availableItems = await farmActivityService.getAvailableItems(for: activity)
+        if let repo = monsterRepository {
+            let monsterLevel = min(playerLevel, 3)
+            availableMonsters = await repo.getMonsters(world: currentWorld, level: monsterLevel)
+        }
+    }
+
     // MARK: - Actions
 
     public func advanceToNextDay() {
@@ -179,7 +184,7 @@ public final class FarmActivityViewModel {
         }
 
         // Perform activity via service
-        let result = farmActivityService.perform(
+        let result = await farmActivityService.perform(
             activity: activity,
             currentLevel: skillInfo.level,
             currentExp: currentActivityExp,

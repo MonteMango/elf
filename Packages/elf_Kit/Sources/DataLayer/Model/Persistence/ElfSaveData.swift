@@ -52,8 +52,13 @@ public struct ElfSaveData: Codable, Sendable {
     public func toElfInfo(
         itemsRepository: ItemsRepository,
         inventoryService: InventoryService
-    ) throws -> ElfInfo {
-        ElfInfo(
+    ) async throws -> ElfInfo {
+        let restoredEquipped = await equipped.toEquippedItems(using: itemsRepository)
+        let restoredInventory = try await inventory.toElfInventory(
+            itemsRepository: itemsRepository,
+            inventoryService: inventoryService
+        )
+        return ElfInfo(
             id: id,
             name: name,
             imageName: imageName,
@@ -66,11 +71,8 @@ public struct ElfSaveData: Codable, Sendable {
             randomLevelAttributes: randomLevelAttributes,
             currentHP: currentHP,
             currentMP: currentMP,
-            equipped: equipped.toEquippedItems(using: itemsRepository),
-            inventory: try inventory.toElfInventory(
-                itemsRepository: itemsRepository,
-                inventoryService: inventoryService
-            ),
+            equipped: restoredEquipped,
+            inventory: restoredInventory,
             reputation: reputation
         )
     }

@@ -36,7 +36,7 @@ public final class ElfWeaponValidator: WeaponValidator {
         }
 
         // Get the item being selected
-        guard let item = itemsRepository.getHeroItem(itemId) else {
+        guard let item = await itemsRepository.getHeroItem(itemId) else {
             return currentItems
         }
 
@@ -98,7 +98,7 @@ public final class ElfWeaponValidator: WeaponValidator {
             // Primary weapon: check shields slot
             if let shieldsItemId = currentItems[.shields],
                let shieldsItemId = shieldsItemId,
-               let shieldsItem = itemsRepository.getHeroItem(shieldsItemId) {
+               let shieldsItem = await itemsRepository.getHeroItem(shieldsItemId) {
 
                 // If shields slot has a secondary weapon, clear it
                 // Primary weapons are not compatible with secondary weapons
@@ -174,7 +174,7 @@ public final class ElfWeaponValidator: WeaponValidator {
         // Check weapon compatibility
         if let weaponId = currentItems[.weapons],
            let weaponId = weaponId,
-           let weapon = itemsRepository.getHeroItem(weaponId) as? WeaponItem {
+           let weapon = await itemsRepository.getHeroItem(weaponId) as? WeaponItem {
 
             // Two-handed weapons are not compatible with shields
             if weapon.handUse == .both {
@@ -222,7 +222,7 @@ public final class ElfWeaponValidator: WeaponValidator {
         // Check weapons slot
         if let weaponId = currentItems[.weapons],
            let weaponId = weaponId,
-           let mainWeapon = itemsRepository.getHeroItem(weaponId) as? WeaponItem {
+           let mainWeapon = await itemsRepository.getHeroItem(weaponId) as? WeaponItem {
 
             // Dual wielding only works with secondary weapons
             // If main weapon is primary or both, clear weapons slot

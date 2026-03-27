@@ -23,8 +23,8 @@ public struct ShieldSaveData: Sendable, Equatable, Codable {
     }
 
     /// Convert to ElfShieldItem using items repository
-    public func toElfShieldItem(using repository: ItemsRepository) -> ElfShieldItem? {
-        guard let item = repository.getHeroItem(itemId) as? ShieldItem else {
+    public func toElfShieldItem(using repository: ItemsRepository) async -> ElfShieldItem? {
+        guard let item = await repository.getHeroItem(itemId) as? ShieldItem else {
             return nil
         }
         return ElfShieldItem(id: id, item: item)

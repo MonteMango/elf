@@ -36,6 +36,7 @@ struct InventoryScreenContent: View {
             Color.white
         }
         .task {
+            await viewModel.refreshItems()
             viewModel.selectItemById(selectedItemId)
         }
         .onChange(of: selectedItemId) { _, newValue in

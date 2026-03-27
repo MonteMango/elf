@@ -9,13 +9,13 @@ import elf_Kit
 import SwiftUI
 
 struct FarmActivityScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
+    @Environment(ElfGameContainer.self) private var gameContainer
 
     let activity: FarmActivity
 
     var body: some View {
         FarmActivityScreenContent(
-            viewModel: container.makeFarmActivityViewModel(activity: activity)
+            viewModel: gameContainer.makeFarmActivityViewModel(activity: activity)
         )
     }
 }

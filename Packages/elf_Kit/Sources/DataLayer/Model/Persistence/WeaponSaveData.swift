@@ -27,8 +27,8 @@ public struct WeaponSaveData: Sendable, Equatable, Codable {
     }
 
     /// Convert to ElfWeaponItem using items repository
-    public func toElfWeaponItem(using repository: ItemsRepository) -> ElfWeaponItem? {
-        guard let item = repository.getHeroItem(itemId) as? WeaponItem else {
+    public func toElfWeaponItem(using repository: ItemsRepository) async -> ElfWeaponItem? {
+        guard let item = await repository.getHeroItem(itemId) as? WeaponItem else {
             return nil
         }
         return ElfWeaponItem(id: id, item: item, enchantLevel: enchantLevel)

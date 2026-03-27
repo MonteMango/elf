@@ -9,7 +9,7 @@ import elf_Kit
 import SwiftUI
 
 internal struct GameDayScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
+    @Environment(ElfGameContainer.self) private var gameContainer
 
     let game: Game
     let playTime: TimeInterval
@@ -21,8 +21,8 @@ internal struct GameDayScreen: View {
 
     internal var body: some View {
         GameDayScreenContent(
-            viewModel: container.makeGameDayViewModel(game: game, playTime: playTime),
-            inventoryViewModel: container.makeInventoryViewModel()
+            viewModel: gameContainer.makeGameDayViewModel(game: game, playTime: playTime),
+            inventoryViewModel: gameContainer.makeInventoryViewModel()
         )
     }
 }

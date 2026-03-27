@@ -26,9 +26,9 @@ public struct OreData: Codable, Sendable {
     }
 }
 
-// MARK: - CollectionData
+// MARK: - GatherableData
 
-extension OreData: CollectionData {
+extension OreData: GatherableData {
     public var items: [Ore] { ores }
 
     public static var empty: OreData {

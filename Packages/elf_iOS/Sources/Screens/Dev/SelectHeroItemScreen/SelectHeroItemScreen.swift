@@ -9,7 +9,7 @@ import elf_Kit
 import SwiftUI
 
 internal struct SelectHeroItemScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
+    @Environment(ElfGameContainer.self) private var gameContainer
 
     private let heroType: HeroType
     private let heroItemType: HeroItemType
@@ -30,7 +30,7 @@ internal struct SelectHeroItemScreen: View {
 
     internal var body: some View {
         SelectHeroItemScreenContent(
-            viewModel: container.makeSelectHeroItemViewModel(
+            viewModel: gameContainer.makeSelectHeroItemViewModel(
                 heroType: heroType,
                 heroItemType: heroItemType,
                 currentItemId: currentItemId

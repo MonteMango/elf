@@ -27,7 +27,7 @@ public final class ElfDamageService: DamageService {
         }
 
         // Fetch weapon item
-        guard let item = itemsRepository.getHeroItem(weaponId),
+        guard let item = await itemsRepository.getHeroItem(weaponId),
               let weapon = item as? WeaponItem else {
             // Item not found or not a weapon
             return (minDmg: 0, maxDmg: 0)

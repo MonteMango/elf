@@ -14,5 +14,5 @@ public protocol BattleResultCalculator {
         outcome: BattleOutcome,
         monster: Monster?,
         gameService: GameService?
-    ) -> ManualBattleResult
+    ) async -> ManualBattleResult
 }

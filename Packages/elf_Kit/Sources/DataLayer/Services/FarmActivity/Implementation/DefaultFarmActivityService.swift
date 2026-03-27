@@ -20,9 +20,9 @@ public final class DefaultFarmActivityService: FarmActivityService {
     private let fishingService: any FishingService
     private let foragingService: any ForagingService
     private let miningService: any MiningService
-    private let fishRepository: any FishRepository
-    private let herbRepository: any HerbRepository
-    private let oreRepository: any OreRepository
+    private let fishRepository: any Repository<Fish>
+    private let herbRepository: any Repository<Herb>
+    private let oreRepository: any Repository<Ore>
     private let progressionService: any ProgressionService
 
     // MARK: - Initialization
@@ -31,9 +31,9 @@ public final class DefaultFarmActivityService: FarmActivityService {
         fishingService: any FishingService,
         foragingService: any ForagingService,
         miningService: any MiningService,
-        fishRepository: any FishRepository,
-        herbRepository: any HerbRepository,
-        oreRepository: any OreRepository,
+        fishRepository: any Repository<Fish>,
+        herbRepository: any Repository<Herb>,
+        oreRepository: any Repository<Ore>,
         progressionService: any ProgressionService
     ) {
         self.fishingService = fishingService
@@ -52,11 +52,11 @@ public final class DefaultFarmActivityService: FarmActivityService {
         currentLevel: Int,
         currentExp: Int,
         expPerLevel: Int
-    ) -> FarmActivityResult {
+    ) async -> FarmActivityResult {
         switch activity {
         case .fishing:
             let result = fishingService.performFishing(
-                availableFish: fishRepository.getAllFish(),
+                availableFish: await fishRepository.getAll(),
                 currentLevel: currentLevel,
                 currentExp: currentExp,
                 expPerLevel: expPerLevel
@@ -65,7 +65,7 @@ public final class DefaultFarmActivityService: FarmActivityService {
 
         case .foraging:
             let result = foragingService.performForaging(
-                availableHerbs: herbRepository.getAllHerbs(),
+                availableHerbs: await herbRepository.getAll(),
                 currentLevel: currentLevel,
                 currentExp: currentExp,
                 expPerLevel: expPerLevel
@@ -74,7 +74,7 @@ public final class DefaultFarmActivityService: FarmActivityService {
 
         case .mining:
             let result = miningService.performMining(
-                availableOres: oreRepository.getAllOres(),
+                availableOres: await oreRepository.getAll(),
                 currentLevel: currentLevel,
                 currentExp: currentExp,
                 expPerLevel: expPerLevel
@@ -83,14 +83,14 @@ public final class DefaultFarmActivityService: FarmActivityService {
         }
     }
 
-    public func getAvailableItems(for activity: FarmActivity) -> [FarmActivityItem] {
+    public func getAvailableItems(for activity: FarmActivity) async -> [FarmActivityItem] {
         switch activity {
         case .fishing:
-            return fishRepository.getAllFish().asFarmActivityItems
+            return await fishRepository.getAll().asFarmActivityItems
         case .foraging:
-            return herbRepository.getAllHerbs().asFarmActivityItems
+            return await herbRepository.getAll().asFarmActivityItems
         case .mining:
-            return oreRepository.getAllOres().asFarmActivityItems
+            return await oreRepository.getAll().asFarmActivityItems
         }
     }
 

@@ -96,7 +96,7 @@ public final class DefaultGameService: GameService {
         player.miningExp += amount
     }
 
-    public func addDropsToPlayerInventory(rewards: HuntRewards) {
+    public func addDropsToPlayerInventory(rewards: HuntRewards) async {
         // Add materials (stackable)
         for material in rewards.materials {
             player.inventory = inventoryService.addMaterial(
@@ -109,7 +109,7 @@ public final class DefaultGameService: GameService {
         // Add weapon if dropped
         if let weaponIdString = rewards.weaponId,
            let weaponId = UUID(uuidString: weaponIdString),
-           let weaponItem = itemsRepository?.getHeroItem(weaponId) as? WeaponItem {
+           let weaponItem = await itemsRepository?.getHeroItem(weaponId) as? WeaponItem {
             let weapon = ElfWeaponItem(weaponItem: weaponItem)
             player.inventory = inventoryService.addWeapon(weapon, to: player.inventory)
         }
@@ -117,7 +117,7 @@ public final class DefaultGameService: GameService {
         // Add armor if dropped
         if let armorIdString = rewards.armorId,
            let armorId = UUID(uuidString: armorIdString),
-           let defenseItem = itemsRepository?.getHeroItem(armorId) as? DefenseItem {
+           let defenseItem = await itemsRepository?.getHeroItem(armorId) as? DefenseItem {
             let armor = ElfDefenseItem(defenseItem: defenseItem)
             player.inventory = inventoryService.addArmor(armor, to: player.inventory)
         }

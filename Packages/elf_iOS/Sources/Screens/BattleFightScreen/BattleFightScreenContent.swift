@@ -184,7 +184,7 @@ internal struct BattleFightScreenContent: View {
         }
         .onChange(of: viewModel.battleEnded) { _, ended in
             if ended {
-                viewModel.finishBattle()
+                Task { await viewModel.finishBattle() }
             }
         }
         .alert("Leave battle?", isPresented: $showLeaveConfirmation) {
@@ -200,126 +200,124 @@ internal struct BattleFightScreenContent: View {
 
 // MARK: - Preview
 
-#if DEBUG
-struct BattleFightScreenContent_Previews: PreviewProvider {
-    static var previews: some View {
-        // Left team: 3 combatants
-        let elfA = CombatantSnapshot(
-            sourceId: UUID(),
-            name: "Player Elf",
-            imageName: "elf_player",
-            combatantType: .elf,
-            level: 5,
-            currentHP: 150,
-            maxHP: 150,
-            strength: 22,
-            agility: 15,
-            power: 18,
-            intuition: 12,
-            attackPoints: 1,
-            defensePoints: 2,
-            minimumAttack: 8,
-            maximumAttack: 15,
-            armorValues: [
-                .head: 5,
-                .body: 10,
-                .leftHand: 3,
-                .rightHand: 3,
-                .legs: 7
-            ]
-        )
+#Preview("Battle Fight Screen (3v2)") {
+    @Previewable @State var gameContainer: ElfGameContainer?
 
-        let elfB = CombatantSnapshot(
-            sourceId: UUID(),
-            name: "Elf B",
-            imageName: "elf_player",
-            combatantType: .elf,
-            level: 4,
-            currentHP: 130,
-            maxHP: 130,
-            strength: 18,
-            agility: 16,
-            power: 14,
-            intuition: 14,
-            attackPoints: 1,
-            defensePoints: 2,
-            minimumAttack: 6,
-            maximumAttack: 12,
-            armorValues: [:]
-        )
+    let elfA = CombatantSnapshot(
+        sourceId: UUID(),
+        name: "Player Elf",
+        imageName: "elf_player",
+        combatantType: .elf,
+        level: 5,
+        currentHP: 150,
+        maxHP: 150,
+        strength: 22,
+        agility: 15,
+        power: 18,
+        intuition: 12,
+        attackPoints: 1,
+        defensePoints: 2,
+        minimumAttack: 8,
+        maximumAttack: 15,
+        armorValues: [
+            .head: 5,
+            .body: 10,
+            .leftHand: 3,
+            .rightHand: 3,
+            .legs: 7
+        ]
+    )
 
-        let elfC = CombatantSnapshot(
-            sourceId: UUID(),
-            name: "Elf C",
-            imageName: "elf_player",
-            combatantType: .elf,
-            level: 3,
-            currentHP: 110,
-            maxHP: 110,
-            strength: 15,
-            agility: 20,
-            power: 12,
-            intuition: 16,
-            attackPoints: 1,
-            defensePoints: 2,
-            minimumAttack: 5,
-            maximumAttack: 10,
-            armorValues: [:]
-        )
+    let elfB = CombatantSnapshot(
+        sourceId: UUID(),
+        name: "Elf B",
+        imageName: "elf_player",
+        combatantType: .elf,
+        level: 4,
+        currentHP: 130,
+        maxHP: 130,
+        strength: 18,
+        agility: 16,
+        power: 14,
+        intuition: 14,
+        attackPoints: 1,
+        defensePoints: 2,
+        minimumAttack: 6,
+        maximumAttack: 12,
+        armorValues: [:]
+    )
 
-        // Right team: 2 combatants
-        let goblinD = CombatantSnapshot(
-            sourceId: UUID(),
-            name: "Goblin D",
-            imageName: "monster_goblin",
-            combatantType: .monster,
-            level: 3,
-            currentHP: 120,
-            maxHP: 120,
-            strength: 15,
-            agility: 18,
-            power: 20,
-            intuition: 15,
-            attackPoints: 1,
-            defensePoints: 2,
-            minimumAttack: 5,
-            maximumAttack: 12,
-            armorValues: [:]
-        )
+    let elfC = CombatantSnapshot(
+        sourceId: UUID(),
+        name: "Elf C",
+        imageName: "elf_player",
+        combatantType: .elf,
+        level: 3,
+        currentHP: 110,
+        maxHP: 110,
+        strength: 15,
+        agility: 20,
+        power: 12,
+        intuition: 16,
+        attackPoints: 1,
+        defensePoints: 2,
+        minimumAttack: 5,
+        maximumAttack: 10,
+        armorValues: [:]
+    )
 
-        let goblinE = CombatantSnapshot(
-            sourceId: UUID(),
-            name: "Goblin E",
-            imageName: "monster_goblin",
-            combatantType: .monster,
-            level: 2,
-            currentHP: 100,
-            maxHP: 100,
-            strength: 12,
-            agility: 15,
-            power: 18,
-            intuition: 12,
-            attackPoints: 1,
-            defensePoints: 2,
-            minimumAttack: 4,
-            maximumAttack: 10,
-            armorValues: [:]
-        )
+    let goblinD = CombatantSnapshot(
+        sourceId: UUID(),
+        name: "Goblin D",
+        imageName: "monster_goblin",
+        combatantType: .monster,
+        level: 3,
+        currentHP: 120,
+        maxHP: 120,
+        strength: 15,
+        agility: 18,
+        power: 20,
+        intuition: 15,
+        attackPoints: 1,
+        defensePoints: 2,
+        minimumAttack: 5,
+        maximumAttack: 12,
+        armorValues: [:]
+    )
 
-        let mockBattle = Battle(
-            leftTeam: [elfA, elfB, elfC],
-            rightTeam: [goblinD, goblinE]
-        )
+    let goblinE = CombatantSnapshot(
+        sourceId: UUID(),
+        name: "Goblin E",
+        imageName: "monster_goblin",
+        combatantType: .monster,
+        level: 2,
+        currentHP: 100,
+        maxHP: 100,
+        strength: 12,
+        agility: 15,
+        power: 18,
+        intuition: 12,
+        attackPoints: 1,
+        defensePoints: 2,
+        minimumAttack: 4,
+        maximumAttack: 10,
+        armorValues: [:]
+    )
 
-        let container = ElfAppDependencyContainer()
+    let mockBattle = Battle(
+        leftTeam: [elfA, elfB, elfC],
+        rightTeam: [goblinD, goblinE]
+    )
 
+    if let gameContainer {
         NavigationStack {
             BattleFightScreenContent(
-                viewModel: container.makeBattleFightViewModel(battle: mockBattle)
+                viewModel: gameContainer.makeBattleFightViewModel(battle: mockBattle)
             )
             .environment(AppRouter())
         }
-        .previewDisplayName("Battle Fight Screen (3v2)")
+    } else {
+        ProgressView()
+            .task { gameContainer = await ElfGameContainer() }
     }
 }
-#endif

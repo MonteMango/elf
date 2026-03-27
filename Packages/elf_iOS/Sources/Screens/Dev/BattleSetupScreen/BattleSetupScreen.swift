@@ -9,13 +9,13 @@ import elf_Kit
 import SwiftUI
 
 internal struct BattleSetupScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
+    @Environment(ElfGameContainer.self) private var gameContainer
 
     internal init() {}
 
     internal var body: some View {
         BattleSetupScreenContent(
-            viewModel: container.makeBattleSetupViewModel()
+            viewModel: gameContainer.makeBattleSetupViewModel()
         )
     }
 }

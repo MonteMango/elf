@@ -11,7 +11,7 @@ import Foundation
 
 extension InventoryViewModel {
 
-    func buildDisplayItems() -> [InventoryDisplayItem] {
+    func buildDisplayItems() async -> [InventoryDisplayItem] {
         var items: [InventoryDisplayItem] = []
 
         let inventory = player.inventory
@@ -43,7 +43,7 @@ extension InventoryViewModel {
 
         // Materials
         for material in inventory.materials {
-            if let displayItem = buildMaterialDisplayItem(material) {
+            if let displayItem = await buildMaterialDisplayItem(material) {
                 items.append(displayItem)
             }
         }
@@ -209,8 +209,8 @@ extension InventoryViewModel {
         )
     }
 
-    private func buildMaterialDisplayItem(_ material: InventoryMaterial) -> InventoryDisplayItem? {
-        guard let materialData = materialRepository.getMaterial(id: material.id) else {
+    private func buildMaterialDisplayItem(_ material: InventoryMaterial) async -> InventoryDisplayItem? {
+        guard let materialData = await materialRepository.getById(id: material.id) else {
             return nil
         }
 

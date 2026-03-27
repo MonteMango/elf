@@ -64,6 +64,7 @@ struct HuntScreenContent: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(ElfColors.Background.primary)
+        .task { await viewModel.loadMonsters() }
     }
 
     // MARK: - Monster Collection
@@ -101,14 +102,22 @@ struct HuntScreenContent: View {
 }
 
 #Preview {
+    @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @State var router = AppRouter()
-    let container = ElfAppDependencyContainer()
-    container.initializePreviewSession(game: PreviewMockData.createMockGame())
 
-    return NavigationStack(path: $router.navigationPath) {
-        HuntScreenContent(
-            viewModel: container.makeHuntViewModel()
-        )
-        .environment(router)
+    if let gameContainer {
+        NavigationStack(path: $router.navigationPath) {
+            HuntScreenContent(
+                viewModel: gameContainer.makeHuntViewModel()
+            )
+            .environment(router)
+        }
+    } else {
+        ProgressView()
+            .task {
+                let container = await ElfGameContainer()
+                container.initializePreviewSession(game: PreviewMockData.createMockGame())
+                gameContainer = container
+            }
     }
 }

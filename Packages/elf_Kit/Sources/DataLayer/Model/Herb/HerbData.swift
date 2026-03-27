@@ -26,9 +26,9 @@ public struct HerbData: Codable, Sendable {
     }
 }
 
-// MARK: - CollectionData
+// MARK: - GatherableData
 
-extension HerbData: CollectionData {
+extension HerbData: GatherableData {
     public var items: [Herb] { herbs }
 
     public static var empty: HerbData {

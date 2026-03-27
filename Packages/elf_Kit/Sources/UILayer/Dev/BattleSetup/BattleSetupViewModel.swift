@@ -205,16 +205,16 @@ public final class BattleSetupViewModel {
         self.snapshotBuilder = snapshotBuilder
         self.monsterRepository = monsterRepository
 
-        loadAllMonsters()
+        Task { await loadAllMonsters() }
     }
 
     // MARK: - Monster Loading
 
-    private func loadAllMonsters() {
+    private func loadAllMonsters() async {
         var monsters: [Monster] = []
         for world in [WorldType.upper, WorldType.middle, WorldType.lower] {
             for level in 1...3 {
-                let worldMonsters = monsterRepository.getMonsters(world: world, level: level)
+                let worldMonsters = await monsterRepository.getMonsters(world: world, level: level)
                 monsters.append(contentsOf: worldMonsters)
             }
         }
@@ -432,7 +432,7 @@ public final class BattleSetupViewModel {
                     var twoHandedId: UUID?
 
                     if let weaponId = primaryWeaponId,
-                       let item = itemsRepo.getHeroItem(weaponId),
+                       let item = await itemsRepo.getHeroItem(weaponId),
                        let weapon = item as? WeaponItem {
                         if weapon.handUse == .both {
                             isTwoHanded = true

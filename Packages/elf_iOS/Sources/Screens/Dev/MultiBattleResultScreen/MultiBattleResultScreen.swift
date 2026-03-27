@@ -9,14 +9,14 @@ import elf_Kit
 import SwiftUI
 
 internal struct MultiBattleResultScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
+    @Environment(ElfGameContainer.self) private var gameContainer
     @Environment(\.dismiss) private var dismiss
 
     let battle: Battle
 
     internal var body: some View {
         MultiBattleResultScreenContent(
-            viewModel: container.makeMultiBattleViewModel(battle: battle),
+            viewModel: gameContainer.makeMultiBattleViewModel(battle: battle),
             onClose: { dismiss() }
         )
     }

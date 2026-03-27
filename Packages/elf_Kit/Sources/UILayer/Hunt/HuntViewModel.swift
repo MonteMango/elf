@@ -15,7 +15,7 @@ public final class HuntViewModel {
 
     private let gameService: any GameService
     private let monsterRepository: any MonsterRepository
-    private let materialRepository: any MaterialRepository
+    private let materialRepository: any Repository<Material>
     private let itemsRepository: any ItemsRepository
     private let snapshotBuilder: any CombatantSnapshotBuilder
     private let progressionService: any ProgressionService
@@ -72,24 +72,18 @@ public final class HuntViewModel {
         .upper
     }
 
-    /// Available monsters for hunting based on current world and player level
-    private var availableMonsters: [Monster] {
-        // Monster level equals player level, capped at 3
-        let monsterLevel = min(playerLevel, 3)
-        return monsterRepository.getMonsters(world: currentWorld, level: monsterLevel)
-    }
-
     /// Pre-converted display data for monsters (for View consumption)
-    public var availableMonstersDisplayData: [MonsterDisplayData] {
-        availableMonsters.map { createDisplayData(from: $0) }
-    }
+    public var availableMonstersDisplayData: [MonsterDisplayData] = []
+
+    /// Cached available monsters for the current world/level
+    private var availableMonsters: [Monster] = []
 
     // MARK: - Initialization
 
     public init(
         gameService: any GameService,
         monsterRepository: any MonsterRepository,
-        materialRepository: any MaterialRepository,
+        materialRepository: any Repository<Material>,
         itemsRepository: any ItemsRepository,
         snapshotBuilder: any CombatantSnapshotBuilder,
         progressionService: any ProgressionService,
@@ -102,6 +96,22 @@ public final class HuntViewModel {
         self.snapshotBuilder = snapshotBuilder
         self.progressionService = progressionService
         self.equipmentQueryService = equipmentQueryService
+    }
+
+    // MARK: - Data Loading
+
+    /// Loads available monsters and builds display data.
+    /// Call from View's .task {} modifier.
+    public func loadMonsters() async {
+        let monsterLevel = min(playerLevel, 3)
+        availableMonsters = await monsterRepository.getMonsters(world: currentWorld, level: monsterLevel)
+
+        var displayData: [MonsterDisplayData] = []
+        for monster in availableMonsters {
+            let data = await createDisplayData(from: monster)
+            displayData.append(data)
+        }
+        availableMonstersDisplayData = displayData
     }
 
     // MARK: - Actions
@@ -155,13 +165,13 @@ public final class HuntViewModel {
     // MARK: - Private Helpers
 
     /// Converts Monster model to display data for the View
-    private func createDisplayData(from monster: Monster) -> MonsterDisplayData {
+    private func createDisplayData(from monster: Monster) async -> MonsterDisplayData {
         var drops: [DropDisplayData] = []
 
         // Weapon drops - lookup item for tier
         for itemDrop in monster.drops.weapons {
             if let uuid = UUID(uuidString: itemDrop.id),
-               let item = itemsRepository.getHeroItem(uuid) {
+               let item = await itemsRepository.getHeroItem(uuid) {
                 drops.append(DropDisplayData(
                     imageName: itemDrop.id,
                     tier: Int(item.tier)
@@ -172,7 +182,7 @@ public final class HuntViewModel {
         // Armor drops - lookup item for tier
         for itemDrop in monster.drops.armor {
             if let uuid = UUID(uuidString: itemDrop.id),
-               let item = itemsRepository.getHeroItem(uuid) {
+               let item = await itemsRepository.getHeroItem(uuid) {
                 drops.append(DropDisplayData(
                     imageName: itemDrop.id,
                     tier: Int(item.tier)
@@ -182,7 +192,7 @@ public final class HuntViewModel {
 
         // Material drops - default tier 4 (common)
         for materialDrop in monster.drops.materials {
-            if let material = materialRepository.getMaterial(id: materialDrop.id) {
+            if let material = await materialRepository.getById(id: materialDrop.id) {
                 drops.append(DropDisplayData(
                     imageName: material.imageName,
                     tier: 4

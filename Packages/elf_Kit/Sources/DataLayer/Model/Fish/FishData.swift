@@ -26,9 +26,9 @@ public struct FishData: Codable, Sendable {
     }
 }
 
-// MARK: - CollectionData
+// MARK: - GatherableData
 
-extension FishData: CollectionData {
+extension FishData: GatherableData {
     public var items: [Fish] { fish }
 
     public static var empty: FishData {

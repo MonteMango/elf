@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 20.01.26.
 //
 
+import os.log
 import XCTest
 @testable import elf_Kit
 
@@ -28,7 +29,7 @@ final class ElfFishRepositoryTests: XCTestCase {
 
     // MARK: - Fake Data Loader
 
-    final class FakeDataLoader: DataLoader {
+    final class FakeDataLoader: DataLoader, @unchecked Sendable {
         enum Mode {
             case valid
             case invalidJSON
@@ -43,47 +44,20 @@ final class ElfFishRepositoryTests: XCTestCase {
             self.customJSON = customJSON
         }
 
-        func loadHeroItemsData() throws -> Data {
-            return Data("{}".utf8)
-        }
-
-        func loadMonstersData() throws -> Data {
-            return Data("{}".utf8)
-        }
-
-        func loadMaterialsData() throws -> Data {
-            return Data("{}".utf8)
-        }
-
-        func loadHerbsData() throws -> Data {
-            return Data("""
-            {"version": "1.0", "effects": [], "areas": {}, "herbs": []}
-            """.utf8)
-        }
-
-        func loadOresData() throws -> Data {
-            return Data("""
-            {"version": "1.0", "effects": [], "areas": {}, "ores": []}
-            """.utf8)
-        }
-
-        func loadRecipesData() throws -> Data {
-            return Data("""
-            {"version": "1.0", "weapons": [], "armor": []}
-            """.utf8)
-        }
-
-        func loadFishData() throws -> Data {
-            switch mode {
-            case .valid:
-                let json = customJSON ?? Self.validFishJSON
-                return Data(json.utf8)
-
-            case .invalidJSON:
-                return Data("INVALID JSON".utf8)
-
-            case .error:
-                throw NSError(domain: "FakeError", code: 999, userInfo: nil)
+        func loadJSON(_ resourceName: String) throws -> Data {
+            switch resourceName {
+            case "Fish":
+                switch mode {
+                case .valid:
+                    let json = customJSON ?? Self.validFishJSON
+                    return Data(json.utf8)
+                case .invalidJSON:
+                    return Data("INVALID JSON".utf8)
+                case .error:
+                    throw NSError(domain: "FakeError", code: 999, userInfo: nil)
+                }
+            default:
+                return Data("{}".utf8)
             }
         }
 
@@ -211,21 +185,28 @@ final class ElfFishRepositoryTests: XCTestCase {
         """
     }
 
-    // MARK: - JSON Loading Tests
+    // MARK: - Helpers
 
-    func testAllElevenFishLoaded() throws {
-        let loader = FakeDataLoader(mode: .valid)
-        let repository = ElfFishRepository(dataLoader: loader)
-
-        XCTAssertEqual(repository.getAllFish().count, 11)
+    private func makeRepository(loader: FakeDataLoader) -> ArrayRepository<Fish> {
+        let log = OSLog(subsystem: "com.elfy.kit.tests", category: "FishRepository")
+        let data: FishData = loader.loadAndDecode(resourceName: "Fish", fallback: .empty, log: log)
+        return ArrayRepository(items: data.items)
     }
 
-    func testEffectsDecodeCorrectly() throws {
-        let loader = FakeDataLoader(mode: .valid)
-        let repository = ElfFishRepository(dataLoader: loader)
+    // MARK: - JSON Loading Tests
+
+    func testAllElevenFishLoaded() async throws {
+        let repository = makeRepository(loader: FakeDataLoader(mode: .valid))
+
+        let allFish = await repository.getAll()
+        XCTAssertEqual(allFish.count, 11)
+    }
+
+    func testEffectsDecodeCorrectly() async throws {
+        let repository = makeRepository(loader: FakeDataLoader(mode: .valid))
 
         // Check Bristle effects (2 effects: venom and shadow)
-        let bristle = repository.getFish(id: TestFishID.bristle)
+        let bristle = await repository.getById(id: TestFishID.bristle)
         XCTAssertNotNil(bristle)
         XCTAssertEqual(bristle?.effects.count, 2)
         XCTAssertEqual(bristle?.effects[0].type, .venom)
@@ -234,7 +215,7 @@ final class ElfFishRepositoryTests: XCTestCase {
         XCTAssertEqual(bristle?.effects[1].amount, 1)
 
         // Check Ribbontail effects (radiance amount: 2)
-        let ribbontail = repository.getFish(id: TestFishID.ribbontail)
+        let ribbontail = await repository.getById(id: TestFishID.ribbontail)
         XCTAssertNotNil(ribbontail)
         XCTAssertEqual(ribbontail?.effects[0].type, .radiance)
         XCTAssertEqual(ribbontail?.effects[0].amount, 2)
@@ -242,11 +223,10 @@ final class ElfFishRepositoryTests: XCTestCase {
 
     // MARK: - Method Tests
 
-    func testGetFishReturnsCorrectFish() throws {
-        let loader = FakeDataLoader(mode: .valid)
-        let repository = ElfFishRepository(dataLoader: loader)
+    func testGetFishReturnsCorrectFish() async throws {
+        let repository = makeRepository(loader: FakeDataLoader(mode: .valid))
 
-        let sunny = repository.getFish(id: TestFishID.sunny)
+        let sunny = await repository.getById(id: TestFishID.sunny)
         XCTAssertNotNil(sunny)
         XCTAssertEqual(sunny?.title, "Sunny")
         XCTAssertEqual(sunny?.imageName, "fish_sunny")
@@ -254,53 +234,62 @@ final class ElfFishRepositoryTests: XCTestCase {
         XCTAssertEqual(sunny?.baseCatchChance, 0.35)
     }
 
-    func testGetFishReturnsNilForUnknownId() throws {
-        let loader = FakeDataLoader(mode: .valid)
-        let repository = ElfFishRepository(dataLoader: loader)
+    func testGetFishReturnsNilForUnknownId() async throws {
+        let repository = makeRepository(loader: FakeDataLoader(mode: .valid))
 
-        let unknown = repository.getFish(id: FishID())
+        let unknown = await repository.getById(id: FishID())
         XCTAssertNil(unknown)
     }
 
     // MARK: - Error Handling Tests
 
-    func testInitializationFallsBackToEmptyDataOnInvalidJSON() {
-        let loader = FakeDataLoader(mode: .invalidJSON)
-        let repository = ElfFishRepository(dataLoader: loader)
+    func testInitializationFallsBackToEmptyDataOnInvalidJSON() async {
+        let repository = makeRepository(loader: FakeDataLoader(mode: .invalidJSON))
 
-        XCTAssertEqual(repository.getAllFish().count, 0)
+        let allFish = await repository.getAll()
+        XCTAssertEqual(allFish.count, 0)
     }
 
-    func testInitializationFallsBackToEmptyDataOnDataLoaderError() {
-        let loader = FakeDataLoader(mode: .error)
-        let repository = ElfFishRepository(dataLoader: loader)
+    func testInitializationFallsBackToEmptyDataOnDataLoaderError() async {
+        let repository = makeRepository(loader: FakeDataLoader(mode: .error))
 
-        XCTAssertEqual(repository.getAllFish().count, 0)
+        let allFish = await repository.getAll()
+        XCTAssertEqual(allFish.count, 0)
     }
 
     // MARK: - Fish Tier Tests
 
-    func testFishTiersAreCorrect() throws {
-        let loader = FakeDataLoader(mode: .valid)
-        let repository = ElfFishRepository(dataLoader: loader)
+    func testFishTiersAreCorrect() async throws {
+        let repository = makeRepository(loader: FakeDataLoader(mode: .valid))
 
         // Common (tier 4)
-        XCTAssertEqual(repository.getFish(id: TestFishID.sunny)?.tier, .common)
-        XCTAssertEqual(repository.getFish(id: TestFishID.dewdrop)?.tier, .common)
-        XCTAssertEqual(repository.getFish(id: TestFishID.pebble)?.tier, .common)
-        XCTAssertEqual(repository.getFish(id: TestFishID.whisker)?.tier, .common)
+        let sunny = await repository.getById(id: TestFishID.sunny)
+        let dewdrop = await repository.getById(id: TestFishID.dewdrop)
+        let pebble = await repository.getById(id: TestFishID.pebble)
+        let whisker = await repository.getById(id: TestFishID.whisker)
+        XCTAssertEqual(sunny?.tier, .common)
+        XCTAssertEqual(dewdrop?.tier, .common)
+        XCTAssertEqual(pebble?.tier, .common)
+        XCTAssertEqual(whisker?.tier, .common)
 
         // Uncommon (tier 3)
-        XCTAssertEqual(repository.getFish(id: TestFishID.bristle)?.tier, .uncommon)
-        XCTAssertEqual(repository.getFish(id: TestFishID.duskfin)?.tier, .uncommon)
-        XCTAssertEqual(repository.getFish(id: TestFishID.ember)?.tier, .uncommon)
+        let bristle = await repository.getById(id: TestFishID.bristle)
+        let duskfin = await repository.getById(id: TestFishID.duskfin)
+        let ember = await repository.getById(id: TestFishID.ember)
+        XCTAssertEqual(bristle?.tier, .uncommon)
+        XCTAssertEqual(duskfin?.tier, .uncommon)
+        XCTAssertEqual(ember?.tier, .uncommon)
 
         // Rare (tier 2)
-        XCTAssertEqual(repository.getFish(id: TestFishID.dancer)?.tier, .rare)
-        XCTAssertEqual(repository.getFish(id: TestFishID.ribbontail)?.tier, .rare)
+        let dancer = await repository.getById(id: TestFishID.dancer)
+        let ribbontail = await repository.getById(id: TestFishID.ribbontail)
+        XCTAssertEqual(dancer?.tier, .rare)
+        XCTAssertEqual(ribbontail?.tier, .rare)
 
         // Legendary (tier 1)
-        XCTAssertEqual(repository.getFish(id: TestFishID.streamer)?.tier, .legendary)
-        XCTAssertEqual(repository.getFish(id: TestFishID.swallowtail)?.tier, .legendary)
+        let streamer = await repository.getById(id: TestFishID.streamer)
+        let swallowtail = await repository.getById(id: TestFishID.swallowtail)
+        XCTAssertEqual(streamer?.tier, .legendary)
+        XCTAssertEqual(swallowtail?.tier, .legendary)
     }
 }

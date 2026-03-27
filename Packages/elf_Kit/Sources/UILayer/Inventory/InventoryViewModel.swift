@@ -15,7 +15,7 @@ public final class InventoryViewModel {
 
     let gameService: any GameService
     let equipmentService: any EquipmentService
-    let materialRepository: any MaterialRepository
+    let materialRepository: any Repository<Material>
     let equipmentQueryService: any EquipmentQueryService
 
     // MARK: - State
@@ -38,14 +38,12 @@ public final class InventoryViewModel {
         gameService.game.player
     }
 
-    // MARK: - Computed Properties
+    // MARK: - Cached State
 
-    public var allItems: [InventoryDisplayItem] {
-        buildDisplayItems()
-    }
+    private var cachedItems: [InventoryDisplayItem] = []
 
     public var filteredItems: [InventoryDisplayItem] {
-        allItems.filter { item in
+        cachedItems.filter { item in
             guard item.category == selectedCategory else { return false }
             return passesSubcategoryFilter(item)
         }
@@ -53,7 +51,7 @@ public final class InventoryViewModel {
 
     public var selectedItem: InventoryDisplayItem? {
         guard let id = selectedItemId else { return nil }
-        return allItems.first { $0.id == id }
+        return cachedItems.first { $0.id == id }
     }
 
     public var currentSubcategoryTitles: [String] {
@@ -87,13 +85,20 @@ public final class InventoryViewModel {
     public init(
         gameService: any GameService,
         equipmentService: any EquipmentService,
-        materialRepository: any MaterialRepository,
+        materialRepository: any Repository<Material>,
         equipmentQueryService: any EquipmentQueryService
     ) {
         self.gameService = gameService
         self.equipmentService = equipmentService
         self.materialRepository = materialRepository
         self.equipmentQueryService = equipmentQueryService
+    }
+
+    // MARK: - Data Loading
+
+    /// Refreshes display items from repositories. Call from View's .task {} modifier.
+    public func refreshItems() async {
+        cachedItems = await buildDisplayItems()
     }
 
     // MARK: - Actions
@@ -133,8 +138,7 @@ public final class InventoryViewModel {
     public func selectItemById(_ itemId: UUID?) {
         guard let itemId = itemId else { return }
 
-        let items = buildDisplayItems()
-        guard let item = items.first(where: { $0.id == itemId }) else { return }
+        guard let item = cachedItems.first(where: { $0.id == itemId }) else { return }
 
         // Switch category if needed
         if selectedCategory != item.category {

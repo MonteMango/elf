@@ -241,12 +241,12 @@ public final class BattleFightViewModel {
     // MARK: - Actions
 
     /// Calculates battle result with XP, drops, and updates game state
-    public func finishBattle() {
+    public func finishBattle() async {
         guard battleEnded else { return }
         guard battleResult == nil else { return }  // Already finished
 
         let outcome = determineBattleOutcome()
-        let monster = getMonsterFromBot()
+        let monster = await getMonsterFromBot()
 
         guard let calculator = battleResultCalculator else {
             // Fallback for battles without result calculator
@@ -264,7 +264,7 @@ public final class BattleFightViewModel {
             return
         }
 
-        battleResult = calculator.calculateResult(
+        battleResult = await calculator.calculateResult(
             outcome: outcome,
             monster: monster,
             gameService: gameService
@@ -283,14 +283,14 @@ public final class BattleFightViewModel {
         }
     }
 
-    private func getMonsterFromBot() -> Monster? {
+    private func getMonsterFromBot() async -> Monster? {
         // Get monster by sourceId from the first opponent
         guard let botSnapshot = battle.rightTeam.first,
               botSnapshot.combatantType == .monster,
               let monsterRepository = monsterRepository else {
             return nil
         }
-        return monsterRepository.getMonster(id: botSnapshot.sourceId)
+        return await monsterRepository.getById(id: botSnapshot.sourceId)
     }
 
     // MARK: - Duel Pairs

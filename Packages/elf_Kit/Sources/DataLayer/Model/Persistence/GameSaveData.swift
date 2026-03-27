@@ -26,11 +26,15 @@ public struct GameSaveData: Codable, Sendable {
     public func toGame(
         itemsRepository: ItemsRepository,
         inventoryService: InventoryService
-    ) throws -> Game {
-        let houses = try self.houses.map { try $0.toHouse(
-            itemsRepository: itemsRepository,
-            inventoryService: inventoryService
-        ) }
+    ) async throws -> Game {
+        var houses: [House] = []
+        for houseSaveData in self.houses {
+            let house = try await houseSaveData.toHouse(
+                itemsRepository: itemsRepository,
+                inventoryService: inventoryService
+            )
+            houses.append(house)
+        }
         let gameState = self.gameState.toGameState()
 
         return Game(

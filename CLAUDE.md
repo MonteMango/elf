@@ -26,7 +26,7 @@ xcodebuild test -scheme elf_Kit -destination 'platform=iOS Simulator,name=iPhone
 App supports **landscape orientation only**.
 
 ## Code Rules
-- Avoid using `static` — use Dependency Injection
+- Never use `static` keyword in code. Only use it when there is no other option — prefer Dependency Injection
 - Build and test only for iOS (not macOS)
 
 ---
