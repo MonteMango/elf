@@ -56,7 +56,7 @@ public final class ElfAttributeService: AttributeService {
         var pointsAssigned = 0
 
         while pointsAssigned < 4 {
-            let attribute = randomizer.nextAttribute()
+            let attribute = await randomizer.nextAttribute()
 
             switch attribute {
             case "hitPoints":
@@ -130,8 +130,3 @@ public final class ElfAttributeService: AttributeService {
         return updatedAttributes
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: All stored properties are immutable (let) after initialization.
-// Dependencies: ItemsRepository is a Sendable protocol, AttributeRandomizer is stateless.
-extension ElfAttributeService: @unchecked Sendable {}

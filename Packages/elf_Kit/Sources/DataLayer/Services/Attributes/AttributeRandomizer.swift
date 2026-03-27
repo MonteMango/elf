@@ -5,6 +5,6 @@
 //  Created by Vitalii Lytvynov on 10.07.25.
 //
 
-public protocol AttributeRandomizer {
-    func nextAttribute() -> String
+public protocol AttributeRandomizer: Sendable {
+    func nextAttribute() async -> String
 }
