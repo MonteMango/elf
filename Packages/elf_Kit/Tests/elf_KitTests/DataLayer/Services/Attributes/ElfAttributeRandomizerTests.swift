@@ -9,23 +9,23 @@ import XCTest
 @testable import elf_Kit
 
 final class ElfAttributeRandomizerTests: XCTestCase {
-    func testReturnedAttributesAreValid() {
+    func testReturnedAttributesAreValid() async {
         let randomizer = ElfAttributeRandomizer()
         let allowedAttributes: Set<String> = ["hitPoints", "manaPoints", "agility", "strength", "power", "instinct"]
 
         for _ in 0..<100 {
-            let attr = randomizer.nextAttribute()
+            let attr = await randomizer.nextAttribute()
             XCTAssertTrue(allowedAttributes.contains(attr), "Unexpected attribute: \(attr)")
         }
     }
 
-    func testRandomDistributionRoughlyMatchesWeights() {
+    func testRandomDistributionRoughlyMatchesWeights() async {
         let randomizer = ElfAttributeRandomizer()
         var counts: [String: Int] = [:]
 
         let iterations = 10_000
         for _ in 0..<iterations {
-            let attr = randomizer.nextAttribute()
+            let attr = await randomizer.nextAttribute()
             counts[attr, default: 0] += 1
         }
 
@@ -45,12 +45,12 @@ final class ElfAttributeRandomizerTests: XCTestCase {
         }
     }
 
-    func testReturnsDifferentValuesOverTime() {
+    func testReturnsDifferentValuesOverTime() async {
         let randomizer = ElfAttributeRandomizer()
         var seenAttributes = Set<String>()
 
         for _ in 0..<100 {
-            seenAttributes.insert(randomizer.nextAttribute())
+            seenAttributes.insert(await randomizer.nextAttribute())
         }
 
         XCTAssertTrue(seenAttributes.count > 1, "Randomizer returned only one unique value over 100 iterations")

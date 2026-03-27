@@ -133,36 +133,40 @@ final class ElfInfoTests: XCTestCase {
     func testExpToNextLevel_level1_returns200() async {
         // Given: Level 1 elf needs to reach 200 XP for level 2
         let expToNext = await progressionService.expToNextLevel(currentExp: 0)
+        let level = await progressionService.calculateLevel(currentExp: 0)
 
         // Then
-        XCTAssertEqual(await progressionService.calculateLevel(currentExp: 0), 1)
+        XCTAssertEqual(level, 1)
         XCTAssertEqual(expToNext, 200)
     }
 
     func testExpToNextLevel_level2_returns300() async {
         // Given
         let expToNext = await progressionService.expToNextLevel(currentExp: 200)
+        let level = await progressionService.calculateLevel(currentExp: 200)
 
         // Then
-        XCTAssertEqual(await progressionService.calculateLevel(currentExp: 200), 2)
+        XCTAssertEqual(level, 2)
         XCTAssertEqual(expToNext, 300)
     }
 
     func testExpToNextLevel_level11_returns1200() async {
         // Given
         let expToNext = await progressionService.expToNextLevel(currentExp: 1100)
+        let level = await progressionService.calculateLevel(currentExp: 1100)
 
         // Then
-        XCTAssertEqual(await progressionService.calculateLevel(currentExp: 1100), 11)
+        XCTAssertEqual(level, 11)
         XCTAssertEqual(expToNext, 1200)
     }
 
     func testExpToNextLevel_level12_returnsZero() async {
         // Given: Max level has no next level
         let expToNext = await progressionService.expToNextLevel(currentExp: 1200)
+        let level = await progressionService.calculateLevel(currentExp: 1200)
 
         // Then
-        XCTAssertEqual(await progressionService.calculateLevel(currentExp: 1200), 12)
+        XCTAssertEqual(level, 12)
         XCTAssertEqual(expToNext, 0)
     }
 
@@ -180,54 +184,60 @@ final class ElfInfoTests: XCTestCase {
         // Given: Level 1 spans 0-199 (200 XP range)
         // 100 XP = 50% progress
         let progress = await progressionService.expProgress(currentExp: 100)
+        let level = await progressionService.calculateLevel(currentExp: 100)
 
         // Then
-        XCTAssertEqual(await progressionService.calculateLevel(currentExp: 100), 1)
+        XCTAssertEqual(level, 1)
         XCTAssertEqual(progress, 0.5, accuracy: 0.001)
     }
 
     func testExpProgress_199XP_level1_almostFull() async {
         // Given: 199 XP is almost at level 2
         let progress = await progressionService.expProgress(currentExp: 199)
+        let level = await progressionService.calculateLevel(currentExp: 199)
 
         // Then
-        XCTAssertEqual(await progressionService.calculateLevel(currentExp: 199), 1)
+        XCTAssertEqual(level, 1)
         XCTAssertEqual(progress, 199.0 / 200.0, accuracy: 0.001)
     }
 
     func testExpProgress_200XP_level2_returnsZero() async {
         // Given: Just started level 2 (200-299 range)
         let progress = await progressionService.expProgress(currentExp: 200)
+        let level = await progressionService.calculateLevel(currentExp: 200)
 
         // Then
-        XCTAssertEqual(await progressionService.calculateLevel(currentExp: 200), 2)
+        XCTAssertEqual(level, 2)
         XCTAssertEqual(progress, 0.0, accuracy: 0.001)
     }
 
     func testExpProgress_250XP_level2_returnsHalf() async {
         // Given: 250 XP is halfway through level 2 (200-299)
         let progress = await progressionService.expProgress(currentExp: 250)
+        let level = await progressionService.calculateLevel(currentExp: 250)
 
         // Then
-        XCTAssertEqual(await progressionService.calculateLevel(currentExp: 250), 2)
+        XCTAssertEqual(level, 2)
         XCTAssertEqual(progress, 0.5, accuracy: 0.001)
     }
 
     func testExpProgress_level12_returnsOne() async {
         // Given: Max level always shows 100% progress
         let progress = await progressionService.expProgress(currentExp: 1200)
+        let level = await progressionService.calculateLevel(currentExp: 1200)
 
         // Then
-        XCTAssertEqual(await progressionService.calculateLevel(currentExp: 1200), 12)
+        XCTAssertEqual(level, 12)
         XCTAssertEqual(progress, 1.0, accuracy: 0.001)
     }
 
     func testExpProgress_level12_excessXP_returnsOne() async {
         // Given: Even with excess XP, progress is capped at 100%
         let progress = await progressionService.expProgress(currentExp: 9999)
+        let level = await progressionService.calculateLevel(currentExp: 9999)
 
         // Then
-        XCTAssertEqual(await progressionService.calculateLevel(currentExp: 9999), 12)
+        XCTAssertEqual(level, 12)
         XCTAssertEqual(progress, 1.0, accuracy: 0.001)
     }
 

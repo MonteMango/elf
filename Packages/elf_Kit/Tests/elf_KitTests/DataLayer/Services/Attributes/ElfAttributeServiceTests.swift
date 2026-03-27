@@ -50,7 +50,7 @@ final class ElfAttributeServiceTests: XCTestCase {
         }
     }
     
-    final class FixedRandomizer: AttributeRandomizer {
+    final class FixedRandomizer: AttributeRandomizer, @unchecked Sendable {
         private var queue: [String]
         private var index = 0
         
@@ -58,7 +58,7 @@ final class ElfAttributeServiceTests: XCTestCase {
             self.queue = queue
         }
         
-        func nextAttribute() -> String {
+        func nextAttribute() async -> String {
             defer { index += 1 }
             return queue[index % queue.count]
         }
