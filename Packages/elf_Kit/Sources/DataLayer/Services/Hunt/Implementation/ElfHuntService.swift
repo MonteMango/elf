@@ -13,7 +13,7 @@ public final class ElfHuntService: HuntService {
 
     // MARK: - HuntService
 
-    public func calculateRewards(for monster: Monster) -> HuntRewards {
+    public func calculateRewards(for monster: Monster) async -> HuntRewards {
         let experience = rollExperience(from: monster.expReward)
         let materials = rollMaterials(from: monster.drops.materials)
         let weaponId = rollItemDrop(from: monster.drops.weapons)
@@ -79,7 +79,3 @@ public final class ElfHuntService: HuntService {
         return chances.last?.amount ?? 0
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: Stateless class with no stored properties.
-extension ElfHuntService: @unchecked Sendable {}

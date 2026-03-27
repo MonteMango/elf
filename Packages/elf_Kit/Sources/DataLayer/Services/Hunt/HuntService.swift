@@ -16,5 +16,5 @@ public protocol HuntService: Sendable {
     /// Based on the monster's expReward and drops configuration
     /// - Parameter monster: The defeated monster
     /// - Returns: Calculated rewards including XP, materials, and potential equipment
-    func calculateRewards(for monster: Monster) -> HuntRewards
+    func calculateRewards(for monster: Monster) async -> HuntRewards
 }

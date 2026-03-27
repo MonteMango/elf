@@ -38,7 +38,7 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
         if let monster = monster {
             let didWin = outcome == .victory
             if didWin {
-                let rewards = huntService.calculateRewards(for: monster)
+                let rewards = await huntService.calculateRewards(for: monster)
                 experienceGained = rewards.experience
                 drops = await dropService.convertToDropItems(rewards: rewards, didWin: didWin)
 
