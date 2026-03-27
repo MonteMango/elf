@@ -12,10 +12,10 @@ public protocol FightStyleDescriptionService: Sendable {
     /// Get tactical description for a fight style
     /// - Parameter style: The fight style
     /// - Returns: Description of the fight style tactics
-    func getDescription(for style: FightStyle) -> String
+    func getDescription(for style: FightStyle) async -> String
 
     /// Get attribute bonus description for a fight style
     /// - Parameter style: The fight style
     /// - Returns: Description of attribute bonuses
-    func getAttributeBonusDescription(for style: FightStyle) -> String
+    func getAttributeBonusDescription(for style: FightStyle) async -> String
 }

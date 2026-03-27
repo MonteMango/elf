@@ -87,13 +87,14 @@ struct CharacterCreationScreenContent: View {
                             FightStyleSelectionView(
                                 selectedFightStyle: $viewModel.selectedFightStyle,
                                 safeAreaInsets: safeArea,
-                                getDescription: { style in
-                                    viewModel.getFightStyleDescription(style)
-                                },
-                                getAttributesDescription: { style in
-                                    viewModel.getFightStyleAttributesDescription(style)
-                                }
+                                fightStyleDescription: viewModel.fightStyleDescription,
+                                fightStyleAttributesDescription: viewModel.fightStyleAttributesDescription
                             )
+                            .task {
+                                if let style = viewModel.selectedFightStyle {
+                                    await viewModel.loadFightStyleDescriptions(for: style)
+                                }
+                            }
                             .frame(width: fullWidth, height: fullHeight)
                             .id(3)
 

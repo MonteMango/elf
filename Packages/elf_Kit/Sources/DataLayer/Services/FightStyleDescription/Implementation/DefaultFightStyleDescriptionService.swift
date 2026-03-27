@@ -12,7 +12,7 @@ public struct DefaultFightStyleDescriptionService: FightStyleDescriptionService 
 
     public init() {}
 
-    public func getDescription(for style: FightStyle) -> String {
+    public func getDescription(for style: FightStyle) async -> String {
         switch style {
         case .dodge:
             return "Your fight tactic is based on dodging enemy attacks. You exhaust your enemies by avoiding their strikes. You deal small periodic damage over time, but you are weak against enemy attacks."
@@ -23,7 +23,7 @@ public struct DefaultFightStyleDescriptionService: FightStyleDescriptionService 
         }
     }
 
-    public func getAttributeBonusDescription(for style: FightStyle) -> String {
+    public func getAttributeBonusDescription(for style: FightStyle) async -> String {
         switch style {
         case .dodge:
             return "Agility +4, Instinct +1, Strength +1"

@@ -23,23 +23,23 @@ final class DefaultFightStyleDescriptionServiceTests: XCTestCase {
 
     // MARK: - Get Description Tests
 
-    func testGetDescription_Dodge_ReturnsNonEmptyDescription() {
+    func testGetDescription_Dodge_ReturnsNonEmptyDescription() async {
         // Given
         let service = makeService()
 
         // When
-        let description = service.getDescription(for: .dodge)
+        let description = await service.getDescription(for: .dodge)
 
         // Then
         XCTAssertFalse(description.isEmpty)
     }
 
-    func testGetDescription_Dodge_MentionsDodging() {
+    func testGetDescription_Dodge_MentionsDodging() async {
         // Given
         let service = makeService()
 
         // When
-        let description = service.getDescription(for: .dodge)
+        let description = await service.getDescription(for: .dodge)
 
         // Then
         XCTAssertTrue(
@@ -48,23 +48,23 @@ final class DefaultFightStyleDescriptionServiceTests: XCTestCase {
         )
     }
 
-    func testGetDescription_Crit_ReturnsNonEmptyDescription() {
+    func testGetDescription_Crit_ReturnsNonEmptyDescription() async {
         // Given
         let service = makeService()
 
         // When
-        let description = service.getDescription(for: .crit)
+        let description = await service.getDescription(for: .crit)
 
         // Then
         XCTAssertFalse(description.isEmpty)
     }
 
-    func testGetDescription_Crit_MentionsDamage() {
+    func testGetDescription_Crit_MentionsDamage() async {
         // Given
         let service = makeService()
 
         // When
-        let description = service.getDescription(for: .crit)
+        let description = await service.getDescription(for: .crit)
 
         // Then
         XCTAssertTrue(
@@ -74,23 +74,23 @@ final class DefaultFightStyleDescriptionServiceTests: XCTestCase {
         )
     }
 
-    func testGetDescription_Def_ReturnsNonEmptyDescription() {
+    func testGetDescription_Def_ReturnsNonEmptyDescription() async {
         // Given
         let service = makeService()
 
         // When
-        let description = service.getDescription(for: .def)
+        let description = await service.getDescription(for: .def)
 
         // Then
         XCTAssertFalse(description.isEmpty)
     }
 
-    func testGetDescription_Def_MentionsStrengthOrEndurance() {
+    func testGetDescription_Def_MentionsStrengthOrEndurance() async {
         // Given
         let service = makeService()
 
         // When
-        let description = service.getDescription(for: .def)
+        let description = await service.getDescription(for: .def)
 
         // Then
         XCTAssertTrue(
@@ -101,14 +101,14 @@ final class DefaultFightStyleDescriptionServiceTests: XCTestCase {
         )
     }
 
-    func testGetDescription_AllStyles_ReturnsDifferentDescriptions() {
+    func testGetDescription_AllStyles_ReturnsDifferentDescriptions() async {
         // Given
         let service = makeService()
 
         // When
-        let dodgeDesc = service.getDescription(for: .dodge)
-        let critDesc = service.getDescription(for: .crit)
-        let defDesc = service.getDescription(for: .def)
+        let dodgeDesc = await service.getDescription(for: .dodge)
+        let critDesc = await service.getDescription(for: .crit)
+        let defDesc = await service.getDescription(for: .def)
 
         // Then
         XCTAssertNotEqual(dodgeDesc, critDesc)
@@ -118,12 +118,12 @@ final class DefaultFightStyleDescriptionServiceTests: XCTestCase {
 
     // MARK: - Get Attribute Bonus Description Tests
 
-    func testGetAttributeBonusDescription_Dodge_MentionsAgility() {
+    func testGetAttributeBonusDescription_Dodge_MentionsAgility() async {
         // Given
         let service = makeService()
 
         // When
-        let bonus = service.getAttributeBonusDescription(for: .dodge)
+        let bonus = await service.getAttributeBonusDescription(for: .dodge)
 
         // Then
         XCTAssertTrue(
@@ -132,12 +132,12 @@ final class DefaultFightStyleDescriptionServiceTests: XCTestCase {
         )
     }
 
-    func testGetAttributeBonusDescription_Crit_MentionsPower() {
+    func testGetAttributeBonusDescription_Crit_MentionsPower() async {
         // Given
         let service = makeService()
 
         // When
-        let bonus = service.getAttributeBonusDescription(for: .crit)
+        let bonus = await service.getAttributeBonusDescription(for: .crit)
 
         // Then
         XCTAssertTrue(
@@ -146,12 +146,12 @@ final class DefaultFightStyleDescriptionServiceTests: XCTestCase {
         )
     }
 
-    func testGetAttributeBonusDescription_Def_MentionsStrength() {
+    func testGetAttributeBonusDescription_Def_MentionsStrength() async {
         // Given
         let service = makeService()
 
         // When
-        let bonus = service.getAttributeBonusDescription(for: .def)
+        let bonus = await service.getAttributeBonusDescription(for: .def)
 
         // Then
         XCTAssertTrue(
@@ -160,14 +160,14 @@ final class DefaultFightStyleDescriptionServiceTests: XCTestCase {
         )
     }
 
-    func testGetAttributeBonusDescription_AllStyles_ReturnsDifferentBonuses() {
+    func testGetAttributeBonusDescription_AllStyles_ReturnsDifferentBonuses() async {
         // Given
         let service = makeService()
 
         // When
-        let dodgeBonus = service.getAttributeBonusDescription(for: .dodge)
-        let critBonus = service.getAttributeBonusDescription(for: .crit)
-        let defBonus = service.getAttributeBonusDescription(for: .def)
+        let dodgeBonus = await service.getAttributeBonusDescription(for: .dodge)
+        let critBonus = await service.getAttributeBonusDescription(for: .crit)
+        let defBonus = await service.getAttributeBonusDescription(for: .def)
 
         // Then
         XCTAssertNotEqual(dodgeBonus, critBonus)
@@ -175,14 +175,14 @@ final class DefaultFightStyleDescriptionServiceTests: XCTestCase {
         XCTAssertNotEqual(dodgeBonus, defBonus)
     }
 
-    func testGetAttributeBonusDescription_ContainsPlusSign() {
+    func testGetAttributeBonusDescription_ContainsPlusSign() async {
         // Given
         let service = makeService()
         let allStyles: [FightStyle] = [.dodge, .crit, .def]
 
         for style in allStyles {
             // When
-            let bonus = service.getAttributeBonusDescription(for: style)
+            let bonus = await service.getAttributeBonusDescription(for: style)
 
             // Then
             XCTAssertTrue(
@@ -194,25 +194,25 @@ final class DefaultFightStyleDescriptionServiceTests: XCTestCase {
 
     // MARK: - Consistency Tests
 
-    func testGetDescription_ReturnsConsistentResults() {
+    func testGetDescription_ReturnsConsistentResults() async {
         // Given
         let service = makeService()
 
         // When
-        let description1 = service.getDescription(for: .crit)
-        let description2 = service.getDescription(for: .crit)
+        let description1 = await service.getDescription(for: .crit)
+        let description2 = await service.getDescription(for: .crit)
 
         // Then
         XCTAssertEqual(description1, description2)
     }
 
-    func testGetAttributeBonusDescription_ReturnsConsistentResults() {
+    func testGetAttributeBonusDescription_ReturnsConsistentResults() async {
         // Given
         let service = makeService()
 
         // When
-        let bonus1 = service.getAttributeBonusDescription(for: .dodge)
-        let bonus2 = service.getAttributeBonusDescription(for: .dodge)
+        let bonus1 = await service.getAttributeBonusDescription(for: .dodge)
+        let bonus2 = await service.getAttributeBonusDescription(for: .dodge)
 
         // Then
         XCTAssertEqual(bonus1, bonus2)
@@ -220,21 +220,20 @@ final class DefaultFightStyleDescriptionServiceTests: XCTestCase {
 
     // MARK: - Multiple Instance Tests
 
-    func testMultipleInstances_ProduceSameResults() {
+    func testMultipleInstances_ProduceSameResults() async {
         // Given
         let service1 = makeService()
         let service2 = makeService()
 
         // When/Then
         for style: FightStyle in [.dodge, .crit, .def] {
-            XCTAssertEqual(
-                service1.getDescription(for: style),
-                service2.getDescription(for: style)
-            )
-            XCTAssertEqual(
-                service1.getAttributeBonusDescription(for: style),
-                service2.getAttributeBonusDescription(for: style)
-            )
+            let desc1 = await service1.getDescription(for: style)
+            let desc2 = await service2.getDescription(for: style)
+            XCTAssertEqual(desc1, desc2)
+
+            let bonus1 = await service1.getAttributeBonusDescription(for: style)
+            let bonus2 = await service2.getAttributeBonusDescription(for: style)
+            XCTAssertEqual(bonus1, bonus2)
         }
     }
 }

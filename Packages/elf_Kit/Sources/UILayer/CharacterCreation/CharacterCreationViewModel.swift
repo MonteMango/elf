@@ -64,10 +64,19 @@ public final class CharacterCreationViewModel {
     public var selectedFightStyle: FightStyle? = .dodge {
         didSet {
             if let style = selectedFightStyle {
-                Task { await characterBuilder.setFightStyle(style) }
+                Task {
+                    await characterBuilder.setFightStyle(style)
+                    await loadFightStyleDescriptions(for: style)
+                }
             }
         }
     }
+
+    /// Fight style description
+    public var fightStyleDescription: String?
+
+    /// Fight style attributes description
+    public var fightStyleAttributesDescription: String?
 
     // MARK: - Stage 4: Summary & Final
 
@@ -170,14 +179,10 @@ public final class CharacterCreationViewModel {
 
     // MARK: - Stage 3: Fight Style Actions
 
-    /// Get description for fight style
-    public func getFightStyleDescription(_ style: FightStyle) -> String {
-        return fightStyleDescriptionService.getDescription(for: style)
-    }
-
-    /// Get base attributes description for fight style
-    public func getFightStyleAttributesDescription(_ style: FightStyle) -> String {
-        return fightStyleDescriptionService.getAttributeBonusDescription(for: style)
+    /// Load fight style descriptions for selected style
+    public func loadFightStyleDescriptions(for style: FightStyle) async {
+        fightStyleDescription = await fightStyleDescriptionService.getDescription(for: style)
+        fightStyleAttributesDescription = await fightStyleDescriptionService.getAttributeBonusDescription(for: style)
     }
 
     // MARK: - Stage 4: Final Actions

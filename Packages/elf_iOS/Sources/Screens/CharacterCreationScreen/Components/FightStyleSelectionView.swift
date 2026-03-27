@@ -2,7 +2,7 @@
 //  FightStyleSelectionView.swift
 //  elf_iOS
 //
-//  Created by Claude on 23.11.25.
+//  Created by Vitalii Lytvynov on 23.11.25.
 //
 
 import elf_Kit
@@ -13,8 +13,8 @@ import SwiftUI
 struct FightStyleSelectionView: View {
     @Binding var selectedFightStyle: FightStyle?
     let safeAreaInsets: EdgeInsets
-    let getDescription: (FightStyle) -> String
-    let getAttributesDescription: (FightStyle) -> String
+    let fightStyleDescription: String?
+    let fightStyleAttributesDescription: String?
 
     var body: some View {
         StageContainer(safeAreaInsets: safeAreaInsets) { _, safeArea in
@@ -45,8 +45,8 @@ struct FightStyleSelectionView: View {
                         .bold()
                         .foregroundStyle(.black)
 
-                    if let style = selectedFightStyle {
-                        Text(getAttributesDescription(style))
+                    if let description = fightStyleAttributesDescription {
+                        Text(description)
                             .font(.body)
                             .foregroundStyle(.black)
                     } else {
@@ -59,14 +59,14 @@ struct FightStyleSelectionView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
 
                 // Fight Tactic (top right corner)
-                if let style = selectedFightStyle {
+                if let description = fightStyleDescription {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Fight Tactic")
                             .font(.headline)
                             .bold()
                             .foregroundStyle(.black)
 
-                        Text(getDescription(style))
+                        Text(description)
                             .font(.footnote)
                             .foregroundStyle(.gray)
                             .minimumScaleFactor(0.7)
@@ -128,7 +128,7 @@ extension FightStyle {
     FightStyleSelectionView(
         selectedFightStyle: .constant(.dodge),
         safeAreaInsets: EdgeInsets(),
-        getDescription: { _ in "Your fight tactic is based on dodging enemy attacks." },
-        getAttributesDescription: { _ in "Agility +4, Instinct +1, Strength +1" }
+        fightStyleDescription: "Your fight tactic is based on dodging enemy attacks.",
+        fightStyleAttributesDescription: "Agility +4, Instinct +1, Strength +1"
     )
 }
