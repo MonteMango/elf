@@ -9,7 +9,7 @@ import Foundation
 
 /// Generic immutable repository for simple collections.
 /// Replaces FishRepository, HerbRepository, OreRepository, MaterialRepository.
-public final class ArrayRepository<T: Identifiable & Sendable>: Repository, Sendable
+public final class ArrayRepository<T: Identifiable & Sendable>: Repository
     where T.ID: Hashable & Sendable {
 
     private let items: [T]

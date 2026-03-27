@@ -8,7 +8,7 @@
 import Foundation
 import os.log
 
-public final class DefaultGameDataRepository: GameDataRepository, Sendable {
+public final class DefaultGameDataRepository: GameDataRepository {
 
     public let items: any ItemsRepository
     public let monsters: any MonsterRepository
@@ -23,25 +23,25 @@ public final class DefaultGameDataRepository: GameDataRepository, Sendable {
     public init(dataLoader: any DataLoader = ElfDataLoader()) async {
         let log = OSLog(subsystem: "com.elfy.kit", category: "GameData")
 
-        let fishData: FishData = dataLoader.loadAndDecode(
+        let fishData: FishData = await dataLoader.loadAndDecode(
             resourceName: "Fish", fallback: .empty, log: log
         )
-        let herbData: HerbData = dataLoader.loadAndDecode(
+        let herbData: HerbData = await dataLoader.loadAndDecode(
             resourceName: "Herbs", fallback: .empty, log: log
         )
-        let oreData: OreData = dataLoader.loadAndDecode(
+        let oreData: OreData = await dataLoader.loadAndDecode(
             resourceName: "Ores", fallback: .empty, log: log
         )
-        let materialsData: MaterialsData = dataLoader.loadAndDecode(
+        let materialsData: MaterialsData = await dataLoader.loadAndDecode(
             resourceName: "Materials", fallback: MaterialsData(), log: log
         )
-        let heroItems: HeroItems = dataLoader.loadAndDecode(
+        let heroItems: HeroItems = await dataLoader.loadAndDecode(
             resourceName: "HeroItems", fallback: .empty, log: log
         )
-        let monstersData: MonstersData = dataLoader.loadAndDecode(
+        let monstersData: MonstersData = await dataLoader.loadAndDecode(
             resourceName: "Monsters", fallback: .empty(), log: log
         )
-        let recipesData: RecipesData = dataLoader.loadAndDecode(
+        let recipesData: RecipesData = await dataLoader.loadAndDecode(
             resourceName: "Recipes", fallback: RecipesData(), log: log
         )
 

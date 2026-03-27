@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class ElfItemsRepository: ItemsRepository, Sendable {
+public final class ElfItemsRepository: ItemsRepository {
 
     private let heroItems: HeroItems
     private let lookup: [UUID: Item]

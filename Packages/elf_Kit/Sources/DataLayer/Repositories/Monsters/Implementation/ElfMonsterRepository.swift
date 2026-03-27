@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class ElfMonsterRepository: MonsterRepository, Sendable {
+public final class ElfMonsterRepository: MonsterRepository {
 
     private let monstersData: MonstersData
     private let items: [Monster]

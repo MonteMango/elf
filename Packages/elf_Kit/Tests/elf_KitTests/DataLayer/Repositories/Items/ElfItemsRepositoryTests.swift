@@ -28,7 +28,7 @@ final class ElfItemsRepositoryTests: XCTestCase {
             self.customJSON = customJSON
         }
 
-        func loadJSON(_ resourceName: String) throws -> Data {
+        func loadJSON(_ resourceName: String) async throws -> Data {
             switch resourceName {
             case "HeroItems":
                 switch mode {
@@ -68,20 +68,32 @@ final class ElfItemsRepositoryTests: XCTestCase {
                 return Data("{}".utf8)
             }
         }
+
+        func loadAndDecode<T: Decodable>(
+            resourceName: String,
+            fallback: @autoclosure () -> T,
+            log: OSLog
+        ) async -> T {
+            guard let data = try? await loadJSON(resourceName),
+                  let decoded = try? JSONDecoder().decode(T.self, from: data) else {
+                return fallback()
+            }
+            return decoded
+        }
     }
 
     // MARK: - Helpers
 
-    private func makeRepository(loader: FakeDataLoader) -> ElfItemsRepository {
+    private func makeRepository(loader: FakeDataLoader) async -> ElfItemsRepository {
         let log = OSLog(subsystem: "com.elfy.kit.tests", category: "ItemsRepository")
-        let data: HeroItems = loader.loadAndDecode(resourceName: "HeroItems", fallback: .empty, log: log)
+        let data: HeroItems = await loader.loadAndDecode(resourceName: "HeroItems", fallback: .empty, log: log)
         return ElfItemsRepository(heroItems: data)
     }
 
     // MARK: - Tests
 
     func testInitializationLoadsHeroItems() async throws {
-        let repository = makeRepository(loader: FakeDataLoader(mode: .valid))
+        let repository = await makeRepository(loader: FakeDataLoader(mode: .valid))
 
         let weapons = await repository.getItems(for: .weapons)
         XCTAssertEqual(weapons.count, 1)
@@ -114,7 +126,7 @@ final class ElfItemsRepositoryTests: XCTestCase {
           "earrings": []
         }
         """
-        let repository = makeRepository(loader: FakeDataLoader(mode: .valid, customJSON: json))
+        let repository = await makeRepository(loader: FakeDataLoader(mode: .valid, customJSON: json))
 
         let found = await repository.getHeroItem(weaponID)
         XCTAssertNotNil(found)
@@ -122,7 +134,7 @@ final class ElfItemsRepositoryTests: XCTestCase {
     }
 
     func testInitializationFallsBackToEmptyDataOnInvalidJSON() async {
-        let repository = makeRepository(loader: FakeDataLoader(mode: .invalidJSON))
+        let repository = await makeRepository(loader: FakeDataLoader(mode: .invalidJSON))
 
         let weapons = await repository.getItems(for: .weapons)
         let helmets = await repository.getItems(for: .helmet)
@@ -131,7 +143,7 @@ final class ElfItemsRepositoryTests: XCTestCase {
     }
 
     func testInitializationFallsBackToEmptyDataOnDataLoaderError() async {
-        let repository = makeRepository(loader: FakeDataLoader(mode: .error))
+        let repository = await makeRepository(loader: FakeDataLoader(mode: .error))
 
         let weapons = await repository.getItems(for: .weapons)
         let helmets = await repository.getItems(for: .helmet)

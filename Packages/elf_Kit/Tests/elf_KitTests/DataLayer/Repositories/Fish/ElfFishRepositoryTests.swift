@@ -44,7 +44,7 @@ final class ElfFishRepositoryTests: XCTestCase {
             self.customJSON = customJSON
         }
 
-        func loadJSON(_ resourceName: String) throws -> Data {
+        func loadJSON(_ resourceName: String) async throws -> Data {
             switch resourceName {
             case "Fish":
                 switch mode {
@@ -59,6 +59,18 @@ final class ElfFishRepositoryTests: XCTestCase {
             default:
                 return Data("{}".utf8)
             }
+        }
+
+        func loadAndDecode<T: Decodable>(
+            resourceName: String,
+            fallback: @autoclosure () -> T,
+            log: OSLog
+        ) async -> T {
+            guard let data = try? await loadJSON(resourceName),
+                  let decoded = try? JSONDecoder().decode(T.self, from: data) else {
+                return fallback()
+            }
+            return decoded
         }
 
         static let validFishJSON = """
@@ -187,23 +199,23 @@ final class ElfFishRepositoryTests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func makeRepository(loader: FakeDataLoader) -> ArrayRepository<Fish> {
+    private func makeRepository(loader: FakeDataLoader) async -> ArrayRepository<Fish> {
         let log = OSLog(subsystem: "com.elfy.kit.tests", category: "FishRepository")
-        let data: FishData = loader.loadAndDecode(resourceName: "Fish", fallback: .empty, log: log)
+        let data: FishData = await loader.loadAndDecode(resourceName: "Fish", fallback: .empty, log: log)
         return ArrayRepository(items: data.items)
     }
 
     // MARK: - JSON Loading Tests
 
     func testAllElevenFishLoaded() async throws {
-        let repository = makeRepository(loader: FakeDataLoader(mode: .valid))
+        let repository = await makeRepository(loader: FakeDataLoader(mode: .valid))
 
         let allFish = await repository.getAll()
         XCTAssertEqual(allFish.count, 11)
     }
 
     func testEffectsDecodeCorrectly() async throws {
-        let repository = makeRepository(loader: FakeDataLoader(mode: .valid))
+        let repository = await makeRepository(loader: FakeDataLoader(mode: .valid))
 
         // Check Bristle effects (2 effects: venom and shadow)
         let bristle = await repository.getById(id: TestFishID.bristle)
@@ -224,7 +236,7 @@ final class ElfFishRepositoryTests: XCTestCase {
     // MARK: - Method Tests
 
     func testGetFishReturnsCorrectFish() async throws {
-        let repository = makeRepository(loader: FakeDataLoader(mode: .valid))
+        let repository = await makeRepository(loader: FakeDataLoader(mode: .valid))
 
         let sunny = await repository.getById(id: TestFishID.sunny)
         XCTAssertNotNil(sunny)
@@ -235,7 +247,7 @@ final class ElfFishRepositoryTests: XCTestCase {
     }
 
     func testGetFishReturnsNilForUnknownId() async throws {
-        let repository = makeRepository(loader: FakeDataLoader(mode: .valid))
+        let repository = await makeRepository(loader: FakeDataLoader(mode: .valid))
 
         let unknown = await repository.getById(id: FishID())
         XCTAssertNil(unknown)
@@ -244,14 +256,14 @@ final class ElfFishRepositoryTests: XCTestCase {
     // MARK: - Error Handling Tests
 
     func testInitializationFallsBackToEmptyDataOnInvalidJSON() async {
-        let repository = makeRepository(loader: FakeDataLoader(mode: .invalidJSON))
+        let repository = await makeRepository(loader: FakeDataLoader(mode: .invalidJSON))
 
         let allFish = await repository.getAll()
         XCTAssertEqual(allFish.count, 0)
     }
 
     func testInitializationFallsBackToEmptyDataOnDataLoaderError() async {
-        let repository = makeRepository(loader: FakeDataLoader(mode: .error))
+        let repository = await makeRepository(loader: FakeDataLoader(mode: .error))
 
         let allFish = await repository.getAll()
         XCTAssertEqual(allFish.count, 0)
@@ -260,7 +272,7 @@ final class ElfFishRepositoryTests: XCTestCase {
     // MARK: - Fish Tier Tests
 
     func testFishTiersAreCorrect() async throws {
-        let repository = makeRepository(loader: FakeDataLoader(mode: .valid))
+        let repository = await makeRepository(loader: FakeDataLoader(mode: .valid))
 
         // Common (tier 4)
         let sunny = await repository.getById(id: TestFishID.sunny)
