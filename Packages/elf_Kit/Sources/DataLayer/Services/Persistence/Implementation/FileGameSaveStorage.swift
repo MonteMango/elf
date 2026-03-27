@@ -137,7 +137,7 @@ public actor FileGameSaveStorage: GameSaveStorage {
         }
 
         // Update slots index
-        let playerLevel = progressionService.calculateLevel(currentExp: game.player.currentExp)
+        let playerLevel = await progressionService.calculateLevel(currentExp: game.player.currentExp)
         let slotInfo = SaveSlotInfo(slotId: slotId, game: game, playerLevel: playerLevel, playTime: playTime)
         try updateSlotsIndex(adding: slotInfo)
         debugLog("💾 [GameSaveStorage] Slots index updated")

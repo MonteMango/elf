@@ -94,7 +94,7 @@ public final class DefaultFarmActivityService: FarmActivityService {
         }
     }
 
-    public func getSkillInfo(for activity: FarmActivity, player: ElfInfo) -> FarmSkillInfo {
+    public func getSkillInfo(for activity: FarmActivity, player: ElfInfo) async -> FarmSkillInfo {
         let (exp, title) = switch activity {
         case .fishing: (player.fishingExp, "\(activity.title) skill")
         case .foraging: (player.foragingExp, "\(activity.title) skill")
@@ -103,8 +103,8 @@ public final class DefaultFarmActivityService: FarmActivityService {
 
         return FarmSkillInfo(
             title: title,
-            level: progressionService.farmingLevel(exp: exp),
-            progress: progressionService.farmingProgress(exp: exp),
+            level: await progressionService.farmingLevel(exp: exp),
+            progress: await progressionService.farmingProgress(exp: exp),
             expInLevel: exp % farmExpPerLevel,
             expPerLevel: farmExpPerLevel
         )

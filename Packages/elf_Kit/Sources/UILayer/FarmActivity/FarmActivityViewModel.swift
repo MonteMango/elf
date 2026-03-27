@@ -47,18 +47,13 @@ public final class FarmActivityViewModel {
 
     public let activity: FarmActivity
 
-    // MARK: - Skill Info (Delegated to Service)
+    // MARK: - Skill Info
 
-    public var skillInfo: FarmSkillInfo {
-        farmActivityService.getSkillInfo(for: activity, player: gameService.game.player)
-    }
-
-    // Convenience accessors for View compatibility
-    public var skillTitle: String { skillInfo.title }
-    public var skillLevel: Int { skillInfo.level }
-    public var skillProgress: Double { skillInfo.progress }
-    public var skillExpInLevel: Int { skillInfo.expInLevel }
-    public var expPerLevel: Int { skillInfo.expPerLevel }
+    public var skillTitle: String = ""
+    public var skillLevel: Int = 1
+    public var skillProgress: Double = 0
+    public var skillExpInLevel: Int = 0
+    public var expPerLevel: Int = 0
 
     // MARK: - Available Items
 
@@ -82,8 +77,8 @@ public final class FarmActivityViewModel {
     // MARK: - Monster Attack Computed Properties
 
     /// Player's current level (determines monster level)
-    private var playerLevel: Int {
-        progressionService.calculateLevel(currentExp: gameService.game.player.currentExp)
+    private func playerLevel() async -> Int {
+        await progressionService.calculateLevel(currentExp: gameService.game.player.currentExp)
     }
 
     /// Current world (for now, always upper world)
@@ -144,11 +139,19 @@ public final class FarmActivityViewModel {
 
     // MARK: - Data Loading
 
-    /// Loads available items and monsters. Call from View's .task {} modifier.
+    /// Loads available items, skill info, and monsters. Call from View's .task {} modifier.
     public func loadData() async {
         availableItems = await farmActivityService.getAvailableItems(for: activity)
+
+        let info = await farmActivityService.getSkillInfo(for: activity, player: gameService.game.player)
+        skillTitle = info.title
+        skillLevel = info.level
+        skillProgress = info.progress
+        skillExpInLevel = info.expInLevel
+        expPerLevel = info.expPerLevel
+
         if let repo = monsterRepository {
-            let monsterLevel = min(playerLevel, 3)
+            let monsterLevel = min(await playerLevel(), 3)
             availableMonsters = await repo.getMonsters(world: currentWorld, level: monsterLevel)
         }
     }
@@ -186,9 +189,9 @@ public final class FarmActivityViewModel {
         // Perform activity via service
         let result = await farmActivityService.perform(
             activity: activity,
-            currentLevel: skillInfo.level,
+            currentLevel: skillLevel,
             currentExp: currentActivityExp,
-            expPerLevel: skillInfo.expPerLevel
+            expPerLevel: expPerLevel
         )
 
         // Apply result to game state
@@ -257,7 +260,7 @@ public final class FarmActivityViewModel {
         guard let playerSnapshot = await snapshotBuilder.buildSnapshot(
             name: player.name,
             imageName: player.imageName,
-            level: progressionService.calculateLevel(currentExp: player.currentExp),
+            level: await progressionService.calculateLevel(currentExp: player.currentExp),
             fightStyleAttributes: player.fightStyleAttributes,
             randomLevelAttributes: player.randomLevelAttributes,
             selectedItems: selectedItems

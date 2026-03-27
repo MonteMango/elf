@@ -46,35 +46,30 @@ public final class FarmViewModel {
 
     // MARK: - Farming Skills
 
-    public var foragingLevel: Int {
-        progressionService.farmingLevel(exp: gameService.game.player.foragingExp)
-    }
-
-    public var foragingProgress: Double {
-        progressionService.farmingProgress(exp: gameService.game.player.foragingExp)
-    }
-
-    public var fishingLevel: Int {
-        progressionService.farmingLevel(exp: gameService.game.player.fishingExp)
-    }
-
-    public var fishingProgress: Double {
-        progressionService.farmingProgress(exp: gameService.game.player.fishingExp)
-    }
-
-    public var miningLevel: Int {
-        progressionService.farmingLevel(exp: gameService.game.player.miningExp)
-    }
-
-    public var miningProgress: Double {
-        progressionService.farmingProgress(exp: gameService.game.player.miningExp)
-    }
+    public var foragingLevel: Int = 1
+    public var foragingProgress: Double = 0
+    public var fishingLevel: Int = 1
+    public var fishingProgress: Double = 0
+    public var miningLevel: Int = 1
+    public var miningProgress: Double = 0
 
     // MARK: - Initialization
 
     public init(gameService: any GameService, progressionService: any ProgressionService) {
         self.gameService = gameService
         self.progressionService = progressionService
+    }
+
+    // MARK: - Data Loading
+
+    public func loadSkills() async {
+        let player = gameService.game.player
+        foragingLevel = await progressionService.farmingLevel(exp: player.foragingExp)
+        foragingProgress = await progressionService.farmingProgress(exp: player.foragingExp)
+        fishingLevel = await progressionService.farmingLevel(exp: player.fishingExp)
+        fishingProgress = await progressionService.farmingProgress(exp: player.fishingExp)
+        miningLevel = await progressionService.farmingLevel(exp: player.miningExp)
+        miningProgress = await progressionService.farmingProgress(exp: player.miningExp)
     }
 
     // MARK: - Actions

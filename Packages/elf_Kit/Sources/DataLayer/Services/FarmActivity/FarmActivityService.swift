@@ -34,7 +34,7 @@ public protocol FarmActivityService: AnyObject, Sendable {
     ///   - activity: The farm activity
     ///   - player: The player's ElfInfo
     /// - Returns: FarmSkillInfo with current skill state
-    func getSkillInfo(for activity: FarmActivity, player: ElfInfo) -> FarmSkillInfo
+    func getSkillInfo(for activity: FarmActivity, player: ElfInfo) async -> FarmSkillInfo
 
     /// Apply the result to game state (add items to inventory, add XP)
     /// - Parameters:

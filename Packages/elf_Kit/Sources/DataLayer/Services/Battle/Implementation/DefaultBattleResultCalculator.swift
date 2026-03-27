@@ -54,9 +54,9 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
 
         if let gameService = gameService {
             let player = gameService.game.player
-            previousLevel = progressionService.calculateLevel(currentExp: player.currentExp)
+            previousLevel = await progressionService.calculateLevel(currentExp: player.currentExp)
             previousExp = player.currentExp
-            previousExpToNext = progressionService.expToNextLevel(currentExp: player.currentExp)
+            previousExpToNext = await progressionService.expToNextLevel(currentExp: player.currentExp)
         } else {
             // Fallback for non-game battles
             previousLevel = 1
@@ -87,9 +87,9 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
 
         if let gameService = gameService {
             let player = gameService.game.player
-            newLevel = progressionService.calculateLevel(currentExp: player.currentExp)
+            newLevel = await progressionService.calculateLevel(currentExp: player.currentExp)
             newExp = player.currentExp
-            newExpToNext = progressionService.expToNextLevel(currentExp: player.currentExp)
+            newExpToNext = await progressionService.expToNextLevel(currentExp: player.currentExp)
         } else {
             // Fallback: simulate simple XP addition using new formula
             let totalExp = previousExp + experienceGained

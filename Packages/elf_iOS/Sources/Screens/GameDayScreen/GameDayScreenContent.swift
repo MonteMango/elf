@@ -66,6 +66,7 @@ internal struct GameDayScreenContent: View {
         .background(ElfColors.Background.primary)
         .task {
             inventoryViewModel.onClose = viewModel.closeInventory
+            await viewModel.loadProgression()
         }
     }
 

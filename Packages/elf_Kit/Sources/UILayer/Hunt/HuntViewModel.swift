@@ -62,8 +62,8 @@ public final class HuntViewModel {
     }
 
     /// Player's current level (determines monster level)
-    public var playerLevel: Int {
-        progressionService.calculateLevel(currentExp: gameService.game.player.currentExp)
+    public func playerLevel() async -> Int {
+        await progressionService.calculateLevel(currentExp: gameService.game.player.currentExp)
     }
 
     /// Current world (for now, always upper world)
@@ -103,7 +103,7 @@ public final class HuntViewModel {
     /// Loads available monsters and builds display data.
     /// Call from View's .task {} modifier.
     public func loadMonsters() async {
-        let monsterLevel = min(playerLevel, 3)
+        let monsterLevel = min(await playerLevel(), 3)
         availableMonsters = await monsterRepository.getMonsters(world: currentWorld, level: monsterLevel)
 
         var displayData: [MonsterDisplayData] = []
@@ -144,7 +144,7 @@ public final class HuntViewModel {
         guard let playerSnapshot = await snapshotBuilder.buildSnapshot(
             name: player.name,
             imageName: player.imageName,
-            level: progressionService.calculateLevel(currentExp: player.currentExp),
+            level: await progressionService.calculateLevel(currentExp: player.currentExp),
             fightStyleAttributes: player.fightStyleAttributes,
             randomLevelAttributes: player.randomLevelAttributes,
             selectedItems: selectedItems

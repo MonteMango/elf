@@ -37,9 +37,7 @@ public final class GameDayViewModel {
         game.player.name
     }
 
-    public var characterLevel: Int {
-        progressionService.calculateLevel(currentExp: game.player.currentExp)
-    }
+    public var characterLevel: Int = 1
 
     public var characterImageName: String {
         game.player.imageName
@@ -69,13 +67,9 @@ public final class GameDayViewModel {
         game.player.currentExp
     }
 
-    public var expToNextLevel: Int {
-        progressionService.expToNextLevel(currentExp: game.player.currentExp)
-    }
+    public var expToNextLevel: Int = 0
 
-    public var xpProgress: Double {
-        progressionService.expProgress(currentExp: game.player.currentExp)
-    }
+    public var xpProgress: Double = 0
 
     // MARK: - Computed Properties (Game State)
 
@@ -94,6 +88,15 @@ public final class GameDayViewModel {
         self.progressionService = progressionService
         self.equipmentQueryService = equipmentQueryService
         self.activeBuffs = []
+    }
+
+    // MARK: - Data Loading
+
+    public func loadProgression() async {
+        let exp = game.player.currentExp
+        characterLevel = await progressionService.calculateLevel(currentExp: exp)
+        expToNextLevel = await progressionService.expToNextLevel(currentExp: exp)
+        xpProgress = await progressionService.expProgress(currentExp: exp)
     }
 
     // MARK: - Actions (UI only, no logic yet)
