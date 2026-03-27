@@ -27,9 +27,7 @@ public final class GameDayViewModel {
 
     // MARK: - Game Access
 
-    public var game: Game {
-        gameService.game
-    }
+    public private(set) var game: Game
 
     // MARK: - Computed Properties (Player)
 
@@ -85,7 +83,16 @@ public final class GameDayViewModel {
         self.gameService = gameService
         self.progressionService = progressionService
         self.equipmentQueryService = equipmentQueryService
+        self.game = gameService.game
         self.activeBuffs = []
+    }
+
+    // MARK: - Game State Observation
+
+    public func observeGameState() async {
+        for await game in gameService.gameUpdates() {
+            self.game = game
+        }
     }
 
     // MARK: - Data Loading

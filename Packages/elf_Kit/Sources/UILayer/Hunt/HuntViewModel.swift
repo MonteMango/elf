@@ -26,14 +26,18 @@ public final class HuntViewModel {
     /// Cost in action points to hunt
     public let huntCost: Int = 20
 
+    // MARK: - Game State
+
+    private var game: Game
+
     // MARK: - Computed Properties
 
     public var currentActionPoints: Int {
-        gameService.game.gameState.currentActionPoints
+        game.gameState.currentActionPoints
     }
 
     public var maxActionPoints: Int {
-        gameService.game.gameState.maxActionPoints
+        game.gameState.maxActionPoints
     }
 
     public var canHunt: Bool {
@@ -41,24 +45,24 @@ public final class HuntViewModel {
     }
 
     public var isLastDay: Bool {
-        gameService.game.gameState.isLastDay
+        game.gameState.isLastDay
     }
 
     // MARK: - Calendar Properties
 
     /// Current game day
     public var currentDay: GameDay {
-        gameService.game.gameState.currentDay
+        game.gameState.currentDay
     }
 
     /// Next upcoming days
     public var upcomingDays: [GameDay] {
-        gameService.game.gameState.upcomingDays
+        game.gameState.upcomingDays
     }
 
     /// Full game calendar
     public var calendar: [GameDay] {
-        gameService.game.gameState.calendar
+        game.gameState.calendar
     }
 
     /// Player's current level (determines monster level)
@@ -96,6 +100,15 @@ public final class HuntViewModel {
         self.snapshotBuilder = snapshotBuilder
         self.progressionService = progressionService
         self.equipmentQueryService = equipmentQueryService
+        self.game = gameService.game
+    }
+
+    // MARK: - Game State Observation
+
+    public func observeGameState() async {
+        for await game in gameService.gameUpdates() {
+            self.game = game
+        }
     }
 
     // MARK: - Data Loading

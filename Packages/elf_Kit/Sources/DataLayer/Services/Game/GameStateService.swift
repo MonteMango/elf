@@ -17,6 +17,9 @@ public protocol GameStateService: AnyObject {
     /// Current game state
     var game: Game { get }
 
+    /// Stream of game state changes for reactive observation
+    func gameUpdates() -> AsyncStream<Game>
+
     // MARK: - Day Management
 
     /// Advances to the next day in the game

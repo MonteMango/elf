@@ -89,32 +89,36 @@ public final class FarmActivityViewModel {
     /// Cached available monsters for farm activity attacks
     private var availableMonsters: [Monster] = []
 
+    // MARK: - Game State
+
+    private var game: Game
+
     // MARK: - Computed Properties
 
     public var currentActionPoints: Int {
-        gameService.game.gameState.currentActionPoints
+        game.gameState.currentActionPoints
     }
 
     public var maxActionPoints: Int {
-        gameService.game.gameState.maxActionPoints
+        game.gameState.maxActionPoints
     }
 
     public var isLastDay: Bool {
-        gameService.game.gameState.isLastDay
+        game.gameState.isLastDay
     }
 
     // MARK: - Calendar Properties
 
     public var currentDay: GameDay {
-        gameService.game.gameState.currentDay
+        game.gameState.currentDay
     }
 
     public var upcomingDays: [GameDay] {
-        gameService.game.gameState.upcomingDays
+        game.gameState.upcomingDays
     }
 
     public var calendar: [GameDay] {
-        gameService.game.gameState.calendar
+        game.gameState.calendar
     }
 
     // MARK: - Initialization
@@ -135,6 +139,15 @@ public final class FarmActivityViewModel {
         self.equipmentQueryService = equipmentQueryService
         self.monsterRepository = monsterRepository
         self.snapshotBuilder = snapshotBuilder
+        self.game = gameService.game
+    }
+
+    // MARK: - Game State Observation
+
+    public func observeGameState() async {
+        for await game in gameService.gameUpdates() {
+            self.game = game
+        }
     }
 
     // MARK: - Data Loading

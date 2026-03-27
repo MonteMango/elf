@@ -68,6 +68,7 @@ internal struct GameDayScreenContent: View {
             inventoryViewModel.onClose = viewModel.closeInventory
             await viewModel.loadProgression()
         }
+        .task { await viewModel.observeGameState() }
     }
 
     // MARK: - Left Section

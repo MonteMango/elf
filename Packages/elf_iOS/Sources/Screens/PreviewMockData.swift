@@ -164,6 +164,8 @@ enum PreviewMockData {
     static func createMockGameService() -> DefaultGameService {
         DefaultGameService(
             game: createMockGame(),
+            gameRepository: NoOpGameSaveStorage(),
+            itemsRepository: NoOpItemsRepository(),
             inventoryService: ElfInventoryService()
         )
     }
@@ -188,6 +190,20 @@ enum PreviewMockData {
             equipmentQueryService: ElfEquipmentQueryService()
         )
     }
+}
+
+// MARK: - Preview No-Op Implementations
+
+private struct NoOpGameSaveStorage: GameSaveStorage {
+    func save(_ game: Game, slotId: String, playTime: TimeInterval) async throws {}
+    func load(slotId: String) async throws -> Game { fatalError("Not used in previews") }
+    func hasAnySave() -> Bool { false }
+    func getPlayTime(slotId: String) async -> TimeInterval { 0 }
+}
+
+private struct NoOpItemsRepository: ItemsRepository {
+    func getHeroItem(_ id: UUID) async -> Item? { nil }
+    func getItems(for type: HeroItemType) async -> [Item] { [] }
 }
 
 #endif

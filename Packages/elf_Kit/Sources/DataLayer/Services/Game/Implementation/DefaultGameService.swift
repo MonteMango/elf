@@ -8,15 +8,38 @@
 import Foundation
 
 /// Default implementation of GameService
-/// Uses @Observable for SwiftUI integration and @MainActor for thread safety
-@Observable
+/// Uses AsyncStream to broadcast game state changes to subscribers
 @MainActor
 public final class DefaultGameService: GameService {
 
     // MARK: - Properties
 
-    public private(set) var game: Game
+    public private(set) var game: Game {
+        didSet {
+            guard game != oldValue else { return }
+            for continuation in continuations.values {
+                continuation.yield(game)
+            }
+        }
+    }
+
     public private(set) var playTime: TimeInterval
+
+    // MARK: - Stream
+
+    private var continuations: [UUID: AsyncStream<Game>.Continuation] = [:]
+
+    public func gameUpdates() -> AsyncStream<Game> {
+        let id = UUID()
+        return AsyncStream(bufferingPolicy: .bufferingNewest(1)) { continuation in
+            self.continuations[id] = continuation
+            continuation.onTermination = { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    self?.continuations.removeValue(forKey: id)
+                }
+            }
+        }
+    }
 
     // MARK: - Player Access
 
@@ -27,8 +50,8 @@ public final class DefaultGameService: GameService {
 
     // MARK: - Dependencies
 
-    private let gameRepository: GameSaveStorage?
-    private let itemsRepository: ItemsRepository?
+    private let gameRepository: GameSaveStorage
+    private let itemsRepository: ItemsRepository
     private let inventoryService: InventoryService
     private let slotId: String
 
@@ -36,8 +59,8 @@ public final class DefaultGameService: GameService {
 
     public init(
         game: Game,
-        gameRepository: GameSaveStorage? = nil,
-        itemsRepository: ItemsRepository? = nil,
+        gameRepository: GameSaveStorage,
+        itemsRepository: ItemsRepository,
         inventoryService: InventoryService,
         slotId: String = SaveSlotInfo.defaultSlotId,
         playTime: TimeInterval = 0
@@ -109,7 +132,7 @@ public final class DefaultGameService: GameService {
         // Add weapon if dropped
         if let weaponIdString = rewards.weaponId,
            let weaponId = UUID(uuidString: weaponIdString),
-           let weaponItem = await itemsRepository?.getHeroItem(weaponId) as? WeaponItem {
+           let weaponItem = await itemsRepository.getHeroItem(weaponId) as? WeaponItem {
             let weapon = ElfWeaponItem(weaponItem: weaponItem)
             player.inventory = inventoryService.addWeapon(weapon, to: player.inventory)
         }
@@ -117,7 +140,7 @@ public final class DefaultGameService: GameService {
         // Add armor if dropped
         if let armorIdString = rewards.armorId,
            let armorId = UUID(uuidString: armorIdString),
-           let defenseItem = await itemsRepository?.getHeroItem(armorId) as? DefenseItem {
+           let defenseItem = await itemsRepository.getHeroItem(armorId) as? DefenseItem {
             let armor = ElfDefenseItem(defenseItem: defenseItem)
             player.inventory = inventoryService.addArmor(armor, to: player.inventory)
         }
@@ -196,7 +219,6 @@ public final class DefaultGameService: GameService {
     // MARK: - Persistence
 
     public func saveGame() async throws {
-        guard let repository = gameRepository else { return }
-        try await repository.save(game, slotId: slotId, playTime: playTime)
+        try await gameRepository.save(game, slotId: slotId, playTime: playTime)
     }
 }

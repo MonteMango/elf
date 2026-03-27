@@ -56,7 +56,6 @@ public final class ElfGameContainer {
     // MARK: - Game Session State
 
     /// Currently active game service (nil when not in game)
-    @ObservationIgnored
     public private(set) var activeGameService: DefaultGameService?
 
     // MARK: - Initialization

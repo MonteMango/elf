@@ -16,32 +16,36 @@ public final class FarmViewModel {
     private let gameService: any GameService
     private let progressionService: any ProgressionService
 
+    // MARK: - Game State
+
+    private var game: Game
+
     // MARK: - Computed Properties
 
     public var currentActionPoints: Int {
-        gameService.game.gameState.currentActionPoints
+        game.gameState.currentActionPoints
     }
 
     public var maxActionPoints: Int {
-        gameService.game.gameState.maxActionPoints
+        game.gameState.maxActionPoints
     }
 
     public var isLastDay: Bool {
-        gameService.game.gameState.isLastDay
+        game.gameState.isLastDay
     }
 
     // MARK: - Calendar Properties
 
     public var currentDay: GameDay {
-        gameService.game.gameState.currentDay
+        game.gameState.currentDay
     }
 
     public var upcomingDays: [GameDay] {
-        gameService.game.gameState.upcomingDays
+        game.gameState.upcomingDays
     }
 
     public var calendar: [GameDay] {
-        gameService.game.gameState.calendar
+        game.gameState.calendar
     }
 
     // MARK: - Farming Skills
@@ -58,6 +62,15 @@ public final class FarmViewModel {
     public init(gameService: any GameService, progressionService: any ProgressionService) {
         self.gameService = gameService
         self.progressionService = progressionService
+        self.game = gameService.game
+    }
+
+    // MARK: - Game State Observation
+
+    public func observeGameState() async {
+        for await game in gameService.gameUpdates() {
+            self.game = game
+        }
     }
 
     // MARK: - Data Loading

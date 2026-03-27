@@ -143,6 +143,7 @@ struct FarmActivityScreenContent: View {
             activityBackground
         }
         .task { await viewModel.loadData() }
+        .task { await viewModel.observeGameState() }
         .toolbar(.hidden, for: .navigationBar)
         .modifier(FarmZoomTransitionModifier(sourceID: viewModel.activity.id, namespace: zoomNamespace))
         .navigationDestination(isPresented: $showCalendar) {

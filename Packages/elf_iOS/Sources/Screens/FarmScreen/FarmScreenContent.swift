@@ -70,6 +70,7 @@ struct FarmScreenContent: View {
         }
         .background(ElfColors.Background.primary)
         .task { await viewModel.loadSkills() }
+        .task { await viewModel.observeGameState() }
     }
 
     // MARK: - Activity Buttons
