@@ -91,7 +91,7 @@ internal struct GameDayScreenContent: View {
                 currentHP: viewModel.currentHP,
                 currentMP: viewModel.currentMP,
                 reputation: viewModel.reputation,
-                onEquipmentSlotTapped: viewModel.onEquipmentSlotTapped,
+                onEquipmentSlotTapped: { slotType in Task { await viewModel.onEquipmentSlotTapped(slotType) } },
                 onPocketTapped: viewModel.onPocketTapped
             )
 

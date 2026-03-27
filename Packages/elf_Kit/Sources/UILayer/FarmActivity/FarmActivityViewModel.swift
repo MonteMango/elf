@@ -255,7 +255,7 @@ public final class FarmActivityViewModel {
 
         // Build player snapshot
         let player = gameService.game.player
-        let selectedItems: [HeroItemType: UUID?] = equipmentQueryService.equippedBaseItemIds(from: player.equipped).mapValues { $0 }
+        let selectedItems: [HeroItemType: UUID?] = await equipmentQueryService.equippedBaseItemIds(from: player.equipped).mapValues { $0 }
 
         guard let playerSnapshot = await snapshotBuilder.buildSnapshot(
             name: player.name,

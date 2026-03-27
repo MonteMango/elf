@@ -59,9 +59,7 @@ public final class GameDayViewModel {
         game.player.reputation
     }
 
-    public var equippedItems: [HeroItemType: UUID] {
-        equipmentQueryService.equippedBaseItemIds(from: game.player.equipped)
-    }
+    public var equippedItems: [HeroItemType: UUID] = [:]
 
     public var currentExp: Int {
         game.player.currentExp
@@ -97,6 +95,7 @@ public final class GameDayViewModel {
         characterLevel = await progressionService.calculateLevel(currentExp: exp)
         expToNextLevel = await progressionService.expToNextLevel(currentExp: exp)
         xpProgress = await progressionService.expProgress(currentExp: exp)
+        equippedItems = await equipmentQueryService.equippedBaseItemIds(from: game.player.equipped)
     }
 
     // MARK: - Actions (UI only, no logic yet)
@@ -124,9 +123,9 @@ public final class GameDayViewModel {
     }
 
     /// Called when an equipment slot is tapped
-    public func onEquipmentSlotTapped(_ slotType: HeroItemType) {
+    public func onEquipmentSlotTapped(_ slotType: HeroItemType) async {
         // Get the equipped item's instance ID for this slot
-        let itemId = equipmentQueryService.equippedItemId(for: slotType, in: game.player.equipped)
+        let itemId = await equipmentQueryService.equippedItemId(for: slotType, in: game.player.equipped)
         pendingInventoryItemId = itemId
         isInventoryVisible = true
     }

@@ -18,27 +18,27 @@ extension InventoryViewModel {
 
         // Weapons
         for weapon in inventory.weapons {
-            items.append(buildWeaponDisplayItem(weapon))
+            items.append(await buildWeaponDisplayItem(weapon))
         }
 
         // Shields
         for shield in inventory.shields {
-            items.append(buildShieldDisplayItem(shield))
+            items.append(await buildShieldDisplayItem(shield))
         }
 
         // Armor
         for armor in inventory.armor {
-            items.append(buildArmorDisplayItem(armor))
+            items.append(await buildArmorDisplayItem(armor))
         }
 
         // Robes
         for robe in inventory.robes {
-            items.append(buildRobeDisplayItem(robe))
+            items.append(await buildRobeDisplayItem(robe))
         }
 
         // Jewelry
         for jewelry in inventory.jewelry {
-            items.append(buildJewelryDisplayItem(jewelry))
+            items.append(await buildJewelryDisplayItem(jewelry))
         }
 
         // Materials
@@ -51,13 +51,13 @@ extension InventoryViewModel {
         return items
     }
 
-    private func buildWeaponDisplayItem(_ weapon: ElfWeaponItem) -> InventoryDisplayItem {
+    private func buildWeaponDisplayItem(_ weapon: ElfWeaponItem) async -> InventoryDisplayItem {
         guard let weaponItem = weapon.item as? WeaponItem else {
             return InventoryDisplayItem(
                 id: weapon.id,
                 title: "Unknown Weapon",
                 imageName: "weapon_unknown",
-                isEquipped: equipmentQueryService.isItemEquipped(weapon.id, in: player.equipped),
+                isEquipped: await equipmentQueryService.isItemEquipped(weapon.id, in: player.equipped),
                 category: .weapons,
                 itemDetails: .weapon(WeaponDetails(attackMin: 0, attackMax: 0, attackPoints: 1, handUse: "unknown"))
             )
@@ -74,7 +74,7 @@ extension InventoryViewModel {
             id: weapon.id,
             title: weaponItem.title,
             imageName: weaponItem.id.uuidString.lowercased(),
-            isEquipped: equipmentQueryService.isItemEquipped(weapon.id, in: player.equipped),
+            isEquipped: await equipmentQueryService.isItemEquipped(weapon.id, in: player.equipped),
             category: .weapons,
             itemDetails: .weapon(WeaponDetails(
                 attackMin: Int(weaponItem.minimumAttackPoint),
@@ -91,13 +91,13 @@ extension InventoryViewModel {
         )
     }
 
-    private func buildShieldDisplayItem(_ shield: ElfShieldItem) -> InventoryDisplayItem {
+    private func buildShieldDisplayItem(_ shield: ElfShieldItem) async -> InventoryDisplayItem {
         guard let shieldItem = shield.item as? ShieldItem else {
             return InventoryDisplayItem(
                 id: shield.id,
                 title: "Unknown Shield",
                 imageName: "shield_unknown",
-                isEquipped: equipmentQueryService.isItemEquipped(shield.id, in: player.equipped),
+                isEquipped: await equipmentQueryService.isItemEquipped(shield.id, in: player.equipped),
                 category: .weapons,
                 itemDetails: .shield(ShieldDetails(defense: 0))
             )
@@ -107,7 +107,7 @@ extension InventoryViewModel {
             id: shield.id,
             title: shieldItem.title,
             imageName: shieldItem.id.uuidString.lowercased(),
-            isEquipped: equipmentQueryService.isItemEquipped(shield.id, in: player.equipped),
+            isEquipped: await equipmentQueryService.isItemEquipped(shield.id, in: player.equipped),
             category: .weapons,
             itemDetails: .shield(ShieldDetails(
                 defense: Int(shieldItem.physicalDefensePoint),
@@ -119,13 +119,13 @@ extension InventoryViewModel {
         )
     }
 
-    private func buildArmorDisplayItem(_ armor: ElfDefenseItem) -> InventoryDisplayItem {
+    private func buildArmorDisplayItem(_ armor: ElfDefenseItem) async -> InventoryDisplayItem {
         guard let defenseItem = armor.item as? DefenseItem else {
             return InventoryDisplayItem(
                 id: armor.id,
                 title: "Unknown Armor",
                 imageName: "armor_unknown",
-                isEquipped: equipmentQueryService.isItemEquipped(armor.id, in: player.equipped),
+                isEquipped: await equipmentQueryService.isItemEquipped(armor.id, in: player.equipped),
                 category: .armor,
                 itemDetails: .armor(ArmorDetails(defense: 0))
             )
@@ -135,7 +135,7 @@ extension InventoryViewModel {
             id: armor.id,
             title: defenseItem.title,
             imageName: defenseItem.id.uuidString.lowercased(),
-            isEquipped: equipmentQueryService.isItemEquipped(armor.id, in: player.equipped),
+            isEquipped: await equipmentQueryService.isItemEquipped(armor.id, in: player.equipped),
             category: .armor,
             itemDetails: .armor(ArmorDetails(
                 defense: Int(defenseItem.physicalDefensePoint),
@@ -149,13 +149,13 @@ extension InventoryViewModel {
         )
     }
 
-    private func buildRobeDisplayItem(_ robe: ElfRobeItem) -> InventoryDisplayItem {
+    private func buildRobeDisplayItem(_ robe: ElfRobeItem) async -> InventoryDisplayItem {
         guard let robeItem = robe.item as? RobeItem else {
             return InventoryDisplayItem(
                 id: robe.id,
                 title: "Unknown Robe",
                 imageName: "robe_unknown",
-                isEquipped: equipmentQueryService.isItemEquipped(robe.id, in: player.equipped),
+                isEquipped: await equipmentQueryService.isItemEquipped(robe.id, in: player.equipped),
                 category: .armor,
                 itemDetails: .armor(ArmorDetails(defense: 0))
             )
@@ -165,7 +165,7 @@ extension InventoryViewModel {
             id: robe.id,
             title: robeItem.title,
             imageName: robeItem.id.uuidString.lowercased(),
-            isEquipped: equipmentQueryService.isItemEquipped(robe.id, in: player.equipped),
+            isEquipped: await equipmentQueryService.isItemEquipped(robe.id, in: player.equipped),
             category: .armor,
             itemDetails: .armor(ArmorDetails(
                 defense: 0,
@@ -179,13 +179,13 @@ extension InventoryViewModel {
         )
     }
 
-    private func buildJewelryDisplayItem(_ jewelry: ElfJewelryItem) -> InventoryDisplayItem {
+    private func buildJewelryDisplayItem(_ jewelry: ElfJewelryItem) async -> InventoryDisplayItem {
         guard let jewelryItem = jewelry.item as? JewelryItem else {
             return InventoryDisplayItem(
                 id: jewelry.id,
                 title: "Unknown Jewelry",
                 imageName: "jewelry_unknown",
-                isEquipped: equipmentQueryService.isItemEquipped(jewelry.id, in: player.equipped),
+                isEquipped: await equipmentQueryService.isItemEquipped(jewelry.id, in: player.equipped),
                 category: .armor,
                 itemDetails: .jewelry(JewelryDetails())
             )
@@ -195,7 +195,7 @@ extension InventoryViewModel {
             id: jewelry.id,
             title: jewelryItem.title,
             imageName: jewelryItem.id.uuidString.lowercased(),
-            isEquipped: equipmentQueryService.isItemEquipped(jewelry.id, in: player.equipped),
+            isEquipped: await equipmentQueryService.isItemEquipped(jewelry.id, in: player.equipped),
             category: .armor,
             itemDetails: .jewelry(JewelryDetails(
                 magicDefense: Int(jewelryItem.magicalDefensePoint),
