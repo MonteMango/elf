@@ -17,5 +17,5 @@ public protocol GatheringEngine: Sendable {
     ///   - items: Available items to gather from
     ///   - maxCount: Maximum items to gather
     /// - Returns: Array of successfully gathered items
-    func gather<Item: GatherableItem>(from items: [Item], maxCount: Int) -> [Item]
+    func gather<Item: GatherableItem>(from items: [Item], maxCount: Int) async -> [Item]
 }

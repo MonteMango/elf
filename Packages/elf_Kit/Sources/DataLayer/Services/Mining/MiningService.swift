@@ -24,5 +24,5 @@ public protocol MiningService: Sendable {
         currentLevel: Int,
         currentExp: Int,
         expPerLevel: Int
-    ) -> MiningResult
+    ) async -> MiningResult
 }

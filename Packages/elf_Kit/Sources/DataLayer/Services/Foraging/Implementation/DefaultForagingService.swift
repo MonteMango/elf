@@ -31,9 +31,9 @@ public final class DefaultForagingService: ForagingService {
         currentLevel: Int,
         currentExp: Int,
         expPerLevel: Int
-    ) -> ForagingResult {
+    ) async -> ForagingResult {
         // Use unified gathering engine (uses GatheringEngine.defaultMaxCount)
-        let gatheredHerbs = gatheringEngine.gather(from: availableHerbs, maxCount: DefaultGatheringEngine.defaultMaxCount)
+        let gatheredHerbs = await gatheringEngine.gather(from: availableHerbs, maxCount: DefaultGatheringEngine.defaultMaxCount)
 
         // Calculate skill progress from gathered herbs
         let skillProgress = skillProgressCalculator.calculateFromGathered(

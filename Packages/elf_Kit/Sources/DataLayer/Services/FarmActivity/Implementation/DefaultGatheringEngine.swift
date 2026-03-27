@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class DefaultGatheringEngine: GatheringEngine, Sendable {
+public final class DefaultGatheringEngine: GatheringEngine {
 
     /// Default maximum items to gather per activity
     public static let defaultMaxCount = 4
@@ -23,7 +23,7 @@ public final class DefaultGatheringEngine: GatheringEngine, Sendable {
     public func gather<Item: GatherableItem>(
         from items: [Item],
         maxCount: Int = DefaultGatheringEngine.defaultMaxCount
-    ) -> [Item] {
+    ) async -> [Item] {
         let sortedItems = items.sorted { $0.tier < $1.tier }
         var result: [Item] = []
 

@@ -24,5 +24,5 @@ public protocol FishingService: Sendable {
         currentLevel: Int,
         currentExp: Int,
         expPerLevel: Int
-    ) -> FishingResult
+    ) async -> FishingResult
 }

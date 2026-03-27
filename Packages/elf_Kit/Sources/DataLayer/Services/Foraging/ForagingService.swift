@@ -24,5 +24,5 @@ public protocol ForagingService: Sendable {
         currentLevel: Int,
         currentExp: Int,
         expPerLevel: Int
-    ) -> ForagingResult
+    ) async -> ForagingResult
 }

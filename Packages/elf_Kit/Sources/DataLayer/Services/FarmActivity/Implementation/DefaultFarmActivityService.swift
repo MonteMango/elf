@@ -55,7 +55,7 @@ public final class DefaultFarmActivityService: FarmActivityService {
     ) async -> FarmActivityResult {
         switch activity {
         case .fishing:
-            let result = fishingService.performFishing(
+            let result = await fishingService.performFishing(
                 availableFish: await fishRepository.getAll(),
                 currentLevel: currentLevel,
                 currentExp: currentExp,
@@ -64,7 +64,7 @@ public final class DefaultFarmActivityService: FarmActivityService {
             return .fishing(result)
 
         case .foraging:
-            let result = foragingService.performForaging(
+            let result = await foragingService.performForaging(
                 availableHerbs: await herbRepository.getAll(),
                 currentLevel: currentLevel,
                 currentExp: currentExp,
@@ -73,7 +73,7 @@ public final class DefaultFarmActivityService: FarmActivityService {
             return .foraging(result)
 
         case .mining:
-            let result = miningService.performMining(
+            let result = await miningService.performMining(
                 availableOres: await oreRepository.getAll(),
                 currentLevel: currentLevel,
                 currentExp: currentExp,
