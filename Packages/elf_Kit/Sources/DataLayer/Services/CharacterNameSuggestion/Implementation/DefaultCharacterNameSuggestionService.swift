@@ -26,7 +26,7 @@ public struct DefaultCharacterNameSuggestionService: CharacterNameSuggestionServ
 
     public init() {}
 
-    public func generateRandomName() -> String {
+    public func generateRandomName() async -> String {
         return Constants.suggestedNames.randomElement() ?? Constants.fallbackName
     }
 }

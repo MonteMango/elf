@@ -22,25 +22,25 @@ final class DefaultCharacterNameSuggestionServiceTests: XCTestCase {
 
     // MARK: - Generate Random Name Tests
 
-    func testGenerateRandomName_ReturnsNonEmptyString() {
+    func testGenerateRandomName_ReturnsNonEmptyString() async {
         // Given
         let service = makeService()
 
         // When
-        let name = service.generateRandomName()
+        let name = await service.generateRandomName()
 
         // Then
         XCTAssertFalse(name.isEmpty)
     }
 
-    func testGenerateRandomName_ProducesVariety() {
+    func testGenerateRandomName_ProducesVariety() async {
         // Given
         let service = makeService()
         var generatedNames: Set<String> = []
 
         // When: Generate many names
         for _ in 0..<100 {
-            let name = service.generateRandomName()
+            let name = await service.generateRandomName()
             generatedNames.insert(name)
         }
 

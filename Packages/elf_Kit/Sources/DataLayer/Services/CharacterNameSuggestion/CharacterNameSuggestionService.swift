@@ -11,5 +11,5 @@ import Foundation
 public protocol CharacterNameSuggestionService: Sendable {
     /// Generate a random character name
     /// - Returns: Random character name
-    func generateRandomName() -> String
+    func generateRandomName() async -> String
 }

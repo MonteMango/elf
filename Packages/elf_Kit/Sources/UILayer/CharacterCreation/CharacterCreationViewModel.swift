@@ -158,7 +158,7 @@ public final class CharacterCreationViewModel {
 
     /// Generate random name
     public func generateRandomName() async {
-        characterName = nameSuggestionService.generateRandomName()
+        characterName = await nameSuggestionService.generateRandomName()
         await validateName()
     }
 
