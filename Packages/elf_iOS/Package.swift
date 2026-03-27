@@ -25,7 +25,6 @@ let package = Package(
             name: "elf_iOS",
             dependencies: ["elf_SwiftUI", "elf_Kit"],
             swiftSettings: [
-                .enableUpcomingFeature("StrictConcurrency"),
                 .enableExperimentalFeature("DebugDescriptionMacro")
             ]),
     ]

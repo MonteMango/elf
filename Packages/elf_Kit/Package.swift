@@ -20,14 +20,14 @@ let package = Package(
         .target(
             name: "elf_Kit",
             swiftSettings: [
-                .enableUpcomingFeature("StrictConcurrency"),
+
                 .enableExperimentalFeature("DebugDescriptionMacro")
             ]),
         .testTarget(
             name: "elf_KitTests",
             dependencies: ["elf_Kit"],
             swiftSettings: [
-                .enableUpcomingFeature("StrictConcurrency"),
+
                 .enableExperimentalFeature("DebugDescriptionMacro")
             ]),
     ]
