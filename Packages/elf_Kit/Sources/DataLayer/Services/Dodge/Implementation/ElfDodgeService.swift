@@ -24,9 +24,9 @@ public final class ElfDodgeService: DodgeService {
 
     // MARK: - DodgeService
 
-    public func calculateDodge(agility: Int16, instinct: Int16) -> DodgeCalculationResult {
+    public func calculateDodge(agility: Int16, instinct: Int16) async -> DodgeCalculationResult {
         // Get distribution
-        let distribution = distributionStrategy.distribution(
+        let distribution = await distributionStrategy.distribution(
             agility: agility,
             instinct: instinct
         )
@@ -103,7 +103,3 @@ public final class ElfDodgeService: DodgeService {
         return (roll, success)
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: Single immutable (let) stored property `distributionStrategy` is a Sendable protocol.
-extension ElfDodgeService: @unchecked Sendable {}

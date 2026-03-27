@@ -32,5 +32,5 @@ public protocol DodgeDistributionStrategy: Sendable {
     ///   - agility: Defender's total agility attribute
     ///   - instinct: Attacker's total instinct attribute
     /// - Returns: Distribution with minimum, maximum, range values, and triangular weights
-    func distribution(agility: Int16, instinct: Int16) -> DodgeDistribution
+    func distribution(agility: Int16, instinct: Int16) async -> DodgeDistribution
 }

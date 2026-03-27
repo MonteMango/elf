@@ -165,7 +165,7 @@ public final class BattleFightViewModel {
         botDefensePoints = await botAI.selectDefensePoints(count: botSnapshot.defensePoints)
 
         // Log round start
-        debugLogger.logRoundStart(
+        await debugLogger.logRoundStart(
             roundNumber: currentRoundNumber,
             playerSnapshot: playerSnapshot,
             botSnapshot: botSnapshot,
@@ -221,7 +221,7 @@ public final class BattleFightViewModel {
         self.roundLog.append(roundLog)
 
         // Log round end
-        debugLogger.logRoundEnd(
+        await debugLogger.logRoundEnd(
             roundNumber: currentRoundNumber,
             playerOldHP: playerOldHP,
             playerNewHP: playerCurrentHP,

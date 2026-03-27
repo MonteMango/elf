@@ -17,12 +17,12 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
 
     // MARK: - Standard Cases
 
-    func testDistribution_StandardCase_30Power10Instinct() {
+    func testDistribution_StandardCase_30Power10Instinct() async {
         // Given
         let strategy = ElfCritDistributionStrategy()
 
         // When
-        let distribution = strategy.distribution(power: 30, instinct: 10)
+        let distribution = await strategy.distribution(power: 30, instinct: 10)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, 20, "Minimum should be power - instinct")
@@ -33,12 +33,12 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
         XCTAssertTrue(distribution.hasRange)
     }
 
-    func testDistribution_NegativeMinimum_10Power20Instinct() {
+    func testDistribution_NegativeMinimum_10Power20Instinct() async {
         // Given
         let strategy = ElfCritDistributionStrategy()
 
         // When
-        let distribution = strategy.distribution(power: 10, instinct: 20)
+        let distribution = await strategy.distribution(power: 10, instinct: 20)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, -10, "Minimum can be negative")
@@ -48,12 +48,12 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
         XCTAssertEqual(distribution.rangeValues.last, 10, "Range ends at maximum")
     }
 
-    func testDistribution_PowerCappedAt100_150Power10Instinct() {
+    func testDistribution_PowerCappedAt100_150Power10Instinct() async {
         // Given
         let strategy = ElfCritDistributionStrategy()
 
         // When
-        let distribution = strategy.distribution(power: 150, instinct: 10)
+        let distribution = await strategy.distribution(power: 150, instinct: 10)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, 140, "Minimum = power - instinct")
@@ -63,12 +63,12 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
         XCTAssertEqual(distribution.rangeValues.first, 140)
     }
 
-    func testDistribution_ZeroDifference_20Power20Instinct() {
+    func testDistribution_ZeroDifference_20Power20Instinct() async {
         // Given
         let strategy = ElfCritDistributionStrategy()
 
         // When
-        let distribution = strategy.distribution(power: 20, instinct: 20)
+        let distribution = await strategy.distribution(power: 20, instinct: 20)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, 0, "Minimum = 0 when power equals instinct")
@@ -77,12 +77,12 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
         XCTAssertEqual(distribution.rangeValues, Array(0...20).map { Int16($0) })
     }
 
-    func testDistribution_ZeroPower_0Power0Instinct() {
+    func testDistribution_ZeroPower_0Power0Instinct() async {
         // Given
         let strategy = ElfCritDistributionStrategy()
 
         // When
-        let distribution = strategy.distribution(power: 0, instinct: 0)
+        let distribution = await strategy.distribution(power: 0, instinct: 0)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, 0)
@@ -92,12 +92,12 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
         XCTAssertEqual(distribution.rangeWeights.first, 1)
     }
 
-    func testDistribution_ZeroPower_0Power10Instinct() {
+    func testDistribution_ZeroPower_0Power10Instinct() async {
         // Given
         let strategy = ElfCritDistributionStrategy()
 
         // When
-        let distribution = strategy.distribution(power: 0, instinct: 10)
+        let distribution = await strategy.distribution(power: 0, instinct: 10)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, -10, "Negative minimum")
@@ -109,12 +109,12 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
 
     // MARK: - Edge Cases
 
-    func testDistribution_MinEqualsMax_50Power0Instinct() {
+    func testDistribution_MinEqualsMax_50Power0Instinct() async {
         // Given
         let strategy = ElfCritDistributionStrategy()
 
         // When
-        let distribution = strategy.distribution(power: 50, instinct: 0)
+        let distribution = await strategy.distribution(power: 50, instinct: 0)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, 50)
@@ -124,12 +124,12 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
         XCTAssertTrue(distribution.hasRange)
     }
 
-    func testDistribution_LargeNegativeMinimum_5Power100Instinct() {
+    func testDistribution_LargeNegativeMinimum_5Power100Instinct() async {
         // Given
         let strategy = ElfCritDistributionStrategy()
 
         // When
-        let distribution = strategy.distribution(power: 5, instinct: 100)
+        let distribution = await strategy.distribution(power: 5, instinct: 100)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, -95, "Large negative minimum")
@@ -139,12 +139,12 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
         XCTAssertEqual(distribution.rangeValues.last, 5)
     }
 
-    func testDistribution_100Power0Instinct() {
+    func testDistribution_100Power0Instinct() async {
         // Given
         let strategy = ElfCritDistributionStrategy()
 
         // When
-        let distribution = strategy.distribution(power: 100, instinct: 0)
+        let distribution = await strategy.distribution(power: 100, instinct: 0)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, 100)
@@ -155,12 +155,12 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
 
     // MARK: - Tent Distribution Weight Tests
 
-    func testDistribution_TentWeights_HasPeak() {
+    func testDistribution_TentWeights_HasPeak() async {
         // Given
         let strategy = ElfCritDistributionStrategy()
 
         // When
-        let distribution = strategy.distribution(power: 30, instinct: 10) // Range: 20-30
+        let distribution = await strategy.distribution(power: 30, instinct: 10) // Range: 20-30
 
         // Then: Weights should form a tent shape
         XCTAssertEqual(distribution.rangeWeights.count, 11)
@@ -181,12 +181,12 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
         }
     }
 
-    func testDistribution_AllWeightsPositive() {
+    func testDistribution_AllWeightsPositive() async {
         // Given
         let strategy = ElfCritDistributionStrategy()
 
         // When
-        let distribution = strategy.distribution(power: 50, instinct: 20)
+        let distribution = await strategy.distribution(power: 50, instinct: 20)
 
         // Then: All weights should be positive (at least 1)
         for weight in distribution.rangeWeights {
@@ -196,12 +196,12 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
 
     // MARK: - Computed Properties Tests
 
-    func testDistribution_HasRange_ReturnsTrue() {
+    func testDistribution_HasRange_ReturnsTrue() async {
         // Given
         let strategy = ElfCritDistributionStrategy()
 
         // When
-        let distribution = strategy.distribution(power: 20, instinct: 10)
+        let distribution = await strategy.distribution(power: 20, instinct: 10)
 
         // Then
         XCTAssertTrue(distribution.hasRange)

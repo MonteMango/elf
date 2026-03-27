@@ -36,7 +36,7 @@ public protocol DebugBattleLogger: Sendable {
         playerDefense: [BodyPart],
         botAttack: [BodyPart],
         botDefense: [BodyPart]
-    )
+    ) async
 
     /// Logs dodge calculation with both stages
     ///
@@ -50,7 +50,7 @@ public protocol DebugBattleLogger: Sendable {
         result: DodgeCalculationResult,
         agility: Int16,
         instinct: Int16
-    )
+    ) async
 
     /// Logs critical hit calculation with three stages
     ///
@@ -64,7 +64,7 @@ public protocol DebugBattleLogger: Sendable {
         result: CritCalculationResult,
         power: Int16,
         instinct: Int16
-    )
+    ) async
 
     /// Logs body part calculation summary
     ///
@@ -88,7 +88,7 @@ public protocol DebugBattleLogger: Sendable {
         armor: Int?,
         finalDamage: Int?,
         finalStatus: PointStatus
-    )
+    ) async
 
     /// Logs the end of a battle round with results
     ///
@@ -108,5 +108,5 @@ public protocol DebugBattleLogger: Sendable {
         botNewHP: Int,
         playerResults: [BodyPart: PointStatus],
         botResults: [BodyPart: PointStatus]
-    )
+    ) async
 }

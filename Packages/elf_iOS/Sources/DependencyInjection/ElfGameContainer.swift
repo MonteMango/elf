@@ -81,7 +81,10 @@ public final class ElfGameContainer {
         let debugBattleLogger = ConsoleDebugBattleLogger(categories: [])
         self.debugBattleLogger = debugBattleLogger
 
-        let damageService = ElfDamageService(itemsRepository: gameDataRepository.items)
+        let damageService = ElfDamageService(
+            itemsRepository: gameDataRepository.items,
+            distributionStrategy: ElfStrengthDamageDistributionStrategy()
+        )
         self.damageService = damageService
 
         // Initialize dodge service with distribution strategy

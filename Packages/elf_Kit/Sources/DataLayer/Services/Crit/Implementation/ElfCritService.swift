@@ -27,9 +27,9 @@ public final class ElfCritService: CritService {
 
     // MARK: - CritService
 
-    public func calculateCrit(power: Int16, instinct: Int16, defenderAgility: Int16) -> CritCalculationResult {
+    public func calculateCrit(power: Int16, instinct: Int16, defenderAgility: Int16) async -> CritCalculationResult {
         // Get distribution
-        let distribution = distributionStrategy.distribution(
+        let distribution = await distributionStrategy.distribution(
             power: power,
             instinct: instinct
         )
@@ -158,8 +158,3 @@ public final class ElfCritService: CritService {
         return (roll, distribution.values.last ?? 1.0)
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: All stored properties are immutable (let) after initialization.
-// CritDistributionStrategy is a Sendable protocol, CritMultiplierDistribution is a value type.
-extension ElfCritService: @unchecked Sendable {}

@@ -24,7 +24,7 @@ public final class ElfDodgeDistributionStrategy: DodgeDistributionStrategy {
 
     public init() {}
 
-    public func distribution(agility: Int16, instinct: Int16) -> DodgeDistribution {
+    public func distribution(agility: Int16, instinct: Int16) async -> DodgeDistribution {
         let agilityInt = Int(agility)
         let instinctInt = Int(instinct)
 
@@ -68,7 +68,3 @@ public final class ElfDodgeDistributionStrategy: DodgeDistributionStrategy {
         )
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: Stateless class with no stored properties.
-extension ElfDodgeDistributionStrategy: @unchecked Sendable {}

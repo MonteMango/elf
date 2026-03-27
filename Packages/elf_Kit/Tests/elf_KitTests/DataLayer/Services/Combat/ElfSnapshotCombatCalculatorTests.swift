@@ -43,7 +43,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
             return weaponDamageToReturn
         }
 
-        func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) -> Int {
+        func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) async -> Int {
             var total = 0
             for (_, status) in pointStatus {
                 switch status {
@@ -63,7 +63,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
     final class MockDodgeService: DodgeService, @unchecked Sendable {
         nonisolated(unsafe) var shouldDodge: Bool = false
 
-        func calculateDodge(agility: Int16, instinct: Int16) -> DodgeCalculationResult {
+        func calculateDodge(agility: Int16, instinct: Int16) async -> DodgeCalculationResult {
             let distribution = DodgeDistribution(
                 minimumChance: 0,
                 maximumChance: 50,
@@ -84,7 +84,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         nonisolated(unsafe) var shouldCrit: Bool = false
         nonisolated(unsafe) var critMultiplier: Double = 1.5
 
-        func calculateCrit(power: Int16, instinct: Int16, defenderAgility: Int16) -> CritCalculationResult {
+        func calculateCrit(power: Int16, instinct: Int16, defenderAgility: Int16) async -> CritCalculationResult {
             let distribution = CritDistribution(
                 minimumChance: 10,
                 maximumChance: 50,
@@ -109,13 +109,13 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
 
     /// Mock Debug Logger (no-op)
     final class MockDebugLogger: DebugBattleLogger {
-        func logRoundStart(roundNumber: Int, playerSnapshot: CombatantSnapshot, botSnapshot: CombatantSnapshot, playerAttack: [BodyPart], playerDefense: [BodyPart], botAttack: [BodyPart], botDefense: [BodyPart]) {}
+        func logRoundStart(roundNumber: Int, playerSnapshot: CombatantSnapshot, botSnapshot: CombatantSnapshot, playerAttack: [BodyPart], playerDefense: [BodyPart], botAttack: [BodyPart], botDefense: [BodyPart]) async {}
         func logStrengthDamage(hero: String, strength: Int16, distribution: [Int16], weights: [Int], selectedValue: Int16) {}
         func logWeaponDamage(hero: String, hand: String, weaponName: String, minDamage: Int16, maxDamage: Int16, selectedValue: Int16) {}
-        func logDodgeCalculation(defender: String, result: DodgeCalculationResult, agility: Int16, instinct: Int16) {}
-        func logCritCalculation(attacker: String, result: CritCalculationResult, power: Int16, instinct: Int16) {}
-        func logBodyPartCalculation(attacker: String, defender: String, bodyPart: BodyPart, isAttacked: Bool, isDefended: Bool, baseDamage: Int?, armor: Int?, finalDamage: Int?, finalStatus: PointStatus) {}
-        func logRoundEnd(roundNumber: Int, playerOldHP: Int, playerNewHP: Int, botOldHP: Int, botNewHP: Int, playerResults: [BodyPart: PointStatus], botResults: [BodyPart: PointStatus]) {}
+        func logDodgeCalculation(defender: String, result: DodgeCalculationResult, agility: Int16, instinct: Int16) async {}
+        func logCritCalculation(attacker: String, result: CritCalculationResult, power: Int16, instinct: Int16) async {}
+        func logBodyPartCalculation(attacker: String, defender: String, bodyPart: BodyPart, isAttacked: Bool, isDefended: Bool, baseDamage: Int?, armor: Int?, finalDamage: Int?, finalStatus: PointStatus) async {}
+        func logRoundEnd(roundNumber: Int, playerOldHP: Int, playerNewHP: Int, botOldHP: Int, botNewHP: Int, playerResults: [BodyPart: PointStatus], botResults: [BodyPart: PointStatus]) async {}
     }
 
     // MARK: - Test Helpers

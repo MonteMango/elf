@@ -98,8 +98,8 @@ public final class ElfBattleSimulationService: BattleSimulationService {
             let (bot1Results, bot2Results) = await (bot1ResultsTask, bot2ResultsTask)
 
             // Calculate damage
-            let bot1DamageTaken = damageService.calculateTotalDamage(from: bot1Results)
-            let bot2DamageTaken = damageService.calculateTotalDamage(from: bot2Results)
+            let bot1DamageTaken = await damageService.calculateTotalDamage(from: bot1Results)
+            let bot2DamageTaken = await damageService.calculateTotalDamage(from: bot2Results)
 
             bot1HP = max(0, bot1HP - bot1DamageTaken)
             bot2HP = max(0, bot2HP - bot2DamageTaken)

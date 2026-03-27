@@ -27,5 +27,5 @@ public protocol DodgeService: Sendable {
     ///   - agility: Defender's total agility attribute
     ///   - instinct: Attacker's total instinct attribute
     /// - Returns: Complete calculation result including distribution, rolls, and final success
-    func calculateDodge(agility: Int16, instinct: Int16) -> DodgeCalculationResult
+    func calculateDodge(agility: Int16, instinct: Int16) async -> DodgeCalculationResult
 }

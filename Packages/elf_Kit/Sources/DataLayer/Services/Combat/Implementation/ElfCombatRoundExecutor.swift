@@ -53,8 +53,8 @@ public final class ElfCombatRoundExecutor: CombatRoundExecutor {
         let (playerResults, botResults) = await (playerResultsTask, botResultsTask)
 
         // Calculate total damage
-        let playerDamageTaken = damageService.calculateTotalDamage(from: playerResults)
-        let botDamageTaken = damageService.calculateTotalDamage(from: botResults)
+        let playerDamageTaken = await damageService.calculateTotalDamage(from: playerResults)
+        let botDamageTaken = await damageService.calculateTotalDamage(from: botResults)
 
         return CombatRoundResult(
             playerResults: playerResults,
@@ -64,8 +64,3 @@ public final class ElfCombatRoundExecutor: CombatRoundExecutor {
         )
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: All stored properties are immutable (let) after initialization.
-// All dependencies are Sendable protocols: SnapshotCombatCalculator, DamageService.
-extension ElfCombatRoundExecutor: @unchecked Sendable {}

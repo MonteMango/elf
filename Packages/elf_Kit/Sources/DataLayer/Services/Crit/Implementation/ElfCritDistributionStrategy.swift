@@ -24,7 +24,7 @@ public final class ElfCritDistributionStrategy: CritDistributionStrategy {
 
     public init() {}
 
-    public func distribution(power: Int16, instinct: Int16) -> CritDistribution {
+    public func distribution(power: Int16, instinct: Int16) async -> CritDistribution {
         let powerInt = Int(power)
         let instinctInt = Int(instinct)
 
@@ -68,7 +68,3 @@ public final class ElfCritDistributionStrategy: CritDistributionStrategy {
         )
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: Stateless class with no stored properties.
-extension ElfCritDistributionStrategy: @unchecked Sendable {}

@@ -16,7 +16,7 @@ final class ElfDamageServiceTests: XCTestCase {
     struct FakeStrategy: StrengthDamageDistributionStrategy {
         let distributionToReturn: DamageDistribution
 
-        func distribution(for strength: Int16) -> DamageDistribution {
+        func distribution(for strength: Int16) async -> DamageDistribution {
             return distributionToReturn
         }
     }
@@ -167,7 +167,7 @@ final class ElfDamageServiceTests: XCTestCase {
 
     // MARK: - Calculate Total Damage Tests
 
-    func testCalculateTotalDamage_Hit_AppliesArmorReduction() {
+    func testCalculateTotalDamage_Hit_AppliesArmorReduction() async {
         // Given
         let distribution = DamageDistribution(values: [1], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
@@ -183,13 +183,13 @@ final class ElfDamageServiceTests: XCTestCase {
         ]
 
         // When
-        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = await service.calculateTotalDamage(from: pointStatus)
 
         // Then
         XCTAssertEqual(totalDamage, 12)
     }
 
-    func testCalculateTotalDamage_Hit_MinimumZeroDamage() {
+    func testCalculateTotalDamage_Hit_MinimumZeroDamage() async {
         // Given
         let distribution = DamageDistribution(values: [1], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
@@ -205,13 +205,13 @@ final class ElfDamageServiceTests: XCTestCase {
         ]
 
         // When
-        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = await service.calculateTotalDamage(from: pointStatus)
 
         // Then
         XCTAssertEqual(totalDamage, 0)
     }
 
-    func testCalculateTotalDamage_CritHit_AppliesMultiplier() {
+    func testCalculateTotalDamage_CritHit_AppliesMultiplier() async {
         // Given
         let distribution = DamageDistribution(values: [1], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
@@ -227,13 +227,13 @@ final class ElfDamageServiceTests: XCTestCase {
         ]
 
         // When
-        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = await service.calculateTotalDamage(from: pointStatus)
 
         // Then
         XCTAssertEqual(totalDamage, 25)
     }
 
-    func testCalculateTotalDamage_Blocked_NoDamage() {
+    func testCalculateTotalDamage_Blocked_NoDamage() async {
         // Given
         let distribution = DamageDistribution(values: [1], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
@@ -248,13 +248,13 @@ final class ElfDamageServiceTests: XCTestCase {
         ]
 
         // When
-        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = await service.calculateTotalDamage(from: pointStatus)
 
         // Then
         XCTAssertEqual(totalDamage, 0)
     }
 
-    func testCalculateTotalDamage_Dodged_NoDamage() {
+    func testCalculateTotalDamage_Dodged_NoDamage() async {
         // Given
         let distribution = DamageDistribution(values: [1], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
@@ -269,13 +269,13 @@ final class ElfDamageServiceTests: XCTestCase {
         ]
 
         // When
-        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = await service.calculateTotalDamage(from: pointStatus)
 
         // Then
         XCTAssertEqual(totalDamage, 0)
     }
 
-    func testCalculateTotalDamage_Multiple_SumsCorrectly() {
+    func testCalculateTotalDamage_Multiple_SumsCorrectly() async {
         // Given
         let distribution = DamageDistribution(values: [1], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
@@ -293,7 +293,7 @@ final class ElfDamageServiceTests: XCTestCase {
         ]
 
         // When
-        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = await service.calculateTotalDamage(from: pointStatus)
 
         // Then
         XCTAssertEqual(totalDamage, 37)

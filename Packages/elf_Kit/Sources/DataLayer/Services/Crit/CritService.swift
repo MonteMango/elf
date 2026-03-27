@@ -32,5 +32,5 @@ public protocol CritService: Sendable {
     ///   - instinct: Defender's total instinct attribute
     ///   - defenderAgility: Defender's total agility attribute (used for multiplier weight adjustment)
     /// - Returns: Complete calculation result including distribution, rolls, success, and multiplier
-    func calculateCrit(power: Int16, instinct: Int16, defenderAgility: Int16) -> CritCalculationResult
+    func calculateCrit(power: Int16, instinct: Int16, defenderAgility: Int16) async -> CritCalculationResult
 }

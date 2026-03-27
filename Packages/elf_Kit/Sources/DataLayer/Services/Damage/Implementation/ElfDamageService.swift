@@ -14,7 +14,7 @@ public final class ElfDamageService: DamageService {
 
     public init(
         itemsRepository: ItemsRepository,
-        distributionStrategy: StrengthDamageDistributionStrategy = ElfStrengthDamageDistributionStrategy()
+        distributionStrategy: StrengthDamageDistributionStrategy
     ) {
         self.itemsRepository = itemsRepository
         self.distributionStrategy = distributionStrategy
@@ -38,7 +38,7 @@ public final class ElfDamageService: DamageService {
 
     public func getRandomStrengthDamage(_ strengthAttribute: Int16) async -> Int16 {
         // Get distribution from strategy
-        let distribution = distributionStrategy.distribution(for: strengthAttribute)
+        let distribution = await distributionStrategy.distribution(for: strengthAttribute)
 
         // Calculate total weight
         let totalWeight = distribution.weights.reduce(0, +)
@@ -64,7 +64,7 @@ public final class ElfDamageService: DamageService {
         return distribution.values.last ?? 0
     }
 
-    public func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) -> Int {
+    public func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) async -> Int {
         var totalDamage = 0
 
         for (_, status) in pointStatus {
@@ -85,8 +85,3 @@ public final class ElfDamageService: DamageService {
         return totalDamage
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: All stored properties are immutable (let) after initialization.
-// Dependencies (ItemsRepository, StrengthDamageDistributionStrategy) are Sendable protocols.
-extension ElfDamageService: @unchecked Sendable {}

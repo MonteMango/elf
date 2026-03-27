@@ -41,13 +41,13 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
 
             if isAttacked && isDefended {
                 // Case 1: Attack meets Defense - Check if crit breaks the block
-                let critResult = critService.calculateCrit(
+                let critResult = await critService.calculateCrit(
                     power: Int16(attacker.power),
                     instinct: Int16(defender.intuition),
                     defenderAgility: Int16(defender.agility)
                 )
 
-                debugLogger.logCritCalculation(
+                await debugLogger.logCritCalculation(
                     attacker: attacker.name,
                     result: critResult,
                     power: Int16(attacker.power),
@@ -70,7 +70,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                     )
                     results[bodyPart] = finalStatus
 
-                    logBodyPartResult(
+                    await logBodyPartResult(
                         attacker: attacker,
                         defender: defender,
                         bodyPart: bodyPart,
@@ -87,7 +87,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                     let finalStatus = PointStatus.blocked(wasCrit: false)
                     results[bodyPart] = finalStatus
 
-                    debugLogger.logBodyPartCalculation(
+                    await debugLogger.logBodyPartCalculation(
                         attacker: attacker.name,
                         defender: defender.name,
                         bodyPart: bodyPart,
@@ -102,12 +102,12 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
 
             } else if isAttacked && !isDefended {
                 // Case 2: Attack without Defense - Check dodge first, then crit
-                let dodgeResult = dodgeService.calculateDodge(
+                let dodgeResult = await dodgeService.calculateDodge(
                     agility: Int16(defender.agility),
                     instinct: Int16(attacker.intuition)
                 )
 
-                debugLogger.logDodgeCalculation(
+                await debugLogger.logDodgeCalculation(
                     defender: defender.name,
                     result: dodgeResult,
                     agility: Int16(defender.agility),
@@ -116,7 +116,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
 
                 if dodgeResult.success {
                     // Dodged
-                    let critResult = critService.calculateCrit(
+                    let critResult = await critService.calculateCrit(
                         power: Int16(attacker.power),
                         instinct: Int16(defender.intuition),
                         defenderAgility: Int16(defender.agility)
@@ -125,7 +125,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                     let finalStatus = PointStatus.dodged(wasCrit: critResult.success)
                     results[bodyPart] = finalStatus
 
-                    debugLogger.logBodyPartCalculation(
+                    await debugLogger.logBodyPartCalculation(
                         attacker: attacker.name,
                         defender: defender.name,
                         bodyPart: bodyPart,
@@ -138,13 +138,13 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                     )
                 } else {
                     // Not dodged - check for crit
-                    let critResult = critService.calculateCrit(
+                    let critResult = await critService.calculateCrit(
                         power: Int16(attacker.power),
                         instinct: Int16(defender.intuition),
                         defenderAgility: Int16(defender.agility)
                     )
 
-                    debugLogger.logCritCalculation(
+                    await debugLogger.logCritCalculation(
                         attacker: attacker.name,
                         result: critResult,
                         power: Int16(attacker.power),
@@ -167,7 +167,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                         )
                         results[bodyPart] = finalStatus
 
-                        logBodyPartResult(
+                        await logBodyPartResult(
                             attacker: attacker,
                             defender: defender,
                             bodyPart: bodyPart,
@@ -188,7 +188,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                         )
                         results[bodyPart] = finalStatus
 
-                        logBodyPartResult(
+                        await logBodyPartResult(
                             attacker: attacker,
                             defender: defender,
                             bodyPart: bodyPart,
@@ -208,7 +208,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                 let finalStatus = PointStatus.nothing
                 results[bodyPart] = finalStatus
 
-                debugLogger.logBodyPartCalculation(
+                await debugLogger.logBodyPartCalculation(
                     attacker: attacker.name,
                     defender: defender.name,
                     bodyPart: bodyPart,
@@ -262,7 +262,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         defenderArmor: Int,
         multiplier: Double?,
         finalStatus: PointStatus
-    ) {
+    ) async {
         let baseDamage = strengthDamage + attackDamage
         let finalDamage: Int
 
@@ -272,7 +272,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
             finalDamage = max(0, baseDamage - defenderArmor)
         }
 
-        debugLogger.logBodyPartCalculation(
+        await debugLogger.logBodyPartCalculation(
             attacker: attacker.name,
             defender: defender.name,
             bodyPart: bodyPart,
@@ -285,8 +285,3 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         )
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: All stored properties are immutable (let) after initialization.
-// All dependencies are Sendable protocols: DamageService, DodgeService, CritService, DebugBattleLogger.
-extension ElfSnapshotCombatCalculator: @unchecked Sendable {}
