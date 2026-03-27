@@ -235,7 +235,3 @@ public final class ElfWeaponValidator: WeaponValidator {
         return updatedItems
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: Single immutable (let) stored property `itemsRepository` is a Sendable protocol.
-extension ElfWeaponValidator: @unchecked Sendable {}
