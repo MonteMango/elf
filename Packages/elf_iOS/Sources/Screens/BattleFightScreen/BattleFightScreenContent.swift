@@ -176,6 +176,7 @@ internal struct BattleFightScreenContent: View {
                 }
             }
         }
+        .task { await viewModel.loadInitialData() }
         .onChange(of: viewModel.battleResult) { _, result in
             // When battle result is ready, present modal
             if let result = result {

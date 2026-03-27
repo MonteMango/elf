@@ -16,7 +16,7 @@ public final class RandomDuelPairingService: DuelPairingService {
         leftTeam: [CombatantSnapshot],
         rightTeam: [CombatantSnapshot],
         roundNumber: Int
-    ) -> BattleRound {
+    ) async -> BattleRound {
         // Filter alive combatants
         let aliveLeft = leftTeam.filter { $0.isAlive }
         let aliveRight = rightTeam.filter { $0.isAlive }

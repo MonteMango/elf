@@ -105,8 +105,13 @@ public final class BattleFightViewModel {
         self.botMaxHP = bot.maxHP
         self.botCurrentHP = bot.currentHP
 
-        // Generate initial round pairings
-        generateNewRoundPairings()
+    }
+
+    // MARK: - Data Loading
+
+    /// Loads initial battle data. Call from View's .task {} modifier.
+    public func loadInitialData() async {
+        await generateNewRoundPairings()
     }
 
     // MARK: - Player Actions
@@ -327,8 +332,8 @@ public final class BattleFightViewModel {
     // MARK: - Duel Pairs
 
     /// Generates new random pairings for the current round
-    public func generateNewRoundPairings() {
-        currentBattleRound = duelPairingService.createRandomPairs(
+    public func generateNewRoundPairings() async {
+        currentBattleRound = await duelPairingService.createRandomPairs(
             leftTeam: battle.leftTeam,
             rightTeam: battle.rightTeam,
             roundNumber: currentRoundNumber
