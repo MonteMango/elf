@@ -141,8 +141,8 @@ public final class MultiBattleViewModel {
         let bot2Level = Int(battle.rightTeam.first?.level ?? 1)
 
         // Aggregate statistics
-        let bot1Stats = statisticsAggregator.aggregate(from: allResults, forBot1: true)
-        let bot2Stats = statisticsAggregator.aggregate(from: allResults, forBot1: false)
+        let bot1Stats = await statisticsAggregator.aggregate(from: allResults, forBot1: true)
+        let bot2Stats = await statisticsAggregator.aggregate(from: allResults, forBot1: false)
 
         // Create final result
         result = MultiBattleResult(

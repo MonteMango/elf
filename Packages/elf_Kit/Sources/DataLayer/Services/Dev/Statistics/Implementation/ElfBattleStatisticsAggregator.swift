@@ -19,7 +19,7 @@ public final class ElfBattleStatisticsAggregator: BattleStatisticsAggregator {
 
     // MARK: - BattleStatisticsAggregator
 
-    public func aggregate(from results: [BattleResult], forBot1: Bool) -> AggregatedBattleStatistics {
+    public func aggregate(from results: [BattleResult], forBot1: Bool) async -> AggregatedBattleStatistics {
         let battleCount = results.count
         guard battleCount > 0 else {
             return AggregatedBattleStatistics(
@@ -109,7 +109,3 @@ public final class ElfBattleStatisticsAggregator: BattleStatisticsAggregator {
         )
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: No mutable state.
-extension ElfBattleStatisticsAggregator: @unchecked Sendable {}

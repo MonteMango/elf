@@ -144,7 +144,7 @@ public final class AutoBattleViewModel {
 
                 // Collect statistics using parser service
                 var bot2StrengthDamageThisRound = 0
-                statsParser.parseStatistics(
+                await statsParser.parseStatistics(
                     attackingPoints: bot2Attack,
                     defendingPoints: bot1Defense,
                     results: bot1Results,
@@ -159,7 +159,7 @@ public final class AutoBattleViewModel {
                 )
 
                 var bot1StrengthDamageThisRound = 0
-                statsParser.parseStatistics(
+                await statsParser.parseStatistics(
                     attackingPoints: bot1Attack,
                     defendingPoints: bot2Defense,
                     results: bot2Results,

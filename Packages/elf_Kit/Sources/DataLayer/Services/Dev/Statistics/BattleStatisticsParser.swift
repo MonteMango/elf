@@ -39,5 +39,5 @@ public protocol BattleStatisticsParser: Sendable {
         defenderDodgeAttempts: inout Int,
         defenderDodgeSuccesses: inout Int,
         attackerStrengthDamage: inout Int
-    )
+    ) async
 }

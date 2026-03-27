@@ -24,7 +24,7 @@ public final class ElfBattleStatisticsParser: BattleStatisticsParser {
         defenderDodgeAttempts: inout Int,
         defenderDodgeSuccesses: inout Int,
         attackerStrengthDamage: inout Int
-    ) {
+    ) async {
         for bodyPart in attackingPoints {
             guard let status = results[bodyPart] else { continue }
 
@@ -77,7 +77,3 @@ public final class ElfBattleStatisticsParser: BattleStatisticsParser {
         }
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: Stateless class with no stored properties.
-extension ElfBattleStatisticsParser: @unchecked Sendable {}

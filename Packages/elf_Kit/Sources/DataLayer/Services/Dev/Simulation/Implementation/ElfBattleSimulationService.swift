@@ -106,7 +106,7 @@ public final class ElfBattleSimulationService: BattleSimulationService {
 
             // Collect statistics using parser
             var bot2StrengthDamageThisRound = 0
-            statisticsParser.parseStatistics(
+            await statisticsParser.parseStatistics(
                 attackingPoints: bot2Attack,
                 defendingPoints: bot1Defense,
                 results: bot1Results,
@@ -121,7 +121,7 @@ public final class ElfBattleSimulationService: BattleSimulationService {
             )
 
             var bot1StrengthDamageThisRound = 0
-            statisticsParser.parseStatistics(
+            await statisticsParser.parseStatistics(
                 attackingPoints: bot1Attack,
                 defendingPoints: bot2Defense,
                 results: bot2Results,
@@ -210,8 +210,3 @@ public final class ElfBattleSimulationService: BattleSimulationService {
         )
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: All stored properties are immutable (let) after initialization.
-// All dependencies are Sendable protocols: BotAIService, SnapshotCombatCalculator, DamageService, BattleStatisticsParser.
-extension ElfBattleSimulationService: @unchecked Sendable {}

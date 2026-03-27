@@ -18,5 +18,5 @@ public protocol BattleStatisticsAggregator: Sendable {
     ///   - results: Array of battle results to aggregate
     ///   - forBot1: If true, aggregate stats for bot1; if false, for bot2
     /// - Returns: Aggregated statistics with averages and totals
-    func aggregate(from results: [BattleResult], forBot1: Bool) -> AggregatedBattleStatistics
+    func aggregate(from results: [BattleResult], forBot1: Bool) async -> AggregatedBattleStatistics
 }
