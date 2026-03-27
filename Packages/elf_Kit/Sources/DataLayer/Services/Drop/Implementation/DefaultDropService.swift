@@ -106,8 +106,3 @@ public final class DefaultDropService: DropService {
         return result
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: All stored properties are immutable (let) after initialization.
-// All dependencies are Sendable protocols: any Repository<Material>, ItemsRepository.
-extension DefaultDropService: @unchecked Sendable {}
