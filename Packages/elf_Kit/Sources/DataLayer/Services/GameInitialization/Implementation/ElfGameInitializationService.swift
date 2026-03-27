@@ -44,7 +44,7 @@ public final class ElfGameInitializationService: GameInitializationService {
         )
 
         // Generate full calendar
-        let calendar = calendarService.generateFullCalendar()
+        let calendar = await calendarService.generateFullCalendar()
         let firstDay = calendar.first ?? GameDay(dayNumber: 1, dayType: .normal)
 
         // Create game state with full action points

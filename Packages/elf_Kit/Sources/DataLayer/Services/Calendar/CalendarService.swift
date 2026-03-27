@@ -11,5 +11,5 @@ import Foundation
 public protocol CalendarService: Sendable {
 
     /// Generates full calendar for the game (160 days)
-    func generateFullCalendar() -> [GameDay]
+    func generateFullCalendar() async -> [GameDay]
 }

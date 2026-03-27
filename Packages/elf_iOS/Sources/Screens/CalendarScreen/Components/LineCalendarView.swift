@@ -44,11 +44,8 @@ struct LineCalendarView: View {
 }
 
 #Preview {
-    let calendarService = DefaultCalendarService()
-    let calendar = calendarService.generateFullCalendar()
-
     LineCalendarView(
-        calendar: calendar,
+        calendar: PreviewMockData.createMockCalendar(),
         currentDayNumber: 25
     )
     .frame(height: 150)

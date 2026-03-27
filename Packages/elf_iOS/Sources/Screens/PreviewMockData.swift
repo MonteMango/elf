@@ -94,6 +94,21 @@ enum PreviewMockData {
         )
     }
 
+    static let daysPerIteration = 16
+
+    static func createMockCalendar() -> [GameDay] {
+        (1...160).map { dayNumber in
+            let position = ((dayNumber - 1) % daysPerIteration) + 1
+            let dayType: DayType = switch position {
+            case 4, 12: .dungeon
+            case 8: .randomEvent
+            case 16: .houseWar
+            default: .normal
+            }
+            return GameDay(dayNumber: dayNumber, dayType: dayType)
+        }
+    }
+
     static func createMockGame() -> Game {
         let playerElfInfo = createMockPlayerElfInfo()
 
@@ -128,8 +143,7 @@ enum PreviewMockData {
             ))
         }
 
-        let calendarService = DefaultCalendarService()
-        let calendar = calendarService.generateFullCalendar()
+        let calendar = createMockCalendar()
         let firstDay = calendar.first ?? GameDay(dayNumber: 1, dayType: .normal)
 
         let gameState = GameState(

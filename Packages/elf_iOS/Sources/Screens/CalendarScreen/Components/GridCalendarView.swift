@@ -73,13 +73,10 @@ struct GridCalendarView: View {
 }
 
 #Preview {
-    let calendarService = DefaultCalendarService()
-    let calendar = calendarService.generateFullCalendar()
-
     GridCalendarView(
-        calendar: calendar,
+        calendar: PreviewMockData.createMockCalendar(),
         currentDayNumber: 25,
-        daysPerIteration: calendarService.daysPerIteration
+        daysPerIteration: PreviewMockData.daysPerIteration
     )
     .background(Color.white)
 }

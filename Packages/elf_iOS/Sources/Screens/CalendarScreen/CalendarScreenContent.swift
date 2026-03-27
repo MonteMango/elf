@@ -60,14 +60,11 @@ struct CalendarScreenContent: View {
 }
 
 #Preview {
-    let calendarService = DefaultCalendarService()
-    let calendar = calendarService.generateFullCalendar()
-
     CalendarScreenContent(
         viewModel: CalendarViewModel(
-            calendar: calendar,
+            calendar: PreviewMockData.createMockCalendar(),
             currentDayNumber: 25,
-            daysPerIteration: calendarService.daysPerIteration
+            daysPerIteration: PreviewMockData.daysPerIteration
         )
     )
 }
