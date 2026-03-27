@@ -204,7 +204,7 @@ public final class BattleFightViewModel {
         botCurrentHP = max(0, botCurrentHP - roundResult.botDamageTaken)
 
         // Create round log using BattleLogger
-        let roundLog = battleLogger.createRoundLog(
+        let roundLog = await battleLogger.createRoundLog(
             roundNumber: currentRoundNumber,
             playerSnapshot: playerSnapshot,
             botSnapshot: botSnapshot,

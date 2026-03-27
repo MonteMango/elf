@@ -26,5 +26,5 @@ public protocol BattleLogger: Sendable {
         botActions: (attack: Set<BodyPart>, defense: Set<BodyPart>),
         playerResults: [BodyPart: PointStatus],
         botResults: [BodyPart: PointStatus]
-    ) -> ManualBattleRoundLog
+    ) async -> ManualBattleRoundLog
 }

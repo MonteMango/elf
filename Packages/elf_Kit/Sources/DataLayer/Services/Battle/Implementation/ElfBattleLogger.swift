@@ -19,7 +19,7 @@ public final class ElfBattleLogger: BattleLogger {
         botActions: (attack: Set<BodyPart>, defense: Set<BodyPart>),
         playerResults: [BodyPart: PointStatus],
         botResults: [BodyPart: PointStatus]
-    ) -> ManualBattleRoundLog {
+    ) async -> ManualBattleRoundLog {
         return ManualBattleRoundLog(
             roundNumber: roundNumber,
             action: [
@@ -45,7 +45,3 @@ public final class ElfBattleLogger: BattleLogger {
         )
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: Stateless class with no stored properties.
-extension ElfBattleLogger: @unchecked Sendable {}
