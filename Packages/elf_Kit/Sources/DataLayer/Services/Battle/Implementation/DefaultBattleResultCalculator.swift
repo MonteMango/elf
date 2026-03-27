@@ -25,86 +25,42 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
 
     // MARK: - BattleResultCalculator
 
-    @MainActor
     public func calculateResult(
         outcome: BattleOutcome,
         monster: Monster?,
-        gameService: GameService?
+        currentExp: Int
     ) async -> ManualBattleResult {
         // Calculate rewards if we have monster data
         var experienceGained = 0
         var drops: [DropItem] = []
+        var huntRewards: HuntRewards?
 
         if let monster = monster {
             let didWin = outcome == .victory
             if didWin {
                 let rewards = await huntService.calculateRewards(for: monster)
+                huntRewards = rewards
                 experienceGained = rewards.experience
                 drops = await dropService.convertToDropItems(rewards: rewards, didWin: didWin)
-
-                // Add drops to player inventory
-                await gameService?.addDropsToPlayerInventory(rewards: rewards)
             }
         }
 
-        // Get current player XP state (before adding)
-        let previousLevel: Int
-        let previousExp: Int
-        let previousExpToNext: Int
+        // XP state before battle
+        let previousLevel = await progressionService.calculateLevel(currentExp: currentExp)
+        let previousExpToNext = await progressionService.expToNextLevel(currentExp: currentExp)
 
-        if let gameService = gameService {
-            let player = gameService.game.player
-            previousLevel = await progressionService.calculateLevel(currentExp: player.currentExp)
-            previousExp = player.currentExp
-            previousExpToNext = await progressionService.expToNextLevel(currentExp: player.currentExp)
-        } else {
-            // Fallback for non-game battles
-            previousLevel = 1
-            previousExp = 0
-            previousExpToNext = 200
-        }
+        // XP state after battle
+        let newExp = currentExp + experienceGained
+        let newLevel = await progressionService.calculateLevel(currentExp: newExp)
+        let newExpToNext = await progressionService.expToNextLevel(currentExp: newExp)
 
-        // Add XP to player if we have game service and won
-        if let gameService = gameService, experienceGained > 0 {
-            gameService.addPlayerExperience(experienceGained)
-        }
-
-        // Save game after battle rewards are applied
-        Task(priority: .userInitiated) {
-            do {
-                try await gameService?.saveGame()
-            } catch {
-                #if DEBUG
-                print("[BattleResultCalculator] Failed to save game: \(error)")
-                #endif
-            }
-        }
-
-        // Get new player XP state (after adding)
-        let newLevel: Int
-        let newExp: Int
-        let newExpToNext: Int
-
-        if let gameService = gameService {
-            let player = gameService.game.player
-            newLevel = await progressionService.calculateLevel(currentExp: player.currentExp)
-            newExp = player.currentExp
-            newExpToNext = await progressionService.expToNextLevel(currentExp: player.currentExp)
-        } else {
-            // Fallback: simulate simple XP addition using new formula
-            let totalExp = previousExp + experienceGained
-            newLevel = max(1, min(12, totalExp / 100))
-            newExp = totalExp
-            newExpToNext = newLevel < 12 ? (newLevel + 1) * 100 : 0
-        }
-
-        // Create battle result
         return ManualBattleResult(
             outcome: outcome,
             experienceGained: experienceGained,
             drops: drops,
+            huntRewards: huntRewards,
             previousLevel: previousLevel,
-            previousExp: previousExp,
+            previousExp: currentExp,
             previousExpToNext: previousExpToNext,
             newLevel: newLevel,
             newExp: newExp,

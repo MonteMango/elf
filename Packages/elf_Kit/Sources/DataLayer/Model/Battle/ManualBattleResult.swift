@@ -14,6 +14,9 @@ public struct ManualBattleResult: Sendable, Equatable {
     public let experienceGained: Int
     public let drops: [DropItem]
 
+    /// Raw hunt rewards for applying to game state (materials, weapon/armor drops)
+    public let huntRewards: HuntRewards?
+
     // For XP bar animation - state before battle
     public let previousLevel: Int
     public let previousExp: Int
@@ -38,6 +41,7 @@ public struct ManualBattleResult: Sendable, Equatable {
         outcome: BattleOutcome,
         experienceGained: Int,
         drops: [DropItem],
+        huntRewards: HuntRewards? = nil,
         previousLevel: Int,
         previousExp: Int,
         previousExpToNext: Int,
@@ -48,6 +52,7 @@ public struct ManualBattleResult: Sendable, Equatable {
         self.outcome = outcome
         self.experienceGained = experienceGained
         self.drops = drops
+        self.huntRewards = huntRewards
         self.previousLevel = previousLevel
         self.previousExp = previousExp
         self.previousExpToNext = previousExpToNext

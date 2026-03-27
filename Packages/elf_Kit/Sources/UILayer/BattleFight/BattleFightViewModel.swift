@@ -240,13 +240,14 @@ public final class BattleFightViewModel {
 
     // MARK: - Actions
 
-    /// Calculates battle result with XP, drops, and updates game state
+    /// Calculates battle result, applies rewards to game state, and saves
     public func finishBattle() async {
         guard battleEnded else { return }
         guard battleResult == nil else { return }  // Already finished
 
         let outcome = determineBattleOutcome()
         let monster = await getMonsterFromBot()
+        let currentExp = gameService?.game.player.currentExp ?? 0
 
         guard let calculator = battleResultCalculator else {
             // Fallback for battles without result calculator
@@ -264,11 +265,41 @@ public final class BattleFightViewModel {
             return
         }
 
-        battleResult = await calculator.calculateResult(
+        let result = await calculator.calculateResult(
             outcome: outcome,
             monster: monster,
-            gameService: gameService
+            currentExp: currentExp
         )
+        battleResult = result
+
+        // Apply side effects to game state
+        await applyBattleRewards(result: result, monster: monster)
+    }
+
+    /// Applies battle rewards to game state (XP, drops, save)
+    private func applyBattleRewards(result: ManualBattleResult, monster: Monster?) async {
+        guard let gameService = gameService else { return }
+
+        // Add XP
+        if result.experienceGained > 0 {
+            gameService.addPlayerExperience(result.experienceGained)
+        }
+
+        // Add drops to inventory
+        if let huntRewards = result.huntRewards {
+            await gameService.addDropsToPlayerInventory(rewards: huntRewards)
+        }
+
+        // Save game
+        Task(priority: .userInitiated) {
+            do {
+                try await gameService.saveGame()
+            } catch {
+                #if DEBUG
+                print("[BattleFightViewModel] Failed to save game: \(error)")
+                #endif
+            }
+        }
     }
 
     // MARK: - Private Helpers

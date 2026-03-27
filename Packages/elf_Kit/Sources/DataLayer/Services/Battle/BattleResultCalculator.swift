@@ -7,12 +7,11 @@
 
 import Foundation
 
-/// Service for calculating battle results including XP, drops, and game state updates
-public protocol BattleResultCalculator {
-    @MainActor
+/// Pure calculator for battle results — no side effects, no game state mutations
+public protocol BattleResultCalculator: Sendable {
     func calculateResult(
         outcome: BattleOutcome,
         monster: Monster?,
-        gameService: GameService?
+        currentExp: Int
     ) async -> ManualBattleResult
 }
