@@ -25,14 +25,14 @@ final class DefaultCharacterNameValidatorTests: XCTestCase {
 
     // MARK: - Valid Names Tests
 
-    func testValidate_ValidName_ReturnsValid() {
+    func testValidate_ValidName_ReturnsValid() async {
         // Given
         let validator = makeValidator()
         let validNames = ["Asuna", "Elf Girl", "Frieren", "Ais Wallenstein"]
 
         for name in validNames {
             // When
-            let result = validator.validate(name)
+            let result = await validator.validate(name)
 
             // Then
             XCTAssertEqual(result, .valid, "Name '\(name)' should be valid")
@@ -41,50 +41,50 @@ final class DefaultCharacterNameValidatorTests: XCTestCase {
         }
     }
 
-    func testValidate_MinimumLengthName_ReturnsValid() {
+    func testValidate_MinimumLengthName_ReturnsValid() async {
         // Given
         let validator = makeValidator()
         let name = "Ab" // 2 characters
 
         // When
-        let result = validator.validate(name)
+        let result = await validator.validate(name)
 
         // Then
         XCTAssertEqual(result, .valid)
     }
 
-    func testValidate_MaximumLengthName_ReturnsValid() {
+    func testValidate_MaximumLengthName_ReturnsValid() async {
         // Given
         let validator = makeValidator()
         let name = String(repeating: "A", count: 30)
 
         // When
-        let result = validator.validate(name)
+        let result = await validator.validate(name)
 
         // Then
         XCTAssertEqual(result, .valid)
     }
 
-    func testValidate_NameWithSpaces_ReturnsValid() {
+    func testValidate_NameWithSpaces_ReturnsValid() async {
         // Given
         let validator = makeValidator()
         let name = "Elf Princess"
 
         // When
-        let result = validator.validate(name)
+        let result = await validator.validate(name)
 
         // Then
         XCTAssertEqual(result, .valid)
     }
 
-    func testValidate_UnicodeLetters_ReturnsValid() {
+    func testValidate_UnicodeLetters_ReturnsValid() async {
         // Given
         let validator = makeValidator()
         let unicodeNames = ["Élf", "Фриëрен", "エルフ", "Müller"]
 
         for name in unicodeNames {
             // When
-            let result = validator.validate(name)
+            let result = await validator.validate(name)
 
             // Then
             XCTAssertEqual(result, .valid, "Unicode name '\(name)' should be valid")
@@ -93,13 +93,13 @@ final class DefaultCharacterNameValidatorTests: XCTestCase {
 
     // MARK: - Empty Name Tests
 
-    func testValidate_EmptyName_ReturnsInvalid() {
+    func testValidate_EmptyName_ReturnsInvalid() async {
         // Given
         let validator = makeValidator()
         let name = ""
 
         // When
-        let result = validator.validate(name)
+        let result = await validator.validate(name)
 
         // Then
         XCTAssertFalse(result.isValid)
@@ -109,14 +109,14 @@ final class DefaultCharacterNameValidatorTests: XCTestCase {
         }
     }
 
-    func testValidate_WhitespaceOnlyName_ReturnsInvalid() {
+    func testValidate_WhitespaceOnlyName_ReturnsInvalid() async {
         // Given
         let validator = makeValidator()
         let whitespaceNames = [" ", "   ", "\t", "\n", "  \t  "]
 
         for name in whitespaceNames {
             // When
-            let result = validator.validate(name)
+            let result = await validator.validate(name)
 
             // Then
             XCTAssertFalse(result.isValid, "Whitespace-only name should be invalid")
@@ -125,13 +125,13 @@ final class DefaultCharacterNameValidatorTests: XCTestCase {
 
     // MARK: - Length Tests
 
-    func testValidate_TooShortName_ReturnsInvalid() {
+    func testValidate_TooShortName_ReturnsInvalid() async {
         // Given
         let validator = makeValidator()
         let name = "A" // Only 1 character
 
         // When
-        let result = validator.validate(name)
+        let result = await validator.validate(name)
 
         // Then
         XCTAssertFalse(result.isValid)
@@ -140,13 +140,13 @@ final class DefaultCharacterNameValidatorTests: XCTestCase {
         }
     }
 
-    func testValidate_TooLongName_ReturnsInvalid() {
+    func testValidate_TooLongName_ReturnsInvalid() async {
         // Given
         let validator = makeValidator()
         let name = String(repeating: "A", count: 31) // 31 characters
 
         // When
-        let result = validator.validate(name)
+        let result = await validator.validate(name)
 
         // Then
         XCTAssertFalse(result.isValid)
@@ -155,13 +155,13 @@ final class DefaultCharacterNameValidatorTests: XCTestCase {
         }
     }
 
-    func testValidate_VeryLongName_ReturnsInvalid() {
+    func testValidate_VeryLongName_ReturnsInvalid() async {
         // Given
         let validator = makeValidator()
         let name = String(repeating: "A", count: 100)
 
         // When
-        let result = validator.validate(name)
+        let result = await validator.validate(name)
 
         // Then
         XCTAssertFalse(result.isValid)
@@ -169,13 +169,13 @@ final class DefaultCharacterNameValidatorTests: XCTestCase {
 
     // MARK: - Invalid Characters Tests
 
-    func testValidate_NameWithNumbers_ReturnsInvalid() {
+    func testValidate_NameWithNumbers_ReturnsInvalid() async {
         // Given
         let validator = makeValidator()
         let name = "Elf123"
 
         // When
-        let result = validator.validate(name)
+        let result = await validator.validate(name)
 
         // Then
         XCTAssertFalse(result.isValid)
@@ -184,28 +184,28 @@ final class DefaultCharacterNameValidatorTests: XCTestCase {
         }
     }
 
-    func testValidate_NameWithSpecialCharacters_ReturnsInvalid() {
+    func testValidate_NameWithSpecialCharacters_ReturnsInvalid() async {
         // Given
         let validator = makeValidator()
         let invalidNames = ["Elf@Girl", "Elf#1", "Elf-Princess", "Elf_Hero", "Elf!"]
 
         for name in invalidNames {
             // When
-            let result = validator.validate(name)
+            let result = await validator.validate(name)
 
             // Then
             XCTAssertFalse(result.isValid, "Name '\(name)' with special characters should be invalid")
         }
     }
 
-    func testValidate_NameWithPunctuation_ReturnsInvalid() {
+    func testValidate_NameWithPunctuation_ReturnsInvalid() async {
         // Given
         let validator = makeValidator()
         let punctuationNames = ["Elf.", "Elf,", "Elf:", "Elf;", "Elf'"]
 
         for name in punctuationNames {
             // When
-            let result = validator.validate(name)
+            let result = await validator.validate(name)
 
             // Then
             XCTAssertFalse(result.isValid, "Name '\(name)' with punctuation should be invalid")
@@ -214,38 +214,38 @@ final class DefaultCharacterNameValidatorTests: XCTestCase {
 
     // MARK: - Whitespace Trimming Tests
 
-    func testValidate_TrimsLeadingWhitespace() {
+    func testValidate_TrimsLeadingWhitespace() async {
         // Given
         let validator = makeValidator()
         let name = "   ValidName"
 
         // When
-        let result = validator.validate(name)
+        let result = await validator.validate(name)
 
         // Then
         XCTAssertEqual(result, .valid, "Name should be valid after trimming leading whitespace")
     }
 
-    func testValidate_TrimsTrailingWhitespace() {
+    func testValidate_TrimsTrailingWhitespace() async {
         // Given
         let validator = makeValidator()
         let name = "ValidName   "
 
         // When
-        let result = validator.validate(name)
+        let result = await validator.validate(name)
 
         // Then
         XCTAssertEqual(result, .valid, "Name should be valid after trimming trailing whitespace")
     }
 
-    func testValidate_TrimsThenChecksLength() {
+    func testValidate_TrimsThenChecksLength() async {
         // Given
         let validator = makeValidator()
         // "A" + spaces = after trim only 1 character
         let name = "A   "
 
         // When
-        let result = validator.validate(name)
+        let result = await validator.validate(name)
 
         // Then
         XCTAssertFalse(result.isValid, "After trimming, name is too short")

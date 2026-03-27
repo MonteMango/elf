@@ -157,14 +157,14 @@ public final class CharacterCreationViewModel {
     // MARK: - Stage 2: Name Actions
 
     /// Generate random name
-    public func generateRandomName() {
+    public func generateRandomName() async {
         characterName = nameSuggestionService.generateRandomName()
-        validateName()
+        await validateName()
     }
 
     /// Validate character name
-    public func validateName() {
-        let result = nameValidator.validate(characterName)
+    public func validateName() async {
+        let result = await nameValidator.validate(characterName)
         nameValidationError = result.errorMessage
     }
 

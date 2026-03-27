@@ -74,10 +74,10 @@ struct CharacterCreationScreenContent: View {
                                 validationError: $viewModel.nameValidationError,
                                 safeAreaInsets: safeArea,
                                 onRandomName: {
-                                    viewModel.generateRandomName()
+                                    await viewModel.generateRandomName()
                                 },
                                 onNameChanged: {
-                                    viewModel.validateName()
+                                    await viewModel.validateName()
                                 },
                                 isTextFieldFocused: $isTextFieldFocused
                             )
