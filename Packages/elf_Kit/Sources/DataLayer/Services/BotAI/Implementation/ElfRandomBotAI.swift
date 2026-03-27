@@ -15,15 +15,11 @@ public final class ElfRandomBotAI: BotAIService {
 
     // MARK: - BotAIService
 
-    public func selectAttackPoints(count: Int) -> Set<BodyPart> {
+    public func selectAttackPoints(count: Int) async -> Set<BodyPart> {
         Set(allBodyParts.shuffled().prefix(count))
     }
 
-    public func selectDefensePoints(count: Int) -> Set<BodyPart> {
+    public func selectDefensePoints(count: Int) async -> Set<BodyPart> {
         Set(allBodyParts.shuffled().prefix(count))
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: Single immutable (let) stored property `allBodyParts` is an array of value types.
-extension ElfRandomBotAI: @unchecked Sendable {}

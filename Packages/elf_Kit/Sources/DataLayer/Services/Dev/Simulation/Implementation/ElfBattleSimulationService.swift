@@ -73,12 +73,12 @@ public final class ElfBattleSimulationService: BattleSimulationService {
             let roundStartBot2HP = bot2HP
 
             // Bot1 selects attack and defense
-            let bot1Attack = botAI.selectAttackPoints(count: bot1Snapshot.attackPoints)
-            let bot1Defense = botAI.selectDefensePoints(count: bot1Snapshot.defensePoints)
+            let bot1Attack = await botAI.selectAttackPoints(count: bot1Snapshot.attackPoints)
+            let bot1Defense = await botAI.selectDefensePoints(count: bot1Snapshot.defensePoints)
 
             // Bot2 selects attack and defense
-            let bot2Attack = botAI.selectAttackPoints(count: bot2Snapshot.attackPoints)
-            let bot2Defense = botAI.selectDefensePoints(count: bot2Snapshot.defensePoints)
+            let bot2Attack = await botAI.selectAttackPoints(count: bot2Snapshot.attackPoints)
+            let bot2Defense = await botAI.selectDefensePoints(count: bot2Snapshot.defensePoints)
 
             // Calculate both attacks in parallel
             async let bot1ResultsTask = snapshotCombatCalculator.calculatePointStatus(

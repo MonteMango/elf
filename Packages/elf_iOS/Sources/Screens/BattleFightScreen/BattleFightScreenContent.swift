@@ -147,7 +147,7 @@ internal struct BattleFightScreenContent: View {
                 if hasNoSelection {
                     // AUTO button - when nothing is selected
                     Button(action: {
-                        viewModel.autoFillPoints()
+                        Task { await viewModel.autoFillPoints() }
                     }) {
                         Text("AUTO")
                             .font(ElfFonts.Component.actionButton)

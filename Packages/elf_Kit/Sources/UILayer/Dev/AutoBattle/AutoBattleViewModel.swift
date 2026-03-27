@@ -111,12 +111,12 @@ public final class AutoBattleViewModel {
                 let roundStartBot2HP = bot2HP
 
                 // Bot1 selects attack and defense
-                let bot1Attack = ai.selectAttackPoints(count: bot1Snapshot.attackPoints)
-                let bot1Defense = ai.selectDefensePoints(count: bot1Snapshot.defensePoints)
+                let bot1Attack = await ai.selectAttackPoints(count: bot1Snapshot.attackPoints)
+                let bot1Defense = await ai.selectDefensePoints(count: bot1Snapshot.defensePoints)
 
                 // Bot2 selects attack and defense
-                let bot2Attack = ai.selectAttackPoints(count: bot2Snapshot.attackPoints)
-                let bot2Defense = ai.selectDefensePoints(count: bot2Snapshot.defensePoints)
+                let bot2Attack = await ai.selectAttackPoints(count: bot2Snapshot.attackPoints)
+                let bot2Defense = await ai.selectDefensePoints(count: bot2Snapshot.defensePoints)
 
                 // Calculate both attacks in parallel
                 async let bot1ResultsTask = calculator.calculatePointStatus(

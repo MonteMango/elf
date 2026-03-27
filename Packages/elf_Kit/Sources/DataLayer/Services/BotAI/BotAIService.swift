@@ -11,10 +11,10 @@ public protocol BotAIService: Sendable {
     /// Select attack points based on count
     /// - Parameter count: Number of attack points to select
     /// - Returns: Set of body parts to attack
-    func selectAttackPoints(count: Int) -> Set<BodyPart>
+    func selectAttackPoints(count: Int) async -> Set<BodyPart>
 
     /// Select defense points based on count
     /// - Parameter count: Number of defense points to select
     /// - Returns: Set of body parts to defend
-    func selectDefensePoints(count: Int) -> Set<BodyPart>
+    func selectDefensePoints(count: Int) async -> Set<BodyPart>
 }

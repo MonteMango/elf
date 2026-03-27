@@ -144,9 +144,9 @@ public final class BattleFightViewModel {
         }
     }
 
-    public func autoFillPoints() {
-        playerAttackPoints = botAI.selectAttackPoints(count: playerSnapshot.attackPoints)
-        playerDefensePoints = botAI.selectDefensePoints(count: playerSnapshot.defensePoints)
+    public func autoFillPoints() async {
+        playerAttackPoints = await botAI.selectAttackPoints(count: playerSnapshot.attackPoints)
+        playerDefensePoints = await botAI.selectDefensePoints(count: playerSnapshot.defensePoints)
     }
 
     // MARK: - Round Execution
@@ -161,8 +161,8 @@ public final class BattleFightViewModel {
         }
 
         // Generate bot selections using BotAI service
-        botAttackPoints = botAI.selectAttackPoints(count: botSnapshot.attackPoints)
-        botDefensePoints = botAI.selectDefensePoints(count: botSnapshot.defensePoints)
+        botAttackPoints = await botAI.selectAttackPoints(count: botSnapshot.attackPoints)
+        botDefensePoints = await botAI.selectDefensePoints(count: botSnapshot.defensePoints)
 
         // Log round start
         debugLogger.logRoundStart(
