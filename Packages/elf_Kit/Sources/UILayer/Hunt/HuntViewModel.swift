@@ -67,7 +67,8 @@ public final class HuntViewModel {
 
     /// Player's current level (determines monster level)
     public func playerLevel() async -> Int {
-        await progressionService.calculateLevel(currentExp: gameService.game.player.currentExp)
+        let player = (await gameService.game).player
+        return await progressionService.calculateLevel(currentExp: player.currentExp)
     }
 
     /// Current world (for now, always upper world)
@@ -93,6 +94,7 @@ public final class HuntViewModel {
         progressionService: any ProgressionService,
         equipmentQueryService: any EquipmentQueryService
     ) {
+        self.game = gameService.currentGame
         self.gameService = gameService
         self.monsterRepository = monsterRepository
         self.materialRepository = materialRepository
@@ -100,12 +102,12 @@ public final class HuntViewModel {
         self.snapshotBuilder = snapshotBuilder
         self.progressionService = progressionService
         self.equipmentQueryService = equipmentQueryService
-        self.game = gameService.game
     }
 
     // MARK: - Game State Observation
 
     public func observeGameState() async {
+        await loadMonsters()
         for await game in gameService.gameUpdates() {
             self.game = game
         }
@@ -130,11 +132,9 @@ public final class HuntViewModel {
     // MARK: - Actions
 
     /// Advances to the next day and restores action points
-    public func advanceToNextDay() {
-        gameService.advanceToNextDay()
-        Task {
-            try? await gameService.saveGame()
-        }
+    public func advanceToNextDay() async {
+        await gameService.advanceToNextDay()
+        try? await gameService.saveGame()
     }
 
     /// Starts a hunt: spends action points, selects random monster, returns Battle
@@ -148,10 +148,10 @@ public final class HuntViewModel {
         }
 
         // 2. Spend action points (only after confirming monster exists)
-        gameService.spendActionPoints(huntCost)
+        await gameService.spendActionPoints(huntCost)
 
         // 3. Build player snapshot from ElfInfo
-        let player = gameService.game.player
+        let player = (await gameService.game).player
         let selectedItems: [HeroItemType: UUID?] = await equipmentQueryService.equippedBaseItemIds(from: player.equipped).mapValues { $0 }
 
         guard let playerSnapshot = await snapshotBuilder.buildSnapshot(

@@ -40,7 +40,7 @@ struct HuntScreenContent: View {
                     backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
                 ),
                 upcomingDays: upcomingDaysData,
-                onNextDay: { viewModel.advanceToNextDay() },
+                onNextDay: { Task { await viewModel.advanceToNextDay() } },
                 onBack: { router.pop() },
                 onCalendarTap: {
                     router.navigate(to: .calendar(
@@ -64,7 +64,6 @@ struct HuntScreenContent: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(ElfColors.Background.primary)
-        .task { await viewModel.loadMonsters() }
         .task { await viewModel.observeGameState() }
     }
 

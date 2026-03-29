@@ -9,19 +9,15 @@ import Foundation
 
 /// Default implementation of EquipmentService
 /// Uses GameService for state access and low-level mutations
-@MainActor
+// TODO: - Race condition: each method reads game state and then writes back in separate actor hops.
+// Between read and write another Task can modify the state (e.g. two concurrent equipArmor calls
+// both see the same free slot). Fix by either making this an actor, or moving equip logic
+// into DefaultGameService where mutations are serialized.
 public final class DefaultEquipmentService: EquipmentService {
 
     // MARK: - Dependencies
 
     private let gameService: GameService
-
-    // MARK: - Convenience
-
-    private var player: ElfInfo {
-        let game = gameService.game
-        return game.houses[game.playerHouseIndex].members[game.playerMemberIndex]
-    }
 
     // MARK: - Initialization
 
@@ -31,7 +27,10 @@ public final class DefaultEquipmentService: EquipmentService {
 
     // MARK: - Weapon
 
-    public func equipWeapon(id: UUID) {
+    public func equipWeapon(id: UUID) async {
+        let game = await gameService.game
+        let player = game.houses[game.playerHouseIndex].members[game.playerMemberIndex]
+
         guard let weapon = player.inventory.weapons.first(where: { $0.id == id }),
               let weaponItem = weapon.item as? WeaponItem else { return }
 
@@ -39,52 +38,64 @@ public final class DefaultEquipmentService: EquipmentService {
 
         switch weaponItem.handUse {
         case .both:
-            gameService.setWeaponConfiguration(.twoHanded(weapon: weapon))
+            await gameService.setWeaponConfiguration(.twoHanded(weapon: weapon))
         case .primary:
             if let existingShield = currentConfig.shield {
-                gameService.setWeaponConfiguration(.oneHandedWithShield(weapon: weapon, shield: existingShield))
+                await gameService.setWeaponConfiguration(.oneHandedWithShield(weapon: weapon, shield: existingShield))
             } else {
-                gameService.setWeaponConfiguration(.oneHanded(weapon: weapon))
+                await gameService.setWeaponConfiguration(.oneHanded(weapon: weapon))
             }
         case .secondary:
-            gameService.setWeaponConfiguration(.dualWield(primary: currentConfig.weapon, secondary: weapon))
+            await gameService.setWeaponConfiguration(.dualWield(primary: currentConfig.weapon, secondary: weapon))
         }
     }
 
-    public func unequipWeapon(id: UUID) {
+    public func unequipWeapon(id: UUID) async {
+        let game = await gameService.game
+        let player = game.houses[game.playerHouseIndex].members[game.playerMemberIndex]
+
         guard case .dualWield(let primary, let secondary) = player.equipped.weapons else { return }
 
         if primary.id == id {
-            gameService.setWeaponConfiguration(.oneHanded(weapon: secondary))
+            await gameService.setWeaponConfiguration(.oneHanded(weapon: secondary))
         } else {
-            gameService.setWeaponConfiguration(.oneHanded(weapon: primary))
+            await gameService.setWeaponConfiguration(.oneHanded(weapon: primary))
         }
     }
 
     // MARK: - Shield
 
-    public func equipShield(id: UUID) {
+    public func equipShield(id: UUID) async {
+        let game = await gameService.game
+        let player = game.houses[game.playerHouseIndex].members[game.playerMemberIndex]
+
         guard let shield = player.inventory.shields.first(where: { $0.id == id }) else { return }
 
         switch player.equipped.weapons {
         case .oneHanded(let weapon), .oneHandedWithShield(let weapon, _):
-            gameService.setWeaponConfiguration(.oneHandedWithShield(weapon: weapon, shield: shield))
+            await gameService.setWeaponConfiguration(.oneHandedWithShield(weapon: weapon, shield: shield))
         case .twoHanded, .dualWield:
             break // Cannot equip shield with two-handed or dual-wield
         }
     }
 
-    public func unequipShield() {
+    public func unequipShield() async {
+        let game = await gameService.game
+        let player = game.houses[game.playerHouseIndex].members[game.playerMemberIndex]
+
         if case .oneHandedWithShield(let weapon, _) = player.equipped.weapons {
-            gameService.setWeaponConfiguration(.oneHanded(weapon: weapon))
+            await gameService.setWeaponConfiguration(.oneHanded(weapon: weapon))
         }
     }
 
     // MARK: - Armor
 
-    public func equipArmor(id: UUID) {
+    public func equipArmor(id: UUID) async {
+        let game = await gameService.game
+        let player = game.houses[game.playerHouseIndex].members[game.playerMemberIndex]
+
         if let robe = player.inventory.robes.first(where: { $0.id == id }) {
-            gameService.equipShirt(robe)
+            await gameService.equipShirt(robe)
             return
         }
 
@@ -92,7 +103,7 @@ public final class DefaultEquipmentService: EquipmentService {
               let defenseItem = armor.item as? DefenseItem,
               let slot = determineArmorSlot(from: defenseItem) else { return }
 
-        gameService.equipArmor(armor, slot: slot)
+        await gameService.equipArmor(armor, slot: slot)
     }
 
     private func determineArmorSlot(from defenseItem: DefenseItem) -> ArmorSlot? {
@@ -108,51 +119,58 @@ public final class DefaultEquipmentService: EquipmentService {
         return nil
     }
 
-    public func unequipArmor(id: UUID) {
+    public func unequipArmor(id: UUID) async {
+        let game = await gameService.game
+        let player = game.houses[game.playerHouseIndex].members[game.playerMemberIndex]
         let equipped = player.equipped
 
         if equipped.shirt?.id == id {
-            gameService.equipShirt(nil)
+            await gameService.equipShirt(nil)
         } else if equipped.helmet?.id == id {
-            gameService.equipArmor(nil, slot: .helmet)
+            await gameService.equipArmor(nil, slot: .helmet)
         } else if equipped.gloves?.id == id {
-            gameService.equipArmor(nil, slot: .gloves)
+            await gameService.equipArmor(nil, slot: .gloves)
         } else if equipped.shoes?.id == id {
-            gameService.equipArmor(nil, slot: .shoes)
+            await gameService.equipArmor(nil, slot: .shoes)
         } else if equipped.upperBody?.id == id {
-            gameService.equipArmor(nil, slot: .upperBody)
+            await gameService.equipArmor(nil, slot: .upperBody)
         } else if equipped.bottomBody?.id == id {
-            gameService.equipArmor(nil, slot: .bottomBody)
+            await gameService.equipArmor(nil, slot: .bottomBody)
         }
     }
 
     // MARK: - Jewelry
 
-    public func equipJewelry(id: UUID) {
+    public func equipJewelry(id: UUID) async {
+        let game = await gameService.game
+        let player = game.houses[game.playerHouseIndex].members[game.playerMemberIndex]
+
         guard let jewelry = player.inventory.jewelry.first(where: { $0.id == id }) else { return }
 
         let equipped = player.equipped
 
         if equipped.ring == nil {
-            gameService.equipJewelry(jewelry, slot: .ring)
+            await gameService.equipJewelry(jewelry, slot: .ring)
         } else if equipped.necklace == nil {
-            gameService.equipJewelry(jewelry, slot: .necklace)
+            await gameService.equipJewelry(jewelry, slot: .necklace)
         } else if equipped.earrings == nil {
-            gameService.equipJewelry(jewelry, slot: .earrings)
+            await gameService.equipJewelry(jewelry, slot: .earrings)
         } else {
-            gameService.equipJewelry(jewelry, slot: .ring) // Replace ring by default
+            await gameService.equipJewelry(jewelry, slot: .ring) // Replace ring by default
         }
     }
 
-    public func unequipJewelry(id: UUID) {
+    public func unequipJewelry(id: UUID) async {
+        let game = await gameService.game
+        let player = game.houses[game.playerHouseIndex].members[game.playerMemberIndex]
         let equipped = player.equipped
 
         if equipped.ring?.id == id {
-            gameService.equipJewelry(nil, slot: .ring)
+            await gameService.equipJewelry(nil, slot: .ring)
         } else if equipped.necklace?.id == id {
-            gameService.equipJewelry(nil, slot: .necklace)
+            await gameService.equipJewelry(nil, slot: .necklace)
         } else if equipped.earrings?.id == id {
-            gameService.equipJewelry(nil, slot: .earrings)
+            await gameService.equipJewelry(nil, slot: .earrings)
         }
     }
 }

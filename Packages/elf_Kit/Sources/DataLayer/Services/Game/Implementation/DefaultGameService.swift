@@ -6,24 +6,44 @@
 //
 
 import Foundation
+import os
 
 /// Default implementation of GameService
-/// Uses AsyncStream to broadcast game state changes to subscribers
-@MainActor
-public final class DefaultGameService: GameService {
+/// Actor-isolated: all game state mutations are serialized for thread safety
+/// Uses AsyncStream to broadcast changes, OSAllocatedUnfairLock for sync reads
+public actor DefaultGameService: @preconcurrency GameService {
 
     // MARK: - Properties
 
+    // TODO: - Performance: Game struct copying & comparison will degrade with scale.
+    // Currently 80 characters (8 houses × 10 members), each with inventory & equipment.
+    // Every mutation copies the entire Game struct, runs O(total state) Equatable check,
+    // and broadcasts the full copy to all subscribers.
+    // When scaling to hundreds of characters with large inventories, consider splitting Game
+    // into granular domains (gameState, houses, per-character access) so mutations, comparisons,
+    // and subscriptions are scoped to only what changed.
     public private(set) var game: Game {
         didSet {
             guard game != oldValue else { return }
+            let snapshot = game
+            gameSnapshot.withLock { $0 = snapshot }
             for continuation in continuations.values {
-                continuation.yield(game)
+                continuation.yield(snapshot)
             }
         }
     }
 
     public private(set) var playTime: TimeInterval
+
+    // MARK: - Sync Snapshot
+
+    private let gameSnapshot: OSAllocatedUnfairLock<Game>
+
+    /// Thread-safe synchronous read of current game state.
+    /// Use for VM initialization; use gameUpdates() for reactive observation.
+    nonisolated public var currentGame: Game {
+        gameSnapshot.withLock { $0 }
+    }
 
     // MARK: - Stream
 
@@ -34,11 +54,15 @@ public final class DefaultGameService: GameService {
         return AsyncStream(bufferingPolicy: .bufferingNewest(1)) { continuation in
             self.continuations[id] = continuation
             continuation.onTermination = { [weak self] _ in
-                Task { @MainActor [weak self] in
-                    self?.continuations.removeValue(forKey: id)
+                Task { [weak self] in
+                    await self?.removeContinuation(id)
                 }
             }
         }
+    }
+
+    private func removeContinuation(_ id: UUID) {
+        continuations.removeValue(forKey: id)
     }
 
     // MARK: - Player Access
@@ -66,6 +90,7 @@ public final class DefaultGameService: GameService {
         playTime: TimeInterval = 0
     ) {
         self.game = game
+        self.gameSnapshot = OSAllocatedUnfairLock(initialState: game)
         self.gameRepository = gameRepository
         self.itemsRepository = itemsRepository
         self.inventoryService = inventoryService

@@ -53,8 +53,8 @@ public final class CraftViewModel {
     public var filteredRecipes: [CraftRecipeListItem] = []
     public var selectedRecipeDetail: CraftRecipeDetail?
 
-    private var inventory: ElfInventory {
-        gameService.game.player.inventory
+    private func inventory() async -> ElfInventory {
+        (await gameService.game).player.inventory
     }
 
     // MARK: - Data Loading
@@ -97,10 +97,12 @@ public final class CraftViewModel {
         Task { await refreshSelectedDetail() }
     }
 
+    // TODO: - Race condition: inventory() is called twice (canCraft + deductMaterials) with separate
+    // actor hops. Game state can change between calls. Capture inventory once before both operations.
     public func craft() async {
         guard let recipeId = selectedRecipeId,
               let recipe = await recipeRepository.getById(id: recipeId),
-              await craftService.canCraft(recipe: recipe, inventory: inventory) else { return }
+              await craftService.canCraft(recipe: recipe, inventory: await inventory()) else { return }
 
         // Validate item exists BEFORE deducting materials
         guard let item = await itemsRepository.getHeroItem(recipe.resultItemId) else { return }
@@ -108,10 +110,10 @@ public final class CraftViewModel {
         isCrafting = true
         try? await Task.sleep(for: .seconds(2))
 
-        var updatedInventory = await craftService.deductMaterials(recipe: recipe, from: inventory)
+        var updatedInventory = await craftService.deductMaterials(recipe: recipe, from: await inventory())
         updatedInventory = inventoryService.addCraftedItem(item, to: updatedInventory)
 
-        gameService.applyCraftResult(updatedInventory)
+        await gameService.applyCraftResult(updatedInventory)
         isCrafting = false
     }
 
@@ -140,6 +142,7 @@ public final class CraftViewModel {
 
     private func buildDetail(from recipe: Recipe) async -> CraftRecipeDetail {
         let item = await itemsRepository.getHeroItem(recipe.resultItemId)
+        let currentInventory = await inventory()
         let title = item?.title ?? "Unknown"
         let imageName = itemImageName(for: item)
         let shortInfo = buildShortInfo(for: item)
@@ -155,7 +158,7 @@ public final class CraftViewModel {
         var ingredientDisplays: [CraftIngredientDisplay] = []
         for ingredient in recipe.ingredients {
             let material = await materialRepository.getById(id: ingredient.itemId)
-            let inBag = inventory.materials.first(where: { $0.id == ingredient.itemId })?.quantity ?? 0
+            let inBag = currentInventory.materials.first(where: { $0.id == ingredient.itemId })?.quantity ?? 0
             ingredientDisplays.append(CraftIngredientDisplay(
                 id: ingredient.itemId,
                 imageName: material?.imageName ?? "questionmark",
@@ -165,8 +168,8 @@ public final class CraftViewModel {
             ))
         }
 
-        let canCraft = await craftService.canCraft(recipe: recipe, inventory: inventory)
-        let missing = await craftService.getMissingIngredients(recipe: recipe, inventory: inventory)
+        let canCraft = await craftService.canCraft(recipe: recipe, inventory: currentInventory)
+        let missing = await craftService.getMissingIngredients(recipe: recipe, inventory: currentInventory)
 
         return CraftRecipeDetail(
             recipeId: recipe.id,

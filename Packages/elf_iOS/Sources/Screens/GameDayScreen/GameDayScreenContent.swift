@@ -20,7 +20,7 @@ internal struct GameDayScreenContent: View {
     }
 
     private var upcomingDaysData: [CalendarDayData] {
-        viewModel.gameState.upcomingDays.map {
+        viewModel.upcomingDays.map {
             CalendarDayData(
                 id: $0.id,
                 dayNumber: $0.dayNumber,
@@ -66,7 +66,6 @@ internal struct GameDayScreenContent: View {
         .background(ElfColors.Background.primary)
         .task {
             inventoryViewModel.onClose = viewModel.closeInventory
-            await viewModel.loadProgression()
         }
         .task { await viewModel.observeGameState() }
     }
@@ -112,11 +111,11 @@ internal struct GameDayScreenContent: View {
     private var centerSection: some View {
         VStack(spacing: ElfSpacing.section) {
             elf_SwiftUI.ActionPointsBar(
-                current: viewModel.gameState.currentActionPoints,
-                max: viewModel.gameState.maxActionPoints,
+                current: viewModel.currentActionPoints,
+                max: viewModel.maxActionPoints,
                 showNextDayButton: true,
-                isLastDay: viewModel.gameState.isLastDay,
-                onNextDay: { viewModel.onConfirmActionPoints() }
+                isLastDay: viewModel.isLastDay,
+                onNextDay: { Task { await viewModel.onConfirmActionPoints() } }
             )
 
             // Action Buttons
@@ -149,15 +148,15 @@ internal struct GameDayScreenContent: View {
 
                 elf_SwiftUI.CalendarSection(
                     currentDay: CalendarDayData(
-                        id: viewModel.gameState.currentDay.id,
-                        dayNumber: viewModel.gameState.currentDay.dayNumber,
-                        backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.gameState.currentDay.dayType.rawValue)
+                        id: viewModel.currentDay.id,
+                        dayNumber: viewModel.currentDay.dayNumber,
+                        backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
                     ),
                     upcomingDays: upcomingDaysData,
                     onTap: {
                         router.navigate(to: .calendar(
-                            calendar: viewModel.gameState.calendar,
-                            currentDayNumber: viewModel.gameState.currentDay.dayNumber
+                            calendar: viewModel.calendar,
+                            currentDayNumber: viewModel.currentDay.dayNumber
                         ))
                     }
                 )

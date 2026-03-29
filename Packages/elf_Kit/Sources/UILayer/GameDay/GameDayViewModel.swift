@@ -69,8 +69,28 @@ public final class GameDayViewModel {
 
     // MARK: - Computed Properties (Game State)
 
-    public var gameState: GameState {
-        game.gameState
+    public var currentActionPoints: Int {
+        game.gameState.currentActionPoints
+    }
+
+    public var maxActionPoints: Int {
+        game.gameState.maxActionPoints
+    }
+
+    public var isLastDay: Bool {
+        game.gameState.isLastDay
+    }
+
+    public var currentDay: GameDay {
+        game.gameState.currentDay
+    }
+
+    public var upcomingDays: [GameDay] {
+        game.gameState.upcomingDays
+    }
+
+    public var calendar: [GameDay] {
+        game.gameState.calendar
     }
 
     // MARK: - Initialization
@@ -83,13 +103,14 @@ public final class GameDayViewModel {
         self.gameService = gameService
         self.progressionService = progressionService
         self.equipmentQueryService = equipmentQueryService
-        self.game = gameService.game
+        self.game = gameService.currentGame
         self.activeBuffs = []
     }
 
     // MARK: - Game State Observation
 
     public func observeGameState() async {
+        await loadProgression()
         for await game in gameService.gameUpdates() {
             self.game = game
         }
@@ -131,7 +152,6 @@ public final class GameDayViewModel {
 
     /// Called when an equipment slot is tapped
     public func onEquipmentSlotTapped(_ slotType: HeroItemType) async {
-        // Get the equipped item's instance ID for this slot
         let itemId = await equipmentQueryService.equippedItemId(for: slotType, in: game.player.equipped)
         pendingInventoryItemId = itemId
         isInventoryVisible = true
@@ -149,13 +169,8 @@ public final class GameDayViewModel {
     }
 
     /// Called when confirm action points button is tapped
-    public func onConfirmActionPoints() {
-        // Spend all remaining action points and advance to next day
-        gameService.advanceToNextDay()
-
-        // Auto-save after day change
-        Task {
-            try? await gameService.saveGame()
-        }
+    public func onConfirmActionPoints() async {
+        await gameService.advanceToNextDay()
+        try? await gameService.saveGame()
     }
 }

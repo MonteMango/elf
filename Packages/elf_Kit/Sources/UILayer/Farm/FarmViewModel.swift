@@ -62,12 +62,13 @@ public final class FarmViewModel {
     public init(gameService: any GameService, progressionService: any ProgressionService) {
         self.gameService = gameService
         self.progressionService = progressionService
-        self.game = gameService.game
+        self.game = gameService.currentGame
     }
 
     // MARK: - Game State Observation
 
     public func observeGameState() async {
+        await loadSkills()
         for await game in gameService.gameUpdates() {
             self.game = game
         }
@@ -76,7 +77,7 @@ public final class FarmViewModel {
     // MARK: - Data Loading
 
     public func loadSkills() async {
-        let player = gameService.game.player
+        let player = (await gameService.game).player
         foragingLevel = await progressionService.farmingLevel(exp: player.foragingExp)
         foragingProgress = await progressionService.farmingProgress(exp: player.foragingExp)
         fishingLevel = await progressionService.farmingLevel(exp: player.fishingExp)
@@ -87,10 +88,8 @@ public final class FarmViewModel {
 
     // MARK: - Actions
 
-    public func advanceToNextDay() {
-        gameService.advanceToNextDay()
-        Task {
-            try? await gameService.saveGame()
-        }
+    public func advanceToNextDay() async {
+        await gameService.advanceToNextDay()
+        try? await gameService.saveGame()
     }
 }

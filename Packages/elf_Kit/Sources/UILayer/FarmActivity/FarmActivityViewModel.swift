@@ -78,7 +78,8 @@ public final class FarmActivityViewModel {
 
     /// Player's current level (determines monster level)
     private func playerLevel() async -> Int {
-        await progressionService.calculateLevel(currentExp: gameService.game.player.currentExp)
+        let player = (await gameService.game).player
+        return await progressionService.calculateLevel(currentExp: player.currentExp)
     }
 
     /// Current world (for now, always upper world)
@@ -132,6 +133,7 @@ public final class FarmActivityViewModel {
         monsterRepository: (any MonsterRepository)? = nil,
         snapshotBuilder: (any CombatantSnapshotBuilder)? = nil
     ) {
+        self.game = gameService.currentGame
         self.activity = activity
         self.gameService = gameService
         self.farmActivityService = farmActivityService
@@ -139,12 +141,12 @@ public final class FarmActivityViewModel {
         self.equipmentQueryService = equipmentQueryService
         self.monsterRepository = monsterRepository
         self.snapshotBuilder = snapshotBuilder
-        self.game = gameService.game
     }
 
     // MARK: - Game State Observation
 
     public func observeGameState() async {
+        await loadData()
         for await game in gameService.gameUpdates() {
             self.game = game
         }
@@ -156,7 +158,7 @@ public final class FarmActivityViewModel {
     public func loadData() async {
         availableItems = await farmActivityService.getAvailableItems(for: activity)
 
-        let info = await farmActivityService.getSkillInfo(for: activity, player: gameService.game.player)
+        let info = await farmActivityService.getSkillInfo(for: activity, player: (await gameService.game).player)
         skillTitle = info.title
         skillLevel = info.level
         skillProgress = info.progress
@@ -171,11 +173,9 @@ public final class FarmActivityViewModel {
 
     // MARK: - Actions
 
-    public func advanceToNextDay() {
-        gameService.advanceToNextDay()
-        Task(priority: .userInitiated) {
-            try? await gameService.saveGame()
-        }
+    public func advanceToNextDay() async {
+        await gameService.advanceToNextDay()
+        try? await gameService.saveGame()
     }
 
     // MARK: - Unified Activity Action
@@ -185,7 +185,7 @@ public final class FarmActivityViewModel {
         guard canPerformAction else { return }
 
         // Spend action points
-        gameService.spendActionPoints(actionCost)
+        await gameService.spendActionPoints(actionCost)
 
         // Set activity state
         activityState = .performing
@@ -208,16 +208,14 @@ public final class FarmActivityViewModel {
         )
 
         // Apply result to game state
-        farmActivityService.applyResult(result, to: gameService)
+        await farmActivityService.applyResult(result, to: gameService)
 
         // Set result (will trigger modal presentation via onChange in View)
         activityResult = result
         activityState = .idle
 
         // Save game
-        Task(priority: .userInitiated) {
-            try? await gameService.saveGame()
-        }
+        try? await gameService.saveGame()
     }
 
     /// Clear activity result after modal has been presented
@@ -231,11 +229,11 @@ public final class FarmActivityViewModel {
     private var currentActivityExp: Int {
         switch activity {
         case .fishing:
-            return gameService.game.player.fishingExp
+            return game.player.fishingExp
         case .foraging:
-            return gameService.game.player.foragingExp
+            return game.player.foragingExp
         case .mining:
-            return gameService.game.player.miningExp
+            return game.player.miningExp
         }
     }
 
@@ -267,7 +265,7 @@ public final class FarmActivityViewModel {
         }
 
         // Build player snapshot
-        let player = gameService.game.player
+        let player = (await gameService.game).player
         let selectedItems: [HeroItemType: UUID?] = await equipmentQueryService.equippedBaseItemIds(from: player.equipped).mapValues { $0 }
 
         guard let playerSnapshot = await snapshotBuilder.buildSnapshot(

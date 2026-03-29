@@ -252,7 +252,12 @@ public final class BattleFightViewModel {
 
         let outcome = determineBattleOutcome()
         let monster = await getMonsterFromBot()
-        let currentExp = gameService?.game.player.currentExp ?? 0
+        let currentExp: Int
+        if let gameService {
+            currentExp = (await gameService.game).player.currentExp
+        } else {
+            currentExp = 0
+        }
 
         guard let calculator = battleResultCalculator else {
             // Fallback for battles without result calculator
@@ -287,7 +292,7 @@ public final class BattleFightViewModel {
 
         // Add XP
         if result.experienceGained > 0 {
-            gameService.addPlayerExperience(result.experienceGained)
+            await gameService.addPlayerExperience(result.experienceGained)
         }
 
         // Add drops to inventory
@@ -296,14 +301,12 @@ public final class BattleFightViewModel {
         }
 
         // Save game
-        Task(priority: .userInitiated) {
-            do {
-                try await gameService.saveGame()
-            } catch {
-                #if DEBUG
-                print("[BattleFightViewModel] Failed to save game: \(error)")
-                #endif
-            }
+        do {
+            try await gameService.saveGame()
+        } catch {
+            #if DEBUG
+            print("[BattleFightViewModel] Failed to save game: \(error)")
+            #endif
         }
     }
 

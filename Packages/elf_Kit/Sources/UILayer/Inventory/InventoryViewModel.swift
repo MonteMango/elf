@@ -34,8 +34,8 @@ public final class InventoryViewModel {
 
     // MARK: - Internal Access
 
-    var player: ElfInfo {
-        gameService.game.player
+    func player() async -> ElfInfo {
+        (await gameService.game).player
     }
 
     // MARK: - Cached State
@@ -162,14 +162,14 @@ public final class InventoryViewModel {
         }
     }
 
-    public func equipSelectedItem() {
+    public func equipSelectedItem() async {
         guard let item = selectedItem, !item.isEquipped else { return }
-        equipItem(item)
+        await equipItem(item)
     }
 
-    public func unequipSelectedItem() {
+    public func unequipSelectedItem() async {
         guard let item = selectedItem, item.isEquipped else { return }
-        unequipItem(item)
+        await unequipItem(item)
     }
 
     public func closeInventory() {

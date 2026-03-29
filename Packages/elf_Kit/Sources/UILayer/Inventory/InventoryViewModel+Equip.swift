@@ -11,22 +11,22 @@ import Foundation
 
 extension InventoryViewModel {
 
-    func equipItem(_ item: InventoryDisplayItem) {
+    func equipItem(_ item: InventoryDisplayItem) async {
         switch item.itemDetails {
-        case .weapon:  equipmentService.equipWeapon(id: item.id)
-        case .shield:  equipmentService.equipShield(id: item.id)
-        case .armor:   equipmentService.equipArmor(id: item.id)
-        case .jewelry: equipmentService.equipJewelry(id: item.id)
+        case .weapon:  await equipmentService.equipWeapon(id: item.id)
+        case .shield:  await equipmentService.equipShield(id: item.id)
+        case .armor:   await equipmentService.equipArmor(id: item.id)
+        case .jewelry: await equipmentService.equipJewelry(id: item.id)
         default:       break
         }
     }
 
-    func unequipItem(_ item: InventoryDisplayItem) {
+    func unequipItem(_ item: InventoryDisplayItem) async {
         switch item.itemDetails {
-        case .weapon:  equipmentService.unequipWeapon(id: item.id)
-        case .shield:  equipmentService.unequipShield()
-        case .armor:   equipmentService.unequipArmor(id: item.id)
-        case .jewelry: equipmentService.unequipJewelry(id: item.id)
+        case .weapon:  await equipmentService.unequipWeapon(id: item.id)
+        case .shield:  await equipmentService.unequipShield()
+        case .armor:   await equipmentService.unequipArmor(id: item.id)
+        case .jewelry: await equipmentService.unequipJewelry(id: item.id)
         default:       break
         }
     }

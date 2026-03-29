@@ -27,8 +27,8 @@ struct InventoryScreenContent: View {
             // Right panel: item details
             ItemDetailPanel(
                 item: viewModel.selectedItem,
-                onEquip: viewModel.equipSelectedItem,
-                onUnequip: viewModel.unequipSelectedItem
+                onEquip: { Task { await viewModel.equipSelectedItem() } },
+                onUnequip: { Task { await viewModel.unequipSelectedItem() } }
             )
             .frame(width: 220)
         }

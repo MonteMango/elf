@@ -82,7 +82,7 @@ struct FarmActivityScreenContent: View {
                 isLastDay: viewModel.isLastDay,
                 currentDay: currentDayData,
                 upcomingDays: upcomingDaysData,
-                onNextDay: { viewModel.advanceToNextDay() },
+                onNextDay: { Task { await viewModel.advanceToNextDay() } },
                 onBack: { dismiss() },
                 onCalendarTap: {
                     showCalendar = true
@@ -142,7 +142,6 @@ struct FarmActivityScreenContent: View {
         .background {
             activityBackground
         }
-        .task { await viewModel.loadData() }
         .task { await viewModel.observeGameState() }
         .toolbar(.hidden, for: .navigationBar)
         .modifier(FarmZoomTransitionModifier(sourceID: viewModel.activity.id, namespace: zoomNamespace))

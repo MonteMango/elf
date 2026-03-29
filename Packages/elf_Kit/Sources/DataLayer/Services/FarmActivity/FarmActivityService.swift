@@ -40,6 +40,5 @@ public protocol FarmActivityService: AnyObject, Sendable {
     /// - Parameters:
     ///   - result: The farm activity result to apply
     ///   - gameService: The game service to update
-    @MainActor
-    func applyResult(_ result: FarmActivityResult, to gameService: any GameStateService)
+    func applyResult(_ result: FarmActivityResult, to gameService: any GameStateService) async
 }

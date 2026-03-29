@@ -50,7 +50,7 @@ struct FarmScreenContent: View {
                 isLastDay: viewModel.isLastDay,
                 currentDay: currentDayData,
                 upcomingDays: upcomingDaysData,
-                onNextDay: { viewModel.advanceToNextDay() },
+                onNextDay: { Task { await viewModel.advanceToNextDay() } },
                 onBack: { router.pop() },
                 onCalendarTap: {
                     router.navigate(to: .calendar(
@@ -69,7 +69,6 @@ struct FarmScreenContent: View {
             Spacer()
         }
         .background(ElfColors.Background.primary)
-        .task { await viewModel.loadSkills() }
         .task { await viewModel.observeGameState() }
     }
 
