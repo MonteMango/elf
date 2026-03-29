@@ -110,19 +110,4 @@ public final class DefaultFarmActivityService: FarmActivityService {
         )
     }
 
-    public func applyResult(_ result: FarmActivityResult, to gameService: any GameStateService) async {
-        switch result {
-        case .fishing(let fishingResult):
-            await gameService.addFishingExperience(fishingResult.skillProgress.experienceGained)
-            await gameService.addFishToInventory(fishingResult.caughtFish)
-
-        case .foraging(let foragingResult):
-            await gameService.addForagingExperience(foragingResult.skillProgress.experienceGained)
-            await gameService.addHerbsToInventory(foragingResult.gatheredHerbs)
-
-        case .mining(let miningResult):
-            await gameService.addMiningExperience(miningResult.skillProgress.experienceGained)
-            await gameService.addOresToInventory(miningResult.minedOres)
-        }
-    }
 }

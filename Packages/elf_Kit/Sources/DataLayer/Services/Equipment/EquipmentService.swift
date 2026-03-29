@@ -9,7 +9,7 @@ import Foundation
 
 /// Protocol for managing player equipment
 /// Handles weapon, armor, shield, and jewelry equipping logic
-public protocol EquipmentService: AnyObject {
+public protocol EquipmentService: Sendable {
 
     // MARK: - Weapon
 

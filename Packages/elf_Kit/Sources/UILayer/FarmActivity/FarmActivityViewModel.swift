@@ -208,7 +208,17 @@ public final class FarmActivityViewModel {
         )
 
         // Apply result to game state
-        await farmActivityService.applyResult(result, to: gameService)
+        switch result {
+        case .fishing(let r):
+            await gameService.addFishingExperience(r.skillProgress.experienceGained)
+            await gameService.addFishToInventory(r.caughtFish)
+        case .foraging(let r):
+            await gameService.addForagingExperience(r.skillProgress.experienceGained)
+            await gameService.addHerbsToInventory(r.gatheredHerbs)
+        case .mining(let r):
+            await gameService.addMiningExperience(r.skillProgress.experienceGained)
+            await gameService.addOresToInventory(r.minedOres)
+        }
 
         // Set result (will trigger modal presentation via onChange in View)
         activityResult = result

@@ -8,7 +8,7 @@
 import Foundation
 
 /// Unified service for all farm activities (fishing, foraging, mining)
-public protocol FarmActivityService: AnyObject, Sendable {
+public protocol FarmActivityService: Sendable {
 
     /// Perform the specified activity and calculate results
     /// - Parameters:
@@ -36,9 +36,4 @@ public protocol FarmActivityService: AnyObject, Sendable {
     /// - Returns: FarmSkillInfo with current skill state
     func getSkillInfo(for activity: FarmActivity, player: ElfInfo) async -> FarmSkillInfo
 
-    /// Apply the result to game state (add items to inventory, add XP)
-    /// - Parameters:
-    ///   - result: The farm activity result to apply
-    ///   - gameService: The game service to update
-    func applyResult(_ result: FarmActivityResult, to gameService: any GameStateService) async
 }
