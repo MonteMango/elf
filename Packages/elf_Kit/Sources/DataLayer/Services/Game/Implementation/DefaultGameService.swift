@@ -201,41 +201,15 @@ public actor DefaultGameService: @preconcurrency GameService {
         }
     }
 
-    // MARK: - Player Equipment
+    // MARK: - Atomic Player Modification
 
-    public func setWeaponConfiguration(_ config: WeaponConfiguration) {
-        player.equipped.weapons = config
+    /// Atomically reads and modifies player state within actor isolation.
+    /// Guarantees no state changes between read and write (no suspension points).
+    public func modifyPlayer(_ transform: @Sendable (inout ElfInfo) -> Void) {
+        transform(&game.houses[game.playerHouseIndex].members[game.playerMemberIndex])
     }
 
-    public func equipArmor(_ armor: ElfDefenseItem?, slot: ArmorSlot) {
-        switch slot {
-        case .helmet:
-            player.equipped.helmet = armor
-        case .gloves:
-            player.equipped.gloves = armor
-        case .shoes:
-            player.equipped.shoes = armor
-        case .upperBody:
-            player.equipped.upperBody = armor
-        case .bottomBody:
-            player.equipped.bottomBody = armor
-        }
-    }
-
-    public func equipJewelry(_ jewelry: ElfJewelryItem?, slot: JewelrySlot) {
-        switch slot {
-        case .ring:
-            player.equipped.ring = jewelry
-        case .necklace:
-            player.equipped.necklace = jewelry
-        case .earrings:
-            player.equipped.earrings = jewelry
-        }
-    }
-
-    public func equipShirt(_ shirt: ElfRobeItem?) {
-        player.equipped.shirt = shirt
-    }
+    // MARK: - Crafting
 
     public func applyCraftResult(_ inventory: ElfInventory) {
         player.inventory = inventory

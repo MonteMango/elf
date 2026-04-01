@@ -67,19 +67,11 @@ public protocol GameStateService: Sendable {
     /// - Parameter ores: Array of ores to add
     func addOresToInventory(_ ores: [Ore]) async
 
-    // MARK: - Player Equipment
+    // MARK: - Atomic Player Modification
 
-    /// Sets the weapon configuration (weapon, shield, dual-wield, etc.)
-    func setWeaponConfiguration(_ config: WeaponConfiguration) async
-
-    /// Equips or unequips armor in the specified slot
-    func equipArmor(_ armor: ElfDefenseItem?, slot: ArmorSlot) async
-
-    /// Equips or unequips jewelry in the specified slot
-    func equipJewelry(_ jewelry: ElfJewelryItem?, slot: JewelrySlot) async
-
-    /// Equips or unequips a shirt
-    func equipShirt(_ shirt: ElfRobeItem?) async
+    /// Atomically reads and modifies player state within actor isolation.
+    /// Guarantees no state changes between read and write (no suspension points).
+    func modifyPlayer(_ transform: @Sendable (inout ElfInfo) -> Void) async
 
     // MARK: - Crafting
 
