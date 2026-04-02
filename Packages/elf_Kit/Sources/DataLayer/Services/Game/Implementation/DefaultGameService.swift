@@ -11,6 +11,9 @@ import os
 /// Default implementation of GameService
 /// Actor-isolated: all game state mutations are serialized for thread safety
 /// Uses AsyncStream to broadcast changes, OSAllocatedUnfairLock for sync reads
+// TODO: [P1] - @preconcurrency suppresses strict concurrency checks for GameService conformance.
+// This allows implementing async protocol requirements without async keyword.
+// Fix: Remove @preconcurrency and ensure all protocol methods match their async signatures.
 public actor DefaultGameService: @preconcurrency GameService {
 
     // MARK: - Properties
@@ -53,6 +56,9 @@ public actor DefaultGameService: @preconcurrency GameService {
         let id = UUID()
         return AsyncStream(bufferingPolicy: .bufferingNewest(1)) { continuation in
             self.continuations[id] = continuation
+            // TODO: [P1] - AsyncStream continuation cleanup: onTermination is a synchronous callback but wraps
+            // removal in an unstructured Task. If actor is deallocated before Task completes, continuation
+            // remains in dictionary (memory leak). Fix: Use Task.detached for cleanup.
             continuation.onTermination = { [weak self] _ in
                 Task { [weak self] in
                     await self?.removeContinuation(id)
@@ -100,6 +106,9 @@ public actor DefaultGameService: @preconcurrency GameService {
 
     // MARK: - Day Management
 
+    // TODO: [P2] - Double didSet trigger: modifying game.gameState.currentDay then calling restoreActionPoints()
+    // triggers didSet twice — two Equatable comparisons, two broadcasts to subscribers.
+    // Subscribers receive intermediate state. Fix: Group mutations into a single operation.
     public func advanceToNextDay() {
         let currentDayNumber = game.gameState.currentDay.dayNumber
         let nextDayNumber = currentDayNumber + 1
@@ -144,6 +153,9 @@ public actor DefaultGameService: @preconcurrency GameService {
         player.miningExp += amount
     }
 
+    // TODO: [P0] - Reentrancy: suspension points (await itemsRepository.getHeroItem) between inventory mutations.
+    // Another actor method can modify player.inventory during suspension, causing materials added before
+    // the suspension to be lost. Fix: Fetch all items upfront, then apply all mutations without suspension.
     public func addDropsToPlayerInventory(rewards: HuntRewards) async {
         // Add materials (stackable)
         for material in rewards.materials {

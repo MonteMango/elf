@@ -11,6 +11,9 @@ import Foundation
 
 extension InventoryViewModel {
 
+    // TODO: [P2] - MainActor misuse: 30+ await calls to equipmentQueryService in loops, all on MainActor.
+    // Data transformation does not need the main thread.
+    // Fix: Build items off main actor via Task.detached, return result to MainActor.
     func buildDisplayItems() async -> [InventoryDisplayItem] {
         var items: [InventoryDisplayItem] = []
 

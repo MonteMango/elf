@@ -85,6 +85,9 @@ public final class CraftViewModel {
 
     // MARK: - Actions
 
+    // TODO: [P1] - Fire-and-forget Tasks: selectCategory/selectRecipe create unstructured Tasks without
+    // cancellation support. If ViewModel is deallocated during async work, the Task continues executing.
+    // Fix: Move async calls to View's .task {} modifier, or store Task handles and cancel in deinit.
     public func selectCategory(_ category: CraftCategory) {
         selectedCategory = category
         selectedRecipeId = nil
@@ -97,6 +100,9 @@ public final class CraftViewModel {
         Task { await refreshSelectedDetail() }
     }
 
+    // TODO: [P1] - Reentrancy: isCrafting is set after two awaits. Double tap can start two craft operations.
+    // The modifyPlayer closure validates atomically (good), but user sees two animations.
+    // Fix: Guard on !isCrafting and set isCrafting = true before first await.
     public func craft() async {
         guard let recipeId = selectedRecipeId,
               let recipe = await recipeRepository.getById(id: recipeId) else { return }

@@ -151,6 +151,9 @@ public final class BattleFightViewModel {
 
     // MARK: - Round Execution
 
+    // TODO: [P0] - Reentrancy: guard on attack/defense points does not prevent double invocation — points
+    // are cleared late. Double tap → double damage calculation and HP deduction.
+    // Fix: Add isExecutingRound flag, set before first await, reset in defer.
     public func executeFightRound() async {
         // Validate player selections
         guard playerAttackPoints.count == playerSnapshot.attackPoints else {
@@ -246,6 +249,9 @@ public final class BattleFightViewModel {
     // MARK: - Actions
 
     /// Calculates battle result, applies rewards to game state, and saves
+    // TODO: [P0] - Reentrancy: battleResult == nil is checked at top but set after multiple suspension points.
+    // Double invocation → double XP and item drops.
+    // Fix: Set isFinishingBattle flag before first await.
     public func finishBattle() async {
         guard battleEnded else { return }
         guard battleResult == nil else { return }  // Already finished

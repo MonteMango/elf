@@ -7,6 +7,9 @@
 
 import Foundation
 
+// TODO: [P2] - Decorator ordering: @MainActor should come before @Observable across all ViewModels.
+// Actor isolation should be applied before macro expansion. Affects 15 VMs in UILayer.
+// Fix: Swap to @MainActor @Observable in all ViewModel files.
 @Observable
 @MainActor
 public final class GameDayViewModel {
@@ -109,6 +112,9 @@ public final class GameDayViewModel {
 
     // MARK: - Game State Observation
 
+    // TODO: [P1] - Stale derived state: loadProgression() is called once but characterLevel, xpProgress,
+    // equippedItems are never updated when game changes via stream.
+    // Fix: Call loadProgression() inside the for-await loop after self.game = game.
     public func observeGameState() async {
         await loadProgression()
         for await game in gameService.gameUpdates() {

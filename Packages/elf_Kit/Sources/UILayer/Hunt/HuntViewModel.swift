@@ -117,6 +117,9 @@ public final class HuntViewModel {
 
     /// Loads available monsters and builds display data.
     /// Call from View's .task {} modifier.
+    // TODO: [P2] - MainActor misuse: multiple await calls to repositories per monster in loop on MainActor.
+    // 15-25 repository lookups bouncing on/off main thread.
+    // Fix: Fetch data and build display models off main actor.
     public func loadMonsters() async {
         let monsterLevel = min(await playerLevel(), 3)
         availableMonsters = await monsterRepository.getMonsters(world: currentWorld, level: monsterLevel)
@@ -139,6 +142,8 @@ public final class HuntViewModel {
 
     /// Starts a hunt: spends action points, selects random monster, returns Battle
     /// - Returns: Battle instance or nil if hunt cannot start
+    // TODO: [P0] - Reentrancy: double tap can both pass canHunt before AP is deducted, spending AP twice.
+    // Fix: Add isHunting flag, set before first await, reset in defer.
     public func startHunt() async -> Battle? {
         guard canHunt else { return nil }
 

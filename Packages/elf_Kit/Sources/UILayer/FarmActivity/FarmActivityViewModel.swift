@@ -180,6 +180,12 @@ public final class FarmActivityViewModel {
 
     // MARK: - Unified Activity Action
 
+    // TODO: [P2] - Missing cancellation: performActivity() has 5+ suspension points without checking
+    // Task.isCancelled. Operation continues after leaving screen.
+    // Fix: Add try Task.checkCancellation() between suspension points.
+    // TODO: [P0] - Reentrancy: no guard prevents double-invocation. activityState is set to .performing
+    // AFTER the first await. Double tap → both calls pass canPerformAction → double AP spend.
+    // Fix: Guard on activityState == .idle and set .performing before the first await.
     /// Perform the current farm activity
     public func performActivity() async {
         guard canPerformAction else { return }
@@ -198,6 +204,10 @@ public final class FarmActivityViewModel {
             activityState = .idle
             return
         }
+
+        // TODO: [P1] - Stale state: skillLevel is set once in loadData() but used in every performActivity().
+        // After leveling up, activity uses outdated level for loot/exp calculations.
+        // Fix: Recompute skillLevel before each performActivity call.
 
         // Perform activity via service
         let result = await farmActivityService.perform(
