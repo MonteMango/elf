@@ -67,9 +67,8 @@ public final class HuntViewModel {
     }
 
     /// Player's current level (determines monster level)
-    public func playerLevel() async -> Int {
-        let player = (await gameService.game).player
-        return await progressionService.calculateLevel(currentExp: player.currentExp)
+    private func playerLevel() async -> Int {
+        await progressionService.calculateLevel(currentExp: game.player.currentExp)
     }
 
     /// Current world (for now, always upper world)
@@ -110,18 +109,20 @@ public final class HuntViewModel {
     public func observeGameState() async {
         await loadMonsters()
         for await game in await gameService.gameUpdates() {
+            let oldExp = self.game.player.currentExp
             self.game = game
+            if game.player.currentExp != oldExp {
+                await loadMonsters()
+            }
         }
     }
 
     // MARK: - Data Loading
 
-    /// Loads available monsters and builds display data.
-    /// Call from View's .task {} modifier.
     // TODO: [P2] - MainActor misuse: multiple await calls to repositories per monster in loop on MainActor.
     // 15-25 repository lookups bouncing on/off main thread.
     // Fix: Fetch data and build display models off main actor.
-    public func loadMonsters() async {
+    private func loadMonsters() async {
         let monsterLevel = min(await playerLevel(), 3)
         availableMonsters = await monsterRepository.getMonsters(world: currentWorld, level: monsterLevel)
 

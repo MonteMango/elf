@@ -78,8 +78,7 @@ public final class FarmActivityViewModel {
 
     /// Player's current level (determines monster level)
     private func playerLevel() async -> Int {
-        let player = (await gameService.game).player
-        return await progressionService.calculateLevel(currentExp: player.currentExp)
+        await progressionService.calculateLevel(currentExp: game.player.currentExp)
     }
 
     /// Current world (for now, always upper world)
@@ -166,11 +165,11 @@ public final class FarmActivityViewModel {
         expPerLevel = info.expPerLevel
     }
 
-    /// Loads available items, skill info, and monsters. Call from View's .task {} modifier.
-    public func loadData() async {
+    /// Loads available items, skill info, and monsters.
+    private func loadData() async {
         availableItems = await farmActivityService.getAvailableItems(for: activity)
 
-        let info = await farmActivityService.getSkillInfo(for: activity, player: (await gameService.game).player)
+        let info = await farmActivityService.getSkillInfo(for: activity, player: game.player)
         skillTitle = info.title
         skillLevel = info.level
         skillProgress = info.progress

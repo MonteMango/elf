@@ -112,19 +112,21 @@ public final class GameDayViewModel {
 
     // MARK: - Game State Observation
 
-    // TODO: [P1] - Stale derived state: loadProgression() is called once but characterLevel, xpProgress,
-    // equippedItems are never updated when game changes via stream.
-    // Fix: Call loadProgression() inside the for-await loop after self.game = game.
     public func observeGameState() async {
         await loadProgression()
         for await game in await gameService.gameUpdates() {
+            let oldExp = self.game.player.currentExp
+            let oldEquipped = self.game.player.equipped
             self.game = game
+            if game.player.currentExp != oldExp || game.player.equipped != oldEquipped {
+                await loadProgression()
+            }
         }
     }
 
     // MARK: - Data Loading
 
-    public func loadProgression() async {
+    private func loadProgression() async {
         let exp = game.player.currentExp
         characterLevel = await progressionService.calculateLevel(currentExp: exp)
         expToNextLevel = await progressionService.expToNextLevel(currentExp: exp)

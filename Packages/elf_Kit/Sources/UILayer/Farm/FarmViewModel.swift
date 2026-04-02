@@ -70,20 +70,30 @@ public final class FarmViewModel {
     public func observeGameState() async {
         await loadSkills()
         for await game in await gameService.gameUpdates() {
+            let oldPlayer = self.game.player
             self.game = game
+            if game.player.foragingExp != oldPlayer.foragingExp
+                || game.player.fishingExp != oldPlayer.fishingExp
+                || game.player.miningExp != oldPlayer.miningExp {
+                await updateSkills()
+            }
         }
     }
 
     // MARK: - Data Loading
 
-    public func loadSkills() async {
-        let player = (await gameService.game).player
+    private func updateSkills() async {
+        let player = game.player
         foragingLevel = await progressionService.farmingLevel(exp: player.foragingExp)
         foragingProgress = await progressionService.farmingProgress(exp: player.foragingExp)
         fishingLevel = await progressionService.farmingLevel(exp: player.fishingExp)
         fishingProgress = await progressionService.farmingProgress(exp: player.fishingExp)
         miningLevel = await progressionService.farmingLevel(exp: player.miningExp)
         miningProgress = await progressionService.farmingProgress(exp: player.miningExp)
+    }
+
+    private func loadSkills() async {
+        await updateSkills()
     }
 
     // MARK: - Actions
