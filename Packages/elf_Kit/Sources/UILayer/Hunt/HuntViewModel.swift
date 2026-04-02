@@ -107,6 +107,7 @@ public final class HuntViewModel {
     // MARK: - Game State Observation
 
     public func observeGameState() async {
+        self.game = gameService.currentGame
         await loadMonsters()
         for await game in await gameService.gameUpdates() {
             let oldExp = self.game.player.currentExp

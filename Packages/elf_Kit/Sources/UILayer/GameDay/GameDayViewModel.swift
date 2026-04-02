@@ -113,6 +113,7 @@ public final class GameDayViewModel {
     // MARK: - Game State Observation
 
     public func observeGameState() async {
+        self.game = gameService.currentGame
         await loadProgression()
         for await game in await gameService.gameUpdates() {
             let oldExp = self.game.player.currentExp

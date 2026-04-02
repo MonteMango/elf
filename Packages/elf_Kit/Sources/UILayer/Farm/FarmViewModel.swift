@@ -68,6 +68,7 @@ public final class FarmViewModel {
     // MARK: - Game State Observation
 
     public func observeGameState() async {
+        self.game = gameService.currentGame
         await loadSkills()
         for await game in await gameService.gameUpdates() {
             let oldPlayer = self.game.player

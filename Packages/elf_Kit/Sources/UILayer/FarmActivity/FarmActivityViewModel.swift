@@ -145,6 +145,7 @@ public final class FarmActivityViewModel {
     // MARK: - Game State Observation
 
     public func observeGameState() async {
+        self.game = gameService.currentGame
         await loadData()
         for await game in await gameService.gameUpdates() {
             let oldExp = currentActivityExp
