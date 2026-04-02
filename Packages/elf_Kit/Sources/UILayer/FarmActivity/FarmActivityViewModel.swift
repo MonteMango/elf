@@ -65,7 +65,7 @@ public final class FarmActivityViewModel {
     public let actionCost: Int = 20
 
     public var canPerformAction: Bool {
-        currentActionPoints >= actionCost
+        currentActionPoints >= actionCost && activityState == .idle
     }
 
     // MARK: - Warning
@@ -183,18 +183,13 @@ public final class FarmActivityViewModel {
     // TODO: [P2] - Missing cancellation: performActivity() has 5+ suspension points without checking
     // Task.isCancelled. Operation continues after leaving screen.
     // Fix: Add try Task.checkCancellation() between suspension points.
-    // TODO: [P0] - Reentrancy: no guard prevents double-invocation. activityState is set to .performing
-    // AFTER the first await. Double tap → both calls pass canPerformAction → double AP spend.
-    // Fix: Guard on activityState == .idle and set .performing before the first await.
     /// Perform the current farm activity
     public func performActivity() async {
         guard canPerformAction else { return }
+        activityState = .performing
 
         // Spend action points
         await gameService.spendActionPoints(actionCost)
-
-        // Set activity state
-        activityState = .performing
 
         // Wait 2 seconds (activity animation)
         try? await Task.sleep(for: .seconds(2))
