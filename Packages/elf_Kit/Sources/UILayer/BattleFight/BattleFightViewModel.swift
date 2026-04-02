@@ -28,6 +28,8 @@ public final class BattleFightViewModel {
 
     public let battle: Battle
     public var battleEnded: Bool = false
+    public private(set) var isExecutingRound: Bool = false
+    private var isFinishingBattle: Bool = false
 
     /// Battle result for UI display (set when battle ends)
     public private(set) var battleResult: ManualBattleResult?
@@ -151,17 +153,13 @@ public final class BattleFightViewModel {
 
     // MARK: - Round Execution
 
-    // TODO: [P0] - Reentrancy: guard on attack/defense points does not prevent double invocation — points
-    // are cleared late. Double tap → double damage calculation and HP deduction.
-    // Fix: Add isExecutingRound flag, set before first await, reset in defer.
     public func executeFightRound() async {
-        // Validate player selections
-        guard playerAttackPoints.count == playerSnapshot.attackPoints else {
-            return
-        }
-        guard playerDefensePoints.count == playerSnapshot.defensePoints else {
-            return
-        }
+        guard !isExecutingRound else { return }
+        guard playerAttackPoints.count == playerSnapshot.attackPoints else { return }
+        guard playerDefensePoints.count == playerSnapshot.defensePoints else { return }
+
+        isExecutingRound = true
+        defer { isExecutingRound = false }
 
         // Generate bot selections using BotAI service
         botAttackPoints = await botAI.selectAttackPoints(count: botSnapshot.attackPoints)
@@ -249,12 +247,9 @@ public final class BattleFightViewModel {
     // MARK: - Actions
 
     /// Calculates battle result, applies rewards to game state, and saves
-    // TODO: [P0] - Reentrancy: battleResult == nil is checked at top but set after multiple suspension points.
-    // Double invocation → double XP and item drops.
-    // Fix: Set isFinishingBattle flag before first await.
     public func finishBattle() async {
-        guard battleEnded else { return }
-        guard battleResult == nil else { return }  // Already finished
+        guard battleEnded, !isFinishingBattle else { return }
+        isFinishingBattle = true
 
         let outcome = determineBattleOutcome()
         let monster = await getMonsterFromBot()

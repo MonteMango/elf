@@ -171,8 +171,8 @@ internal struct BattleFightScreenContent: View {
                             .frame(height: 54)
                             .background(ElfColors.Button.primary, in: RoundedRectangle(cornerRadius: 27))
                     }
-                    .disabled(!hasFullSelection)
-                    .opacity(hasFullSelection ? 1.0 : 0.5)
+                    .disabled(!hasFullSelection || viewModel.isExecutingRound)
+                    .opacity(hasFullSelection && !viewModel.isExecutingRound ? 1.0 : 0.5)
                 }
             }
         }
