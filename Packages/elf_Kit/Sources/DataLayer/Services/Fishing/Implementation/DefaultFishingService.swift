@@ -28,7 +28,6 @@ public final class DefaultFishingService: FishingService {
 
     public func performFishing(
         availableFish: [Fish],
-        currentLevel: Int,
         currentExp: Int,
         expPerLevel: Int
     ) async -> FishingResult {
@@ -39,7 +38,6 @@ public final class DefaultFishingService: FishingService {
         let skillProgress = await skillProgressCalculator.calculateFromGathered(
             caughtFish,
             skillName: "Fishing",
-            currentLevel: currentLevel,
             currentExp: currentExp,
             expPerLevel: expPerLevel
         )

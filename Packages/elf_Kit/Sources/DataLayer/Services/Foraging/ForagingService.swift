@@ -15,13 +15,11 @@ public protocol ForagingService: Sendable {
     /// Perform foraging and calculate results
     /// - Parameters:
     ///   - availableHerbs: Array of herbs available in the area
-    ///   - currentLevel: Player's current foraging level
     ///   - currentExp: Player's current foraging experience
     ///   - expPerLevel: Experience required per level
     /// - Returns: ForagingResult with gathered herbs and skill progress
     func performForaging(
         availableHerbs: [Herb],
-        currentLevel: Int,
         currentExp: Int,
         expPerLevel: Int
     ) async -> ForagingResult

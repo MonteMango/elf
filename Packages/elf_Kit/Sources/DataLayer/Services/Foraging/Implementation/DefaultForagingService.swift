@@ -28,7 +28,6 @@ public final class DefaultForagingService: ForagingService {
 
     public func performForaging(
         availableHerbs: [Herb],
-        currentLevel: Int,
         currentExp: Int,
         expPerLevel: Int
     ) async -> ForagingResult {
@@ -39,7 +38,6 @@ public final class DefaultForagingService: ForagingService {
         let skillProgress = await skillProgressCalculator.calculateFromGathered(
             gatheredHerbs,
             skillName: "Foraging",
-            currentLevel: currentLevel,
             currentExp: currentExp,
             expPerLevel: expPerLevel
         )

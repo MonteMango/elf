@@ -145,6 +145,9 @@ public final class FarmActivityViewModel {
 
     // MARK: - Game State Observation
 
+    // TODO: [P1] - Stale UI state: skillLevel, skillProgress, skillExpInLevel are set once in loadData()
+    // but never updated when game changes via stream. After performing activity, skill bar shows old values.
+    // Fix: Call updateSkillInfo() inside the for-await loop after self.game = game.
     public func observeGameState() async {
         await loadData()
         for await game in await gameService.gameUpdates() {
@@ -200,14 +203,9 @@ public final class FarmActivityViewModel {
             return
         }
 
-        // TODO: [P1] - Stale state: skillLevel is set once in loadData() but used in every performActivity().
-        // After leveling up, activity uses outdated level for loot/exp calculations.
-        // Fix: Recompute skillLevel before each performActivity call.
-
         // Perform activity via service
         let result = await farmActivityService.perform(
             activity: activity,
-            currentLevel: skillLevel,
             currentExp: currentActivityExp,
             expPerLevel: expPerLevel
         )

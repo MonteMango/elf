@@ -49,7 +49,6 @@ public final class DefaultFarmActivityService: FarmActivityService {
 
     public func perform(
         activity: FarmActivity,
-        currentLevel: Int,
         currentExp: Int,
         expPerLevel: Int
     ) async -> FarmActivityResult {
@@ -57,7 +56,6 @@ public final class DefaultFarmActivityService: FarmActivityService {
         case .fishing:
             let result = await fishingService.performFishing(
                 availableFish: await fishRepository.getAll(),
-                currentLevel: currentLevel,
                 currentExp: currentExp,
                 expPerLevel: expPerLevel
             )
@@ -66,7 +64,6 @@ public final class DefaultFarmActivityService: FarmActivityService {
         case .foraging:
             let result = await foragingService.performForaging(
                 availableHerbs: await herbRepository.getAll(),
-                currentLevel: currentLevel,
                 currentExp: currentExp,
                 expPerLevel: expPerLevel
             )
@@ -75,7 +72,6 @@ public final class DefaultFarmActivityService: FarmActivityService {
         case .mining:
             let result = await miningService.performMining(
                 availableOres: await oreRepository.getAll(),
-                currentLevel: currentLevel,
                 currentExp: currentExp,
                 expPerLevel: expPerLevel
             )

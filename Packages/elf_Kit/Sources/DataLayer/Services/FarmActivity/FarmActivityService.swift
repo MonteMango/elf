@@ -13,13 +13,11 @@ public protocol FarmActivityService: Sendable {
     /// Perform the specified activity and calculate results
     /// - Parameters:
     ///   - activity: The farm activity to perform
-    ///   - currentLevel: Player's current skill level for this activity
     ///   - currentExp: Player's current experience for this activity
     ///   - expPerLevel: Experience required per level
     /// - Returns: FarmActivityResult with gathered items and skill progress
     func perform(
         activity: FarmActivity,
-        currentLevel: Int,
         currentExp: Int,
         expPerLevel: Int
     ) async -> FarmActivityResult

@@ -16,14 +16,12 @@ public protocol SkillProgressCalculator: Sendable {
     ///
     /// - Parameters:
     ///   - skillName: Name of the skill (e.g., "Fishing", "Foraging")
-    ///   - currentLevel: Current level before gaining experience
     ///   - currentExp: Total experience before gaining more
     ///   - expGained: Amount of experience gained
     ///   - expPerLevel: Experience required per level
     /// - Returns: A SkillProgressData instance with calculated progress
     func calculate(
         skillName: String,
-        currentLevel: Int,
         currentExp: Int,
         expGained: Int,
         expPerLevel: Int
@@ -34,14 +32,12 @@ public protocol SkillProgressCalculator: Sendable {
     /// - Parameters:
     ///   - items: Array of gathered items
     ///   - skillName: Name of the skill (e.g., "Fishing", "Foraging")
-    ///   - currentLevel: Current level before gaining experience
     ///   - currentExp: Total experience before gaining more
     ///   - expPerLevel: Experience required per level
     /// - Returns: A SkillProgressData instance with calculated progress
     func calculateFromGathered<T: GatherableItem>(
         _ items: [T],
         skillName: String,
-        currentLevel: Int,
         currentExp: Int,
         expPerLevel: Int
     ) async -> SkillProgressData

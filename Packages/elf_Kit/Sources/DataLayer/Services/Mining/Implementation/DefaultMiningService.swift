@@ -28,7 +28,6 @@ public final class DefaultMiningService: MiningService {
 
     public func performMining(
         availableOres: [Ore],
-        currentLevel: Int,
         currentExp: Int,
         expPerLevel: Int
     ) async -> MiningResult {
@@ -39,7 +38,6 @@ public final class DefaultMiningService: MiningService {
         let skillProgress = await skillProgressCalculator.calculateFromGathered(
             minedOres,
             skillName: "Mining",
-            currentLevel: currentLevel,
             currentExp: currentExp,
             expPerLevel: expPerLevel
         )
