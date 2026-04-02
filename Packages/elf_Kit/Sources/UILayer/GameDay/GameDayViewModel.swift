@@ -117,7 +117,7 @@ public final class GameDayViewModel {
     // Fix: Call loadProgression() inside the for-await loop after self.game = game.
     public func observeGameState() async {
         await loadProgression()
-        for await game in gameService.gameUpdates() {
+        for await game in await gameService.gameUpdates() {
             self.game = game
         }
     }

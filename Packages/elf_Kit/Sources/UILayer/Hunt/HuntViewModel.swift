@@ -108,7 +108,7 @@ public final class HuntViewModel {
 
     public func observeGameState() async {
         await loadMonsters()
-        for await game in gameService.gameUpdates() {
+        for await game in await gameService.gameUpdates() {
             self.game = game
         }
     }

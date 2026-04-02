@@ -11,10 +11,7 @@ import os
 /// Default implementation of GameService
 /// Actor-isolated: all game state mutations are serialized for thread safety
 /// Uses AsyncStream to broadcast changes, OSAllocatedUnfairLock for sync reads
-// TODO: [P1] - @preconcurrency suppresses strict concurrency checks for GameService conformance.
-// This allows implementing async protocol requirements without async keyword.
-// Fix: Remove @preconcurrency and ensure all protocol methods match their async signatures.
-public actor DefaultGameService: @preconcurrency GameService {
+public actor DefaultGameService: GameService {
 
     // MARK: - Properties
 

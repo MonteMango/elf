@@ -21,7 +21,7 @@ public protocol GameStateService: Sendable {
     var currentGame: Game { get }
 
     /// Stream of game state changes for reactive observation
-    func gameUpdates() -> AsyncStream<Game>
+    func gameUpdates() async -> AsyncStream<Game>
 
     // MARK: - Day Management
 

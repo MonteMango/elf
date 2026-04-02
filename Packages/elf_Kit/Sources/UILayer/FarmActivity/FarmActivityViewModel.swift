@@ -147,7 +147,7 @@ public final class FarmActivityViewModel {
 
     public func observeGameState() async {
         await loadData()
-        for await game in gameService.gameUpdates() {
+        for await game in await gameService.gameUpdates() {
             self.game = game
         }
     }
