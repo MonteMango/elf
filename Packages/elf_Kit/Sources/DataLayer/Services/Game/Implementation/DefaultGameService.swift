@@ -78,7 +78,6 @@ public actor DefaultGameService: GameService {
     // MARK: - Dependencies
 
     private let gameRepository: GameSaveStorage
-    private let itemsRepository: ItemsRepository
     private let inventoryService: InventoryService
     private let slotId: String
 
@@ -87,7 +86,6 @@ public actor DefaultGameService: GameService {
     public init(
         game: Game,
         gameRepository: GameSaveStorage,
-        itemsRepository: ItemsRepository,
         inventoryService: InventoryService,
         slotId: String = SaveSlotInfo.defaultSlotId,
         playTime: TimeInterval = 0
@@ -95,7 +93,6 @@ public actor DefaultGameService: GameService {
         self.game = game
         self.gameSnapshot = OSAllocatedUnfairLock(initialState: game)
         self.gameRepository = gameRepository
-        self.itemsRepository = itemsRepository
         self.inventoryService = inventoryService
         self.slotId = slotId
         self.playTime = playTime
@@ -150,11 +147,7 @@ public actor DefaultGameService: GameService {
         player.miningExp += amount
     }
 
-    // TODO: [P0] - Reentrancy: suspension points (await itemsRepository.getHeroItem) between inventory mutations.
-    // Another actor method can modify player.inventory during suspension, causing materials added before
-    // the suspension to be lost. Fix: Fetch all items upfront, then apply all mutations without suspension.
-    public func addDropsToPlayerInventory(rewards: HuntRewards) async {
-        // Add materials (stackable)
+    public func addDropsToPlayerInventory(rewards: HuntRewards) {
         for material in rewards.materials {
             player.inventory = inventoryService.addMaterial(
                 id: material.id,
@@ -163,19 +156,11 @@ public actor DefaultGameService: GameService {
             )
         }
 
-        // Add weapon if dropped
-        if let weaponIdString = rewards.weaponId,
-           let weaponId = UUID(uuidString: weaponIdString),
-           let weaponItem = await itemsRepository.getHeroItem(weaponId) as? WeaponItem {
-            let weapon = ElfWeaponItem(weaponItem: weaponItem)
+        if let weapon = rewards.weapon {
             player.inventory = inventoryService.addWeapon(weapon, to: player.inventory)
         }
 
-        // Add armor if dropped
-        if let armorIdString = rewards.armorId,
-           let armorId = UUID(uuidString: armorIdString),
-           let defenseItem = await itemsRepository.getHeroItem(armorId) as? DefenseItem {
-            let armor = ElfDefenseItem(defenseItem: defenseItem)
+        if let armor = rewards.armor {
             player.inventory = inventoryService.addArmor(armor, to: player.inventory)
         }
     }

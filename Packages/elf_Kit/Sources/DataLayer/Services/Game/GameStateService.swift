@@ -55,6 +55,7 @@ public protocol GameStateService: Sendable {
     /// - Parameter rewards: Hunt rewards containing materials, weapon, and armor drops
     func addDropsToPlayerInventory(rewards: HuntRewards) async
 
+
     /// Adds caught fish to player's inventory as materials
     /// - Parameter fish: Array of fish to add
     func addFishToInventory(_ fish: [Fish]) async

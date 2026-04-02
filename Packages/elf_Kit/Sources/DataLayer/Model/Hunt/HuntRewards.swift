@@ -8,6 +8,7 @@
 import Foundation
 
 /// Rewards obtained from defeating a monster
+/// Items are pre-resolved during reward calculation — no repository lookups needed downstream
 public struct HuntRewards: Sendable, Equatable {
     /// Experience points gained
     public let experience: Int
@@ -15,21 +16,21 @@ public struct HuntRewards: Sendable, Equatable {
     /// Materials dropped with their amounts
     public let materials: [MaterialReward]
 
-    /// Weapon ID if a weapon was dropped (nil if no weapon dropped)
-    public let weaponId: String?
+    /// Resolved weapon if a weapon was dropped
+    public let weapon: ElfWeaponItem?
 
-    /// Armor ID if armor was dropped (nil if no armor dropped)
-    public let armorId: String?
+    /// Resolved armor if armor was dropped
+    public let armor: ElfDefenseItem?
 
     public init(
         experience: Int,
         materials: [MaterialReward],
-        weaponId: String? = nil,
-        armorId: String? = nil
+        weapon: ElfWeaponItem? = nil,
+        armor: ElfDefenseItem? = nil
     ) {
         self.experience = experience
         self.materials = materials
-        self.weaponId = weaponId
-        self.armorId = armorId
+        self.weapon = weapon
+        self.armor = armor
     }
 }

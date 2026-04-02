@@ -158,11 +158,10 @@ public final class ElfGameContainer {
         )
         self.duelPairingService = RandomDuelPairingService()
 
-        let huntService = ElfHuntService()
+        let huntService = ElfHuntService(itemsRepository: gameDataRepository.items)
 
         let dropService = DefaultDropService(
-            materialRepository: gameDataRepository.materials,
-            itemsRepository: gameDataRepository.items
+            materialRepository: gameDataRepository.materials
         )
 
         let gatheringEngine = DefaultGatheringEngine()
@@ -316,7 +315,6 @@ public final class ElfGameContainer {
         let gameService = DefaultGameService(
             game: game,
             gameRepository: self.gameRepository,
-            itemsRepository: self.gameDataRepository.items,
             inventoryService: self.inventoryService,
             playTime: playTime
         )
@@ -431,7 +429,6 @@ public final class ElfGameContainer {
         activeGameService = DefaultGameService(
             game: game,
             gameRepository: self.gameRepository,
-            itemsRepository: self.gameDataRepository.items,
             inventoryService: self.inventoryService,
             playTime: 0
         )

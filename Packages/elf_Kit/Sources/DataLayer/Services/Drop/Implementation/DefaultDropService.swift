@@ -10,14 +10,9 @@ import Foundation
 public final class DefaultDropService: DropService {
 
     private let materialRepository: any Repository<Material>
-    private let itemsRepository: ItemsRepository
 
-    public init(
-        materialRepository: any Repository<Material>,
-        itemsRepository: ItemsRepository
-    ) {
+    public init(materialRepository: any Repository<Material>) {
         self.materialRepository = materialRepository
-        self.itemsRepository = itemsRepository
     }
 
     // MARK: - DropService
@@ -34,18 +29,28 @@ public final class DefaultDropService: DropService {
             }
         }
 
-        // Convert weapon if dropped
-        if let weaponIdString = rewards.weaponId,
-           let weaponId = UUID(uuidString: weaponIdString),
-           let dropItem = await createWeaponDropItem(id: weaponId) {
-            dropItems.append(dropItem)
+        // Convert weapon if dropped (already resolved)
+        if let weapon = rewards.weapon, let weaponItem = weapon.item as? WeaponItem {
+            dropItems.append(DropItem(
+                id: UUID(),
+                itemType: .weapon,
+                name: weaponItem.title,
+                icon: "sword",
+                tier: itemTier(from: weaponItem.tier),
+                quantity: 1
+            ))
         }
 
-        // Convert armor if dropped
-        if let armorIdString = rewards.armorId,
-           let armorId = UUID(uuidString: armorIdString),
-           let dropItem = await createArmorDropItem(id: armorId) {
-            dropItems.append(dropItem)
+        // Convert armor if dropped (already resolved)
+        if let armor = rewards.armor, let defenseItem = armor.item as? DefenseItem {
+            dropItems.append(DropItem(
+                id: UUID(),
+                itemType: .armor,
+                name: defenseItem.title,
+                icon: "shield",
+                tier: itemTier(from: defenseItem.tier),
+                quantity: 1
+            ))
         }
 
         return dropItems
@@ -65,36 +70,6 @@ public final class DefaultDropService: DropService {
             icon: material.imageName,
             tier: .common,
             quantity: reward.amount
-        )
-    }
-
-    private func createWeaponDropItem(id: UUID) async -> DropItem? {
-        guard let weapon = await itemsRepository.getHeroItem(id) else {
-            return nil
-        }
-
-        return DropItem(
-            id: UUID(),
-            itemType: .weapon,
-            name: weapon.title,
-            icon: "sword",
-            tier: itemTier(from: weapon.tier),
-            quantity: 1
-        )
-    }
-
-    private func createArmorDropItem(id: UUID) async -> DropItem? {
-        guard let armor = await itemsRepository.getHeroItem(id) else {
-            return nil
-        }
-
-        return DropItem(
-            id: UUID(),
-            itemType: .armor,
-            name: armor.title,
-            icon: "shield",
-            tier: itemTier(from: armor.tier),
-            quantity: 1
         )
     }
 

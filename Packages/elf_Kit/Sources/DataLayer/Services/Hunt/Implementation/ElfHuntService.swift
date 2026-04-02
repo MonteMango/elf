@@ -9,21 +9,39 @@ import Foundation
 
 public final class ElfHuntService: HuntService {
 
-    public init() {}
+    private let itemsRepository: ItemsRepository
+
+    public init(itemsRepository: ItemsRepository) {
+        self.itemsRepository = itemsRepository
+    }
 
     // MARK: - HuntService
 
     public func calculateRewards(for monster: Monster) async -> HuntRewards {
         let experience = rollExperience(from: monster.expReward)
         let materials = rollMaterials(from: monster.drops.materials)
-        let weaponId = rollItemDrop(from: monster.drops.weapons)
-        let armorId = rollItemDrop(from: monster.drops.armor)
+
+        // Resolve weapon from repository
+        var weapon: ElfWeaponItem?
+        if let weaponIdStr = rollItemDrop(from: monster.drops.weapons),
+           let weaponId = UUID(uuidString: weaponIdStr),
+           let weaponItem = await itemsRepository.getHeroItem(weaponId) as? WeaponItem {
+            weapon = ElfWeaponItem(weaponItem: weaponItem)
+        }
+
+        // Resolve armor from repository
+        var armor: ElfDefenseItem?
+        if let armorIdStr = rollItemDrop(from: monster.drops.armor),
+           let armorId = UUID(uuidString: armorIdStr),
+           let defenseItem = await itemsRepository.getHeroItem(armorId) as? DefenseItem {
+            armor = ElfDefenseItem(defenseItem: defenseItem)
+        }
 
         return HuntRewards(
             experience: experience,
             materials: materials,
-            weaponId: weaponId,
-            armorId: armorId
+            weapon: weapon,
+            armor: armor
         )
     }
 
