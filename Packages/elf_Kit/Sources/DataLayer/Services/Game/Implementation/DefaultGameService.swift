@@ -53,11 +53,8 @@ public actor DefaultGameService: GameService {
         let id = UUID()
         return AsyncStream(bufferingPolicy: .bufferingNewest(1)) { continuation in
             self.continuations[id] = continuation
-            // TODO: [P1] - AsyncStream continuation cleanup: onTermination is a synchronous callback but wraps
-            // removal in an unstructured Task. If actor is deallocated before Task completes, continuation
-            // remains in dictionary (memory leak). Fix: Use Task.detached for cleanup.
             continuation.onTermination = { [weak self] _ in
-                Task { [weak self] in
+                Task.detached { [weak self] in
                     await self?.removeContinuation(id)
                 }
             }
