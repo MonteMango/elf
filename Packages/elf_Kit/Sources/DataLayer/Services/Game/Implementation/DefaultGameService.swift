@@ -209,12 +209,6 @@ public actor DefaultGameService: @preconcurrency GameService {
         transform(&game.houses[game.playerHouseIndex].members[game.playerMemberIndex])
     }
 
-    // MARK: - Crafting
-
-    public func applyCraftResult(_ inventory: ElfInventory) {
-        player.inventory = inventory
-    }
-
     // MARK: - Persistence
 
     public func saveGame() async throws {

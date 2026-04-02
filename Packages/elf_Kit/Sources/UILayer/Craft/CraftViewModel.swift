@@ -53,7 +53,7 @@ public final class CraftViewModel {
     public var filteredRecipes: [CraftRecipeListItem] = []
     public var selectedRecipeDetail: CraftRecipeDetail?
 
-    private func inventory() async -> ElfInventory {
+    private func currentInventory() async -> ElfInventory {
         (await gameService.game).player.inventory
     }
 
@@ -97,23 +97,23 @@ public final class CraftViewModel {
         Task { await refreshSelectedDetail() }
     }
 
-    // TODO: - Race condition: inventory() is called twice (canCraft + deductMaterials) with separate
-    // actor hops. Game state can change between calls. Capture inventory once before both operations.
     public func craft() async {
         guard let recipeId = selectedRecipeId,
-              let recipe = await recipeRepository.getById(id: recipeId),
-              await craftService.canCraft(recipe: recipe, inventory: await inventory()) else { return }
+              let recipe = await recipeRepository.getById(id: recipeId) else { return }
 
-        // Validate item exists BEFORE deducting materials
         guard let item = await itemsRepository.getHeroItem(recipe.resultItemId) else { return }
 
         isCrafting = true
         try? await Task.sleep(for: .seconds(2))
 
-        var updatedInventory = await craftService.deductMaterials(recipe: recipe, from: await inventory())
-        updatedInventory = inventoryService.addCraftedItem(item, to: updatedInventory)
+        // Atomic: validate + deduct + add inside actor
+        await gameService.modifyPlayer { [craftService, inventoryService] player in
+            guard craftService.canCraft(recipe: recipe, inventory: player.inventory) else { return }
+            var updatedInventory = craftService.deductMaterials(recipe: recipe, from: player.inventory)
+            updatedInventory = inventoryService.addCraftedItem(item, to: updatedInventory)
+            player.inventory = updatedInventory
+        }
 
-        await gameService.applyCraftResult(updatedInventory)
         isCrafting = false
     }
 
@@ -142,7 +142,7 @@ public final class CraftViewModel {
 
     private func buildDetail(from recipe: Recipe) async -> CraftRecipeDetail {
         let item = await itemsRepository.getHeroItem(recipe.resultItemId)
-        let currentInventory = await inventory()
+        let currentInventory = await currentInventory()
         let title = item?.title ?? "Unknown"
         let imageName = itemImageName(for: item)
         let shortInfo = buildShortInfo(for: item)
@@ -168,8 +168,8 @@ public final class CraftViewModel {
             ))
         }
 
-        let canCraft = await craftService.canCraft(recipe: recipe, inventory: currentInventory)
-        let missing = await craftService.getMissingIngredients(recipe: recipe, inventory: currentInventory)
+        let canCraft = craftService.canCraft(recipe: recipe, inventory: currentInventory)
+        let missing = craftService.getMissingIngredients(recipe: recipe, inventory: currentInventory)
 
         return CraftRecipeDetail(
             recipeId: recipe.id,

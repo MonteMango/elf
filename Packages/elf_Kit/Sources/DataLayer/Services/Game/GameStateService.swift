@@ -73,8 +73,4 @@ public protocol GameStateService: Sendable {
     /// Guarantees no state changes between read and write (no suspension points).
     func modifyPlayer(_ transform: @Sendable (inout ElfInfo) -> Void) async
 
-    // MARK: - Crafting
-
-    /// Applies crafting result by replacing player inventory
-    func applyCraftResult(_ inventory: ElfInventory) async
 }

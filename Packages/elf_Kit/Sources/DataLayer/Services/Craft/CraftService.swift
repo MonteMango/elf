@@ -11,11 +11,11 @@ import Foundation
 
 public protocol CraftService: Sendable {
     /// Check whether the player has enough materials to craft
-    func canCraft(recipe: Recipe, inventory: ElfInventory) async -> Bool
+    func canCraft(recipe: Recipe, inventory: ElfInventory) -> Bool
 
     /// Get missing ingredients list
-    func getMissingIngredients(recipe: Recipe, inventory: ElfInventory) async -> [MissingIngredient]
+    func getMissingIngredients(recipe: Recipe, inventory: ElfInventory) -> [MissingIngredient]
 
     /// Deduct materials from inventory. Returns updated inventory.
-    func deductMaterials(recipe: Recipe, from inventory: ElfInventory) async -> ElfInventory
+    func deductMaterials(recipe: Recipe, from inventory: ElfInventory) -> ElfInventory
 }

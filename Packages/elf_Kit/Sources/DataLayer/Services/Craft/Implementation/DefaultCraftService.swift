@@ -11,11 +11,11 @@ public final class DefaultCraftService: CraftService {
 
     public init() {}
 
-    public func canCraft(recipe: Recipe, inventory: ElfInventory) async -> Bool {
-        await getMissingIngredients(recipe: recipe, inventory: inventory).isEmpty
+    public func canCraft(recipe: Recipe, inventory: ElfInventory) -> Bool {
+        getMissingIngredients(recipe: recipe, inventory: inventory).isEmpty
     }
 
-    public func getMissingIngredients(recipe: Recipe, inventory: ElfInventory) async -> [MissingIngredient] {
+    public func getMissingIngredients(recipe: Recipe, inventory: ElfInventory) -> [MissingIngredient] {
         recipe.ingredients.compactMap { ingredient in
             let available = inventory.materials.first(where: { $0.id == ingredient.itemId })?.quantity ?? 0
             guard available < ingredient.amount else { return nil }
@@ -27,7 +27,7 @@ public final class DefaultCraftService: CraftService {
         }
     }
 
-    public func deductMaterials(recipe: Recipe, from inventory: ElfInventory) async -> ElfInventory {
+    public func deductMaterials(recipe: Recipe, from inventory: ElfInventory) -> ElfInventory {
         // Aggregate required amounts by itemId to handle duplicate ingredients
         var requiredAmounts: [UUID: Int] = [:]
         for ingredient in recipe.ingredients {
