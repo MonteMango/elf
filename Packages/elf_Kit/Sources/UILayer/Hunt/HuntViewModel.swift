@@ -25,6 +25,7 @@ public final class HuntViewModel {
 
     /// Cost in action points to hunt
     public let huntCost: Int = 20
+    public private(set) var isHunting: Bool = false
 
     // MARK: - Game State
 
@@ -142,10 +143,10 @@ public final class HuntViewModel {
 
     /// Starts a hunt: spends action points, selects random monster, returns Battle
     /// - Returns: Battle instance or nil if hunt cannot start
-    // TODO: [P0] - Reentrancy: double tap can both pass canHunt before AP is deducted, spending AP twice.
-    // Fix: Add isHunting flag, set before first await, reset in defer.
     public func startHunt() async -> Battle? {
-        guard canHunt else { return nil }
+        guard canHunt, !isHunting else { return nil }
+        isHunting = true
+        defer { isHunting = false }
 
         // 1. Select random monster from available monsters (before spending AP)
         guard let monster = availableMonsters.randomElement() else {

@@ -90,8 +90,8 @@ struct HuntScreenContent: View {
                 }
             }
         }
-        .buttonStyle(.elfPrimary(isEnabled: viewModel.canHunt))
-        .disabled(!viewModel.canHunt)
+        .buttonStyle(.elfPrimary(isEnabled: viewModel.canHunt && !viewModel.isHunting))
+        .disabled(!viewModel.canHunt || viewModel.isHunting)
         .overlay(alignment: .bottomTrailing) {
             Text("\(viewModel.huntCost) pt")
                 .font(.footnote)
