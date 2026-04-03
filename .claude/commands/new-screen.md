@@ -17,8 +17,8 @@ Use this template for each file:
 ```swift
 import Foundation
 
-@Observable
 @MainActor
+@Observable
 public final class {Name}ViewModel {
 
     public init() {

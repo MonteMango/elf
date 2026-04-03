@@ -7,11 +7,8 @@
 
 import Foundation
 
-// TODO: [P2] - Decorator ordering: @MainActor should come before @Observable across all ViewModels.
-// Actor isolation should be applied before macro expansion. Affects 15 VMs in UILayer.
-// Fix: Swap to @MainActor @Observable in all ViewModel files.
-@Observable
 @MainActor
+@Observable
 public final class GameDayViewModel {
 
     // MARK: - Dependencies

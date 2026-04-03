@@ -7,13 +7,13 @@
 
 import Foundation
 
-@Observable
 @MainActor
+@Observable
 public final class BattleSetupViewModel {
 
     // MARK: - Hero Configuration State
 
-    @Observable @MainActor
+    @MainActor @Observable
     public final class HeroConfigurationState {
         public var level: Int
         public var fightStyle: FightStyle?

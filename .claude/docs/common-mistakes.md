@@ -148,8 +148,8 @@ class ViewModel {
 }
 
 // ✅ With MainActor
-@Observable
 @MainActor
+@Observable
 class ViewModel {
     var items: [Item] = []
 }

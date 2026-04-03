@@ -9,8 +9,8 @@ import Foundation
 
 /// Generic ViewModel for displaying results (fishing, foraging, battle, etc.)
 /// Simply holds a result value for presentation.
-@Observable
 @MainActor
+@Observable
 public final class ResultViewModel<T: Sendable> {
 
     // MARK: - Properties

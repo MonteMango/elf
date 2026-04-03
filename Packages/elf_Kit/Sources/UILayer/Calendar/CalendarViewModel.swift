@@ -8,8 +8,8 @@
 import Foundation
 
 /// ViewModel for Calendar screen
-@Observable
 @MainActor
+@Observable
 public final class CalendarViewModel {
 
     // MARK: - Types

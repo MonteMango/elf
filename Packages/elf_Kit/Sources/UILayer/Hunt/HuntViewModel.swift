@@ -7,8 +7,8 @@
 
 import Foundation
 
-@Observable
 @MainActor
+@Observable
 public final class HuntViewModel {
 
     // MARK: - Dependencies

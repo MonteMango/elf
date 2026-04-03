@@ -8,8 +8,8 @@
 import Foundation
 import Observation
 
-@Observable
 @MainActor
+@Observable
 public final class MultiBattleViewModel {
 
     // MARK: - Dependencies

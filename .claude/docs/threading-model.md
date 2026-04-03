@@ -18,8 +18,8 @@ Use `@MainActor` for:
 - **UI callbacks** - Button actions, navigation handlers
 
 ```swift
-@Observable
 @MainActor
+@Observable
 public final class BattleViewModel {
     var playerHP: Int  // UI state - needs MainActor
 

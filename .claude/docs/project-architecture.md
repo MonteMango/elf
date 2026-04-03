@@ -236,8 +236,8 @@ let vm = container.makeGameDayViewModel(game: game)
 **Path:** `Packages/elf_Kit/Sources/UILayer/{Feature}/{Feature}ViewModel.swift`
 
 ```swift
-@Observable
 @MainActor
+@Observable
 public final class HuntViewModel {
 
     // Dependencies (injected via init)
