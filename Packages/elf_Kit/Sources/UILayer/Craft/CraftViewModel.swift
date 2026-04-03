@@ -97,16 +97,16 @@ public final class CraftViewModel {
         selectedRecipeId = id
     }
 
-    // TODO: [P1] - Reentrancy: isCrafting is set after two awaits. Double tap can start two craft operations.
-    // The modifyPlayer closure validates atomically (good), but user sees two animations.
-    // Fix: Guard on !isCrafting and set isCrafting = true before first await.
     public func craft() async {
-        guard let recipeId = selectedRecipeId,
-              let recipe = await recipeRepository.getById(id: recipeId) else { return }
-
-        guard let item = await itemsRepository.getHeroItem(recipe.resultItemId) else { return }
+        guard !isCrafting else { return }
+        guard let recipeId = selectedRecipeId else { return }
 
         isCrafting = true
+        defer { isCrafting = false }
+
+        guard let recipe = await recipeRepository.getById(id: recipeId),
+              let item = await itemsRepository.getHeroItem(recipe.resultItemId) else { return }
+
         try? await Task.sleep(for: .seconds(2))
 
         // Atomic: validate + deduct + add inside actor
@@ -116,8 +116,6 @@ public final class CraftViewModel {
             updatedInventory = inventoryService.addCraftedItem(item, to: updatedInventory)
             player.inventory = updatedInventory
         }
-
-        isCrafting = false
     }
 
     private func buildListItem(from recipe: Recipe) async -> CraftRecipeListItem {
