@@ -59,7 +59,7 @@ public final class CraftViewModel {
 
     // MARK: - Data Loading
 
-    /// Refreshes the filtered recipes list. Call from View's .task {} or after category change.
+    /// Refreshes the filtered recipes list. Called from View's .task(id:) modifier.
     public func refreshRecipes() async {
         guard let recipeCategory = selectedCategory.recipeCategory else {
             filteredRecipes = []
@@ -68,8 +68,10 @@ public final class CraftViewModel {
         let recipes = await recipeRepository.recipes(for: recipeCategory)
         var items: [CraftRecipeListItem] = []
         for recipe in recipes {
+            guard !Task.isCancelled else { return }
             items.append(await buildListItem(from: recipe))
         }
+        guard !Task.isCancelled else { return }
         filteredRecipes = items
     }
 
@@ -85,19 +87,14 @@ public final class CraftViewModel {
 
     // MARK: - Actions
 
-    // TODO: [P1] - Fire-and-forget Tasks: selectCategory/selectRecipe create unstructured Tasks without
-    // cancellation support. If ViewModel is deallocated during async work, the Task continues executing.
-    // Fix: Move async calls to View's .task {} modifier, or store Task handles and cancel in deinit.
     public func selectCategory(_ category: CraftCategory) {
         selectedCategory = category
         selectedRecipeId = nil
         selectedRecipeDetail = nil
-        Task { await refreshRecipes() }
     }
 
     public func selectRecipe(_ id: UUID) {
         selectedRecipeId = id
-        Task { await refreshSelectedDetail() }
     }
 
     // TODO: [P1] - Reentrancy: isCrafting is set after two awaits. Double tap can start two craft operations.
