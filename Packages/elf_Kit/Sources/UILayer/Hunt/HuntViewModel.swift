@@ -120,19 +120,26 @@ public final class HuntViewModel {
 
     // MARK: - Data Loading
 
-    // TODO: [P2] - MainActor misuse: multiple await calls to repositories per monster in loop on MainActor.
-    // 15-25 repository lookups bouncing on/off main thread.
-    // Fix: Fetch data and build display models off main actor.
     private func loadMonsters() async {
         let monsterLevel = min(await playerLevel(), 3)
-        availableMonsters = await monsterRepository.getMonsters(world: currentWorld, level: monsterLevel)
+        let world = currentWorld
+        let (monsters, displayData) = await buildMonstersData(world: world, level: monsterLevel)
+        availableMonsters = monsters
+        availableMonstersDisplayData = displayData
+    }
 
+    /// Fetches monsters and builds display data on cooperative thread pool (off MainActor).
+    nonisolated private func buildMonstersData(
+        world: WorldType,
+        level: Int
+    ) async -> ([Monster], [MonsterDisplayData]) {
+        let monsters = await monsterRepository.getMonsters(world: world, level: level)
         var displayData: [MonsterDisplayData] = []
-        for monster in availableMonsters {
-            let data = await createDisplayData(from: monster)
+        for monster in monsters {
+            let data = await buildDisplayData(from: monster)
             displayData.append(data)
         }
-        availableMonstersDisplayData = displayData
+        return (monsters, displayData)
     }
 
     // MARK: - Actions
@@ -185,8 +192,8 @@ public final class HuntViewModel {
 
     // MARK: - Private Helpers
 
-    /// Converts Monster model to display data for the View
-    private func createDisplayData(from monster: Monster) async -> MonsterDisplayData {
+    /// Converts Monster model to display data for the View (runs on cooperative pool)
+    nonisolated private func buildDisplayData(from monster: Monster) async -> MonsterDisplayData {
         var drops: [DropDisplayData] = []
 
         // Weapon drops - lookup item for tier
