@@ -192,15 +192,14 @@ public final class FarmActivityViewModel {
 
     // MARK: - Unified Activity Action
 
-    // TODO: [P2] - Missing cancellation: performActivity() has 5+ suspension points without checking
-    // Task.isCancelled. Operation continues after leaving screen.
-    // Fix: Add try Task.checkCancellation() between suspension points.
     /// Perform the current farm activity
     public func performActivity() async {
         guard canPerformAction else { return }
+        guard !Task.isCancelled else { return }
+
         activityState = .performing
 
-        // Spend action points
+        // Point of no return: AP spent — must complete the operation
         await gameService.spendActionPoints(actionCost)
 
         // Wait 2 seconds (activity animation)
@@ -230,6 +229,12 @@ public final class FarmActivityViewModel {
         case .mining(let r):
             await gameService.addMiningExperience(r.skillProgress.experienceGained)
             await gameService.addOresToInventory(r.minedOres)
+        }
+
+        // Skip UI updates if cancelled (user left the screen)
+        guard !Task.isCancelled else {
+            try? await gameService.saveGame()
+            return
         }
 
         // Set result (will trigger modal presentation via onChange in View)
