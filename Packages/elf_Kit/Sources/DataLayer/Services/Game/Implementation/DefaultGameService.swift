@@ -97,32 +97,25 @@ public actor DefaultGameService: GameService {
 
     // MARK: - Day Management
 
-    // TODO: [P2] - Double didSet trigger: modifying game.gameState.currentDay then calling restoreActionPoints()
-    // triggers didSet twice — two Equatable comparisons, two broadcasts to subscribers.
-    // Subscribers receive intermediate state. Fix: Group mutations into a single operation.
     public func advanceToNextDay() {
         let currentDayNumber = game.gameState.currentDay.dayNumber
         let nextDayNumber = currentDayNumber + 1
 
-        // Find next day in calendar
         guard let nextDayIndex = game.gameState.calendar.firstIndex(where: { $0.dayNumber == nextDayNumber }) else {
             return // No more days in calendar (game finished)
         }
 
-        game.gameState.currentDay = game.gameState.calendar[nextDayIndex]
-
-        // Restore action points for new day
-        restoreActionPoints()
+        // Single mutation — didSet fires once with consistent state
+        var updatedState = game.gameState
+        updatedState.currentDay = updatedState.calendar[nextDayIndex]
+        updatedState.actionPoints = updatedState.actionPoints.reset()
+        game.gameState = updatedState
     }
 
     public func spendActionPoints(_ amount: Int) {
         if case .success(let newPoints) = game.gameState.actionPoints.spend(amount) {
             game.gameState.actionPoints = newPoints
         }
-    }
-
-    private func restoreActionPoints() {
-        game.gameState.actionPoints = game.gameState.actionPoints.reset()
     }
 
     // MARK: - Player Progression
@@ -144,6 +137,10 @@ public actor DefaultGameService: GameService {
         player.miningExp += amount
     }
 
+    // TODO: [P3] - Multiple didSet triggers: each player.inventory assignment in the loop triggers
+    // game didSet — Equatable comparison + broadcast per iteration. With many drops this is wasteful.
+    // Intermediate states are valid but unnecessary. Fix: Accumulate into local inventory copy,
+    // assign once (same pattern as advanceToNextDay).
     public func addDropsToPlayerInventory(rewards: HuntRewards) {
         for material in rewards.materials {
             player.inventory = inventoryService.addMaterial(
@@ -162,6 +159,8 @@ public actor DefaultGameService: GameService {
         }
     }
 
+    // TODO: [P3] - Multiple didSet triggers: same pattern as addDropsToPlayerInventory.
+    // Each loop iteration triggers game didSet. Fix: Batch into single inventory assignment.
     public func addFishToInventory(_ fish: [Fish]) {
         for f in fish {
             player.inventory = inventoryService.addMaterial(
@@ -172,6 +171,7 @@ public actor DefaultGameService: GameService {
         }
     }
 
+    // TODO: [P3] - Multiple didSet triggers: same pattern as addDropsToPlayerInventory.
     public func addHerbsToInventory(_ herbs: [Herb]) {
         for herb in herbs {
             player.inventory = inventoryService.addMaterial(
@@ -182,6 +182,7 @@ public actor DefaultGameService: GameService {
         }
     }
 
+    // TODO: [P3] - Multiple didSet triggers: same pattern as addDropsToPlayerInventory.
     public func addOresToInventory(_ ores: [Ore]) {
         for ore in ores {
             player.inventory = inventoryService.addMaterial(
