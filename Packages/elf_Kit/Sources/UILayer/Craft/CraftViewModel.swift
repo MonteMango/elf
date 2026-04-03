@@ -17,6 +17,7 @@ public final class CraftViewModel {
     let recipeRepository: any RecipeRepository
     let itemsRepository: any ItemsRepository
     let materialRepository: any Repository<Material>
+    let oreRepository: any Repository<Ore>
     let craftService: any CraftService
     let inventoryService: any InventoryService
 
@@ -37,6 +38,7 @@ public final class CraftViewModel {
         recipeRepository: any RecipeRepository,
         itemsRepository: any ItemsRepository,
         materialRepository: any Repository<Material>,
+        oreRepository: any Repository<Ore>,
         craftService: any CraftService,
         inventoryService: any InventoryService
     ) {
@@ -44,6 +46,7 @@ public final class CraftViewModel {
         self.recipeRepository = recipeRepository
         self.itemsRepository = itemsRepository
         self.materialRepository = materialRepository
+        self.oreRepository = oreRepository
         self.craftService = craftService
         self.inventoryService = inventoryService
     }
@@ -125,10 +128,10 @@ public final class CraftViewModel {
         let shortInfo = buildShortInfo(for: item)
         var badges: [CraftIngredientBadge] = []
         for ingredient in recipe.ingredients {
-            let material = await materialRepository.getById(id: ingredient.itemId)
+            let info = await ingredientInfo(for: ingredient)
             badges.append(CraftIngredientBadge(
                 id: ingredient.itemId,
-                imageName: material?.imageName ?? "questionmark",
+                imageName: info.imageName,
                 amount: ingredient.amount
             ))
         }
@@ -158,12 +161,12 @@ public final class CraftViewModel {
 
         var ingredientDisplays: [CraftIngredientDisplay] = []
         for ingredient in recipe.ingredients {
-            let material = await materialRepository.getById(id: ingredient.itemId)
+            let ingredientInfo = await ingredientInfo(for: ingredient)
             let inBag = currentInventory.materials.first(where: { $0.id == ingredient.itemId })?.quantity ?? 0
             ingredientDisplays.append(CraftIngredientDisplay(
                 id: ingredient.itemId,
-                imageName: material?.imageName ?? "questionmark",
-                title: material?.title ?? "Unknown",
+                imageName: ingredientInfo.imageName,
+                title: ingredientInfo.title,
                 required: ingredient.amount,
                 inBag: inBag
             ))
@@ -201,6 +204,17 @@ public final class CraftViewModel {
             return "Mana: \(robe.manaPoints ?? 0)"
         default:
             return ""
+        }
+    }
+
+    private func ingredientInfo(for ingredient: RecipeIngredient) async -> (imageName: String, title: String) {
+        switch ingredient.type {
+        case .material:
+            let material = await materialRepository.getById(id: ingredient.itemId)
+            return (material?.imageName ?? "item_unknown", material?.title ?? "Unknown")
+        case .ore:
+            let ore = await oreRepository.getById(id: OreID(rawValue: ingredient.itemId))
+            return (ore?.imageName ?? "item_unknown", ore?.title ?? "Unknown")
         }
     }
 

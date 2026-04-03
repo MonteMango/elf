@@ -397,6 +397,7 @@ public final class ElfGameContainer {
             recipeRepository: self.gameDataRepository.recipes,
             itemsRepository: self.gameDataRepository.items,
             materialRepository: self.gameDataRepository.materials,
+            oreRepository: self.gameDataRepository.ores,
             craftService: craftService,
             inventoryService: self.inventoryService
         )
