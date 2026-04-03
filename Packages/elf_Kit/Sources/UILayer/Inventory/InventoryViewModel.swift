@@ -16,6 +16,9 @@ public final class InventoryViewModel {
     let gameService: any GameService
     let equipmentService: any EquipmentService
     let materialRepository: any Repository<Material>
+    let fishRepository: any Repository<Fish>
+    let herbRepository: any Repository<Herb>
+    let oreRepository: any Repository<Ore>
     let equipmentQueryService: any EquipmentQueryService
 
     // MARK: - State
@@ -86,11 +89,17 @@ public final class InventoryViewModel {
         gameService: any GameService,
         equipmentService: any EquipmentService,
         materialRepository: any Repository<Material>,
+        fishRepository: any Repository<Fish>,
+        herbRepository: any Repository<Herb>,
+        oreRepository: any Repository<Ore>,
         equipmentQueryService: any EquipmentQueryService
     ) {
         self.gameService = gameService
         self.equipmentService = equipmentService
         self.materialRepository = materialRepository
+        self.fishRepository = fishRepository
+        self.herbRepository = herbRepository
+        self.oreRepository = oreRepository
         self.equipmentQueryService = equipmentQueryService
     }
 

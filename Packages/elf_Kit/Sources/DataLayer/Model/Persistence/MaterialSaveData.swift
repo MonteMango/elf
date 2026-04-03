@@ -8,10 +8,13 @@
 import Foundation
 
 /// DTO for material persistence.
-/// Materials are stackable, so we store ID and quantity.
+/// Materials are stackable, so we store ID, source, and quantity.
 public struct MaterialSaveData: Sendable, Equatable, Codable {
-    /// Material ID from MaterialsData
+    /// Material ID from the corresponding source repository
     public let id: UUID
+
+    /// Which repository this material comes from
+    public let source: MaterialSource
 
     /// Quantity of this material (stackable)
     public let quantity: Int
@@ -19,6 +22,7 @@ public struct MaterialSaveData: Sendable, Equatable, Codable {
     /// Create from InventoryMaterial
     public init(from material: InventoryMaterial) {
         self.id = material.id
+        self.source = material.source
         self.quantity = material.quantity
     }
 }

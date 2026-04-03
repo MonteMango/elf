@@ -39,7 +39,7 @@ public protocol InventoryService: Sendable {
 
     /// Adds material to inventory. Stacks with existing material of same ID.
     /// - Returns: New inventory with the material added/stacked
-    func addMaterial(id: UUID, quantity: Int, to inventory: ElfInventory) -> ElfInventory
+    func addMaterial(id: UUID, source: MaterialSource, quantity: Int, to inventory: ElfInventory) -> ElfInventory
 
     // MARK: - Add Crafted Item
 

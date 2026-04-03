@@ -72,7 +72,7 @@ public final class ElfInventoryService: InventoryService {
 
     // MARK: - Add Materials
 
-    public func addMaterial(id: UUID, quantity: Int, to inventory: ElfInventory) -> ElfInventory {
+    public func addMaterial(id: UUID, source: MaterialSource, quantity: Int, to inventory: ElfInventory) -> ElfInventory {
         guard quantity > 0 else { return inventory }
 
         var newInventory = inventory
@@ -80,7 +80,7 @@ public final class ElfInventoryService: InventoryService {
         if let index = newInventory.materials.firstIndex(where: { $0.id == id }) {
             newInventory.materials[index].quantity += quantity
         } else {
-            newInventory.materials.append(InventoryMaterial(id: id, quantity: quantity))
+            newInventory.materials.append(InventoryMaterial(id: id, source: source, quantity: quantity))
         }
 
         return newInventory

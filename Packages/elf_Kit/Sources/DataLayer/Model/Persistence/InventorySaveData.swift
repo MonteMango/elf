@@ -77,7 +77,12 @@ public struct InventorySaveData: Sendable, Equatable, Codable {
 
         // Restore materials (simple copy)
         for materialData in materials {
-            inventory = inventoryService.addMaterial(id: materialData.id, quantity: materialData.quantity, to: inventory)
+            inventory = inventoryService.addMaterial(
+                id: materialData.id,
+                source: materialData.source,
+                quantity: materialData.quantity,
+                to: inventory
+            )
         }
 
         return inventory

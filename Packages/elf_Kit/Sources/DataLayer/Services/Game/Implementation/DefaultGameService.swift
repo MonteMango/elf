@@ -146,6 +146,7 @@ public actor DefaultGameService: GameService {
         for material in rewards.materials {
             inventory = inventoryService.addMaterial(
                 id: material.id,
+                source: .monster,
                 quantity: material.amount,
                 to: inventory
             )
@@ -167,6 +168,7 @@ public actor DefaultGameService: GameService {
         for f in fish {
             inventory = inventoryService.addMaterial(
                 id: f.id.rawValue,
+                source: .fish,
                 quantity: 1,
                 to: inventory
             )
@@ -179,6 +181,7 @@ public actor DefaultGameService: GameService {
         for herb in herbs {
             inventory = inventoryService.addMaterial(
                 id: herb.id.rawValue,
+                source: .herb,
                 quantity: 1,
                 to: inventory
             )
@@ -191,6 +194,7 @@ public actor DefaultGameService: GameService {
         for ore in ores {
             inventory = inventoryService.addMaterial(
                 id: ore.id.rawValue,
+                source: .ore,
                 quantity: 1,
                 to: inventory
             )

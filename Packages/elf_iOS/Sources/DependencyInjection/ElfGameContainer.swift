@@ -412,6 +412,9 @@ public final class ElfGameContainer {
             gameService: gameService,
             equipmentService: equipmentService,
             materialRepository: self.gameDataRepository.materials,
+            fishRepository: self.gameDataRepository.fish,
+            herbRepository: self.gameDataRepository.herbs,
+            oreRepository: self.gameDataRepository.ores,
             equipmentQueryService: self.equipmentQueryService
         )
     }

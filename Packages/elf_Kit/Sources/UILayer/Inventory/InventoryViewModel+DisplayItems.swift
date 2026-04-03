@@ -218,20 +218,62 @@ extension InventoryViewModel {
     }
 
     nonisolated private func buildMaterialDisplayItem(_ material: InventoryMaterial) async -> InventoryDisplayItem? {
-        guard let materialData = await materialRepository.getById(id: material.id) else {
-            return nil
-        }
+        switch material.source {
+        case .monster:
+            guard let data = await materialRepository.getById(id: material.id) else { return nil }
+            return InventoryDisplayItem(
+                id: material.id,
+                title: data.title,
+                imageName: data.imageName,
+                quantity: material.quantity,
+                category: .materials,
+                itemDetails: .material(MaterialDetails(
+                    description: data.description,
+                    subcategory: data.category
+                ))
+            )
 
-        return InventoryDisplayItem(
-            id: material.id,
-            title: materialData.title,
-            imageName: materialData.imageName,
-            quantity: material.quantity,
-            category: .materials,
-            itemDetails: .material(MaterialDetails(
-                description: materialData.description,
-                subcategory: materialData.category
-            ))
-        )
+        case .fish:
+            guard let data = await fishRepository.getById(id: FishID(rawValue: material.id)) else { return nil }
+            return InventoryDisplayItem(
+                id: material.id,
+                title: data.title,
+                imageName: data.imageName,
+                quantity: material.quantity,
+                category: .materials,
+                itemDetails: .material(MaterialDetails(
+                    description: data.description,
+                    subcategory: .fish
+                ))
+            )
+
+        case .herb:
+            guard let data = await herbRepository.getById(id: HerbID(rawValue: material.id)) else { return nil }
+            return InventoryDisplayItem(
+                id: material.id,
+                title: data.title,
+                imageName: data.imageName,
+                quantity: material.quantity,
+                category: .materials,
+                itemDetails: .material(MaterialDetails(
+                    description: data.description,
+                    subcategory: .herbs
+                ))
+            )
+
+        case .ore:
+            guard let data = await oreRepository.getById(id: OreID(rawValue: material.id)) else { return nil }
+            return InventoryDisplayItem(
+                id: material.id,
+                title: data.title,
+                imageName: data.imageName,
+                quantity: material.quantity,
+                category: .materials,
+                itemDetails: .material(MaterialDetails(
+                    description: data.description,
+                    subcategory: .ores
+                ))
+            )
+        }
     }
 }
