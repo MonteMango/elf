@@ -11,15 +11,18 @@ import Foundation
 
 extension InventoryViewModel {
 
-    // TODO: [P2] - MainActor misuse: 30+ await calls to equipmentQueryService in loops, all on MainActor.
-    // Data transformation does not need the main thread.
-    // Fix: Build items off main actor via Task.detached, return result to MainActor.
+    /// Fetches player data on MainActor, then builds display items on cooperative pool.
     func buildDisplayItems() async -> [InventoryDisplayItem] {
-        var items: [InventoryDisplayItem] = []
-
         let currentPlayer = await player()
-        let equipped = currentPlayer.equipped
-        let inventory = currentPlayer.inventory
+        return await buildItems(player: currentPlayer)
+    }
+
+    /// Builds all display items on cooperative thread pool (off MainActor).
+    nonisolated private func buildItems(player: ElfInfo) async -> [InventoryDisplayItem] {
+        let equipped = player.equipped
+        let inventory = player.inventory
+
+        var items: [InventoryDisplayItem] = []
 
         // Weapons
         for weapon in inventory.weapons {
@@ -56,7 +59,7 @@ extension InventoryViewModel {
         return items
     }
 
-    private func buildWeaponDisplayItem(_ weapon: ElfWeaponItem, equipped: EquippedItems) async -> InventoryDisplayItem {
+    nonisolated private func buildWeaponDisplayItem(_ weapon: ElfWeaponItem, equipped: EquippedItems) async -> InventoryDisplayItem {
         guard let weaponItem = weapon.item as? WeaponItem else {
             return InventoryDisplayItem(
                 id: weapon.id,
@@ -96,7 +99,7 @@ extension InventoryViewModel {
         )
     }
 
-    private func buildShieldDisplayItem(_ shield: ElfShieldItem, equipped: EquippedItems) async -> InventoryDisplayItem {
+    nonisolated private func buildShieldDisplayItem(_ shield: ElfShieldItem, equipped: EquippedItems) async -> InventoryDisplayItem {
         guard let shieldItem = shield.item as? ShieldItem else {
             return InventoryDisplayItem(
                 id: shield.id,
@@ -124,7 +127,7 @@ extension InventoryViewModel {
         )
     }
 
-    private func buildArmorDisplayItem(_ armor: ElfDefenseItem, equipped: EquippedItems) async -> InventoryDisplayItem {
+    nonisolated private func buildArmorDisplayItem(_ armor: ElfDefenseItem, equipped: EquippedItems) async -> InventoryDisplayItem {
         guard let defenseItem = armor.item as? DefenseItem else {
             return InventoryDisplayItem(
                 id: armor.id,
@@ -154,7 +157,7 @@ extension InventoryViewModel {
         )
     }
 
-    private func buildRobeDisplayItem(_ robe: ElfRobeItem, equipped: EquippedItems) async -> InventoryDisplayItem {
+    nonisolated private func buildRobeDisplayItem(_ robe: ElfRobeItem, equipped: EquippedItems) async -> InventoryDisplayItem {
         guard let robeItem = robe.item as? RobeItem else {
             return InventoryDisplayItem(
                 id: robe.id,
@@ -184,7 +187,7 @@ extension InventoryViewModel {
         )
     }
 
-    private func buildJewelryDisplayItem(_ jewelry: ElfJewelryItem, equipped: EquippedItems) async -> InventoryDisplayItem {
+    nonisolated private func buildJewelryDisplayItem(_ jewelry: ElfJewelryItem, equipped: EquippedItems) async -> InventoryDisplayItem {
         guard let jewelryItem = jewelry.item as? JewelryItem else {
             return InventoryDisplayItem(
                 id: jewelry.id,
@@ -214,7 +217,7 @@ extension InventoryViewModel {
         )
     }
 
-    private func buildMaterialDisplayItem(_ material: InventoryMaterial) async -> InventoryDisplayItem? {
+    nonisolated private func buildMaterialDisplayItem(_ material: InventoryMaterial) async -> InventoryDisplayItem? {
         guard let materialData = await materialRepository.getById(id: material.id) else {
             return nil
         }
