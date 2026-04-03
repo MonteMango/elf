@@ -31,6 +31,7 @@ public final class ElfGameContainer {
     public let snapshotCombatCalculator: ElfSnapshotCombatCalculator
     public let battleLogger: ElfBattleLogger
     public let debugBattleLogger: ConsoleDebugBattleLogger
+    public let debugGameLogger: ConsoleDebugGameLogger
     public let statisticsParser: ElfBattleStatisticsParser
     public let battleSimulationService: ElfBattleSimulationService
     public let combatRoundExecutor: ElfCombatRoundExecutor
@@ -76,9 +77,12 @@ public final class ElfGameContainer {
         self.attributeService = attributeService
         self.armorService = armorService
 
-        // Debug logger with empty categories = no logging output
+        // Debug loggers with empty categories = no logging output
         let debugBattleLogger = ConsoleDebugBattleLogger(categories: [])
         self.debugBattleLogger = debugBattleLogger
+
+        let debugGameLogger = ConsoleDebugGameLogger(categories: [.playerInfo, .gameState, .inventory, .equipment, .houses])
+        self.debugGameLogger = debugGameLogger
 
         let damageService = ElfDamageService(
             itemsRepository: gameDataRepository.items,
@@ -316,6 +320,7 @@ public final class ElfGameContainer {
             game: game,
             gameRepository: self.gameRepository,
             inventoryService: self.inventoryService,
+            debugGameLogger: self.debugGameLogger,
             playTime: playTime
         )
         self.activeGameService = gameService
@@ -430,6 +435,7 @@ public final class ElfGameContainer {
             game: game,
             gameRepository: self.gameRepository,
             inventoryService: self.inventoryService,
+            debugGameLogger: self.debugGameLogger,
             playTime: 0
         )
     }

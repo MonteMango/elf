@@ -76,6 +76,7 @@ public actor DefaultGameService: GameService {
 
     private let gameRepository: GameSaveStorage
     private let inventoryService: InventoryService
+    private let debugGameLogger: DebugGameLogger
     private let slotId: String
 
     // MARK: - Initialization
@@ -84,6 +85,7 @@ public actor DefaultGameService: GameService {
         game: Game,
         gameRepository: GameSaveStorage,
         inventoryService: InventoryService,
+        debugGameLogger: DebugGameLogger,
         slotId: String = SaveSlotInfo.defaultSlotId,
         playTime: TimeInterval = 0
     ) {
@@ -91,6 +93,7 @@ public actor DefaultGameService: GameService {
         self.gameSnapshot = OSAllocatedUnfairLock(initialState: game)
         self.gameRepository = gameRepository
         self.inventoryService = inventoryService
+        self.debugGameLogger = debugGameLogger
         self.slotId = slotId
         self.playTime = playTime
     }
@@ -206,6 +209,7 @@ public actor DefaultGameService: GameService {
     // MARK: - Persistence
 
     public func saveGame() async throws {
+        debugGameLogger.logGameSave(game: game, playTime: playTime)
         try await gameRepository.save(game, slotId: slotId, playTime: playTime)
     }
 }
