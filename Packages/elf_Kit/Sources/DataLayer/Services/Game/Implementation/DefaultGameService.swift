@@ -137,60 +137,62 @@ public actor DefaultGameService: GameService {
         player.miningExp += amount
     }
 
-    // TODO: [P3] - Multiple didSet triggers: each player.inventory assignment in the loop triggers
-    // game didSet — Equatable comparison + broadcast per iteration. With many drops this is wasteful.
-    // Intermediate states are valid but unnecessary. Fix: Accumulate into local inventory copy,
-    // assign once (same pattern as advanceToNextDay).
     public func addDropsToPlayerInventory(rewards: HuntRewards) {
+        var inventory = player.inventory
+
         for material in rewards.materials {
-            player.inventory = inventoryService.addMaterial(
+            inventory = inventoryService.addMaterial(
                 id: material.id,
                 quantity: material.amount,
-                to: player.inventory
+                to: inventory
             )
         }
 
         if let weapon = rewards.weapon {
-            player.inventory = inventoryService.addWeapon(weapon, to: player.inventory)
+            inventory = inventoryService.addWeapon(weapon, to: inventory)
         }
 
         if let armor = rewards.armor {
-            player.inventory = inventoryService.addArmor(armor, to: player.inventory)
+            inventory = inventoryService.addArmor(armor, to: inventory)
         }
+
+        player.inventory = inventory
     }
 
-    // TODO: [P3] - Multiple didSet triggers: same pattern as addDropsToPlayerInventory.
-    // Each loop iteration triggers game didSet. Fix: Batch into single inventory assignment.
     public func addFishToInventory(_ fish: [Fish]) {
+        var inventory = player.inventory
         for f in fish {
-            player.inventory = inventoryService.addMaterial(
+            inventory = inventoryService.addMaterial(
                 id: f.id.rawValue,
                 quantity: 1,
-                to: player.inventory
+                to: inventory
             )
         }
+        player.inventory = inventory
     }
 
-    // TODO: [P3] - Multiple didSet triggers: same pattern as addDropsToPlayerInventory.
     public func addHerbsToInventory(_ herbs: [Herb]) {
+        var inventory = player.inventory
         for herb in herbs {
-            player.inventory = inventoryService.addMaterial(
+            inventory = inventoryService.addMaterial(
                 id: herb.id.rawValue,
                 quantity: 1,
-                to: player.inventory
+                to: inventory
             )
         }
+        player.inventory = inventory
     }
 
-    // TODO: [P3] - Multiple didSet triggers: same pattern as addDropsToPlayerInventory.
     public func addOresToInventory(_ ores: [Ore]) {
+        var inventory = player.inventory
         for ore in ores {
-            player.inventory = inventoryService.addMaterial(
+            inventory = inventoryService.addMaterial(
                 id: ore.id.rawValue,
                 quantity: 1,
-                to: player.inventory
+                to: inventory
             )
         }
+        player.inventory = inventory
     }
 
     // MARK: - Atomic Player Modification
