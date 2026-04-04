@@ -5,6 +5,12 @@
             "id": "550E8400-E29B-41D4-A716-446655440101",
             "title": "Small soul gem",
             "imageName": "material_monster_soul_gem"
+        },
+        {
+            "id": "550E8400-E29B-41D4-A716-446655440102",
+            "title": "Wolf Fang",
+            "imageName": "material_wolf_fang",
+            "description": "A sharp fang torn from a defeated wolf. Sought by hunters."
         }
     ]
 }

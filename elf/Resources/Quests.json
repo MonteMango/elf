@@ -1,0 +1,90 @@
+{
+    "version": "1.0",
+    "quest_characters": [
+        {
+            "id": "E1A2B3C4-0001-4001-8001-000000000001",
+            "name": "Tharion Ironveil",
+            "title": "Blacksmith",
+            "imageName": "quest_blacksmith"
+        },
+        {
+            "id": "E1A2B3C4-0002-4002-8002-000000000002",
+            "name": "Elowen Dawnpetal",
+            "title": "Village Girl",
+            "imageName": "quest_villageGirl"
+        },
+        {
+            "id": "E1A2B3C4-0003-4003-8003-000000000003",
+            "name": "Kael Shadowthorn",
+            "title": "Hunter",
+            "imageName": "quest_hunter"
+        }
+    ],
+    "quests": [
+        {
+            "id": "F1A2B3C4-0001-4001-8001-000000000001",
+            "questOwnerId": "E1A2B3C4-0001-4001-8001-000000000001",
+            "title": "Ore for the Forge",
+            "description": "The blacksmith's forge is running low on materials. He needs copper chunks to keep crafting weapons and armor for the village.",
+            "conditions": [
+                {
+                    "type": "bringItem",
+                    "itemId": "C1B2C3D4-1111-4111-8111-111111111111",
+                    "amount": 5
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "item",
+                    "itemId": "550E8400-E29B-41D4-A716-446655440101",
+                    "amount": 5
+                }
+            ]
+        },
+        {
+            "id": "F1A2B3C4-0002-4002-8002-000000000002",
+            "questOwnerId": "E1A2B3C4-0002-4002-8002-000000000002",
+            "title": "Flowers for a Bouquet",
+            "description": "The village girl dreams of making a beautiful bouquet from golden sunpetals that grow in the forest glade.",
+            "conditions": [
+                {
+                    "type": "bringItem",
+                    "itemId": "B1B2C3D4-1111-4111-8111-111111111111",
+                    "amount": 5
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "item",
+                    "itemId": "550E8400-E29B-41D4-A716-446655440101",
+                    "amount": 5
+                }
+            ]
+        },
+        {
+            "id": "F1A2B3C4-0003-4003-8003-000000000003",
+            "questOwnerId": "E1A2B3C4-0003-4003-8003-000000000003",
+            "title": "Wolf Hunt",
+            "description": "Wolves have been threatening the village outskirts. The hunter needs help thinning their numbers and collecting their fangs as proof.",
+            "conditions": [
+                {
+                    "type": "killMonster",
+                    "monsterId": "550E8400-E29B-41D4-A716-446655440001",
+                    "amount": 5
+                },
+                {
+                    "type": "bringItem",
+                    "itemId": "550E8400-E29B-41D4-A716-446655440102",
+                    "amount": 5
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "item",
+                    "itemId": "550E8400-E29B-41D4-A716-446655440101",
+                    "amount": 5
+                }
+            ]
+        }
+    ]
+}
