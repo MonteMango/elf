@@ -59,6 +59,7 @@ struct CalendarScreenContent: View {
     }
 }
 
+#if DEBUG
 #Preview {
     CalendarScreenContent(
         viewModel: CalendarViewModel(
@@ -68,3 +69,4 @@ struct CalendarScreenContent: View {
         )
     )
 }
+#endif

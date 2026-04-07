@@ -72,6 +72,7 @@ struct GridCalendarView: View {
     }
 }
 
+#if DEBUG
 #Preview {
     GridCalendarView(
         calendar: PreviewMockData.createMockCalendar(),
@@ -80,3 +81,4 @@ struct GridCalendarView: View {
     )
     .background(Color.white)
 }
+#endif

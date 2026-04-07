@@ -43,6 +43,7 @@ struct LineCalendarView: View {
     }
 }
 
+#if DEBUG
 #Preview {
     LineCalendarView(
         calendar: PreviewMockData.createMockCalendar(),
@@ -51,3 +52,4 @@ struct LineCalendarView: View {
     .frame(height: 150)
     .background(Color.white)
 }
+#endif

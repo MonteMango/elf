@@ -94,8 +94,10 @@ struct InventoryScreenContent: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     InventoryScreenContent(
         viewModel: PreviewMockData.createMockInventoryViewModel()
     )
 }
+#endif

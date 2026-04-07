@@ -199,6 +199,7 @@ struct FarmActivityScreenContent: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview {
     @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @Namespace var previewNamespace
@@ -221,3 +222,4 @@ struct FarmActivityScreenContent: View {
             }
     }
 }
+#endif

@@ -1,22 +1,21 @@
 //
-//  FarmScreenContent.swift
+//  QuestListScreenContent.swift
 //  elf_iOS
 //
-//  Created by Vitalii Lytvynov on 06.01.26.
+//  Created by Vitalii Lytvynov
 //
 
 import elf_Kit
 import elf_SwiftUI
 import SwiftUI
 
-// MARK: - FarmScreenContent
+// MARK: - QuestListScreenContent
 
-struct FarmScreenContent: View {
+struct QuestListScreenContent: View {
     @Environment(AppRouter.self) private var router
-    @Environment(\.farmZoomNamespace) private var zoomNamespace
-    @State private var viewModel: FarmViewModel
+    @State private var viewModel: QuestListViewModel
 
-    init(viewModel: FarmViewModel) {
+    init(viewModel: QuestListViewModel) {
         self._viewModel = State(initialValue: viewModel)
     }
 
@@ -43,6 +42,9 @@ struct FarmScreenContent: View {
     // MARK: - Body
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         VStack(spacing: 0) {
             ScreenTopBar(
                 currentActionPoints: viewModel.currentActionPoints,
@@ -64,7 +66,7 @@ struct FarmScreenContent: View {
 
             Spacer()
 
-            activityButtons
+            questOwnersList
 
             Spacer()
         }
@@ -72,43 +74,32 @@ struct FarmScreenContent: View {
         .task { await viewModel.observeGameState() }
     }
 
-    // MARK: - Activity Buttons
+    // MARK: - Quest Owners List
 
     @ViewBuilder
-    private var activityButtons: some View {
+    private var questOwnersList: some View {
         HStack(spacing: ElfSpacing.xxl) {
-            ForEach(FarmActivity.allCases) { activity in
-                FarmActivityCell(
-                    title: activity.title,
-                    imageName: activity.imageName,
-                    level: level(for: activity),
-                    skillProgress: progress(for: activity),
-                    action: {
-                        router.navigate(to: .farmActivity(activity))
-                    }
-                )
-                .modifier(FarmZoomSourceModifier(id: activity.id, namespace: zoomNamespace))
+            ForEach(viewModel.questOwners) { owner in
+                Button {
+                    viewModel.onQuestOwnerTapped(owner.title)
+                } label: {
+                    QuestOwnerCell(
+                        title: owner.title,
+                        name: owner.name,
+                        imageName: owner.imageName,
+                        questTitle: owner.questTitle,
+                        rewardText: owner.rewardText
+                    )
+                }
+                .buttonStyle(.plain)
+                .background {
+                    Rectangle()
+                        .fill(.clear)
+                        .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
             }
         }
         .padding(.horizontal, ElfSpacing.screen)
-    }
-
-    // MARK: - Helpers
-
-    private func level(for activity: FarmActivity) -> Int {
-        switch activity {
-        case .foraging: viewModel.foragingLevel
-        case .fishing: viewModel.fishingLevel
-        case .mining: viewModel.miningLevel
-        }
-    }
-
-    private func progress(for activity: FarmActivity) -> Double {
-        switch activity {
-        case .foraging: viewModel.foragingProgress
-        case .fishing: viewModel.fishingProgress
-        case .mining: viewModel.miningProgress
-        }
     }
 }
 
@@ -121,8 +112,8 @@ struct FarmScreenContent: View {
 
     if let gameContainer {
         NavigationStack(path: $router.navigationPath) {
-            FarmScreenContent(
-                viewModel: gameContainer.makeFarmViewModel()
+            QuestListScreenContent(
+                viewModel: gameContainer.makeQuestListViewModel()
             )
             .environment(router)
             .environment(gameContainer)

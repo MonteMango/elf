@@ -127,8 +127,8 @@ internal struct GameDayScreenContent: View {
                     router.navigate(to: .farm)
                 case .craft:
                     router.navigate(to: .craft)
-                default:
-                    viewModel.onActionTapped(action)
+                case .quests:
+                    router.navigate(to: .questList)
                 }
             })
 
@@ -179,6 +179,7 @@ internal struct GameDayScreenContent: View {
     }
 }
 
+#if DEBUG
 #Preview {
     @Previewable @State var router = AppRouter()
 
@@ -189,3 +190,4 @@ internal struct GameDayScreenContent: View {
     .environment(router)
     .preferredColorScheme(.light)
 }
+#endif

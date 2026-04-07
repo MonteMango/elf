@@ -101,6 +101,7 @@ struct HuntScreenContent: View {
     }
 }
 
+#if DEBUG
 #Preview {
     @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @State var router = AppRouter()
@@ -121,3 +122,4 @@ struct HuntScreenContent: View {
             }
     }
 }
+#endif
