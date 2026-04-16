@@ -11,11 +11,12 @@ import Foundation
 /// Used by FishingService, ForagingService, and MiningService.
 public protocol GatheringEngine: Sendable {
 
-    /// Perform gathering with random chance based on item's baseSuccessChance.
+    /// Perform gathering with random chance based on each item's `baseSuccessChance`.
     ///
-    /// - Parameters:
-    ///   - items: Available items to gather from
-    ///   - maxCount: Maximum items to gather
-    /// - Returns: Array of successfully gathered items
-    func gather<Item: GatherableItem>(from items: [Item], maxCount: Int) -> [Item]
+    /// Implementations decide the max number of items to gather and the source of
+    /// randomness; both are configured at construction.
+    ///
+    /// - Parameter items: Available items to gather from.
+    /// - Returns: Array of successfully gathered items (subset of `items`).
+    func gather<Item: GatherableItem>(from items: [Item]) -> [Item]
 }

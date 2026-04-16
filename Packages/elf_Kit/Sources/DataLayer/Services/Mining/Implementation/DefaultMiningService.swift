@@ -31,8 +31,7 @@ public final class DefaultMiningService: MiningService {
         currentExp: Int,
         expPerLevel: Int
     ) -> MiningResult {
-        // Use unified gathering engine (uses GatheringEngine.defaultMaxCount)
-        let minedOres = gatheringEngine.gather(from: availableOres, maxCount: DefaultGatheringEngine.defaultMaxCount)
+        let minedOres = gatheringEngine.gather(from: availableOres)
 
         // Calculate skill progress from gathered ores
         let skillProgress = skillProgressCalculator.calculateFromGathered(
