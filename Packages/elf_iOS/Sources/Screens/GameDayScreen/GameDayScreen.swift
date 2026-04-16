@@ -14,9 +14,11 @@ internal struct GameDayScreen: View {
     internal init() {}
 
     internal var body: some View {
-        GameDayScreenContent(
-            viewModel: gameContainer.makeGameDayViewModel(),
-            inventoryViewModel: gameContainer.makeInventoryViewModel()
-        )
+        if gameContainer.activeGameService != nil {
+            GameDayScreenContent(
+                viewModel: gameContainer.makeGameDayViewModel(),
+                inventoryViewModel: gameContainer.makeInventoryViewModel()
+            )
+        }
     }
 }

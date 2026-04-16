@@ -77,11 +77,11 @@ public final class MultiBattleViewModel {
         var allResults: [BattleResult] = []
         allResults.reserveCapacity(totalBattles)
 
-        // Run in batches
         let numberOfBatches = (totalBattles + batchSize - 1) / batchSize
+        var perfTimer = BatchPerformanceTimer(expectedBatches: numberOfBatches)
+        perfTimer.start()
 
         for batchIndex in 0..<numberOfBatches {
-            // Check for cancellation before starting batch
             if Task.isCancelled {
                 wasCancelled = true
                 break
@@ -91,10 +91,12 @@ public final class MultiBattleViewModel {
             let endIndex = min(startIndex + batchSize, totalBattles)
             let battlesInBatch = endIndex - startIndex
 
-            // Run batch in parallel. Capture Sendable values before the group so
-            // child tasks don't hop back to MainActor to read them.
+            // Capture Sendable values before the group so child tasks don't hop
+            // back to MainActor to read them.
             let simService = battleSimulationService
             let currentBattle = battle
+
+            let batchStart = CFAbsoluteTimeGetCurrent()
             let batchResults = await withTaskGroup(of: BattleResult.self) { group in
                 for _ in 0..<battlesInBatch {
                     group.addTask {
@@ -111,13 +113,21 @@ public final class MultiBattleViewModel {
 
                 return results
             }
+            perfTimer.recordBatch(startedAt: batchStart)
 
             allResults.append(contentsOf: batchResults)
             completedBattles = allResults.count
             progress = Double(completedBattles) / Double(totalBattles)
         }
 
-        // If cancelled, clean up and return early
+        perfTimer.printReport(
+            label: "Battle simulation perf",
+            completed: allResults.count,
+            totalRequested: totalBattles,
+            batchSize: batchSize,
+            totalRounds: allResults.reduce(0) { $0 + $1.totalRounds }
+        )
+
         if wasCancelled {
             isRunning = false
             return
@@ -232,5 +242,65 @@ public final class MultiBattleViewModel {
         print("  Avg Strength/Round: \(String(format: "%.1f", bot2Stats.averageStrengthDamagePerRound))")
 
         print("\n========================================\n")
+    }
+}
+
+// MARK: - Perf measurement helper
+
+/// Collects per-batch wall-clock durations during a `MultiBattleViewModel.runAllBattles`
+/// execution and prints a formatted summary. Dev-only.
+private struct BatchPerformanceTimer {
+    private let expectedBatches: Int
+    private var runStart: CFAbsoluteTime = 0
+    private var batchDurations: [Double] = []
+
+    init(expectedBatches: Int) {
+        self.expectedBatches = expectedBatches
+        batchDurations.reserveCapacity(expectedBatches)
+    }
+
+    mutating func start() {
+        runStart = CFAbsoluteTimeGetCurrent()
+        batchDurations.removeAll(keepingCapacity: true)
+    }
+
+    mutating func recordBatch(startedAt: CFAbsoluteTime) {
+        batchDurations.append(CFAbsoluteTimeGetCurrent() - startedAt)
+    }
+
+    func printReport(
+        label: String,
+        completed: Int,
+        totalRequested: Int,
+        batchSize: Int,
+        totalRounds: Int
+    ) {
+        let totalDuration = CFAbsoluteTimeGetCurrent() - runStart
+        let avgBatch = batchDurations.isEmpty ? 0 : batchDurations.reduce(0, +) / Double(batchDurations.count)
+        let minBatch = batchDurations.min() ?? 0
+        let maxBatch = batchDurations.max() ?? 0
+        let perBattle = completed > 0 ? totalDuration / Double(completed) * 1000 : 0
+        let avgRounds = completed > 0 ? Double(totalRounds) / Double(completed) : 0
+
+        print(String(format: """
+
+        ┌─── 🏁 %@ ───────────────────────────
+        │ Battles:      %d completed / %d requested
+        │ Batches:      %d × batchSize=%d
+        │ Total:        %.3fs
+        │ Per battle:   %.3f ms
+        │ Avg rounds:   %.1f per battle (total %d)
+        │ Per batch:    avg=%.3fs  min=%.3fs  max=%.3fs
+        │ Cores:        %d active (ProcessInfo.activeProcessorCount)
+        └─────────────────────────────────────────────────────────
+
+        """,
+        label,
+        completed, totalRequested,
+        batchDurations.count, batchSize,
+        totalDuration, perBattle,
+        avgRounds, totalRounds,
+        avgBatch, minBatch, maxBatch,
+        ProcessInfo.processInfo.activeProcessorCount))
     }
 }

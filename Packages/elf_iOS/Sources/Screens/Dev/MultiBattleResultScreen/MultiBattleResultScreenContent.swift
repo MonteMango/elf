@@ -10,6 +10,7 @@ import SwiftUI
 
 internal struct MultiBattleResultScreenContent: View {
     @State private var viewModel: MultiBattleViewModel
+    @State private var fpsCounter = FPSCounter()
     let onClose: () -> Void
 
     internal init(
@@ -30,7 +31,20 @@ internal struct MultiBattleResultScreenContent: View {
                 resultView(result)
             }
         }
+        .perfOverlay(counter: fpsCounter)
         .navigationBarBackButtonHidden(true)
+        .onDisappear { fpsCounter.stop() }
+        .onChange(of: viewModel.isRunning) { _, isRunning in
+            // Start/stop FPS counter on the run boundary so each Fight-Again
+            // also gets a fresh measurement + printed report.
+            if isRunning {
+                fpsCounter.start()
+            } else if viewModel.completedBattles > 0 {
+                fpsCounter.printReport(
+                    label: "UI thread during \(viewModel.completedBattles) battles"
+                )
+            }
+        }
         .task {
             await viewModel.runAllBattles()
         }
@@ -40,7 +54,7 @@ internal struct MultiBattleResultScreenContent: View {
 
     private var progressView: some View {
         VStack(spacing: 20) {
-            Text("Running 1000 Battles")
+            Text("Running \(viewModel.totalBattles) Battles")
                 .font(.title)
                 .bold()
                 .foregroundStyle(.white)
@@ -91,7 +105,7 @@ internal struct MultiBattleResultScreenContent: View {
 
     private func winRatesSection(_ result: MultiBattleResult) -> some View {
         VStack(spacing: 16) {
-            Text("1000 Battle Results")
+            Text("\(viewModel.totalBattles) Battle Results")
                 .font(.largeTitle)
                 .bold()
                 .foregroundStyle(.white)

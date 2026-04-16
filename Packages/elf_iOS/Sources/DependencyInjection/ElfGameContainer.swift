@@ -255,7 +255,8 @@ public final class ElfGameContainer {
         return MultiBattleViewModel(
             battle: battle,
             battleSimulationService: self.battleSimulationService,
-            statisticsAggregator: self.statisticsAggregator
+            statisticsAggregator: self.statisticsAggregator,
+            totalBattles: PerfTestConfig.multiBattleCount
         )
     }
 
@@ -300,26 +301,6 @@ public final class ElfGameContainer {
             currentItemId: currentItemId,
             itemsRepository: self.gameDataRepository.items
         )
-    }
-
-    /// Starts (or replaces) the active game session. Must be called before navigating
-    /// to `.gameSession` so that `DefaultGameService` is available in the environment.
-    public func startGameSession(game: Game, playTime: TimeInterval = 0) {
-        activeGameService = DefaultGameService(
-            game: game,
-            gameRepository: self.gameRepository,
-            inventoryService: self.inventoryService,
-            debugGameLogger: self.debugGameLogger,
-            playTime: playTime
-        )
-    }
-
-    /// Ends the active game session and releases the `DefaultGameService`.
-    /// Callers must unwind navigation to the root (`router.popToRoot()`) *before*
-    /// invoking this, so that no game-session view is still reading
-    /// `@Environment(DefaultGameService.self)` when the service disappears.
-    public func endGameSession() {
-        activeGameService = nil
     }
 
     public func makeGameDayViewModel() -> GameDayViewModel {
@@ -443,6 +424,26 @@ public final class ElfGameContainer {
     }
 
     // MARK: - Game Session Management
+    
+    /// Starts (or replaces) the active game session. Must be called before navigating
+    /// to `.gameSession` so that `DefaultGameService` is available in the environment.
+    public func startGameSession(game: Game, playTime: TimeInterval = 0) {
+        activeGameService = DefaultGameService(
+            game: game,
+            gameRepository: self.gameRepository,
+            inventoryService: self.inventoryService,
+            debugGameLogger: self.debugGameLogger,
+            playTime: playTime
+        )
+    }
+
+    /// Ends the active game session and releases the `DefaultGameService`.
+    /// Callers must unwind navigation to the root (`router.popToRoot()`) *before*
+    /// invoking this, so that no game-session view is still reading
+    /// `@Environment(DefaultGameService.self)` when the service disappears.
+    public func endGameSession() {
+        activeGameService = nil
+    }
 
     /// Saves active game if exists (called on app background)
     public func saveActiveGameIfNeeded() async {
