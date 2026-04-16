@@ -55,6 +55,7 @@ public final class DefaultGameService: GameService {
 
     @ObservationIgnored private let gameRepository: GameSaveStorage
     @ObservationIgnored private let inventoryService: InventoryService
+    @ObservationIgnored private let craftService: CraftService
     @ObservationIgnored private let debugGameLogger: DebugGameLogger
     @ObservationIgnored private let slotId: String
 
@@ -64,6 +65,7 @@ public final class DefaultGameService: GameService {
         game: Game,
         gameRepository: GameSaveStorage,
         inventoryService: InventoryService,
+        craftService: CraftService,
         debugGameLogger: DebugGameLogger,
         slotId: String = SaveSlotInfo.defaultSlotId,
         playTime: TimeInterval = 0
@@ -78,6 +80,7 @@ public final class DefaultGameService: GameService {
         self.player = PlayerStore(from: game.houses[game.playerHouseIndex].members[game.playerMemberIndex])
         self.gameRepository = gameRepository
         self.inventoryService = inventoryService
+        self.craftService = craftService
         self.debugGameLogger = debugGameLogger
         self.slotId = slotId
         self.playTime = playTime
@@ -195,18 +198,18 @@ public final class DefaultGameService: GameService {
         player.inventory = inventory
     }
 
-    // MARK: - Atomic Scoped Mutations
+    // MARK: - Crafting
 
-    /// Atomically mutates the player's equipped items. Fires observation
-    /// invalidation only for `player.equipped`.
-    public func modifyEquipment(_ transform: (inout EquippedItems) -> Void) {
-        transform(&player.equipped)
-    }
-
-    /// Atomically mutates the player's inventory. Fires observation invalidation
-    /// only for `player.inventory`.
-    public func modifyInventory(_ transform: (inout ElfInventory) -> Void) {
-        transform(&player.inventory)
+    /// Atomically validates, deducts materials, and adds the crafted item to inventory.
+    /// Returns `true` on success, `false` if materials are insufficient.
+    @discardableResult
+    public func craftItem(recipe: Recipe, item: Item) -> Bool {
+        var inventory = player.inventory
+        guard craftService.canCraft(recipe: recipe, inventory: inventory) else { return false }
+        inventory = craftService.deductMaterials(recipe: recipe, from: inventory)
+        inventory = inventoryService.addCraftedItem(item, to: inventory)
+        player.inventory = inventory
+        return true
     }
 
     // MARK: - Persistence

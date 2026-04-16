@@ -19,7 +19,6 @@ public final class CraftViewModel {
     let materialRepository: any Repository<Material>
     let oreRepository: any Repository<Ore>
     let craftService: any CraftService
-    let inventoryService: any InventoryService
 
     // MARK: - Local UI State
 
@@ -58,8 +57,7 @@ public final class CraftViewModel {
         itemsRepository: any ItemsRepository,
         materialRepository: any Repository<Material>,
         oreRepository: any Repository<Ore>,
-        craftService: any CraftService,
-        inventoryService: any InventoryService
+        craftService: any CraftService
     ) {
         self.gameService = gameService
         self.recipeRepository = recipeRepository
@@ -67,7 +65,6 @@ public final class CraftViewModel {
         self.materialRepository = materialRepository
         self.oreRepository = oreRepository
         self.craftService = craftService
-        self.inventoryService = inventoryService
     }
 
     // MARK: - Actions
@@ -93,12 +90,7 @@ public final class CraftViewModel {
 
         try? await Task.sleep(for: .seconds(2))
 
-        // Atomic: validate + deduct + add (no suspension points in closure)
-        gameService.modifyInventory { [craftService, inventoryService] inventory in
-            guard craftService.canCraft(recipe: recipe, inventory: inventory) else { return }
-            inventory = craftService.deductMaterials(recipe: recipe, from: inventory)
-            inventory = inventoryService.addCraftedItem(item, to: inventory)
-        }
+        gameService.craftItem(recipe: recipe, item: item)
     }
 
     // MARK: - Private builders

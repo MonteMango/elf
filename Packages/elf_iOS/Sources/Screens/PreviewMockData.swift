@@ -166,6 +166,7 @@ enum PreviewMockData {
             game: createMockGame(),
             gameRepository: NoOpGameSaveStorage(),
             inventoryService: ElfInventoryService(),
+            craftService: DefaultCraftService(),
             debugGameLogger: ConsoleDebugGameLogger(categories: [])
         )
     }

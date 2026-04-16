@@ -51,6 +51,7 @@ public final class ElfGameContainer {
     // Business logic services (extracted from models)
     public let progressionService: ElfProgressionService
     public let inventoryService: ElfInventoryService
+    public let craftService: CraftService
     public let statisticsAggregator: ElfBattleStatisticsAggregator
     public let skillProgressCalculator: ElfSkillProgressCalculator
     public let equipmentQueryService: ElfEquipmentQueryService
@@ -113,6 +114,7 @@ public final class ElfGameContainer {
         let progressionService = ElfProgressionService()
         self.progressionService = progressionService
         self.inventoryService = inventoryService
+        self.craftService = DefaultCraftService()
         self.statisticsAggregator = ElfBattleStatisticsAggregator()
         self.skillProgressCalculator = ElfSkillProgressCalculator()
         self.equipmentQueryService = ElfEquipmentQueryService()
@@ -369,15 +371,13 @@ public final class ElfGameContainer {
         guard let gameService = activeGameService else {
             fatalError("No active game session. CraftViewModel requires an active game.")
         }
-        let craftService = DefaultCraftService()
         return CraftViewModel(
             gameService: gameService,
             recipeRepository: self.gameDataRepository.recipes,
             itemsRepository: self.gameDataRepository.items,
             materialRepository: self.gameDataRepository.materials,
             oreRepository: self.gameDataRepository.ores,
-            craftService: craftService,
-            inventoryService: self.inventoryService
+            craftService: self.craftService
         )
     }
 
@@ -432,6 +432,7 @@ public final class ElfGameContainer {
             game: game,
             gameRepository: self.gameRepository,
             inventoryService: self.inventoryService,
+            craftService: self.craftService,
             debugGameLogger: self.debugGameLogger,
             playTime: playTime
         )
@@ -460,6 +461,7 @@ public final class ElfGameContainer {
             game: game,
             gameRepository: self.gameRepository,
             inventoryService: self.inventoryService,
+            craftService: self.craftService,
             debugGameLogger: self.debugGameLogger,
             playTime: 0
         )

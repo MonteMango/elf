@@ -87,18 +87,11 @@ public protocol GameStateService: AnyObject, Observable {
     /// Adds mined ores to player's inventory as materials.
     func addOresToInventory(_ ores: [Ore])
 
-    // MARK: - Atomic Scoped Mutations
+    // MARK: - Crafting
 
-    /// Atomically mutates the player's equipped items.
-    ///
-    /// Fires observation invalidation only for `PlayerStore.equipped`. Views that
-    /// read unrelated fields (e.g. `player.foragingExp`) are not re-evaluated.
-    func modifyEquipment(_ transform: (inout EquippedItems) -> Void)
-
-    /// Atomically mutates the player's inventory.
-    ///
-    /// Fires observation invalidation only for `PlayerStore.inventory`. Use this
-    /// for crafting, drops, and any operation that changes inventory without
-    /// touching other player fields.
-    func modifyInventory(_ transform: (inout ElfInventory) -> Void)
+    /// Atomically crafts `item` from `recipe`: validates materials, deducts
+    /// ingredients, and adds the crafted item to inventory. Returns `true` on
+    /// success, `false` if materials are insufficient.
+    @discardableResult
+    func craftItem(recipe: Recipe, item: Item) -> Bool
 }

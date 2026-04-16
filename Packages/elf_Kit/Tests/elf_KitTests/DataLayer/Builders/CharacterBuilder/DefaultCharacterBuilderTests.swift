@@ -14,6 +14,7 @@ import XCTest
 /// - Appearance must be set
 /// - Name must be non-empty (after trimming)
 /// - Fight style must be set
+@MainActor
 final class DefaultCharacterBuilderTests: XCTestCase {
 
     // MARK: - Test Helpers
