@@ -15,6 +15,9 @@ public struct BackButton: View {
     }
 
     public var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         Button(action: action) {
             Image(systemName: "arrow.backward")
                 .font(.title2)

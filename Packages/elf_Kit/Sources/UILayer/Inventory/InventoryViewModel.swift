@@ -33,7 +33,7 @@ public final class InventoryViewModel {
 
     // MARK: - Callbacks
 
-    public var onClose: () -> Void = {}
+    @ObservationIgnored public var onClose: () -> Void = {}
 
     // MARK: - Derived State (computed reactively)
 

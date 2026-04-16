@@ -19,6 +19,9 @@ struct InventoryScreenContent: View {
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         HStack(spacing: 0) {
             // Left panel: filters + grid + close button
             leftPanel

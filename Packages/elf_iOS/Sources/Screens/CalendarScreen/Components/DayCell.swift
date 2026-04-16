@@ -15,6 +15,9 @@ struct DayCell: View {
     let isCurrentDay: Bool
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ZStack {
             // Background
             RoundedRectangle(cornerRadius: 4)

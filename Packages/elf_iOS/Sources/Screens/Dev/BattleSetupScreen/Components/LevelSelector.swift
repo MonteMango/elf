@@ -20,6 +20,9 @@ struct LevelSelector: View {
     // MARK: - Body
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         VStack(spacing: BattleSetupConstants.Spacing.labelToControlSpacing) {
             Text("Level")
                 .font(BattleSetupConstants.Fonts.labelFont)

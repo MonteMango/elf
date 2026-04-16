@@ -22,6 +22,9 @@ internal struct MultiBattleResultScreenContent: View {
     }
 
     internal var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ZStack {
             Color.black.ignoresSafeArea()
 

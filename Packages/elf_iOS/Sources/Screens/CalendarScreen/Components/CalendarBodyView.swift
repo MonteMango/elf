@@ -17,6 +17,9 @@ struct CalendarBodyView: View {
     let daysPerIteration: Int
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         VStack(spacing: 0) {
             // View mode picker (styled globally in ElfApp.configureAppearance)
             Picker("View Mode", selection: $viewMode) {

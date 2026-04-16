@@ -39,6 +39,9 @@ struct BodyPointSelector: View {
     // MARK: - Body
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         let checkboxSize = ElfSizing.BattleFight.checkboxSize
         let spacing: CGFloat = 10
         let selectorWidth = checkboxSize * 3 + spacing * 2

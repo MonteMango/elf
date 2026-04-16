@@ -19,6 +19,9 @@ struct PlayerInfoSection: View {
     private let labelWidth: CGFloat = 60
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         VStack(alignment: .leading, spacing: 0) {
             // Level and Name
             HStack(spacing: ElfSpacing.component) {

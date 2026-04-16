@@ -17,6 +17,9 @@ struct InventoryCell: View {
     private let cellSize: CGFloat = 45
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         Button(action: onTap) {
             ZStack(alignment: .topLeading) {
                 // Background

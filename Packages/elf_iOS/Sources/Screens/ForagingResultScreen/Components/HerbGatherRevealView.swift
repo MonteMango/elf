@@ -17,6 +17,9 @@ struct HerbGatherRevealView: View {
     @State private var revealedCount: Int = 0
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         if !gatheredHerbs.isEmpty {
             VStack(spacing: ElfSizing.BattleResult.smallSpacing) {
                 Text("Gathered")
@@ -60,6 +63,9 @@ private struct HerbItemCard: View {
     let isVisible: Bool
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ItemCard(
             imageName: herb.imageName,
             rarityColor: .tier(herb.tier.rawValue),

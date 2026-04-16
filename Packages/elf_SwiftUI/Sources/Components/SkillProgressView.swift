@@ -48,6 +48,9 @@ public struct SkillProgressView: View {
     }
 
     public var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         VStack(spacing: 0) {
             // XP gained text
             Text("+\(experienceGained) XP")

@@ -12,6 +12,9 @@ struct PocketsView: View {
     let onPocketTapped: (Int) -> Void
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         HStack(spacing: ElfSpacing.button) {
             ForEach(0..<4, id: \.self) { index in
                 pocketSlot(index: index)

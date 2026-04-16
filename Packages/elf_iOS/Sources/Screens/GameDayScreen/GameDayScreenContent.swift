@@ -27,6 +27,9 @@ internal struct GameDayScreenContent: View {
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         GeometryReader { geometry in
             let spacing: CGFloat = 10
             let centerWidth: CGFloat = 250

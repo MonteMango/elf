@@ -20,6 +20,9 @@ struct CharacterCreationScreenContent: View {
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         VStack(spacing: 0) {
             // Stage indicator (hidden when character is ready)
             if !viewModel.isCharacterReady {

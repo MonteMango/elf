@@ -17,6 +17,9 @@ struct FightStyleSelectionView: View {
     let fightStyleAttributesDescription: String?
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         StageContainer(safeAreaInsets: safeAreaInsets) { _, safeArea in
             ZStack {
                 // Title and buttons (top left)

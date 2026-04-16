@@ -14,6 +14,9 @@ struct CraftCategoryButtonsRow: View {
     let onCategoryTap: (CraftCategory) -> Void
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         HStack(spacing: ElfSpacing.medium) {
             ForEach(CraftCategory.allCases) { category in
                 CraftCategoryButton(
@@ -37,6 +40,9 @@ private struct CraftCategoryButton: View {
     let onTap: () -> Void
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         Button(action: onTap) {
             ZStack {
                 Circle()

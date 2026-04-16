@@ -14,6 +14,9 @@ internal struct ItemCell: View {
     let isSelected: Bool
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         // Item image
         Image("card_\(item.id.uuidString.lowercased())")
             .resizable()

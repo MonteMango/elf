@@ -14,6 +14,9 @@ internal struct BattleSetupScreen: View {
     internal init() {}
 
     internal var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         BattleSetupScreenContent(
             viewModel: gameContainer.makeBattleSetupViewModel()
         )

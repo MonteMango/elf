@@ -13,6 +13,9 @@ struct BattleResultScreen: View {
     let result: ManualBattleResult
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         BattleResultScreenContent(
             viewModel: gameContainer.makeBattleResultViewModel(result: result)
         )

@@ -19,6 +19,9 @@ struct NameInputView: View {
     var isTextFieldFocused: FocusState<Bool>.Binding
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         StageContainer(safeAreaInsets: safeAreaInsets) { _, safeArea in
             VStack(spacing: 20) {
                 // Name input row

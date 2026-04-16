@@ -29,6 +29,9 @@ struct GridCalendarView: View {
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ScrollViewReader { proxy in
             ScrollView(.vertical) {
                 VStack(spacing: spacing) {

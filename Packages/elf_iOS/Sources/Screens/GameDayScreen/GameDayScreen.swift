@@ -14,6 +14,9 @@ internal struct GameDayScreen: View {
     internal init() {}
 
     internal var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         if gameContainer.activeGameService != nil {
             GameDayScreenContent(
                 viewModel: gameContainer.makeGameDayViewModel(),

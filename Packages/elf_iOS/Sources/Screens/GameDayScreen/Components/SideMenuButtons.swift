@@ -19,6 +19,9 @@ struct SideMenuButtons: View {
     ]
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         LazyVGrid(columns: columns, spacing: ElfSpacing.button) {
             ForEach(SideMenuType.allCases, id: \.self) { menu in
                 sideButton(for: menu)

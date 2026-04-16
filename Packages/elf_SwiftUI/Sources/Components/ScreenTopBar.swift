@@ -40,6 +40,9 @@ public struct ScreenTopBar: View {
     }
 
     public var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ZStack(alignment: .top) {
             ActionPointsBar(
                 current: currentActionPoints,

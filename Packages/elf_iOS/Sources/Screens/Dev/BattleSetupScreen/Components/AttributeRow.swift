@@ -21,6 +21,9 @@ struct AttributeRow: View {
     // MARK: - Body
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         HStack(spacing: 8) {
             if alignment == .leading {
                 Text(title)

@@ -20,6 +20,9 @@ struct HeroSection: View {
     let onPocketTapped: (Int) -> Void
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ZStack(alignment: .bottom) {
             // Hero image centered, positioned above the bottom row
             Image(imageName)

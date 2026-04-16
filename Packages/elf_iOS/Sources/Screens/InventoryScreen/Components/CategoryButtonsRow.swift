@@ -16,6 +16,9 @@ struct CategoryButtonsRow: View {
     private let buttonSize: CGFloat = 50
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         HStack(spacing: 10) {
             ForEach(InventoryCategory.allCases, id: \.self) { category in
                 CategoryButton(
@@ -39,6 +42,9 @@ private struct CategoryButton: View {
     let onTap: () -> Void
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         Button(action: onTap) {
             ZStack {
                 Circle()

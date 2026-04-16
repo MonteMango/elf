@@ -16,6 +16,9 @@ struct DropsRevealView: View {
     @State private var revealedCount: Int = 0
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         if !drops.isEmpty {
             VStack(spacing: ElfSizing.BattleResult.smallSpacing) {
                 Text("Loot")

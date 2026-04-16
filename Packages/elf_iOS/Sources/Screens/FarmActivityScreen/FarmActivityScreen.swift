@@ -14,6 +14,9 @@ struct FarmActivityScreen: View {
     let activity: FarmActivity
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         FarmActivityScreenContent(
             viewModel: gameContainer.makeFarmActivityViewModel(activity: activity),
             dayStateViewModel: gameContainer.requireGameDayStateViewModel()

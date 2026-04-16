@@ -16,6 +16,9 @@ struct FarmActivityCell: View {
     let action: () -> Void
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         Button(action: action) {
             activityImage
                 .frame(

@@ -27,6 +27,9 @@ public struct CalendarSection: View {
     }
 
     public var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         Button {
             onTap?()
         } label: {

@@ -18,6 +18,9 @@ struct CraftScreenContent: View {
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         HStack(spacing: 0) {
             // Left panel: back + filters + recipe list
             leftPanel

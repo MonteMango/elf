@@ -25,6 +25,9 @@ struct AttributesPanel: View {
     // MARK: - Body
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         VStack(alignment: alignment, spacing: BattleSetupConstants.Spacing.attributeRowSpacing) {
             // Group 1: Basic attributes
             attributeRow(

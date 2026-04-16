@@ -14,6 +14,9 @@ internal struct BattleFightScreen: View {
     let battle: Battle
 
     internal var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         BattleFightScreenContent(
             viewModel: gameContainer.makeBattleFightViewModel(battle: battle)
         )

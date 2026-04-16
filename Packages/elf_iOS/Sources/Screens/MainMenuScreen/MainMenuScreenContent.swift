@@ -19,6 +19,9 @@ internal struct MainMenuScreenContent: View {
     }
 
     internal var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         VStack(spacing: 30) {
             // Continue button — appears when game data loaded AND save exists
             if viewModel.hasSavedGame {

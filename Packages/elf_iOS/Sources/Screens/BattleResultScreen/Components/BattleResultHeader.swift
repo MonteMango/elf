@@ -14,6 +14,9 @@ struct BattleResultHeader: View {
     let isVisible: Bool
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         HStack(alignment: .firstTextBaseline, spacing: ElfSizing.BattleResult.smallSpacing) {
             // Outcome icon
             outcomeIcon

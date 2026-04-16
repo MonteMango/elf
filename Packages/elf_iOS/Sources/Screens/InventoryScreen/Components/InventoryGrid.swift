@@ -21,6 +21,9 @@ struct InventoryGrid: View {
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ScrollView {
             LazyVGrid(columns: columns, alignment: .leading, spacing: spacing) {
                 ForEach(items) { item in

@@ -16,6 +16,9 @@ public struct UISmoothnessIndicator: View {
     public init() {}
 
     public var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         Rectangle()
             .fill(
                 LinearGradient(

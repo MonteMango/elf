@@ -21,6 +21,9 @@ struct FightStyleSelector: View {
     // MARK: - Body
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         HStack(spacing: BattleSetupConstants.Spacing.fightStyleButtonSpacing) {
             ForEach(fightStyles, id: \.self) { style in
                 Button(action: { selectedFightStyle = style }) {

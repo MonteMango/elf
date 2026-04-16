@@ -12,6 +12,9 @@ struct FarmScreen: View {
     @Environment(ElfGameContainer.self) private var gameContainer
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         FarmScreenContent(
             viewModel: gameContainer.makeFarmViewModel(),
             dayStateViewModel: gameContainer.requireGameDayStateViewModel()

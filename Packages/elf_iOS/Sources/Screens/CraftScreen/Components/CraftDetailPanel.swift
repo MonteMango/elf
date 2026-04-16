@@ -14,6 +14,9 @@ struct CraftDetailPanel: View {
     let onCraft: () -> Void
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         if let detail {
             VStack(spacing: 0) {
                 ScrollView {

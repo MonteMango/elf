@@ -17,6 +17,9 @@ struct OreMineRevealView: View {
     @State private var revealedCount: Int = 0
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         if !minedOres.isEmpty {
             VStack(spacing: ElfSizing.BattleResult.smallSpacing) {
                 Text("Mined")
@@ -60,6 +63,9 @@ private struct OreItemCard: View {
     let isVisible: Bool
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ItemCard(
             imageName: ore.imageName,
             rarityColor: .tier(ore.tier.rawValue),

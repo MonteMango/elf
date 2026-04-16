@@ -14,6 +14,9 @@ struct MonsterAttackAlertView: View {
     let onFight: () -> Void
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ZStack {
             // Dimmed background
             Color.black.opacity(0.6)

@@ -15,6 +15,9 @@ public struct CloseButton: View {
     }
 
     public var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         Button(action: action) {
             Image(systemName: "xmark")
                 .font(.system(size: ElfFonts.Size.title3, weight: .bold))

@@ -29,6 +29,9 @@ internal struct SelectHeroItemScreen: View {
     }
 
     internal var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         SelectHeroItemScreenContent(
             viewModel: gameContainer.makeSelectHeroItemViewModel(
                 heroType: heroType,

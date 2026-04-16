@@ -15,6 +15,9 @@ struct AppearanceSelectionView: View {
     let safeAreaInsets: EdgeInsets
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         StageContainer(safeAreaInsets: safeAreaInsets) { size, safeArea in
             let cardHeight = size.height - 40 // padding
             let cardWidth = cardHeight * 0.6

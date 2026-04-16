@@ -14,6 +14,9 @@ struct DropItemCard: View {
     let isVisible: Bool
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ItemCard(
             imageName: item.icon,
             rarityColor: item.tier.cardColor,

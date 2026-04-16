@@ -14,6 +14,9 @@ struct ActivityInProgressView: View {
     let activity: FarmActivity
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         VStack(spacing: ElfSpacing.section) {
             ProgressView()
                 .scaleEffect(1.5)

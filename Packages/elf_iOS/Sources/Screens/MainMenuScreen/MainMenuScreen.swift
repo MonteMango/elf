@@ -11,6 +11,9 @@ struct MainMenuScreen: View {
     @Environment(ElfAppContainer.self) private var appContainer
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         MainMenuScreenContent(
             viewModel: appContainer.makeMainMenuViewModel()
         )

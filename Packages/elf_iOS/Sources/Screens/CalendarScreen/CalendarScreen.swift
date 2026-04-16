@@ -16,6 +16,9 @@ struct CalendarScreen: View {
     let currentDayNumber: Int
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         CalendarScreenContent(
             viewModel: gameContainer.makeCalendarViewModel(
                 calendar: calendar,

@@ -11,6 +11,9 @@ import SwiftUI
 /// View shown while fishing is in progress
 struct FishingInProgressView: View {
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         VStack(spacing: ElfSpacing.section) {
             ProgressView()
                 .scaleEffect(1.5)

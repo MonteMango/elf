@@ -19,6 +19,9 @@ struct StageContainer<Content: View>: View {
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         GeometryReader { geometry in
             content(geometry.size, safeAreaInsets)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

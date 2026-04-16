@@ -14,6 +14,9 @@ internal struct RoundHistoryRow: View {
     @State private var isExpanded: Bool = false
 
     internal var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         VStack(alignment: .leading, spacing: 8) {
             headerButton
             if isExpanded {

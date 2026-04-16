@@ -13,6 +13,9 @@ internal struct StatisticsRow: View {
     let bot2Value: String
 
     internal var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         HStack {
             Text(title)
                 .font(.subheadline)

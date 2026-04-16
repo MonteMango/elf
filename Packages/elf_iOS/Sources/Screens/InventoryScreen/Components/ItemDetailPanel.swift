@@ -17,6 +17,9 @@ struct ItemDetailPanel: View {
     private let formatter = ItemDetailsFormatter()
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         VStack(spacing: 0) {
             if let item = item {
                 itemContent(item)

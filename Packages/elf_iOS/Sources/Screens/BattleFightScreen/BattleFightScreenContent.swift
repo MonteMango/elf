@@ -32,6 +32,9 @@ internal struct BattleFightScreenContent: View {
     // MARK: - Body
 
     internal var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ZStack {
             // Background
             Color.white.ignoresSafeArea()

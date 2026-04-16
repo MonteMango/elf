@@ -12,6 +12,9 @@ internal struct EmptyItemCell: View {
     let isSelected: Bool
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         // Empty placeholder
         ZStack {
             RoundedRectangle(cornerRadius: 8)

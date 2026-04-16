@@ -29,6 +29,9 @@ public struct ItemsGridView: View {
     }
 
     public var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         let columnCount = max(items.count, 1)
         LazyVGrid(
             columns: Array(

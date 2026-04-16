@@ -23,6 +23,9 @@ struct DuelPairsColumnView: View {
     }
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         HStack(alignment: .bottom, spacing: 4) {
             // Left column
             VStack(alignment: .trailing, spacing: 8) {

@@ -13,6 +13,9 @@ struct ActionButtonsList: View {
     let onAction: (ActionType) -> Void
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         VStack(spacing: ElfSpacing.button) {
             ForEach(ActionType.allCases, id: \.self) { action in
                 actionButton(for: action)

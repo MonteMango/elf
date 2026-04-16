@@ -13,6 +13,9 @@ struct MiningResultScreen: View {
     let result: MiningResult
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         MiningResultScreenContent(
             viewModel: gameContainer.makeMiningResultViewModel(result: result)
         )

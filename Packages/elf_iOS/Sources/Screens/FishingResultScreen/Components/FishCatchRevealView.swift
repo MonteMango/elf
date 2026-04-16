@@ -17,6 +17,9 @@ struct FishCatchRevealView: View {
     @State private var revealedCount: Int = 0
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         if !caughtFish.isEmpty {
             VStack(spacing: ElfSizing.BattleResult.smallSpacing) {
                 Text("Catch")
@@ -60,6 +63,9 @@ private struct FishItemCard: View {
     let isVisible: Bool
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ItemCard(
             imageName: fish.imageName,
             rarityColor: .tier(fish.tier.rawValue),

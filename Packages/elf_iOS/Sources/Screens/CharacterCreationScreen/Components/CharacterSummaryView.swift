@@ -21,6 +21,9 @@ struct CharacterSummaryView: View {
     let safeAreaInsets: EdgeInsets
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         StageContainer(safeAreaInsets: safeAreaInsets) { size, safeArea in
             let padding: CGFloat = 10
             let availableHeight = size.height - padding * 2

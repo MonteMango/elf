@@ -77,6 +77,9 @@ private struct QuestOwnerCellOverlay: View {
     let rewardText: String
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ZStack {
             Rectangle()
                 .fill(

@@ -24,6 +24,9 @@ struct HeroItemsGrid: View {
     // MARK: - Body
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         HStack(alignment: .bottom, spacing: BattleSetupConstants.Spacing.itemGridSpacing) {
             // Left column
             VStack(spacing: 0) {

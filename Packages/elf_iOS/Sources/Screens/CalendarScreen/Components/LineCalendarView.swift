@@ -17,6 +17,9 @@ struct LineCalendarView: View {
     private let spacing: CGFloat = 12
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ScrollViewReader { proxy in
             ScrollView(.horizontal) {
                 LazyHStack(spacing: spacing) {

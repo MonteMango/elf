@@ -13,6 +13,9 @@ struct FishingResultScreen: View {
     let result: FishingResult
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         FishingResultScreenContent(
             viewModel: gameContainer.makeFishingResultViewModel(result: result)
         )

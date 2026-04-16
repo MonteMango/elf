@@ -16,6 +16,9 @@ struct CreateCharacterStageView: View {
     let onClose: () -> Void
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         HStack {
             ForEach(CharacterCreationStage.allCases, id: \.self) { stage in
                 stageButton(for: stage)

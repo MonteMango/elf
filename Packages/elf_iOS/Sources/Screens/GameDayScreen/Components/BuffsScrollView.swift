@@ -12,6 +12,9 @@ struct BuffsScrollView: View {
     let buffs: [String]
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ScrollView(.horizontal) {
             HStack(spacing: ElfSpacing.component) {
                 if buffs.isEmpty {

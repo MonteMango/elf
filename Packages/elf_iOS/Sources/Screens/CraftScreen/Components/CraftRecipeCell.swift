@@ -15,6 +15,9 @@ struct CraftRecipeCell: View {
     let onTap: () -> Void
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         Button(action: onTap) {
             ZStack(alignment: .bottomTrailing) {
                 HStack(spacing: ElfSpacing.medium) {

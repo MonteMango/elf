@@ -26,6 +26,9 @@ internal struct SelectHeroItemScreenContent: View {
     }
 
     internal var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         ZStack {
             // Items Grid - full size
             ScrollView(.horizontal) {

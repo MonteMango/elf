@@ -16,6 +16,9 @@ struct SubcategoryButtonsRow: View {
     private let buttonSize: CGFloat = 40
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         HStack(spacing: 10) {
             ForEach(Array(titles.enumerated()), id: \.offset) { index, title in
                 SubcategoryButton(
@@ -39,6 +42,9 @@ private struct SubcategoryButton: View {
     let onTap: () -> Void
 
     var body: some View {
+        #if DEBUG
+        let _ = Self._printChanges()
+        #endif
         Button(action: onTap) {
             ZStack {
                 Circle()
