@@ -50,8 +50,8 @@ struct GameSave: Codable, Sendable {
     func toGame(
         itemsRepository: ItemsRepository,
         inventoryService: InventoryService
-    ) async throws -> Game {
-        try await data.toGame(
+    ) throws -> Game {
+        try data.toGame(
             itemsRepository: itemsRepository,
             inventoryService: inventoryService
         )

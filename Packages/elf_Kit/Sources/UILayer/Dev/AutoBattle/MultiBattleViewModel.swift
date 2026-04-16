@@ -91,11 +91,14 @@ public final class MultiBattleViewModel {
             let endIndex = min(startIndex + batchSize, totalBattles)
             let battlesInBatch = endIndex - startIndex
 
-            // Run batch in parallel
+            // Run batch in parallel. Capture Sendable values before the group so
+            // child tasks don't hop back to MainActor to read them.
+            let simService = battleSimulationService
+            let currentBattle = battle
             let batchResults = await withTaskGroup(of: BattleResult.self) { group in
                 for _ in 0..<battlesInBatch {
-                    group.addTask { [self] in
-                        await self.battleSimulationService.runSingleBattle(self.battle)
+                    group.addTask {
+                        simService.runSingleBattle(currentBattle)
                     }
                 }
 
@@ -140,9 +143,8 @@ public final class MultiBattleViewModel {
         let bot1Level = Int(battle.leftTeam.first?.level ?? 1)
         let bot2Level = Int(battle.rightTeam.first?.level ?? 1)
 
-        // Aggregate statistics
-        let bot1Stats = await statisticsAggregator.aggregate(from: allResults, forBot1: true)
-        let bot2Stats = await statisticsAggregator.aggregate(from: allResults, forBot1: false)
+        let bot1Stats = statisticsAggregator.aggregate(from: allResults, forBot1: true)
+        let bot2Stats = statisticsAggregator.aggregate(from: allResults, forBot1: false)
 
         // Create final result
         result = MultiBattleResult(

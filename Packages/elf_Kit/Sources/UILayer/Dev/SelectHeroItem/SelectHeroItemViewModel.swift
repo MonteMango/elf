@@ -55,6 +55,6 @@ public final class SelectHeroItemViewModel {
         defer { isLoading = false }
 
         // Get items from repository using the new getItems method
-        availableItems = await itemsRepository.getItems(for: heroItemType)
+        availableItems = itemsRepository.getItems(for: heroItemType)
     }
 }

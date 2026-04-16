@@ -14,5 +14,5 @@ public protocol ItemAttributeAggregator: Sendable {
     ///
     /// - Parameter itemIds: Array of item UUIDs
     /// - Returns: Combined attributes from all items
-    func getAllItemsAttributes(for itemIds: [UUID]) async -> HeroAttributes
+    func getAllItemsAttributes(for itemIds: [UUID]) -> HeroAttributes
 }

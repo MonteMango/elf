@@ -62,7 +62,8 @@ internal struct MainMenuScreenContent: View {
             }
         }
         .onChange(of: viewModel.loadedGame) { _, newGame in
-            if let game = newGame {
+            if let game = newGame, let gameContainer = appContainer.gameContainer {
+                gameContainer.startGameSession(game: game, playTime: viewModel.loadedPlayTime)
                 router.navigate(to: .gameSession(game, playTime: viewModel.loadedPlayTime))
                 viewModel.consumeLoadedGame()
             }

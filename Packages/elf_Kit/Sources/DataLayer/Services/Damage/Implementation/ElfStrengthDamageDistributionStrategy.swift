@@ -9,7 +9,7 @@ public final class ElfStrengthDamageDistributionStrategy: StrengthDamageDistribu
 
     public init() {}
 
-    public func distribution(for strength: Int16) async -> DamageDistribution {
+    public func distribution(for strength: Int16) -> DamageDistribution {
         if let template = predefinedDistributions[strength] {
             return DamageDistribution(values: template.values, weights: template.weights)
         } else {

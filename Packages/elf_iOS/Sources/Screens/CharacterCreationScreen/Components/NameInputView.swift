@@ -13,8 +13,8 @@ struct NameInputView: View {
     @Binding var characterName: String
     @Binding var validationError: String?
     let safeAreaInsets: EdgeInsets
-    let onRandomName: () async -> Void
-    let onNameChanged: () async -> Void
+    let onRandomName: () -> Void
+    let onNameChanged: () -> Void
 
     var isTextFieldFocused: FocusState<Bool>.Binding
 
@@ -25,7 +25,7 @@ struct NameInputView: View {
                 HStack {
                     // Random name button with error indicator
                     Button(action: {
-                        Task { await onRandomName() }
+                        onRandomName()
                     }) {
                         Text("random name")
                             .font(ElfFonts.Component.nameInputLabel)
@@ -61,7 +61,7 @@ struct NameInputView: View {
                     .multilineTextAlignment(.center)
                     .focused(isTextFieldFocused)
                     .onChange(of: characterName) { _, _ in
-                        Task { await onNameChanged() }
+                        onNameChanged()
                     }
 
                     Spacer()

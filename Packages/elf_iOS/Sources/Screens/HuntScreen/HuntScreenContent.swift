@@ -11,14 +11,23 @@ import SwiftUI
 
 struct HuntScreenContent: View {
     @Environment(AppRouter.self) private var router
+    @Environment(DefaultGameService.self) private var gameService
     @State private var viewModel: HuntViewModel
 
     init(viewModel: HuntViewModel) {
         self._viewModel = State(initialValue: viewModel)
     }
 
+    private var currentDayData: CalendarDayData {
+        CalendarDayData(
+            id: gameService.currentDay.id,
+            dayNumber: gameService.currentDay.dayNumber,
+            backgroundColor: ElfColors.Calendar.dayColor(for: gameService.currentDay.dayType.rawValue)
+        )
+    }
+
     private var upcomingDaysData: [CalendarDayData] {
-        viewModel.upcomingDays.map {
+        gameService.upcomingDays.map {
             CalendarDayData(
                 id: $0.id,
                 dayNumber: $0.dayNumber,
@@ -27,25 +36,24 @@ struct HuntScreenContent: View {
         }
     }
 
+    private var canHunt: Bool {
+        gameService.actionPoints.current >= viewModel.huntCost && !viewModel.isHunting
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            // Top bar: Back button + Action Points
             ScreenTopBar(
-                currentActionPoints: viewModel.currentActionPoints,
-                maxActionPoints: viewModel.maxActionPoints,
-                isLastDay: viewModel.isLastDay,
-                currentDay: CalendarDayData(
-                    id: viewModel.currentDay.id,
-                    dayNumber: viewModel.currentDay.dayNumber,
-                    backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
-                ),
+                currentActionPoints: gameService.actionPoints.current,
+                maxActionPoints: gameService.actionPoints.maximum,
+                isLastDay: gameService.isLastDay,
+                currentDay: currentDayData,
                 upcomingDays: upcomingDaysData,
                 onNextDay: { Task { await viewModel.advanceToNextDay() } },
                 onBack: { router.pop() },
                 onCalendarTap: {
                     router.navigate(to: .calendar(
-                        calendar: viewModel.calendar,
-                        currentDayNumber: viewModel.currentDay.dayNumber
+                        calendar: gameService.calendar,
+                        currentDayNumber: gameService.currentDay.dayNumber
                     ))
                 }
             )
@@ -54,17 +62,14 @@ struct HuntScreenContent: View {
 
             Spacer()
 
-            // Monster collection
             monsterCollection
 
             Spacer()
 
-            // Hunt button
             huntButton
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(ElfColors.Background.primary)
-        .task { await viewModel.observeGameState() }
     }
 
     // MARK: - Monster Collection
@@ -84,14 +89,12 @@ struct HuntScreenContent: View {
     @ViewBuilder
     private var huntButton: some View {
         Button("Hunt") {
-            Task {
-                if let battle = await viewModel.startHunt() {
-                    router.navigationPath.append(AppRoute.battleFight(battle))
-                }
+            if let battle = viewModel.startHunt() {
+                router.navigationPath.append(AppRoute.battleFight(battle))
             }
         }
-        .buttonStyle(.elfPrimary(isEnabled: viewModel.canHunt && !viewModel.isHunting))
-        .disabled(!viewModel.canHunt || viewModel.isHunting)
+        .buttonStyle(.elfPrimary(isEnabled: canHunt))
+        .disabled(!canHunt)
         .overlay(alignment: .bottomTrailing) {
             Text("\(viewModel.huntCost) pt")
                 .font(.footnote)
@@ -106,12 +109,13 @@ struct HuntScreenContent: View {
     @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @State var router = AppRouter()
 
-    if let gameContainer {
+    if let gameContainer, let gameService = gameContainer.activeGameService {
         NavigationStack(path: $router.navigationPath) {
             HuntScreenContent(
                 viewModel: gameContainer.makeHuntViewModel()
             )
             .environment(router)
+            .environment(gameService)
         }
     } else {
         ProgressView()

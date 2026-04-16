@@ -6,78 +6,57 @@
 //
 
 import Foundation
-import os
+import Observation
 
-/// Default implementation of GameService
-/// Actor-isolated: all game state mutations are serialized for thread safety
-/// Uses AsyncStream to broadcast changes, OSAllocatedUnfairLock for sync reads
-public actor DefaultGameService: GameService {
+/// Default implementation of `GameService`.
+///
+/// Main-actor-isolated and `@Observable`: SwiftUI tracks access per-property, and
+/// mutations run synchronously on the main thread. `Game` stays a pure value type,
+/// reconstructed from the store via `snapshot()` at persistence time.
+///
+/// Heavy work (disk I/O via `gameRepository`) still runs on a background actor —
+/// the `await` in `saveGame()` releases the main thread while the write happens.
+@MainActor
+@Observable
+public final class DefaultGameService: GameService {
 
-    // MARK: - Properties
+    // MARK: - Observable State
 
-    // TODO: - Performance: Game struct copying & comparison will degrade with scale.
-    // Currently 80 characters (8 houses × 10 members), each with inventory & equipment.
-    // Every mutation copies the entire Game struct, runs O(total state) Equatable check,
-    // and broadcasts the full copy to all subscribers.
-    // When scaling to hundreds of characters with large inventories, consider splitting Game
-    // into granular domains (gameState, houses, per-character access) so mutations, comparisons,
-    // and subscriptions are scoped to only what changed.
-    public private(set) var game: Game {
-        didSet {
-            guard game != oldValue else { return }
-            let snapshot = game
-            gameSnapshot.withLock { $0 = snapshot }
-            for continuation in continuations.values {
-                continuation.yield(snapshot)
-            }
-        }
-    }
-
+    public private(set) var actionPoints: ActionPoints
+    public private(set) var currentDay: GameDay
+    public private(set) var calendar: [GameDay]
+    public private(set) var houses: [House]
+    public let playerHouseIndex: Int
+    public let playerMemberIndex: Int
+    public let gameId: UUID
     public private(set) var playTime: TimeInterval
 
-    // MARK: - Sync Snapshot
+    /// Nested observable store for the player's state (per-field tracking).
+    public let player: PlayerStore
 
-    private let gameSnapshot: OSAllocatedUnfairLock<Game>
+    // MARK: - Derived
 
-    /// Thread-safe synchronous read of current game state.
-    /// Use for VM initialization; use gameUpdates() for reactive observation.
-    nonisolated public var currentGame: Game {
-        gameSnapshot.withLock { $0 }
+    public var isLastDay: Bool {
+        guard let lastDay = calendar.last else { return false }
+        return currentDay.dayNumber >= lastDay.dayNumber
     }
 
-    // MARK: - Stream
-
-    private var continuations: [UUID: AsyncStream<Game>.Continuation] = [:]
-
-    public func gameUpdates() -> AsyncStream<Game> {
-        let id = UUID()
-        return AsyncStream(bufferingPolicy: .bufferingNewest(1)) { continuation in
-            self.continuations[id] = continuation
-            continuation.onTermination = { [weak self] _ in
-                Task.detached { [weak self] in
-                    await self?.removeContinuation(id)
-                }
-            }
+    public var upcomingDays: [GameDay] {
+        guard let currentIndex = calendar.firstIndex(where: { $0.dayNumber == currentDay.dayNumber }) else {
+            return []
         }
-    }
-
-    private func removeContinuation(_ id: UUID) {
-        continuations.removeValue(forKey: id)
-    }
-
-    // MARK: - Player Access
-
-    private var player: ElfInfo {
-        get { game.houses[game.playerHouseIndex].members[game.playerMemberIndex] }
-        set { game.houses[game.playerHouseIndex].members[game.playerMemberIndex] = newValue }
+        let nextIndex = currentIndex + 1
+        guard nextIndex < calendar.count else { return [] }
+        let endIndex = min(nextIndex + GameMechanicsConstants.upcomingDaysCount, calendar.count)
+        return Array(calendar[nextIndex..<endIndex])
     }
 
     // MARK: - Dependencies
 
-    private let gameRepository: GameSaveStorage
-    private let inventoryService: InventoryService
-    private let debugGameLogger: DebugGameLogger
-    private let slotId: String
+    @ObservationIgnored private let gameRepository: GameSaveStorage
+    @ObservationIgnored private let inventoryService: InventoryService
+    @ObservationIgnored private let debugGameLogger: DebugGameLogger
+    @ObservationIgnored private let slotId: String
 
     // MARK: - Initialization
 
@@ -89,8 +68,14 @@ public actor DefaultGameService: GameService {
         slotId: String = SaveSlotInfo.defaultSlotId,
         playTime: TimeInterval = 0
     ) {
-        self.game = game
-        self.gameSnapshot = OSAllocatedUnfairLock(initialState: game)
+        self.gameId = game.id
+        self.actionPoints = game.gameState.actionPoints
+        self.currentDay = game.gameState.currentDay
+        self.calendar = game.gameState.calendar
+        self.houses = game.houses
+        self.playerHouseIndex = game.playerHouseIndex
+        self.playerMemberIndex = game.playerMemberIndex
+        self.player = PlayerStore(from: game.houses[game.playerHouseIndex].members[game.playerMemberIndex])
         self.gameRepository = gameRepository
         self.inventoryService = inventoryService
         self.debugGameLogger = debugGameLogger
@@ -98,33 +83,45 @@ public actor DefaultGameService: GameService {
         self.playTime = playTime
     }
 
+    // MARK: - Snapshot
+
+    /// Reconstructs the current state as a value-type `Game`. Used when persisting.
+    public func snapshot() -> Game {
+        var updatedHouses = houses
+        updatedHouses[playerHouseIndex].members[playerMemberIndex] = player.snapshot()
+        return Game(
+            id: gameId,
+            houses: updatedHouses,
+            gameState: GameState(
+                currentDay: currentDay,
+                actionPoints: actionPoints,
+                calendar: calendar
+            ),
+            playerHouseIndex: playerHouseIndex,
+            playerMemberIndex: playerMemberIndex
+        )
+    }
+
     // MARK: - Day Management
 
     public func advanceToNextDay() {
-        let currentDayNumber = game.gameState.currentDay.dayNumber
-        let nextDayNumber = currentDayNumber + 1
-
-        guard let nextDayIndex = game.gameState.calendar.firstIndex(where: { $0.dayNumber == nextDayNumber }) else {
-            return // No more days in calendar (game finished)
+        let nextDayNumber = currentDay.dayNumber + 1
+        guard let nextDayIndex = calendar.firstIndex(where: { $0.dayNumber == nextDayNumber }) else {
+            return // No more days (game finished)
         }
-
-        // Single mutation — didSet fires once with consistent state
-        var updatedState = game.gameState
-        updatedState.currentDay = updatedState.calendar[nextDayIndex]
-        updatedState.actionPoints = updatedState.actionPoints.reset()
-        game.gameState = updatedState
+        currentDay = calendar[nextDayIndex]
+        actionPoints = actionPoints.reset()
     }
 
     public func spendActionPoints(_ amount: Int) {
-        if case .success(let newPoints) = game.gameState.actionPoints.spend(amount) {
-            game.gameState.actionPoints = newPoints
+        if case .success(let newPoints) = actionPoints.spend(amount) {
+            actionPoints = newPoints
         }
     }
 
     // MARK: - Player Progression
 
     public func addPlayerExperience(_ amount: Int) {
-        // Simply add XP - level is computed automatically (TDD: single source of truth)
         player.currentExp += amount
     }
 
@@ -142,7 +139,6 @@ public actor DefaultGameService: GameService {
 
     public func addDropsToPlayerInventory(rewards: HuntRewards) {
         var inventory = player.inventory
-
         for material in rewards.materials {
             inventory = inventoryService.addMaterial(
                 id: material.id,
@@ -151,15 +147,12 @@ public actor DefaultGameService: GameService {
                 to: inventory
             )
         }
-
         if let weapon = rewards.weapon {
             inventory = inventoryService.addWeapon(weapon, to: inventory)
         }
-
         if let armor = rewards.armor {
             inventory = inventoryService.addArmor(armor, to: inventory)
         }
-
         player.inventory = inventory
     }
 
@@ -202,18 +195,35 @@ public actor DefaultGameService: GameService {
         player.inventory = inventory
     }
 
-    // MARK: - Atomic Player Modification
+    // MARK: - Atomic Scoped Mutations
 
-    /// Atomically reads and modifies player state within actor isolation.
-    /// Guarantees no state changes between read and write (no suspension points).
-    public func modifyPlayer(_ transform: @Sendable (inout ElfInfo) -> Void) {
-        transform(&game.houses[game.playerHouseIndex].members[game.playerMemberIndex])
+    /// Atomically mutates the player's equipped items. Fires observation
+    /// invalidation only for `player.equipped`.
+    public func modifyEquipment(_ transform: (inout EquippedItems) -> Void) {
+        transform(&player.equipped)
+    }
+
+    /// Atomically mutates the player's inventory. Fires observation invalidation
+    /// only for `player.inventory`.
+    public func modifyInventory(_ transform: (inout ElfInventory) -> Void) {
+        transform(&player.inventory)
     }
 
     // MARK: - Persistence
 
+    // TODO: [persistence/P0] Coalesce/debounce rapid saveGame() calls.
+    // Currently each caller awaits a full serialize+atomic-write round-trip. If several UI events
+    // fire in quick succession (battle tick, AP spend, quest update) we perform N serial writes of
+    // essentially the same Game snapshot. Options (pick one):
+    //   1. Debounce: cancel a pending Task and reschedule with ~200ms delay; flush immediately on
+    //      scenePhase.background / exitGame / battle end.
+    //   2. Dirty flag + periodic flush: set isDirty on mutation, flush at a fixed interval (1-2s)
+    //      plus explicit flushNow() for critical checkpoints.
+    // Must preserve the "save-before-exit" contract used by scenePhase.background and exitGame().
     public func saveGame() async throws {
-        debugGameLogger.logGameSave(game: game, playTime: playTime)
-        try await gameRepository.save(game, slotId: slotId, playTime: playTime)
+        let snap = snapshot()
+        let time = playTime
+        debugGameLogger.logGameSave(game: snap, playTime: time)
+        try await gameRepository.save(snap, slotId: slotId, playTime: time)
     }
 }

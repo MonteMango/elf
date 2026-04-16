@@ -112,8 +112,8 @@ public final class BattleFightViewModel {
     // MARK: - Data Loading
 
     /// Loads initial battle data. Call from View's .task {} modifier.
-    public func loadInitialData() async {
-        await generateNewRoundPairings()
+    public func loadInitialData() {
+        generateNewRoundPairings()
     }
 
     // MARK: - Player Actions
@@ -146,9 +146,9 @@ public final class BattleFightViewModel {
         }
     }
 
-    public func autoFillPoints() async {
-        playerAttackPoints = await botAI.selectAttackPoints(count: playerSnapshot.attackPoints)
-        playerDefensePoints = await botAI.selectDefensePoints(count: playerSnapshot.defensePoints)
+    public func autoFillPoints() {
+        playerAttackPoints = botAI.selectAttackPoints(count: playerSnapshot.attackPoints)
+        playerDefensePoints = botAI.selectDefensePoints(count: playerSnapshot.defensePoints)
     }
 
     // MARK: - Round Execution
@@ -162,11 +162,11 @@ public final class BattleFightViewModel {
         defer { isExecutingRound = false }
 
         // Generate bot selections using BotAI service
-        botAttackPoints = await botAI.selectAttackPoints(count: botSnapshot.attackPoints)
-        botDefensePoints = await botAI.selectDefensePoints(count: botSnapshot.defensePoints)
+        botAttackPoints = botAI.selectAttackPoints(count: botSnapshot.attackPoints)
+        botDefensePoints = botAI.selectDefensePoints(count: botSnapshot.defensePoints)
 
         // Log round start
-        await debugLogger.logRoundStart(
+        debugLogger.logRoundStart(
             roundNumber: currentRoundNumber,
             playerSnapshot: playerSnapshot,
             botSnapshot: botSnapshot,
@@ -176,26 +176,14 @@ public final class BattleFightViewModel {
             botDefense: Array(botDefensePoints)
         )
 
-        // Execute combat round using CombatRoundExecutor on background thread
-        // Snapshots are already in Battle, no need to create them
-        let executor = combatRoundExecutor
-        let pSnap = playerSnapshot
-        let bSnap = botSnapshot
-        let pAttack = playerAttackPoints
-        let pDefense = playerDefensePoints
-        let bAttack = botAttackPoints
-        let bDefense = botDefensePoints
-
-        let roundResult = await Task.detached(priority: .userInitiated) {
-            await executor.executeRound(
-                playerSnapshot: pSnap,
-                botSnapshot: bSnap,
-                playerAttackPoints: pAttack,
-                playerDefensePoints: pDefense,
-                botAttackPoints: bAttack,
-                botDefensePoints: bDefense
-            )
-        }.value
+        let roundResult = combatRoundExecutor.executeRound(
+            playerSnapshot: playerSnapshot,
+            botSnapshot: botSnapshot,
+            playerAttackPoints: playerAttackPoints,
+            playerDefensePoints: playerDefensePoints,
+            botAttackPoints: botAttackPoints,
+            botDefensePoints: botDefensePoints
+        )
 
         // Store results
         playerLastRoundResults = roundResult.playerResults
@@ -209,8 +197,7 @@ public final class BattleFightViewModel {
         playerCurrentHP = max(0, playerCurrentHP - roundResult.playerDamageTaken)
         botCurrentHP = max(0, botCurrentHP - roundResult.botDamageTaken)
 
-        // Create round log using BattleLogger
-        let roundLog = await battleLogger.createRoundLog(
+        let roundLog = battleLogger.createRoundLog(
             roundNumber: currentRoundNumber,
             playerSnapshot: playerSnapshot,
             botSnapshot: botSnapshot,
@@ -221,8 +208,7 @@ public final class BattleFightViewModel {
         )
         self.roundLog.append(roundLog)
 
-        // Log round end
-        await debugLogger.logRoundEnd(
+        debugLogger.logRoundEnd(
             roundNumber: currentRoundNumber,
             playerOldHP: playerOldHP,
             playerNewHP: playerCurrentHP,
@@ -252,13 +238,8 @@ public final class BattleFightViewModel {
         isFinishingBattle = true
 
         let outcome = determineBattleOutcome()
-        let monster = await getMonsterFromBot()
-        let currentExp: Int
-        if let gameService {
-            currentExp = (await gameService.game).player.currentExp
-        } else {
-            currentExp = 0
-        }
+        let monster = getMonsterFromBot()
+        let currentExp: Int = gameService?.player.currentExp ?? 0
 
         guard let calculator = battleResultCalculator else {
             // Fallback for battles without result calculator
@@ -276,14 +257,13 @@ public final class BattleFightViewModel {
             return
         }
 
-        let result = await calculator.calculateResult(
+        let result = calculator.calculateResult(
             outcome: outcome,
             monster: monster,
             currentExp: currentExp
         )
         battleResult = result
 
-        // Apply side effects to game state
         await applyBattleRewards(result: result, monster: monster)
     }
 
@@ -291,17 +271,17 @@ public final class BattleFightViewModel {
     private func applyBattleRewards(result: ManualBattleResult, monster: Monster?) async {
         guard let gameService = gameService else { return }
 
-        // Add XP
+        // Add XP (sync — main-actor mutation)
         if result.experienceGained > 0 {
-            await gameService.addPlayerExperience(result.experienceGained)
+            gameService.addPlayerExperience(result.experienceGained)
         }
 
-        // Add drops to inventory
+        // Add drops to inventory (sync)
         if let huntRewards = result.huntRewards {
-            await gameService.addDropsToPlayerInventory(rewards: huntRewards)
+            gameService.addDropsToPlayerInventory(rewards: huntRewards)
         }
 
-        // Save game
+        // Save game (async — file I/O on background actor)
         do {
             try await gameService.saveGame()
         } catch {
@@ -323,21 +303,20 @@ public final class BattleFightViewModel {
         }
     }
 
-    private func getMonsterFromBot() async -> Monster? {
-        // Get monster by sourceId from the first opponent
+    private func getMonsterFromBot() -> Monster? {
         guard let botSnapshot = battle.rightTeam.first,
               botSnapshot.combatantType == .monster,
               let monsterRepository = monsterRepository else {
             return nil
         }
-        return await monsterRepository.getById(id: botSnapshot.sourceId)
+        return monsterRepository.getById(id: botSnapshot.sourceId)
     }
 
     // MARK: - Duel Pairs
 
     /// Generates new random pairings for the current round
-    public func generateNewRoundPairings() async {
-        currentBattleRound = await duelPairingService.createRandomPairs(
+    public func generateNewRoundPairings() {
+        currentBattleRound = duelPairingService.createRandomPairs(
             leftTeam: battle.leftTeam,
             rightTeam: battle.rightTeam,
             roundNumber: currentRoundNumber

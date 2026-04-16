@@ -31,16 +31,13 @@ public final class CharacterCreationViewModel {
     /// Whether character creation is finalized
     public var isCharacterReady: Bool = false
 
-    /// Loading state for attributes
-    public var isLoadingAttributes: Bool = false
-
     // MARK: - Stage 1: Appearance
 
     /// Selected appearance
     public var selectedAppearance: CharacterAppearance? {
         didSet {
             if let appearance = selectedAppearance {
-                Task { await characterBuilder.setAppearance(appearance) }
+                characterBuilder.setAppearance(appearance)
             }
         }
     }
@@ -50,8 +47,7 @@ public final class CharacterCreationViewModel {
     /// Character name input
     public var characterName: String = "" {
         didSet {
-            let name = characterName
-            Task { await characterBuilder.setName(name) }
+            characterBuilder.setName(characterName)
         }
     }
 
@@ -64,10 +60,8 @@ public final class CharacterCreationViewModel {
     public var selectedFightStyle: FightStyle? = .dodge {
         didSet {
             if let style = selectedFightStyle {
-                Task {
-                    await characterBuilder.setFightStyle(style)
-                    await loadFightStyleDescriptions(for: style)
-                }
+                characterBuilder.setFightStyle(style)
+                loadFightStyleDescriptions(for: style)
             }
         }
     }
@@ -92,19 +86,10 @@ public final class CharacterCreationViewModel {
     /// Created game with houses (available after finalize)
     public var createdGame: Game?
 
-    // MARK: - Private State
-
-    /// Task for loading attributes
-    private var attributeLoadingTask: Task<Void, Never>?
-
     // MARK: - Computed Properties
 
     /// Check if can proceed to next stage
     public var canProceedToNextStage: Bool {
-        if isLoadingAttributes {
-            return false
-        }
-
         switch currentStage {
         case .selectAppearance:
             return selectedAppearance != nil
@@ -134,9 +119,8 @@ public final class CharacterCreationViewModel {
         self.nameSuggestionService = nameSuggestionService
         self.gameInitializationService = gameInitializationService
 
-        // Set default fight style in builder (didSet doesn't trigger on initial value)
         if let style = selectedFightStyle {
-            Task { await characterBuilder.setFightStyle(style) }
+            characterBuilder.setFightStyle(style)
         }
     }
 
@@ -166,50 +150,32 @@ public final class CharacterCreationViewModel {
     // MARK: - Stage 2: Name Actions
 
     /// Generate random name
-    public func generateRandomName() async {
-        characterName = await nameSuggestionService.generateRandomName()
-        await validateName()
+    public func generateRandomName() {
+        characterName = nameSuggestionService.generateRandomName()
+        validateName()
     }
 
     /// Validate character name
-    public func validateName() async {
-        let result = await nameValidator.validate(characterName)
+    public func validateName() {
+        let result = nameValidator.validate(characterName)
         nameValidationError = result.errorMessage
     }
 
     // MARK: - Stage 3: Fight Style Actions
 
     /// Load fight style descriptions for selected style
-    public func loadFightStyleDescriptions(for style: FightStyle) async {
-        fightStyleDescription = await fightStyleDescriptionService.getDescription(for: style)
-        fightStyleAttributesDescription = await fightStyleDescriptionService.getAttributeBonusDescription(for: style)
+    public func loadFightStyleDescriptions(for style: FightStyle) {
+        fightStyleDescription = fightStyleDescriptionService.getDescription(for: style)
+        fightStyleAttributesDescription = fightStyleDescriptionService.getAttributeBonusDescription(for: style)
     }
 
     // MARK: - Stage 4: Final Actions
 
     /// Load fight style attributes
     private func loadFightStyleAttributes() {
-        // Cancel previous task if any
-        attributeLoadingTask?.cancel()
-
         guard let style = selectedFightStyle else { return }
-
-        // Capture service for Task.detached (services are Sendable)
-        let service = attributeService
         let level = GameMechanicsConstants.startingLevel
-
-        attributeLoadingTask = Task { @MainActor in
-            isLoadingAttributes = true
-            defer { isLoadingAttributes = false }
-
-            // Run calculation on background thread
-            let attrs = await Task.detached(priority: .userInitiated) {
-                await service.getAllFightStyleAttributes(for: style, at: level)
-            }.value
-
-            // Update UI on MainActor
-            fightStyleAttributes = attrs
-        }
+        fightStyleAttributes = attributeService.getAllFightStyleAttributes(for: style, at: level)
     }
 
     /// Generate random attributes and finalize character
@@ -218,16 +184,9 @@ public final class CharacterCreationViewModel {
               selectedAppearance != nil,
               fightStyleAttributes != nil else { return }
 
-        // Capture service for Task.detached (services are Sendable)
-        let service = attributeService
+        randomLevelAttributes = attributeService.getRandomLevelAttributes()
 
-        // Generate random attributes on background thread
-        randomLevelAttributes = await Task.detached(priority: .userInitiated) {
-            await service.getRandomLevelAttributes()
-        }.value
-
-        // Create character and game using GameInitializationService
-        guard let character = await createCharacter() else { return }
+        guard let character = createCharacter() else { return }
 
         do {
             createdGame = try await gameInitializationService.createNewGame(
@@ -240,7 +199,7 @@ public final class CharacterCreationViewModel {
     }
 
     /// Create and return the final character using builder
-    public func createCharacter() async -> PlayerCharacter? {
+    public func createCharacter() -> PlayerCharacter? {
         guard let fightAttrs = fightStyleAttributes,
               let randomAttrs = randomLevelAttributes else {
             print("❌ createCharacter failed: missing attributes")
@@ -248,7 +207,7 @@ public final class CharacterCreationViewModel {
         }
 
         do {
-            let character = try await characterBuilder.build(
+            let character = try characterBuilder.build(
                 fightStyleAttributes: fightAttrs,
                 randomLevelAttributes: randomAttrs
             )

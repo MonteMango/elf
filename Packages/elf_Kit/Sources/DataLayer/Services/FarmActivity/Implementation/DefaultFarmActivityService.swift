@@ -51,27 +51,27 @@ public final class DefaultFarmActivityService: FarmActivityService {
         activity: FarmActivity,
         currentExp: Int,
         expPerLevel: Int
-    ) async -> FarmActivityResult {
+    ) -> FarmActivityResult {
         switch activity {
         case .fishing:
-            let result = await fishingService.performFishing(
-                availableFish: await fishRepository.getAll(),
+            let result = fishingService.performFishing(
+                availableFish: fishRepository.getAll(),
                 currentExp: currentExp,
                 expPerLevel: expPerLevel
             )
             return .fishing(result)
 
         case .foraging:
-            let result = await foragingService.performForaging(
-                availableHerbs: await herbRepository.getAll(),
+            let result = foragingService.performForaging(
+                availableHerbs: herbRepository.getAll(),
                 currentExp: currentExp,
                 expPerLevel: expPerLevel
             )
             return .foraging(result)
 
         case .mining:
-            let result = await miningService.performMining(
-                availableOres: await oreRepository.getAll(),
+            let result = miningService.performMining(
+                availableOres: oreRepository.getAll(),
                 currentExp: currentExp,
                 expPerLevel: expPerLevel
             )
@@ -79,28 +79,22 @@ public final class DefaultFarmActivityService: FarmActivityService {
         }
     }
 
-    public func getAvailableItems(for activity: FarmActivity) async -> [FarmActivityItem] {
+    public func getAvailableItems(for activity: FarmActivity) -> [FarmActivityItem] {
         switch activity {
         case .fishing:
-            return await fishRepository.getAll().asFarmActivityItems
+            return fishRepository.getAll().asFarmActivityItems
         case .foraging:
-            return await herbRepository.getAll().asFarmActivityItems
+            return herbRepository.getAll().asFarmActivityItems
         case .mining:
-            return await oreRepository.getAll().asFarmActivityItems
+            return oreRepository.getAll().asFarmActivityItems
         }
     }
 
-    public func getSkillInfo(for activity: FarmActivity, player: ElfInfo) async -> FarmSkillInfo {
-        let (exp, title) = switch activity {
-        case .fishing: (player.fishingExp, "\(activity.title) skill")
-        case .foraging: (player.foragingExp, "\(activity.title) skill")
-        case .mining: (player.miningExp, "\(activity.title) skill")
-        }
-
-        return FarmSkillInfo(
-            title: title,
-            level: await progressionService.farmingLevel(exp: exp),
-            progress: await progressionService.farmingProgress(exp: exp),
+    public func getSkillInfo(for activity: FarmActivity, exp: Int) -> FarmSkillInfo {
+        FarmSkillInfo(
+            title: "\(activity.title) skill",
+            level: progressionService.farmingLevel(exp: exp),
+            progress: progressionService.farmingProgress(exp: exp),
             expInLevel: exp % farmExpPerLevel,
             expPerLevel: farmExpPerLevel
         )

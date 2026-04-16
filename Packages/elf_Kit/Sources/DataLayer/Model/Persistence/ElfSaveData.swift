@@ -52,9 +52,9 @@ public struct ElfSaveData: Codable, Sendable {
     public func toElfInfo(
         itemsRepository: ItemsRepository,
         inventoryService: InventoryService
-    ) async throws -> ElfInfo {
-        let restoredEquipped = await equipped.toEquippedItems(using: itemsRepository)
-        let restoredInventory = try await inventory.toElfInventory(
+    ) throws -> ElfInfo {
+        let restoredEquipped = equipped.toEquippedItems(using: itemsRepository)
+        let restoredInventory = try inventory.toElfInventory(
             itemsRepository: itemsRepository,
             inventoryService: inventoryService
         )

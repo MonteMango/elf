@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 12.11.25.
 //
 
+import elf_Kit
 import SwiftUI
 
 public struct RootScreen: View {
@@ -12,6 +13,7 @@ public struct RootScreen: View {
     @Environment(ElfAppContainer.self) private var appContainer
     @State private var router = AppRouter()
     @Namespace private var farmZoomNamespace
+    @Namespace private var questZoomNamespace
 
     public init() {}
 
@@ -36,6 +38,7 @@ public struct RootScreen: View {
             }
         }
         .environment(\.farmZoomNamespace, farmZoomNamespace)
+        .environment(\.questZoomNamespace, questZoomNamespace)
         .environment(router)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
@@ -46,11 +49,19 @@ public struct RootScreen: View {
 
 private extension View {
 
-    /// Injects ElfGameContainer into environment when available.
+    /// Injects `ElfGameContainer` and the active `DefaultGameService` (when present)
+    /// into the environment so screens can read game state directly with
+    /// `@Environment(DefaultGameService.self)`.
     @ViewBuilder
     func gameContainerEnvironment(_ gameContainer: ElfGameContainer?) -> some View {
         if let gameContainer {
-            self.environment(gameContainer)
+            if let gameService = gameContainer.activeGameService {
+                self
+                    .environment(gameContainer)
+                    .environment(gameService)
+            } else {
+                self.environment(gameContainer)
+            }
         } else {
             self
         }

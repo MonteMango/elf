@@ -34,7 +34,7 @@ public final class DefaultCalendarService: CalendarService {
 
     // MARK: - CalendarService Methods
 
-    public func generateFullCalendar() async -> [GameDay] {
+    public func generateFullCalendar() -> [GameDay] {
         (1...totalDays).map { dayNumber in
             GameDay(dayNumber: dayNumber, dayType: dayType(for: dayNumber))
         }

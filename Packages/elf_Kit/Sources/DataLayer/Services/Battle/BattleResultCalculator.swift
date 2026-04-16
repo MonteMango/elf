@@ -13,5 +13,5 @@ public protocol BattleResultCalculator: Sendable {
         outcome: BattleOutcome,
         monster: Monster?,
         currentExp: Int
-    ) async -> ManualBattleResult
+    ) -> ManualBattleResult
 }

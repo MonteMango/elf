@@ -82,6 +82,18 @@ public actor FileGameSaveStorage: GameSaveStorage {
 
     // MARK: - GameSaveStorage
 
+    // TODO: [persistence/P1] Add SHA256 checksum to GameSave and verify on load.
+    // GameSaveError.checksumMismatch is already defined but never thrown — wire it up here.
+    // Compute hash over encoded data, store on GameSave (new field, bump version), verify on load
+    // before decoding. Catches silent disk corruption and tampered save files. Fall through to
+    // .backup file on mismatch, same as the existing decode-error path.
+
+    // TODO: [persistence/P2] Consider MessagePack/CBOR when save size becomes a concern.
+    // Current JSON (.prettyPrinted + .sortedKeys) is debug-friendly but ~2-3× larger than binary
+    // and significantly slower to encode for large Game graphs. Switching is a localized change:
+    // swap JSONEncoder/JSONDecoder here, keep every SaveData type unchanged. Only do this if
+    // profiling shows encode/decode or write time hurts UX — not sooner.
+
     public func save(_ game: Game, slotId: String, playTime: TimeInterval) async throws {
         debugLog("💾 [GameSaveStorage] ========== SAVE START ==========")
         debugLog("💾 [GameSaveStorage] Slot ID: \(slotId)")
@@ -137,7 +149,7 @@ public actor FileGameSaveStorage: GameSaveStorage {
         }
 
         // Update slots index
-        let playerLevel = await progressionService.calculateLevel(currentExp: game.player.currentExp)
+        let playerLevel = progressionService.calculateLevel(currentExp: game.player.currentExp)
         let slotInfo = SaveSlotInfo(slotId: slotId, game: game, playerLevel: playerLevel, playTime: playTime)
         try updateSlotsIndex(adding: slotInfo)
         debugLog("💾 [GameSaveStorage] Slots index updated")
@@ -182,7 +194,7 @@ public actor FileGameSaveStorage: GameSaveStorage {
                 }
 
                 // Step 4: Convert to Game
-                let game = try await gameSave.toGame(
+                let game = try gameSave.toGame(
                     itemsRepository: itemsRepository,
                     inventoryService: inventoryService
                 )
@@ -298,7 +310,7 @@ public actor FileGameSaveStorage: GameSaveStorage {
         case 1:
             // Current version, no migration needed
             let gameSave = try decoder.decode(GameSave.self, from: data)
-            return try await gameSave.toGame(
+            return try gameSave.toGame(
                 itemsRepository: itemsRepository,
                 inventoryService: inventoryService
             )

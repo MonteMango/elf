@@ -32,5 +32,5 @@ public protocol CritDistributionStrategy: Sendable {
     ///   - power: Attacker's total power attribute
     ///   - instinct: Defender's total instinct attribute
     /// - Returns: Distribution with minimum, maximum, range values, and triangular weights
-    func distribution(power: Int16, instinct: Int16) async -> CritDistribution
+    func distribution(power: Int16, instinct: Int16) -> CritDistribution
 }

@@ -24,7 +24,7 @@ public final class ElfDodgeDistributionStrategy: DodgeDistributionStrategy {
 
     public init() {}
 
-    public func distribution(agility: Int16, instinct: Int16) async -> DodgeDistribution {
+    public func distribution(agility: Int16, instinct: Int16) -> DodgeDistribution {
         let agilityInt = Int(agility)
         let instinctInt = Int(instinct)
 

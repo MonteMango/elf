@@ -15,11 +15,11 @@ public final class ElfRandomBotAI: BotAIService {
 
     // MARK: - BotAIService
 
-    public func selectAttackPoints(count: Int) async -> Set<BodyPart> {
+    public func selectAttackPoints(count: Int) -> Set<BodyPart> {
         Set(allBodyParts.shuffled().prefix(count))
     }
 
-    public func selectDefensePoints(count: Int) async -> Set<BodyPart> {
+    public func selectDefensePoints(count: Int) -> Set<BodyPart> {
         Set(allBodyParts.shuffled().prefix(count))
     }
 }

@@ -19,7 +19,7 @@ public final class ElfBattleLogger: BattleLogger {
         botActions: (attack: Set<BodyPart>, defense: Set<BodyPart>),
         playerResults: [BodyPart: PointStatus],
         botResults: [BodyPart: PointStatus]
-    ) async -> ManualBattleRoundLog {
+    ) -> ManualBattleRoundLog {
         return ManualBattleRoundLog(
             roundNumber: roundNumber,
             action: [

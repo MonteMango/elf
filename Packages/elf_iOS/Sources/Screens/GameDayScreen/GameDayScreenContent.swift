@@ -11,6 +11,8 @@ import SwiftUI
 
 internal struct GameDayScreenContent: View {
     @Environment(AppRouter.self) private var router
+    @Environment(DefaultGameService.self) private var gameService
+    @Environment(ElfGameContainer.self) private var gameContainer
     @State private var viewModel: GameDayViewModel
     @State private var inventoryViewModel: InventoryViewModel
 
@@ -20,7 +22,7 @@ internal struct GameDayScreenContent: View {
     }
 
     private var upcomingDaysData: [CalendarDayData] {
-        viewModel.upcomingDays.map {
+        gameService.upcomingDays.map {
             CalendarDayData(
                 id: $0.id,
                 dayNumber: $0.dayNumber,
@@ -51,7 +53,6 @@ internal struct GameDayScreenContent: View {
                 .opacity(viewModel.isInventoryVisible ? 0 : 1)
                 .frame(width: centerWidth + spacing + sideWidth, height: contentHeight)
                 .overlay {
-                    // Inventory: overlay inherits size from parent
                     if viewModel.isInventoryVisible {
                         InventoryScreenContent(
                             viewModel: inventoryViewModel,
@@ -67,7 +68,6 @@ internal struct GameDayScreenContent: View {
         .task {
             inventoryViewModel.onClose = viewModel.closeInventory
         }
-        .task { await viewModel.observeGameState() }
     }
 
     // MARK: - Left Section
@@ -77,8 +77,8 @@ internal struct GameDayScreenContent: View {
         VStack(spacing: 5) {
             PlayerInfoSection(
                 level: viewModel.characterLevel,
-                name: viewModel.characterName,
-                currentExp: viewModel.currentExp,
+                name: gameService.player.name,
+                currentExp: gameService.player.currentExp,
                 expToNextLevel: viewModel.expToNextLevel,
                 xpProgress: viewModel.xpProgress
             )
@@ -86,21 +86,20 @@ internal struct GameDayScreenContent: View {
             BuffsScrollView(buffs: viewModel.activeBuffs)
 
             HeroSection(
-                imageName: viewModel.characterImageName,
+                imageName: gameService.player.imageName,
                 equippedItems: viewModel.equippedItems,
-                currentHP: viewModel.currentHP,
-                currentMP: viewModel.currentMP,
-                reputation: viewModel.reputation,
-                onEquipmentSlotTapped: { slotType in Task { await viewModel.onEquipmentSlotTapped(slotType) } },
+                currentHP: Int(gameService.player.currentHP),
+                currentMP: Int(gameService.player.currentMP),
+                reputation: gameService.player.reputation,
+                onEquipmentSlotTapped: viewModel.onEquipmentSlotTapped,
                 onPocketTapped: viewModel.onPocketTapped
             )
 
-            // Attributes
             elf_SwiftUI.AttributesCompactView(
-                strength: viewModel.totalAttributes.strength.intValue,
-                agility: viewModel.totalAttributes.agility.intValue,
-                power: viewModel.totalAttributes.power.intValue,
-                instinct: viewModel.totalAttributes.instinct.intValue
+                strength: gameService.player.totalAttributes.strength.intValue,
+                agility: gameService.player.totalAttributes.agility.intValue,
+                power: gameService.player.totalAttributes.power.intValue,
+                instinct: gameService.player.totalAttributes.instinct.intValue
             )
         }
     }
@@ -111,14 +110,13 @@ internal struct GameDayScreenContent: View {
     private var centerSection: some View {
         VStack(spacing: ElfSpacing.section) {
             elf_SwiftUI.ActionPointsBar(
-                current: viewModel.currentActionPoints,
-                max: viewModel.maxActionPoints,
+                current: gameService.actionPoints.current,
+                max: gameService.actionPoints.maximum,
                 showNextDayButton: true,
-                isLastDay: viewModel.isLastDay,
+                isLastDay: gameService.isLastDay,
                 onNextDay: { Task { await viewModel.onConfirmActionPoints() } }
             )
 
-            // Action Buttons
             ActionButtonsList(onAction: { action in
                 switch action {
                 case .hunt:
@@ -141,22 +139,21 @@ internal struct GameDayScreenContent: View {
     @ViewBuilder
     private var rightSection: some View {
         VStack(alignment: .leading, spacing: 20) {
-            // Top row: Calendar + Close button
             HStack(alignment: .top, spacing: 0) {
 
                 Spacer()
 
                 elf_SwiftUI.CalendarSection(
                     currentDay: CalendarDayData(
-                        id: viewModel.currentDay.id,
-                        dayNumber: viewModel.currentDay.dayNumber,
-                        backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
+                        id: gameService.currentDay.id,
+                        dayNumber: gameService.currentDay.dayNumber,
+                        backgroundColor: ElfColors.Calendar.dayColor(for: gameService.currentDay.dayType.rawValue)
                     ),
                     upcomingDays: upcomingDaysData,
                     onTap: {
                         router.navigate(to: .calendar(
-                            calendar: viewModel.calendar,
-                            currentDayNumber: viewModel.currentDay.dayNumber
+                            calendar: gameService.calendar,
+                            currentDayNumber: gameService.currentDay.dayNumber
                         ))
                     }
                 )
@@ -167,11 +164,14 @@ internal struct GameDayScreenContent: View {
                     Task {
                         await viewModel.exitGame()
                         router.popToRoot()
+                        // Defer one tick so SwiftUI unmounts the game-session views
+                        // before the DefaultGameService environment disappears.
+                        await Task.yield()
+                        gameContainer.endGameSession()
                     }
                 }
             }
 
-            // Side Menu Buttons
             SideMenuButtons(onMenuTapped: viewModel.onSideMenuTapped)
 
             Spacer()

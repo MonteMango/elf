@@ -43,7 +43,8 @@ struct QuestOwnerCell: View {
                     rewardText: rewardText
                 )
             }
-            .task {
+            .task(id: imageName) {
+                guard image == nil else { return }
                 image = await downsampler.downsample(
                     assetNamed: imageName,
                     targetSize: cellSize,

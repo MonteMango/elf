@@ -7,8 +7,11 @@
 
 import Foundation
 
-/// Default implementation of EquipmentService
-/// Uses GameStateService.modifyPlayer for atomic read-modify-write operations
+/// Default implementation of `EquipmentService`.
+/// Reads inventory directly from the player store and mutates only `EquippedItems`
+/// via `GameStateService.modifyEquipment`, so observation is scoped to the
+/// equipped slot and unrelated views (e.g. farm skills) are not invalidated.
+@MainActor
 public final class DefaultEquipmentService: EquipmentService {
 
     // MARK: - Dependencies
@@ -23,130 +26,128 @@ public final class DefaultEquipmentService: EquipmentService {
 
     // MARK: - Weapon
 
-    public func equipWeapon(id: UUID) async {
-        await gameService.modifyPlayer { player in
-            guard let weapon = player.inventory.weapons.first(where: { $0.id == id }),
-                  let weaponItem = weapon.item as? WeaponItem else { return }
+    public func equipWeapon(id: UUID) {
+        guard let weapon = gameService.player.inventory.weapons.first(where: { $0.id == id }),
+              let weaponItem = weapon.item as? WeaponItem else { return }
 
-            let currentConfig = player.equipped.weapons
+        gameService.modifyEquipment { equipped in
+            let currentConfig = equipped.weapons
 
             switch weaponItem.handUse {
             case .both:
-                player.equipped.weapons = .twoHanded(weapon: weapon)
+                equipped.weapons = .twoHanded(weapon: weapon)
             case .primary:
                 if let existingShield = currentConfig.shield {
-                    player.equipped.weapons = .oneHandedWithShield(weapon: weapon, shield: existingShield)
+                    equipped.weapons = .oneHandedWithShield(weapon: weapon, shield: existingShield)
                 } else {
-                    player.equipped.weapons = .oneHanded(weapon: weapon)
+                    equipped.weapons = .oneHanded(weapon: weapon)
                 }
             case .secondary:
-                player.equipped.weapons = .dualWield(primary: currentConfig.weapon, secondary: weapon)
+                equipped.weapons = .dualWield(primary: currentConfig.weapon, secondary: weapon)
             }
         }
     }
 
-    public func unequipWeapon(id: UUID) async {
-        await gameService.modifyPlayer { player in
-            guard case .dualWield(let primary, let secondary) = player.equipped.weapons else { return }
+    public func unequipWeapon(id: UUID) {
+        gameService.modifyEquipment { equipped in
+            guard case .dualWield(let primary, let secondary) = equipped.weapons else { return }
 
             if primary.id == id {
-                player.equipped.weapons = .oneHanded(weapon: secondary)
+                equipped.weapons = .oneHanded(weapon: secondary)
             } else {
-                player.equipped.weapons = .oneHanded(weapon: primary)
+                equipped.weapons = .oneHanded(weapon: primary)
             }
         }
     }
 
     // MARK: - Shield
 
-    public func equipShield(id: UUID) async {
-        await gameService.modifyPlayer { player in
-            guard let shield = player.inventory.shields.first(where: { $0.id == id }) else { return }
+    public func equipShield(id: UUID) {
+        guard let shield = gameService.player.inventory.shields.first(where: { $0.id == id }) else { return }
 
-            switch player.equipped.weapons {
+        gameService.modifyEquipment { equipped in
+            switch equipped.weapons {
             case .oneHanded(let weapon), .oneHandedWithShield(let weapon, _):
-                player.equipped.weapons = .oneHandedWithShield(weapon: weapon, shield: shield)
+                equipped.weapons = .oneHandedWithShield(weapon: weapon, shield: shield)
             case .twoHanded, .dualWield:
                 break
             }
         }
     }
 
-    public func unequipShield() async {
-        await gameService.modifyPlayer { player in
-            if case .oneHandedWithShield(let weapon, _) = player.equipped.weapons {
-                player.equipped.weapons = .oneHanded(weapon: weapon)
+    public func unequipShield() {
+        gameService.modifyEquipment { equipped in
+            if case .oneHandedWithShield(let weapon, _) = equipped.weapons {
+                equipped.weapons = .oneHanded(weapon: weapon)
             }
         }
     }
 
     // MARK: - Armor
 
-    public func equipArmor(id: UUID) async {
-        await gameService.modifyPlayer { player in
-            if let robe = player.inventory.robes.first(where: { $0.id == id }) {
-                player.equipped.shirt = robe
-                return
+    public func equipArmor(id: UUID) {
+        let inventory = gameService.player.inventory
+
+        if let robe = inventory.robes.first(where: { $0.id == id }) {
+            gameService.modifyEquipment { equipped in
+                equipped.shirt = robe
             }
+            return
+        }
 
-            guard let armor = player.inventory.armor.first(where: { $0.id == id }),
-                  let defenseItem = armor.item as? DefenseItem,
-                  let slot = Self.determineArmorSlot(from: defenseItem) else { return }
+        guard let armor = inventory.armor.first(where: { $0.id == id }),
+              let defenseItem = armor.item as? DefenseItem,
+              let slot = Self.determineArmorSlot(from: defenseItem) else { return }
 
-            Self.setArmor(armor, slot: slot, on: &player)
+        gameService.modifyEquipment { equipped in
+            Self.setArmor(armor, slot: slot, on: &equipped)
         }
     }
 
-    public func unequipArmor(id: UUID) async {
-        await gameService.modifyPlayer { player in
-            let equipped = player.equipped
-
+    public func unequipArmor(id: UUID) {
+        gameService.modifyEquipment { equipped in
             if equipped.shirt?.id == id {
-                player.equipped.shirt = nil
+                equipped.shirt = nil
             } else if equipped.helmet?.id == id {
-                Self.setArmor(nil, slot: .helmet, on: &player)
+                Self.setArmor(nil, slot: .helmet, on: &equipped)
             } else if equipped.gloves?.id == id {
-                Self.setArmor(nil, slot: .gloves, on: &player)
+                Self.setArmor(nil, slot: .gloves, on: &equipped)
             } else if equipped.shoes?.id == id {
-                Self.setArmor(nil, slot: .shoes, on: &player)
+                Self.setArmor(nil, slot: .shoes, on: &equipped)
             } else if equipped.upperBody?.id == id {
-                Self.setArmor(nil, slot: .upperBody, on: &player)
+                Self.setArmor(nil, slot: .upperBody, on: &equipped)
             } else if equipped.bottomBody?.id == id {
-                Self.setArmor(nil, slot: .bottomBody, on: &player)
+                Self.setArmor(nil, slot: .bottomBody, on: &equipped)
             }
         }
     }
 
     // MARK: - Jewelry
 
-    public func equipJewelry(id: UUID) async {
-        await gameService.modifyPlayer { player in
-            guard let jewelry = player.inventory.jewelry.first(where: { $0.id == id }) else { return }
+    public func equipJewelry(id: UUID) {
+        guard let jewelry = gameService.player.inventory.jewelry.first(where: { $0.id == id }) else { return }
 
-            let equipped = player.equipped
-
+        gameService.modifyEquipment { equipped in
             if equipped.ring == nil {
-                player.equipped.ring = jewelry
+                equipped.ring = jewelry
             } else if equipped.necklace == nil {
-                player.equipped.necklace = jewelry
+                equipped.necklace = jewelry
             } else if equipped.earrings == nil {
-                player.equipped.earrings = jewelry
+                equipped.earrings = jewelry
             } else {
-                player.equipped.ring = jewelry // Replace ring by default
+                equipped.ring = jewelry
             }
         }
     }
 
-    public func unequipJewelry(id: UUID) async {
-        await gameService.modifyPlayer { player in
-            let equipped = player.equipped
-
+    public func unequipJewelry(id: UUID) {
+        gameService.modifyEquipment { equipped in
             if equipped.ring?.id == id {
-                player.equipped.ring = nil
+                equipped.ring = nil
             } else if equipped.necklace?.id == id {
-                player.equipped.necklace = nil
+                equipped.necklace = nil
             } else if equipped.earrings?.id == id {
-                player.equipped.earrings = nil
+                equipped.earrings = nil
             }
         }
     }
@@ -166,18 +167,18 @@ public final class DefaultEquipmentService: EquipmentService {
         return nil
     }
 
-    private static func setArmor(_ armor: ElfDefenseItem?, slot: ArmorSlot, on player: inout ElfInfo) {
+    private static func setArmor(_ armor: ElfDefenseItem?, slot: ArmorSlot, on equipped: inout EquippedItems) {
         switch slot {
         case .helmet:
-            player.equipped.helmet = armor
+            equipped.helmet = armor
         case .gloves:
-            player.equipped.gloves = armor
+            equipped.gloves = armor
         case .shoes:
-            player.equipped.shoes = armor
+            equipped.shoes = armor
         case .upperBody:
-            player.equipped.upperBody = armor
+            equipped.upperBody = armor
         case .bottomBody:
-            player.equipped.bottomBody = armor
+            equipped.bottomBody = armor
         }
     }
 }

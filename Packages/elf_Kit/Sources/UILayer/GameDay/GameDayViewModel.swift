@@ -17,80 +17,27 @@ public final class GameDayViewModel {
     private let progressionService: any ProgressionService
     private let equipmentQueryService: any EquipmentQueryService
 
-    // MARK: - UI State
+    // MARK: - Local UI State
 
-    public var activeBuffs: [String]
+    public var activeBuffs: [String] = []
     public var isInventoryVisible: Bool = false
 
     /// Item ID to pre-select when inventory opens
     public var pendingInventoryItemId: UUID?
 
-    // MARK: - Game Access
+    // MARK: - Derived state (computed reactively)
 
-    public private(set) var game: Game
-
-    // MARK: - Computed Properties (Player)
-
-    public var characterName: String {
-        game.player.name
+    public var characterLevel: Int {
+        progressionService.calculateLevel(currentExp: gameService.player.currentExp)
     }
-
-    public var characterLevel: Int = 1
-
-    public var characterImageName: String {
-        game.player.imageName
+    public var expToNextLevel: Int {
+        progressionService.expToNextLevel(currentExp: gameService.player.currentExp)
     }
-
-    public var totalAttributes: HeroAttributes {
-        game.player.totalAttributes
+    public var xpProgress: Double {
+        progressionService.expProgress(currentExp: gameService.player.currentExp)
     }
-
-    public var currentHP: Int {
-        Int(game.player.currentHP)
-    }
-
-    public var currentMP: Int {
-        Int(game.player.currentMP)
-    }
-
-    public var reputation: Int {
-        game.player.reputation
-    }
-
-    public var equippedItems: [HeroItemType: UUID] = [:]
-
-    public var currentExp: Int {
-        game.player.currentExp
-    }
-
-    public var expToNextLevel: Int = 0
-
-    public var xpProgress: Double = 0
-
-    // MARK: - Computed Properties (Game State)
-
-    public var currentActionPoints: Int {
-        game.gameState.currentActionPoints
-    }
-
-    public var maxActionPoints: Int {
-        game.gameState.maxActionPoints
-    }
-
-    public var isLastDay: Bool {
-        game.gameState.isLastDay
-    }
-
-    public var currentDay: GameDay {
-        game.gameState.currentDay
-    }
-
-    public var upcomingDays: [GameDay] {
-        game.gameState.upcomingDays
-    }
-
-    public var calendar: [GameDay] {
-        game.gameState.calendar
+    public var equippedItems: [HeroItemType: UUID] {
+        equipmentQueryService.equippedBaseItemIds(from: gameService.player.equipped)
     }
 
     // MARK: - Initialization
@@ -103,40 +50,12 @@ public final class GameDayViewModel {
         self.gameService = gameService
         self.progressionService = progressionService
         self.equipmentQueryService = equipmentQueryService
-        self.game = gameService.currentGame
-        self.activeBuffs = []
     }
 
-    // MARK: - Game State Observation
-
-    public func observeGameState() async {
-        self.game = gameService.currentGame
-        await loadProgression()
-        for await game in await gameService.gameUpdates() {
-            let oldExp = self.game.player.currentExp
-            let oldEquipped = self.game.player.equipped
-            self.game = game
-            if game.player.currentExp != oldExp || game.player.equipped != oldEquipped {
-                await loadProgression()
-            }
-        }
-    }
-
-    // MARK: - Data Loading
-
-    private func loadProgression() async {
-        let exp = game.player.currentExp
-        characterLevel = await progressionService.calculateLevel(currentExp: exp)
-        expToNextLevel = await progressionService.expToNextLevel(currentExp: exp)
-        xpProgress = await progressionService.expProgress(currentExp: exp)
-        equippedItems = await equipmentQueryService.equippedBaseItemIds(from: game.player.equipped)
-    }
-
-    // MARK: - Actions (UI only, no logic yet)
+    // MARK: - Actions
 
     /// Called when an action button is tapped (non-navigation actions only)
     public func onActionTapped(_ action: ActionType) {
-        // Navigation is handled in View, this is for business logic only
         print("Action tapped: \(action.rawValue)")
     }
 
@@ -157,8 +76,8 @@ public final class GameDayViewModel {
     }
 
     /// Called when an equipment slot is tapped
-    public func onEquipmentSlotTapped(_ slotType: HeroItemType) async {
-        let itemId = await equipmentQueryService.equippedItemId(for: slotType, in: game.player.equipped)
+    public func onEquipmentSlotTapped(_ slotType: HeroItemType) {
+        let itemId = equipmentQueryService.equippedItemId(for: slotType, in: gameService.player.equipped)
         pendingInventoryItemId = itemId
         isInventoryVisible = true
     }
@@ -170,13 +89,12 @@ public final class GameDayViewModel {
 
     /// Called when a pocket slot is tapped
     public func onPocketTapped(_ index: Int) {
-        // UI only - logic will be implemented later
         print("Pocket tapped: \(index)")
     }
 
     /// Called when confirm action points button is tapped
     public func onConfirmActionPoints() async {
-        await gameService.advanceToNextDay()
+        gameService.advanceToNextDay()
         try? await gameService.saveGame()
     }
 }

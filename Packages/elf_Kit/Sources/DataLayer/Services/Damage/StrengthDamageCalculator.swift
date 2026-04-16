@@ -14,5 +14,5 @@ public protocol StrengthDamageCalculator: Sendable {
     ///
     /// - Parameter strengthAttribute: The strength attribute value
     /// - Returns: Random damage value
-    func getRandomStrengthDamage(_ strengthAttribute: Int16) async -> Int16
+    func getRandomStrengthDamage(_ strengthAttribute: Int16) -> Int16
 }

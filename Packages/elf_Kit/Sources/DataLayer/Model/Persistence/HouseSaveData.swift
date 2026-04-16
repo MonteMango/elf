@@ -25,10 +25,10 @@ public struct HouseSaveData: Codable, Sendable {
     public func toHouse(
         itemsRepository: ItemsRepository,
         inventoryService: InventoryService
-    ) async throws -> House {
+    ) throws -> House {
         var restoredMembers: [ElfInfo] = []
         for member in members {
-            let elfInfo = try await member.toElfInfo(
+            let elfInfo = try member.toElfInfo(
                 itemsRepository: itemsRepository,
                 inventoryService: inventoryService
             )

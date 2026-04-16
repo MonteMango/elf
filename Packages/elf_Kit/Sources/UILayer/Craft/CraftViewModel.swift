@@ -21,7 +21,7 @@ public final class CraftViewModel {
     let craftService: any CraftService
     let inventoryService: any InventoryService
 
-    // MARK: - State
+    // MARK: - Local UI State
 
     public var selectedCategory: CraftCategory = .weapon
     public var selectedRecipeId: UUID?
@@ -30,6 +30,25 @@ public final class CraftViewModel {
     // MARK: - Callbacks
 
     public var onClose: () -> Void = {}
+
+    // MARK: - Derived state (computed reactively)
+
+    public var filteredRecipes: [CraftRecipeListItem] {
+        guard let recipeCategory = selectedCategory.recipeCategory else { return [] }
+        return recipeRepository.recipes(for: recipeCategory).map { buildListItem(from: $0) }
+    }
+
+    public var selectedRecipeDetail: CraftRecipeDetail? {
+        guard let recipeId = selectedRecipeId,
+              let recipe = recipeRepository.getById(id: recipeId) else {
+            return nil
+        }
+        return buildDetail(from: recipe)
+    }
+
+    private var currentInventory: ElfInventory {
+        gameService.player.inventory
+    }
 
     // MARK: - Initialization
 
@@ -51,49 +70,11 @@ public final class CraftViewModel {
         self.inventoryService = inventoryService
     }
 
-    // MARK: - Cached State
-
-    public var filteredRecipes: [CraftRecipeListItem] = []
-    public var selectedRecipeDetail: CraftRecipeDetail?
-
-    private func currentInventory() async -> ElfInventory {
-        (await gameService.game).player.inventory
-    }
-
-    // MARK: - Data Loading
-
-    /// Refreshes the filtered recipes list. Called from View's .task(id:) modifier.
-    public func refreshRecipes() async {
-        guard let recipeCategory = selectedCategory.recipeCategory else {
-            filteredRecipes = []
-            return
-        }
-        let recipes = await recipeRepository.recipes(for: recipeCategory)
-        var items: [CraftRecipeListItem] = []
-        for recipe in recipes {
-            guard !Task.isCancelled else { return }
-            items.append(await buildListItem(from: recipe))
-        }
-        guard !Task.isCancelled else { return }
-        filteredRecipes = items
-    }
-
-    /// Refreshes the selected recipe detail.
-    public func refreshSelectedDetail() async {
-        guard let recipeId = selectedRecipeId,
-              let recipe = await recipeRepository.getById(id: recipeId) else {
-            selectedRecipeDetail = nil
-            return
-        }
-        selectedRecipeDetail = await buildDetail(from: recipe)
-    }
-
     // MARK: - Actions
 
     public func selectCategory(_ category: CraftCategory) {
         selectedCategory = category
         selectedRecipeId = nil
-        selectedRecipeDetail = nil
     }
 
     public func selectRecipe(_ id: UUID) {
@@ -107,49 +88,43 @@ public final class CraftViewModel {
         isCrafting = true
         defer { isCrafting = false }
 
-        guard let recipe = await recipeRepository.getById(id: recipeId),
-              let item = await itemsRepository.getHeroItem(recipe.resultItemId) else { return }
+        guard let recipe = recipeRepository.getById(id: recipeId),
+              let item = itemsRepository.getHeroItem(recipe.resultItemId) else { return }
 
         try? await Task.sleep(for: .seconds(2))
 
-        // Atomic: validate + deduct + add inside actor
-        await gameService.modifyPlayer { [craftService, inventoryService] player in
-            guard craftService.canCraft(recipe: recipe, inventory: player.inventory) else { return }
-            var updatedInventory = craftService.deductMaterials(recipe: recipe, from: player.inventory)
-            updatedInventory = inventoryService.addCraftedItem(item, to: updatedInventory)
-            player.inventory = updatedInventory
+        // Atomic: validate + deduct + add (no suspension points in closure)
+        gameService.modifyInventory { [craftService, inventoryService] inventory in
+            guard craftService.canCraft(recipe: recipe, inventory: inventory) else { return }
+            inventory = craftService.deductMaterials(recipe: recipe, from: inventory)
+            inventory = inventoryService.addCraftedItem(item, to: inventory)
         }
     }
 
-    private func buildListItem(from recipe: Recipe) async -> CraftRecipeListItem {
-        let item = await itemsRepository.getHeroItem(recipe.resultItemId)
-        let title = item?.title ?? "Unknown"
-        let imageName = itemImageName(for: item)
-        let shortInfo = buildShortInfo(for: item)
-        var badges: [CraftIngredientBadge] = []
-        for ingredient in recipe.ingredients {
-            let info = await ingredientInfo(for: ingredient)
-            badges.append(CraftIngredientBadge(
+    // MARK: - Private builders
+
+    private func buildListItem(from recipe: Recipe) -> CraftRecipeListItem {
+        let item = itemsRepository.getHeroItem(recipe.resultItemId)
+        let badges: [CraftIngredientBadge] = recipe.ingredients.map { ingredient in
+            let info = ingredientInfo(for: ingredient)
+            return CraftIngredientBadge(
                 id: ingredient.itemId,
                 imageName: info.imageName,
                 amount: ingredient.amount
-            ))
+            )
         }
         return CraftRecipeListItem(
             id: recipe.id,
-            title: title,
-            imageName: imageName,
-            shortInfo: shortInfo,
+            title: item?.title ?? "Unknown",
+            imageName: itemImageName(for: item),
+            shortInfo: buildShortInfo(for: item),
             ingredients: badges
         )
     }
 
-    private func buildDetail(from recipe: Recipe) async -> CraftRecipeDetail {
-        let item = await itemsRepository.getHeroItem(recipe.resultItemId)
-        let currentInventory = await currentInventory()
-        let title = item?.title ?? "Unknown"
-        let imageName = itemImageName(for: item)
-        let shortInfo = buildShortInfo(for: item)
+    private func buildDetail(from recipe: Recipe) -> CraftRecipeDetail {
+        let item = itemsRepository.getHeroItem(recipe.resultItemId)
+        let inventory = currentInventory
         let attributes = CraftItemAttributes(
             strength: Int(item?.strength ?? 0),
             agility: Int(item?.agility ?? 0),
@@ -159,31 +134,27 @@ public final class CraftViewModel {
             manaPoints: Int(item?.manaPoints ?? 0)
         )
 
-        var ingredientDisplays: [CraftIngredientDisplay] = []
-        for ingredient in recipe.ingredients {
-            let ingredientInfo = await ingredientInfo(for: ingredient)
-            let inBag = currentInventory.materials.first(where: { $0.id == ingredient.itemId })?.quantity ?? 0
-            ingredientDisplays.append(CraftIngredientDisplay(
+        let ingredientDisplays: [CraftIngredientDisplay] = recipe.ingredients.map { ingredient in
+            let info = ingredientInfo(for: ingredient)
+            let inBag = inventory.materials.first(where: { $0.id == ingredient.itemId })?.quantity ?? 0
+            return CraftIngredientDisplay(
                 id: ingredient.itemId,
-                imageName: ingredientInfo.imageName,
-                title: ingredientInfo.title,
+                imageName: info.imageName,
+                title: info.title,
                 required: ingredient.amount,
                 inBag: inBag
-            ))
+            )
         }
-
-        let canCraft = craftService.canCraft(recipe: recipe, inventory: currentInventory)
-        let missing = craftService.getMissingIngredients(recipe: recipe, inventory: currentInventory)
 
         return CraftRecipeDetail(
             recipeId: recipe.id,
-            title: title,
-            imageName: imageName,
-            shortInfo: shortInfo,
+            title: item?.title ?? "Unknown",
+            imageName: itemImageName(for: item),
+            shortInfo: buildShortInfo(for: item),
             attributes: attributes,
             ingredients: ingredientDisplays,
-            canCraft: canCraft,
-            missingIngredients: missing
+            canCraft: craftService.canCraft(recipe: recipe, inventory: inventory),
+            missingIngredients: craftService.getMissingIngredients(recipe: recipe, inventory: inventory)
         )
     }
 
@@ -207,13 +178,13 @@ public final class CraftViewModel {
         }
     }
 
-    private func ingredientInfo(for ingredient: RecipeIngredient) async -> (imageName: String, title: String) {
+    private func ingredientInfo(for ingredient: RecipeIngredient) -> (imageName: String, title: String) {
         switch ingredient.type {
         case .material:
-            let material = await materialRepository.getById(id: ingredient.itemId)
+            let material = materialRepository.getById(id: ingredient.itemId)
             return (material?.imageName ?? "item_unknown", material?.title ?? "Unknown")
         case .ore:
-            let ore = await oreRepository.getById(id: OreID(rawValue: ingredient.itemId))
+            let ore = oreRepository.getById(id: OreID(rawValue: ingredient.itemId))
             return (ore?.imageName ?? "item_unknown", ore?.title ?? "Unknown")
         }
     }

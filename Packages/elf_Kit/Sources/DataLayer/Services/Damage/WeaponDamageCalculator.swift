@@ -14,5 +14,5 @@ public protocol WeaponDamageCalculator: Sendable {
     ///
     /// - Parameter weaponId: The weapon's UUID (nil for unarmed)
     /// - Returns: Tuple of (minDmg, maxDmg) or nil if invalid
-    func getWeaponDamage(weaponId: UUID?) async -> (minDmg: Int16, maxDmg: Int16)?
+    func getWeaponDamage(weaponId: UUID?) -> (minDmg: Int16, maxDmg: Int16)?
 }

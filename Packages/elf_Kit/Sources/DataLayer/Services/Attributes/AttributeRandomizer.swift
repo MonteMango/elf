@@ -6,5 +6,5 @@
 //
 
 public protocol AttributeRandomizer: Sendable {
-    func nextAttribute() async -> String
+    func nextAttribute() -> String
 }

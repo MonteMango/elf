@@ -37,19 +37,19 @@ public final class ElfQuestRepository: QuestRepository {
 
     // MARK: - Repository<Quest>
 
-    public func getAll() async -> [Quest] { allQuests }
+    public func getAll() -> [Quest] { allQuests }
 
-    public func getById(id: QuestID) async -> Quest? { questLookup[id] }
+    public func getById(id: QuestID) -> Quest? { questLookup[id] }
 
     // MARK: - QuestRepository
 
-    public func quests(for ownerId: QuestCharacterID) async -> [Quest] {
+    public func quests(for ownerId: QuestCharacterID) -> [Quest] {
         questsByOwner[ownerId] ?? []
     }
 
-    public func allCharacters() async -> [QuestCharacter] { characters }
+    public func allCharacters() -> [QuestCharacter] { characters }
 
-    public func character(by id: QuestCharacterID) async -> QuestCharacter? {
+    public func character(by id: QuestCharacterID) -> QuestCharacter? {
         characterLookup[id]
     }
 }

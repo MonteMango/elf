@@ -17,7 +17,7 @@ public struct DefaultCharacterNameValidator: CharacterNameValidator {
 
     public init() {}
 
-    public func validate(_ name: String) async -> NameValidationResult {
+    public func validate(_ name: String) -> NameValidationResult {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
 
         // Empty name is not valid
@@ -44,4 +44,3 @@ public struct DefaultCharacterNameValidator: CharacterNameValidator {
         return .valid
     }
 }
- 

@@ -9,27 +9,26 @@ import XCTest
 @testable import elf_Kit
 
 final class ElfAttributeRandomizerTests: XCTestCase {
-    func testReturnedAttributesAreValid() async {
+    func testReturnedAttributesAreValid() {
         let randomizer = ElfAttributeRandomizer()
         let allowedAttributes: Set<String> = ["hitPoints", "manaPoints", "agility", "strength", "power", "instinct"]
 
         for _ in 0..<100 {
-            let attr = await randomizer.nextAttribute()
+            let attr = randomizer.nextAttribute()
             XCTAssertTrue(allowedAttributes.contains(attr), "Unexpected attribute: \(attr)")
         }
     }
 
-    func testRandomDistributionRoughlyMatchesWeights() async {
+    func testRandomDistributionRoughlyMatchesWeights() {
         let randomizer = ElfAttributeRandomizer()
         var counts: [String: Int] = [:]
 
         let iterations = 10_000
         for _ in 0..<iterations {
-            let attr = await randomizer.nextAttribute()
+            let attr = randomizer.nextAttribute()
             counts[attr, default: 0] += 1
         }
 
-        // Проверим примерный процент (с учетом допуска)
         let expectedDistribution: [String: Double] = [
             "hitPoints": 0.10,
             "manaPoints": 0.02,
@@ -45,12 +44,12 @@ final class ElfAttributeRandomizerTests: XCTestCase {
         }
     }
 
-    func testReturnsDifferentValuesOverTime() async {
+    func testReturnsDifferentValuesOverTime() {
         let randomizer = ElfAttributeRandomizer()
         var seenAttributes = Set<String>()
 
         for _ in 0..<100 {
-            seenAttributes.insert(await randomizer.nextAttribute())
+            seenAttributes.insert(randomizer.nextAttribute())
         }
 
         XCTAssertTrue(seenAttributes.count > 1, "Randomizer returned only one unique value over 100 iterations")

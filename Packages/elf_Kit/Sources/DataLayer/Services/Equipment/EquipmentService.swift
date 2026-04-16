@@ -7,39 +7,41 @@
 
 import Foundation
 
-/// Protocol for managing player equipment
-/// Handles weapon, armor, shield, and jewelry equipping logic
-public protocol EquipmentService: Sendable {
+/// Protocol for managing player equipment.
+/// Handles weapon, armor, shield, and jewelry equipping logic.
+/// Main-actor-isolated: mutates the player via `GameStateService.modifyEquipment`.
+@MainActor
+public protocol EquipmentService: AnyObject {
 
     // MARK: - Weapon
 
     /// Equips weapon from inventory, auto-determining configuration based on handUse
-    func equipWeapon(id: UUID) async
+    func equipWeapon(id: UUID)
 
     /// Unequips weapon (only works for secondary in dual-wield mode)
-    func unequipWeapon(id: UUID) async
+    func unequipWeapon(id: UUID)
 
     // MARK: - Shield
 
     /// Equips shield from inventory (only if current weapon config allows)
-    func equipShield(id: UUID) async
+    func equipShield(id: UUID)
 
     /// Unequips current shield
-    func unequipShield() async
+    func unequipShield()
 
     // MARK: - Armor
 
     /// Equips armor from inventory, auto-determining slot by protectParts
-    func equipArmor(id: UUID) async
+    func equipArmor(id: UUID)
 
     /// Unequips armor by finding which slot contains it
-    func unequipArmor(id: UUID) async
+    func unequipArmor(id: UUID)
 
     // MARK: - Jewelry
 
     /// Equips jewelry from inventory, auto-finding first free slot
-    func equipJewelry(id: UUID) async
+    func equipJewelry(id: UUID)
 
     /// Unequips jewelry by finding which slot contains it
-    func unequipJewelry(id: UUID) async
+    func unequipJewelry(id: UUID)
 }

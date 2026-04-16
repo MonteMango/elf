@@ -17,7 +17,7 @@ public final class ElfAttributeService: AttributeService {
         self.randomizer = randomizer
     }
 
-    public func getAllFightStyleAttributes(for fightStyle: FightStyle, at level: Int16) async -> HeroAttributes {
+    public func getAllFightStyleAttributes(for fightStyle: FightStyle, at level: Int16) -> HeroAttributes {
         switch fightStyle {
         case .crit:
             return HeroAttributes(
@@ -51,12 +51,12 @@ public final class ElfAttributeService: AttributeService {
         }
     }
 
-    public func getRandomLevelAttributes() async -> HeroAttributes {
+    public func getRandomLevelAttributes() -> HeroAttributes {
         var attributes = HeroAttributes()
         var pointsAssigned = 0
 
         while pointsAssigned < 4 {
-            let attribute = await randomizer.nextAttribute()
+            let attribute = randomizer.nextAttribute()
 
             switch attribute {
             case "hitPoints":
@@ -81,12 +81,11 @@ public final class ElfAttributeService: AttributeService {
         return attributes
     }
 
-    public func getAllRandomLevelAttributes(for level: Int16) async -> HeroAttributes {
+    public func getAllRandomLevelAttributes(for level: Int16) -> HeroAttributes {
         // Sequential execution - getRandomLevelAttributes is a lightweight operation
-        // No benefit from parallelization, avoids thread overhead
         var totalAttributes = HeroAttributes()
         for _ in 1...level {
-            let attributes = await getRandomLevelAttributes()
+            let attributes = getRandomLevelAttributes()
             totalAttributes.hitPoints += attributes.hitPoints
             totalAttributes.manaPoints += attributes.manaPoints
             totalAttributes.agility += attributes.agility
@@ -97,10 +96,10 @@ public final class ElfAttributeService: AttributeService {
         return totalAttributes
     }
 
-    public func getAllItemsAttributes(for itemIds: [UUID]) async -> HeroAttributes {
+    public func getAllItemsAttributes(for itemIds: [UUID]) -> HeroAttributes {
         var aggregatedAttributes = HeroAttributes()
         for itemId in itemIds {
-            if let item = await itemsRepository.getHeroItem(itemId) {
+            if let item = itemsRepository.getHeroItem(itemId) {
                 aggregatedAttributes = aggregateItemAttributes(item: item, existingAttributes: aggregatedAttributes)
             }
         }

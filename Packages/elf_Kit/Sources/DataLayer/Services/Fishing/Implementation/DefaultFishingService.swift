@@ -30,12 +30,12 @@ public final class DefaultFishingService: FishingService {
         availableFish: [Fish],
         currentExp: Int,
         expPerLevel: Int
-    ) async -> FishingResult {
+    ) -> FishingResult {
         // Use unified gathering engine (uses GatheringEngine.defaultMaxCount)
-        let caughtFish = await gatheringEngine.gather(from: availableFish, maxCount: DefaultGatheringEngine.defaultMaxCount)
+        let caughtFish = gatheringEngine.gather(from: availableFish, maxCount: DefaultGatheringEngine.defaultMaxCount)
 
         // Calculate skill progress from gathered fish
-        let skillProgress = await skillProgressCalculator.calculateFromGathered(
+        let skillProgress = skillProgressCalculator.calculateFromGathered(
             caughtFish,
             skillName: "Fishing",
             currentExp: currentExp,

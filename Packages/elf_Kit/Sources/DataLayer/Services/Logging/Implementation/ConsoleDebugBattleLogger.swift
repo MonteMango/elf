@@ -34,7 +34,7 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         playerDefense: [BodyPart],
         botAttack: [BodyPart],
         botDefense: [BodyPart]
-    ) async {
+    ) {
         guard categories.contains(.roundStart) else { return }
 
         print("\n========================================")
@@ -61,7 +61,7 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         result: DodgeCalculationResult,
         agility: Int16,
         instinct: Int16
-    ) async {
+    ) {
         guard categories.contains(.dodgeCalculation) else { return }
 
         print("  🎯 \(defender) DODGE CHECK:")
@@ -100,7 +100,7 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         result: CritCalculationResult,
         power: Int16,
         instinct: Int16
-    ) async {
+    ) {
         guard categories.contains(.critCalculation) else { return }
 
         print("  💥 \(attacker) CRIT CALCULATION:")
@@ -156,7 +156,7 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         armor: Int?,
         finalDamage: Int?,
         finalStatus: PointStatus
-    ) async {
+    ) {
         guard categories.contains(.bodyPartCalculation) else { return }
 
         print("\n🎲 CALCULATING: \(bodyPartName(bodyPart))")
@@ -184,7 +184,7 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         botNewHP: Int,
         playerResults: [BodyPart: PointStatus],
         botResults: [BodyPart: PointStatus]
-    ) async {
+    ) {
         guard categories.contains(.roundEnd) else { return }
 
         print("\n========================================")

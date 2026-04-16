@@ -16,7 +16,7 @@ final class ElfDamageServiceTests: XCTestCase {
     struct FakeStrategy: StrengthDamageDistributionStrategy {
         let distributionToReturn: DamageDistribution
 
-        func distribution(for strength: Int16) async -> DamageDistribution {
+        func distribution(for strength: Int16) -> DamageDistribution {
             return distributionToReturn
         }
     }
@@ -81,7 +81,7 @@ final class ElfDamageServiceTests: XCTestCase {
 
         // When: Run multiple times
         for _ in 0..<50 {
-            let damage = await service.getRandomStrengthDamage(10)
+            let damage = service.getRandomStrengthDamage(10)
 
             // Then
             XCTAssertTrue((5...7).contains(damage), "Damage \(damage) should be in range 5-7")
@@ -99,7 +99,7 @@ final class ElfDamageServiceTests: XCTestCase {
         )
 
         // When
-        let damage = await service.getRandomStrengthDamage(10)
+        let damage = service.getRandomStrengthDamage(10)
 
         // Then
         XCTAssertEqual(damage, 0)
@@ -122,7 +122,7 @@ final class ElfDamageServiceTests: XCTestCase {
         )
 
         // When
-        let result = await service.getWeaponDamage(weaponId: weaponId)
+        let result = service.getWeaponDamage(weaponId: weaponId)
 
         // Then
         XCTAssertEqual(result?.minDmg, 10)
@@ -140,7 +140,7 @@ final class ElfDamageServiceTests: XCTestCase {
         )
 
         // When
-        let result = await service.getWeaponDamage(weaponId: nil)
+        let result = service.getWeaponDamage(weaponId: nil)
 
         // Then
         XCTAssertEqual(result?.minDmg, 0)
@@ -158,7 +158,7 @@ final class ElfDamageServiceTests: XCTestCase {
         )
 
         // When
-        let result = await service.getWeaponDamage(weaponId: UUID())
+        let result = service.getWeaponDamage(weaponId: UUID())
 
         // Then
         XCTAssertEqual(result?.minDmg, 0)
@@ -183,7 +183,7 @@ final class ElfDamageServiceTests: XCTestCase {
         ]
 
         // When
-        let totalDamage = await service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = service.calculateTotalDamage(from: pointStatus)
 
         // Then
         XCTAssertEqual(totalDamage, 12)
@@ -205,7 +205,7 @@ final class ElfDamageServiceTests: XCTestCase {
         ]
 
         // When
-        let totalDamage = await service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = service.calculateTotalDamage(from: pointStatus)
 
         // Then
         XCTAssertEqual(totalDamage, 0)
@@ -227,7 +227,7 @@ final class ElfDamageServiceTests: XCTestCase {
         ]
 
         // When
-        let totalDamage = await service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = service.calculateTotalDamage(from: pointStatus)
 
         // Then
         XCTAssertEqual(totalDamage, 25)
@@ -248,7 +248,7 @@ final class ElfDamageServiceTests: XCTestCase {
         ]
 
         // When
-        let totalDamage = await service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = service.calculateTotalDamage(from: pointStatus)
 
         // Then
         XCTAssertEqual(totalDamage, 0)
@@ -269,7 +269,7 @@ final class ElfDamageServiceTests: XCTestCase {
         ]
 
         // When
-        let totalDamage = await service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = service.calculateTotalDamage(from: pointStatus)
 
         // Then
         XCTAssertEqual(totalDamage, 0)
@@ -293,7 +293,7 @@ final class ElfDamageServiceTests: XCTestCase {
         ]
 
         // When
-        let totalDamage = await service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = service.calculateTotalDamage(from: pointStatus)
 
         // Then
         XCTAssertEqual(totalDamage, 37)

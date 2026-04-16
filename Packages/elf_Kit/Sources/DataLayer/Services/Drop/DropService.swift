@@ -15,5 +15,5 @@ public protocol DropService: Sendable {
     ///   - rewards: The rewards calculated by HuntService
     ///   - didWin: Whether the player won the battle (no drops if false)
     /// - Returns: Array of DropItems with enriched display information
-    func convertToDropItems(rewards: HuntRewards, didWin: Bool) async -> [DropItem]
+    func convertToDropItems(rewards: HuntRewards, didWin: Bool) -> [DropItem]
 }

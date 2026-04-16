@@ -26,19 +26,19 @@ public protocol ProgressionService: Sendable {
     ///
     /// - Parameter currentExp: Total accumulated experience
     /// - Returns: Level from 1 to 12
-    func calculateLevel(currentExp: Int) async -> Int
+    func calculateLevel(currentExp: Int) -> Int
 
     /// Calculates XP threshold required to reach the next level
     ///
     /// - Parameter currentExp: Total accumulated experience
     /// - Returns: Total XP needed for next level, or 0 if at max level (12)
-    func expToNextLevel(currentExp: Int) async -> Int
+    func expToNextLevel(currentExp: Int) -> Int
 
     /// Calculates progress within current level as a percentage
     ///
     /// - Parameter currentExp: Total accumulated experience
     /// - Returns: Progress from 0.0 to 1.0, returns 1.0 at max level
-    func expProgress(currentExp: Int) async -> Double
+    func expProgress(currentExp: Int) -> Double
 
     /// Calculates farming skill level from total skill experience
     ///
@@ -48,11 +48,11 @@ public protocol ProgressionService: Sendable {
     ///
     /// - Parameter exp: Total accumulated skill experience
     /// - Returns: Skill level from 1 to 12
-    func farmingLevel(exp: Int) async -> Int
+    func farmingLevel(exp: Int) -> Int
 
     /// Calculates progress within current farming skill level as a percentage
     ///
     /// - Parameter exp: Total accumulated skill experience
     /// - Returns: Progress from 0.0 to 1.0, returns 1.0 at max level
-    func farmingProgress(exp: Int) async -> Double
+    func farmingProgress(exp: Int) -> Double
 }

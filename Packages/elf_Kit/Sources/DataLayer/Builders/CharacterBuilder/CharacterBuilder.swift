@@ -8,17 +8,18 @@
 import Foundation
 
 /// Protocol for building PlayerCharacter with validation
-public protocol CharacterBuilder: Sendable {
-    func setAppearance(_ appearance: CharacterAppearance) async
+@MainActor
+public protocol CharacterBuilder {
+    func setAppearance(_ appearance: CharacterAppearance)
 
-    func setName(_ name: String) async
+    func setName(_ name: String)
 
-    func setFightStyle(_ fightStyle: FightStyle) async
+    func setFightStyle(_ fightStyle: FightStyle)
 
-    func reset() async
+    func reset()
 
     func build(
         fightStyleAttributes: HeroAttributes,
         randomLevelAttributes: HeroAttributes
-    ) async throws -> PlayerCharacter
+    ) throws -> PlayerCharacter
 }

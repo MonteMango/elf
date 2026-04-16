@@ -6,72 +6,99 @@
 //
 
 import Foundation
+import Observation
 
-/// Protocol for managing game state mutations
-/// Actor-isolated: all access is serialized for thread safety
-public protocol GameStateService: Sendable {
+/// Protocol for managing game state mutations.
+///
+/// Main-actor-isolated: UI state lives on main thread. Mutations are synchronous
+/// (fast in-memory state transitions). SwiftUI observation works per-property via
+/// the `@Observable` macro on conforming types.
+@MainActor
+public protocol GameStateService: AnyObject, Observable {
 
-    // MARK: - Game State
+    // MARK: - Observable State
 
-    /// Current game state (actor-isolated, requires await)
-    var game: Game { get async }
+    /// Current action points (current/maximum)
+    var actionPoints: ActionPoints { get }
 
-    /// Thread-safe synchronous snapshot of current game state.
-    /// Use for ViewModel initialization; use gameUpdates() for reactive observation.
-    var currentGame: Game { get }
+    /// Current in-game day
+    var currentDay: GameDay { get }
 
-    /// Stream of game state changes for reactive observation
-    func gameUpdates() async -> AsyncStream<Game>
+    /// Full calendar for the season
+    var calendar: [GameDay] { get }
+
+    /// All houses (including the player's)
+    var houses: [House] { get }
+
+    /// Index of the player's house within `houses`
+    var playerHouseIndex: Int { get }
+
+    /// Index of the player within their house's members
+    var playerMemberIndex: Int { get }
+
+    /// Player state as a nested observable store (granular field-level tracking).
+    var player: PlayerStore { get }
+
+    // MARK: - Derived
+
+    /// Whether the current day is the last one in the calendar
+    var isLastDay: Bool { get }
+
+    /// Days following `currentDay` in the calendar (up to `upcomingDaysCount`)
+    var upcomingDays: [GameDay] { get }
+
+    // MARK: - Snapshot
+
+    /// Extracts the current state as a value-type `Game`. Used for persistence.
+    func snapshot() -> Game
 
     // MARK: - Day Management
 
-    /// Advances to the next day in the game
-    func advanceToNextDay() async
+    /// Advances to the next day in the calendar. Resets action points.
+    func advanceToNextDay()
 
-    /// Spends action points for an activity
-    /// - Parameter amount: Number of action points to spend
-    func spendActionPoints(_ amount: Int) async
+    /// Spends action points for an activity.
+    /// - Parameter amount: Number of action points to spend (no-op if insufficient).
+    func spendActionPoints(_ amount: Int)
 
     // MARK: - Player Progression
 
-    /// Adds experience points to the player
-    /// Level is computed automatically from total XP (TDD: single source of truth)
-    /// - Parameter amount: Experience points to add
-    func addPlayerExperience(_ amount: Int) async
+    /// Adds experience points to the player.
+    func addPlayerExperience(_ amount: Int)
 
-    /// Adds fishing experience to the player
-    /// - Parameter amount: Fishing XP to add
-    func addFishingExperience(_ amount: Int) async
+    /// Adds fishing experience to the player.
+    func addFishingExperience(_ amount: Int)
 
-    /// Adds foraging experience to the player
-    /// - Parameter amount: Foraging XP to add
-    func addForagingExperience(_ amount: Int) async
+    /// Adds foraging experience to the player.
+    func addForagingExperience(_ amount: Int)
 
-    /// Adds mining experience to the player
-    /// - Parameter amount: Mining XP to add
-    func addMiningExperience(_ amount: Int) async
+    /// Adds mining experience to the player.
+    func addMiningExperience(_ amount: Int)
 
-    /// Adds hunt rewards (drops) to player's inventory
-    /// - Parameter rewards: Hunt rewards containing materials, weapon, and armor drops
-    func addDropsToPlayerInventory(rewards: HuntRewards) async
+    /// Adds hunt rewards (drops) to player's inventory.
+    func addDropsToPlayerInventory(rewards: HuntRewards)
 
+    /// Adds caught fish to player's inventory as materials.
+    func addFishToInventory(_ fish: [Fish])
 
-    /// Adds caught fish to player's inventory as materials
-    /// - Parameter fish: Array of fish to add
-    func addFishToInventory(_ fish: [Fish]) async
+    /// Adds gathered herbs to player's inventory as materials.
+    func addHerbsToInventory(_ herbs: [Herb])
 
-    /// Adds gathered herbs to player's inventory as materials
-    /// - Parameter herbs: Array of herbs to add
-    func addHerbsToInventory(_ herbs: [Herb]) async
+    /// Adds mined ores to player's inventory as materials.
+    func addOresToInventory(_ ores: [Ore])
 
-    /// Adds mined ores to player's inventory as materials
-    /// - Parameter ores: Array of ores to add
-    func addOresToInventory(_ ores: [Ore]) async
+    // MARK: - Atomic Scoped Mutations
 
-    // MARK: - Atomic Player Modification
+    /// Atomically mutates the player's equipped items.
+    ///
+    /// Fires observation invalidation only for `PlayerStore.equipped`. Views that
+    /// read unrelated fields (e.g. `player.foragingExp`) are not re-evaluated.
+    func modifyEquipment(_ transform: (inout EquippedItems) -> Void)
 
-    /// Atomically reads and modifies player state within actor isolation.
-    /// Guarantees no state changes between read and write (no suspension points).
-    func modifyPlayer(_ transform: @Sendable (inout ElfInfo) -> Void) async
-
+    /// Atomically mutates the player's inventory.
+    ///
+    /// Fires observation invalidation only for `PlayerStore.inventory`. Use this
+    /// for crafting, drops, and any operation that changes inventory without
+    /// touching other player fields.
+    func modifyInventory(_ transform: (inout ElfInventory) -> Void)
 }

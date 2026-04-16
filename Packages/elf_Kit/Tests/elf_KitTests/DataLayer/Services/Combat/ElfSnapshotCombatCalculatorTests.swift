@@ -23,27 +23,27 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         nonisolated(unsafe) var strengthDamageToReturn: Int16 = 5
         nonisolated(unsafe) var weaponDamageToReturn: Int16 = 10
 
-        func getMinMaxStrengthDamage(_ strengthAttribute: Int16) async -> (minDmg: Int16, maxDmg: Int16)? {
+        func getMinMaxStrengthDamage(_ strengthAttribute: Int16) -> (minDmg: Int16, maxDmg: Int16)? {
             return (0, strengthDamageToReturn)
         }
 
-        func getStrengthDamageDistribution(_ strengthAttribute: Int16) async -> (distribution: [Int16], weights: [Int]) {
+        func getStrengthDamageDistribution(_ strengthAttribute: Int16) -> (distribution: [Int16], weights: [Int]) {
             return ([strengthDamageToReturn], [1])
         }
 
-        func getRandomStrengthDamage(_ strengthAttribute: Int16) async -> Int16 {
+        func getRandomStrengthDamage(_ strengthAttribute: Int16) -> Int16 {
             return strengthDamageToReturn
         }
 
-        func getWeaponDamage(weaponId: UUID?) async -> (minDmg: Int16, maxDmg: Int16)? {
+        func getWeaponDamage(weaponId: UUID?) -> (minDmg: Int16, maxDmg: Int16)? {
             return (weaponDamageToReturn, weaponDamageToReturn)
         }
 
-        func getRandomWeaponDamage(weaponId: UUID?) async -> Int16 {
+        func getRandomWeaponDamage(weaponId: UUID?) -> Int16 {
             return weaponDamageToReturn
         }
 
-        func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) async -> Int {
+        func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) -> Int {
             var total = 0
             for (_, status) in pointStatus {
                 switch status {
@@ -63,7 +63,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
     final class MockDodgeService: DodgeService, @unchecked Sendable {
         nonisolated(unsafe) var shouldDodge: Bool = false
 
-        func calculateDodge(agility: Int16, instinct: Int16) async -> DodgeCalculationResult {
+        func calculateDodge(agility: Int16, instinct: Int16) -> DodgeCalculationResult {
             let distribution = DodgeDistribution(
                 minimumChance: 0,
                 maximumChance: 50,
@@ -84,7 +84,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         nonisolated(unsafe) var shouldCrit: Bool = false
         nonisolated(unsafe) var critMultiplier: Double = 1.5
 
-        func calculateCrit(power: Int16, instinct: Int16, defenderAgility: Int16) async -> CritCalculationResult {
+        func calculateCrit(power: Int16, instinct: Int16, defenderAgility: Int16) -> CritCalculationResult {
             let distribution = CritDistribution(
                 minimumChance: 10,
                 maximumChance: 50,
@@ -109,13 +109,11 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
 
     /// Mock Debug Logger (no-op)
     final class MockDebugLogger: DebugBattleLogger {
-        func logRoundStart(roundNumber: Int, playerSnapshot: CombatantSnapshot, botSnapshot: CombatantSnapshot, playerAttack: [BodyPart], playerDefense: [BodyPart], botAttack: [BodyPart], botDefense: [BodyPart]) async {}
-        func logStrengthDamage(hero: String, strength: Int16, distribution: [Int16], weights: [Int], selectedValue: Int16) {}
-        func logWeaponDamage(hero: String, hand: String, weaponName: String, minDamage: Int16, maxDamage: Int16, selectedValue: Int16) {}
-        func logDodgeCalculation(defender: String, result: DodgeCalculationResult, agility: Int16, instinct: Int16) async {}
-        func logCritCalculation(attacker: String, result: CritCalculationResult, power: Int16, instinct: Int16) async {}
-        func logBodyPartCalculation(attacker: String, defender: String, bodyPart: BodyPart, isAttacked: Bool, isDefended: Bool, baseDamage: Int?, armor: Int?, finalDamage: Int?, finalStatus: PointStatus) async {}
-        func logRoundEnd(roundNumber: Int, playerOldHP: Int, playerNewHP: Int, botOldHP: Int, botNewHP: Int, playerResults: [BodyPart: PointStatus], botResults: [BodyPart: PointStatus]) async {}
+        func logRoundStart(roundNumber: Int, playerSnapshot: CombatantSnapshot, botSnapshot: CombatantSnapshot, playerAttack: [BodyPart], playerDefense: [BodyPart], botAttack: [BodyPart], botDefense: [BodyPart]) {}
+        func logDodgeCalculation(defender: String, result: DodgeCalculationResult, agility: Int16, instinct: Int16) {}
+        func logCritCalculation(attacker: String, result: CritCalculationResult, power: Int16, instinct: Int16) {}
+        func logBodyPartCalculation(attacker: String, defender: String, bodyPart: BodyPart, isAttacked: Bool, isDefended: Bool, baseDamage: Int?, armor: Int?, finalDamage: Int?, finalStatus: PointStatus) {}
+        func logRoundEnd(roundNumber: Int, playerOldHP: Int, playerNewHP: Int, botOldHP: Int, botNewHP: Int, playerResults: [BodyPart: PointStatus], botResults: [BodyPart: PointStatus]) {}
     }
 
     // MARK: - Test Helpers
@@ -189,7 +187,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         let defender = makeSnapshot(intuition: 30)
 
         // When
-        let results = await calculator.calculatePointStatus(
+        let results = calculator.calculatePointStatus(
             attackingPoints: [.head],
             defendingPoints: [.head],
             attacker: attacker,
@@ -210,7 +208,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         let defender = makeSnapshot(intuition: 10, armor: [.head: 3])
 
         // When
-        let results = await calculator.calculatePointStatus(
+        let results = calculator.calculatePointStatus(
             attackingPoints: [.head],
             defendingPoints: [.head],
             attacker: attacker,
@@ -239,7 +237,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         let defender = makeSnapshot(agility: 50)
 
         // When
-        let results = await calculator.calculatePointStatus(
+        let results = calculator.calculatePointStatus(
             attackingPoints: [.body],
             defendingPoints: [],
             attacker: attacker,
@@ -259,7 +257,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         let defender = makeSnapshot(agility: 50)
 
         // When
-        let results = await calculator.calculatePointStatus(
+        let results = calculator.calculatePointStatus(
             attackingPoints: [.body],
             defendingPoints: [],
             attacker: attacker,
@@ -280,7 +278,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         let defender = makeSnapshot(armor: [.legs: 5])
 
         // When
-        let results = await calculator.calculatePointStatus(
+        let results = calculator.calculatePointStatus(
             attackingPoints: [.legs],
             defendingPoints: [],
             attacker: attacker,
@@ -308,7 +306,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         let defender = makeSnapshot(armor: [.rightHand: 2])
 
         // When
-        let results = await calculator.calculatePointStatus(
+        let results = calculator.calculatePointStatus(
             attackingPoints: [.rightHand],
             defendingPoints: [],
             attacker: attacker,
@@ -335,7 +333,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         let defender = makeSnapshot()
 
         // When
-        let results = await calculator.calculatePointStatus(
+        let results = calculator.calculatePointStatus(
             attackingPoints: [.head],
             defendingPoints: [.body],
             attacker: attacker,
@@ -361,7 +359,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         let defender = makeSnapshot(armor: [.head: 2, .body: 3])
 
         // When
-        let results = await calculator.calculatePointStatus(
+        let results = calculator.calculatePointStatus(
             attackingPoints: [.head, .body],
             defendingPoints: [.body],
             attacker: attacker,
@@ -391,7 +389,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         let defender = makeSnapshot()
 
         // When
-        let results = await calculator.calculatePointStatus(
+        let results = calculator.calculatePointStatus(
             attackingPoints: [],
             defendingPoints: [],
             attacker: attacker,
@@ -419,7 +417,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         let defender = makeSnapshot(armor: [.head: 8])
 
         // When
-        let results = await calculator.calculatePointStatus(
+        let results = calculator.calculatePointStatus(
             attackingPoints: [.head],
             defendingPoints: [],
             attacker: attacker,
@@ -443,7 +441,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         let defender = makeSnapshot(armor: [:]) // No armor
 
         // When
-        let results = await calculator.calculatePointStatus(
+        let results = calculator.calculatePointStatus(
             attackingPoints: [.body],
             defendingPoints: [],
             attacker: attacker,

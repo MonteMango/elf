@@ -16,91 +16,38 @@ public final class FarmViewModel {
     private let gameService: any GameService
     private let progressionService: any ProgressionService
 
-    // MARK: - Game State
+    // MARK: - Farming Skills (computed reactively)
 
-    private var game: Game
-
-    // MARK: - Computed Properties
-
-    public var currentActionPoints: Int {
-        game.gameState.currentActionPoints
+    public var foragingLevel: Int {
+        progressionService.farmingLevel(exp: gameService.player.foragingExp)
     }
-
-    public var maxActionPoints: Int {
-        game.gameState.maxActionPoints
+    public var foragingProgress: Double {
+        progressionService.farmingProgress(exp: gameService.player.foragingExp)
     }
-
-    public var isLastDay: Bool {
-        game.gameState.isLastDay
+    public var fishingLevel: Int {
+        progressionService.farmingLevel(exp: gameService.player.fishingExp)
     }
-
-    // MARK: - Calendar Properties
-
-    public var currentDay: GameDay {
-        game.gameState.currentDay
+    public var fishingProgress: Double {
+        progressionService.farmingProgress(exp: gameService.player.fishingExp)
     }
-
-    public var upcomingDays: [GameDay] {
-        game.gameState.upcomingDays
+    public var miningLevel: Int {
+        progressionService.farmingLevel(exp: gameService.player.miningExp)
     }
-
-    public var calendar: [GameDay] {
-        game.gameState.calendar
+    public var miningProgress: Double {
+        progressionService.farmingProgress(exp: gameService.player.miningExp)
     }
-
-    // MARK: - Farming Skills
-
-    public var foragingLevel: Int = 1
-    public var foragingProgress: Double = 0
-    public var fishingLevel: Int = 1
-    public var fishingProgress: Double = 0
-    public var miningLevel: Int = 1
-    public var miningProgress: Double = 0
 
     // MARK: - Initialization
 
     public init(gameService: any GameService, progressionService: any ProgressionService) {
         self.gameService = gameService
         self.progressionService = progressionService
-        self.game = gameService.currentGame
-    }
-
-    // MARK: - Game State Observation
-
-    public func observeGameState() async {
-        self.game = gameService.currentGame
-        await loadSkills()
-        for await game in await gameService.gameUpdates() {
-            let oldPlayer = self.game.player
-            self.game = game
-            if game.player.foragingExp != oldPlayer.foragingExp
-                || game.player.fishingExp != oldPlayer.fishingExp
-                || game.player.miningExp != oldPlayer.miningExp {
-                await updateSkills()
-            }
-        }
-    }
-
-    // MARK: - Data Loading
-
-    private func updateSkills() async {
-        let player = game.player
-        foragingLevel = await progressionService.farmingLevel(exp: player.foragingExp)
-        foragingProgress = await progressionService.farmingProgress(exp: player.foragingExp)
-        fishingLevel = await progressionService.farmingLevel(exp: player.fishingExp)
-        fishingProgress = await progressionService.farmingProgress(exp: player.fishingExp)
-        miningLevel = await progressionService.farmingLevel(exp: player.miningExp)
-        miningProgress = await progressionService.farmingProgress(exp: player.miningExp)
-    }
-
-    private func loadSkills() async {
-        await updateSkills()
     }
 
     // MARK: - Actions
 
     public func advanceToNextDay() async {
-        await gameService.advanceToNextDay()
+        gameService.advanceToNextDay()
         try? await gameService.saveGame()
     }
 }

@@ -14,5 +14,5 @@ public protocol TotalDamageCalculator: Sendable {
     ///
     /// - Parameter pointStatus: Map of body parts to their combat status
     /// - Returns: Total damage dealt
-    func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) async -> Int
+    func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) -> Int
 }

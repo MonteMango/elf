@@ -33,7 +33,7 @@ public final class ElfBattleSimulationService: BattleSimulationService {
 
     // MARK: - BattleSimulationService
 
-    public func runSingleBattle(_ battle: Battle) async -> BattleResult {
+    public func runSingleBattle(_ battle: Battle) -> BattleResult {
         guard let bot1Snapshot = battle.leftTeam.first else {
             fatalError("Battle must have bot1 in left team")
         }
@@ -72,41 +72,34 @@ public final class ElfBattleSimulationService: BattleSimulationService {
             let roundStartBot1HP = bot1HP
             let roundStartBot2HP = bot2HP
 
-            // Bot1 selects attack and defense
-            let bot1Attack = await botAI.selectAttackPoints(count: bot1Snapshot.attackPoints)
-            let bot1Defense = await botAI.selectDefensePoints(count: bot1Snapshot.defensePoints)
+            let bot1Attack = botAI.selectAttackPoints(count: bot1Snapshot.attackPoints)
+            let bot1Defense = botAI.selectDefensePoints(count: bot1Snapshot.defensePoints)
 
-            // Bot2 selects attack and defense
-            let bot2Attack = await botAI.selectAttackPoints(count: bot2Snapshot.attackPoints)
-            let bot2Defense = await botAI.selectDefensePoints(count: bot2Snapshot.defensePoints)
+            let bot2Attack = botAI.selectAttackPoints(count: bot2Snapshot.attackPoints)
+            let bot2Defense = botAI.selectDefensePoints(count: bot2Snapshot.defensePoints)
 
-            // Calculate both attacks in parallel
-            async let bot1ResultsTask = snapshotCombatCalculator.calculatePointStatus(
+            let bot1Results = snapshotCombatCalculator.calculatePointStatus(
                 attackingPoints: bot2Attack,
                 defendingPoints: bot1Defense,
                 attacker: bot2Snapshot,
                 defender: bot1Snapshot
             )
 
-            async let bot2ResultsTask = snapshotCombatCalculator.calculatePointStatus(
+            let bot2Results = snapshotCombatCalculator.calculatePointStatus(
                 attackingPoints: bot1Attack,
                 defendingPoints: bot2Defense,
                 attacker: bot1Snapshot,
                 defender: bot2Snapshot
             )
 
-            let (bot1Results, bot2Results) = await (bot1ResultsTask, bot2ResultsTask)
-
-            // Calculate damage
-            let bot1DamageTaken = await damageService.calculateTotalDamage(from: bot1Results)
-            let bot2DamageTaken = await damageService.calculateTotalDamage(from: bot2Results)
+            let bot1DamageTaken = damageService.calculateTotalDamage(from: bot1Results)
+            let bot2DamageTaken = damageService.calculateTotalDamage(from: bot2Results)
 
             bot1HP = max(0, bot1HP - bot1DamageTaken)
             bot2HP = max(0, bot2HP - bot2DamageTaken)
 
-            // Collect statistics using parser
             var bot2StrengthDamageThisRound = 0
-            await statisticsParser.parseStatistics(
+            statisticsParser.parseStatistics(
                 attackingPoints: bot2Attack,
                 defendingPoints: bot1Defense,
                 results: bot1Results,
@@ -121,7 +114,7 @@ public final class ElfBattleSimulationService: BattleSimulationService {
             )
 
             var bot1StrengthDamageThisRound = 0
-            await statisticsParser.parseStatistics(
+            statisticsParser.parseStatistics(
                 attackingPoints: bot1Attack,
                 defendingPoints: bot2Defense,
                 results: bot2Results,

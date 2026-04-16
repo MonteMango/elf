@@ -21,67 +21,24 @@ public final class HuntViewModel {
     private let progressionService: any ProgressionService
     private let equipmentQueryService: any EquipmentQueryService
 
-    // MARK: - Constants
+    // MARK: - Constants / Local UI state
 
     /// Cost in action points to hunt
     public let huntCost: Int = 20
     public private(set) var isHunting: Bool = false
 
-    // MARK: - Game State
+    // MARK: - Derived (computed reactively)
 
-    private var game: Game
-
-    // MARK: - Computed Properties
-
-    public var currentActionPoints: Int {
-        game.gameState.currentActionPoints
+    /// Pool of monsters for the player's current level.
+    private var availableMonsters: [Monster] {
+        let monsterLevel = min(progressionService.calculateLevel(currentExp: gameService.player.currentExp), 3)
+        return monsterRepository.getMonsters(world: .upper, level: monsterLevel)
     }
 
-    public var maxActionPoints: Int {
-        game.gameState.maxActionPoints
+    /// Display data for monsters — rebuilt automatically when player level changes.
+    public var availableMonstersDisplayData: [MonsterDisplayData] {
+        availableMonsters.map { buildDisplayData(from: $0) }
     }
-
-    public var canHunt: Bool {
-        currentActionPoints >= huntCost
-    }
-
-    public var isLastDay: Bool {
-        game.gameState.isLastDay
-    }
-
-    // MARK: - Calendar Properties
-
-    /// Current game day
-    public var currentDay: GameDay {
-        game.gameState.currentDay
-    }
-
-    /// Next upcoming days
-    public var upcomingDays: [GameDay] {
-        game.gameState.upcomingDays
-    }
-
-    /// Full game calendar
-    public var calendar: [GameDay] {
-        game.gameState.calendar
-    }
-
-    /// Player's current level (determines monster level)
-    private func playerLevel() async -> Int {
-        await progressionService.calculateLevel(currentExp: game.player.currentExp)
-    }
-
-    /// Current world (for now, always upper world)
-    /// TODO: Implement world progression logic
-    public var currentWorld: WorldType {
-        .upper
-    }
-
-    /// Pre-converted display data for monsters (for View consumption)
-    public var availableMonstersDisplayData: [MonsterDisplayData] = []
-
-    /// Cached available monsters for the current world/level
-    private var availableMonsters: [Monster] = []
 
     // MARK: - Initialization
 
@@ -94,7 +51,6 @@ public final class HuntViewModel {
         progressionService: any ProgressionService,
         equipmentQueryService: any EquipmentQueryService
     ) {
-        self.game = gameService.currentGame
         self.gameService = gameService
         self.monsterRepository = monsterRepository
         self.materialRepository = materialRepository
@@ -104,75 +60,33 @@ public final class HuntViewModel {
         self.equipmentQueryService = equipmentQueryService
     }
 
-    // MARK: - Game State Observation
-
-    public func observeGameState() async {
-        self.game = gameService.currentGame
-        await loadMonsters()
-        for await game in await gameService.gameUpdates() {
-            let oldExp = self.game.player.currentExp
-            self.game = game
-            if game.player.currentExp != oldExp {
-                await loadMonsters()
-            }
-        }
-    }
-
-    // MARK: - Data Loading
-
-    private func loadMonsters() async {
-        let monsterLevel = min(await playerLevel(), 3)
-        let world = currentWorld
-        let (monsters, displayData) = await buildMonstersData(world: world, level: monsterLevel)
-        availableMonsters = monsters
-        availableMonstersDisplayData = displayData
-    }
-
-    /// Fetches monsters and builds display data on cooperative thread pool (off MainActor).
-    nonisolated private func buildMonstersData(
-        world: WorldType,
-        level: Int
-    ) async -> ([Monster], [MonsterDisplayData]) {
-        let monsters = await monsterRepository.getMonsters(world: world, level: level)
-        var displayData: [MonsterDisplayData] = []
-        for monster in monsters {
-            let data = await buildDisplayData(from: monster)
-            displayData.append(data)
-        }
-        return (monsters, displayData)
-    }
-
     // MARK: - Actions
 
     /// Advances to the next day and restores action points
     public func advanceToNextDay() async {
-        await gameService.advanceToNextDay()
+        gameService.advanceToNextDay()
         try? await gameService.saveGame()
     }
 
     /// Starts a hunt: spends action points, selects random monster, returns Battle
-    /// - Returns: Battle instance or nil if hunt cannot start
-    public func startHunt() async -> Battle? {
-        guard canHunt, !isHunting else { return nil }
+    public func startHunt() -> Battle? {
+        guard gameService.actionPoints.current >= huntCost, !isHunting else { return nil }
         isHunting = true
         defer { isHunting = false }
 
-        // 1. Select random monster from available monsters (before spending AP)
         guard let monster = availableMonsters.randomElement() else {
             return nil
         }
 
-        // 2. Spend action points (only after confirming monster exists)
-        await gameService.spendActionPoints(huntCost)
+        gameService.spendActionPoints(huntCost)
 
-        // 3. Build player snapshot from ElfInfo
-        let player = (await gameService.game).player
-        let selectedItems: [HeroItemType: UUID?] = await equipmentQueryService.equippedBaseItemIds(from: player.equipped).mapValues { $0 }
+        let player = gameService.player.snapshot()
+        let selectedItems: [HeroItemType: UUID?] = equipmentQueryService.equippedBaseItemIds(from: player.equipped).mapValues { $0 }
 
-        guard let playerSnapshot = await snapshotBuilder.buildSnapshot(
+        guard let playerSnapshot = snapshotBuilder.buildSnapshot(
             name: player.name,
             imageName: player.imageName,
-            level: await progressionService.calculateLevel(currentExp: player.currentExp),
+            level: progressionService.calculateLevel(currentExp: player.currentExp),
             fightStyleAttributes: player.fightStyleAttributes,
             randomLevelAttributes: player.randomLevelAttributes,
             selectedItems: selectedItems
@@ -180,10 +94,8 @@ public final class HuntViewModel {
             return nil
         }
 
-        // 4. Build monster snapshot
         let monsterSnapshot = snapshotBuilder.buildSnapshot(from: monster)
 
-        // 5. Create and return Battle
         return Battle(
             leftTeam: [playerSnapshot],
             rightTeam: [monsterSnapshot]
@@ -192,43 +104,29 @@ public final class HuntViewModel {
 
     // MARK: - Private Helpers
 
-    /// Converts Monster model to display data for the View (runs on cooperative pool)
-    nonisolated private func buildDisplayData(from monster: Monster) async -> MonsterDisplayData {
+    private func buildDisplayData(from monster: Monster) -> MonsterDisplayData {
         var drops: [DropDisplayData] = []
 
-        // Weapon drops - lookup item for tier
         for itemDrop in monster.drops.weapons {
             if let uuid = UUID(uuidString: itemDrop.id),
-               let item = await itemsRepository.getHeroItem(uuid) {
-                drops.append(DropDisplayData(
-                    imageName: itemDrop.id,
-                    tier: Int(item.tier)
-                ))
+               let item = itemsRepository.getHeroItem(uuid) {
+                drops.append(DropDisplayData(imageName: itemDrop.id, tier: Int(item.tier)))
             }
         }
 
-        // Armor drops - lookup item for tier
         for itemDrop in monster.drops.armor {
             if let uuid = UUID(uuidString: itemDrop.id),
-               let item = await itemsRepository.getHeroItem(uuid) {
-                drops.append(DropDisplayData(
-                    imageName: itemDrop.id,
-                    tier: Int(item.tier)
-                ))
+               let item = itemsRepository.getHeroItem(uuid) {
+                drops.append(DropDisplayData(imageName: itemDrop.id, tier: Int(item.tier)))
             }
         }
 
-        // Material drops - default tier 4 (common)
         for materialDrop in monster.drops.materials {
-            if let material = await materialRepository.getById(id: materialDrop.id) {
-                drops.append(DropDisplayData(
-                    imageName: material.imageName,
-                    tier: 4
-                ))
+            if let material = materialRepository.getById(id: materialDrop.id) {
+                drops.append(DropDisplayData(imageName: material.imageName, tier: 4))
             }
         }
 
-        // Remove duplicates while preserving order (by imageName)
         var seen = Set<String>()
         let uniqueDrops = drops.filter { seen.insert($0.imageName).inserted }
 

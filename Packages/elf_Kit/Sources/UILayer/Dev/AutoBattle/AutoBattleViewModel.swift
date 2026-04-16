@@ -110,41 +110,34 @@ public final class AutoBattleViewModel {
                 let roundStartBot1HP = bot1HP
                 let roundStartBot2HP = bot2HP
 
-                // Bot1 selects attack and defense
-                let bot1Attack = await ai.selectAttackPoints(count: bot1Snapshot.attackPoints)
-                let bot1Defense = await ai.selectDefensePoints(count: bot1Snapshot.defensePoints)
+                let bot1Attack = ai.selectAttackPoints(count: bot1Snapshot.attackPoints)
+                let bot1Defense = ai.selectDefensePoints(count: bot1Snapshot.defensePoints)
 
-                // Bot2 selects attack and defense
-                let bot2Attack = await ai.selectAttackPoints(count: bot2Snapshot.attackPoints)
-                let bot2Defense = await ai.selectDefensePoints(count: bot2Snapshot.defensePoints)
+                let bot2Attack = ai.selectAttackPoints(count: bot2Snapshot.attackPoints)
+                let bot2Defense = ai.selectDefensePoints(count: bot2Snapshot.defensePoints)
 
-                // Calculate both attacks in parallel
-                async let bot1ResultsTask = calculator.calculatePointStatus(
+                let bot1Results = calculator.calculatePointStatus(
                     attackingPoints: bot2Attack,
                     defendingPoints: bot1Defense,
                     attacker: bot2Snapshot,
                     defender: bot1Snapshot
                 )
 
-                async let bot2ResultsTask = calculator.calculatePointStatus(
+                let bot2Results = calculator.calculatePointStatus(
                     attackingPoints: bot1Attack,
                     defendingPoints: bot2Defense,
                     attacker: bot1Snapshot,
                     defender: bot2Snapshot
                 )
 
-                let (bot1Results, bot2Results) = await (bot1ResultsTask, bot2ResultsTask)
-
-                // Calculate damage
-                let bot1DamageTaken = await dmgService.calculateTotalDamage(from: bot1Results)
-                let bot2DamageTaken = await dmgService.calculateTotalDamage(from: bot2Results)
+                let bot1DamageTaken = dmgService.calculateTotalDamage(from: bot1Results)
+                let bot2DamageTaken = dmgService.calculateTotalDamage(from: bot2Results)
 
                 bot1HP = max(0, bot1HP - bot1DamageTaken)
                 bot2HP = max(0, bot2HP - bot2DamageTaken)
 
-                // Collect statistics using parser service
                 var bot2StrengthDamageThisRound = 0
-                await statsParser.parseStatistics(
+                statsParser.parseStatistics(
                     attackingPoints: bot2Attack,
                     defendingPoints: bot1Defense,
                     results: bot1Results,
@@ -159,7 +152,7 @@ public final class AutoBattleViewModel {
                 )
 
                 var bot1StrengthDamageThisRound = 0
-                await statsParser.parseStatistics(
+                statsParser.parseStatistics(
                     attackingPoints: bot1Attack,
                     defendingPoints: bot2Defense,
                     results: bot2Results,
@@ -199,11 +192,9 @@ public final class AutoBattleViewModel {
 
                 roundHistory.append(roundResult)
 
-                // Update progress every 5 rounds to reduce context switches
-                if currentRound % 5 == 0 {
-                    let estimatedProgress = min(1.0, Double(currentRound) / 50.0)
-                    await updateProgress(estimatedProgress)
-                }
+                // Update progress every round so short battles still animate.
+                let estimatedProgress = min(1.0, Double(currentRound) / 50.0)
+                await updateProgress(estimatedProgress)
 
                 currentRound += 1
             }

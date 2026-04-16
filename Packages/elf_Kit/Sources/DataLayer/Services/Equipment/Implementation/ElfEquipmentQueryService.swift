@@ -18,7 +18,7 @@ public final class ElfEquipmentQueryService: EquipmentQueryService {
 
     // MARK: - Item Checks
 
-    public func isItemEquipped(_ itemId: UUID, in equipped: EquippedItems) async -> Bool {
+    public func isItemEquipped(_ itemId: UUID, in equipped: EquippedItems) -> Bool {
         allItemIds(from: equipped.weapons).contains(itemId)
             || equipped.helmet?.id == itemId
             || equipped.gloves?.id == itemId
@@ -33,7 +33,7 @@ public final class ElfEquipmentQueryService: EquipmentQueryService {
 
     // MARK: - Slot Queries
 
-    public func equippedItemId(for slot: HeroItemType, in equipped: EquippedItems) async -> UUID? {
+    public func equippedItemId(for slot: HeroItemType, in equipped: EquippedItems) -> UUID? {
         switch slot {
         case .weapons: return equipped.weapons.weapon.id
         case .shields: return equipped.weapons.shield?.id
@@ -49,7 +49,7 @@ public final class ElfEquipmentQueryService: EquipmentQueryService {
         }
     }
 
-    public func equippedBaseItemIds(from equipped: EquippedItems) async -> [HeroItemType: UUID] {
+    public func equippedBaseItemIds(from equipped: EquippedItems) -> [HeroItemType: UUID] {
         var result: [HeroItemType: UUID] = [:]
         result[.weapons] = equipped.weapons.weapon.item.id
         if let shield = equipped.weapons.shield { result[.shields] = shield.item.id }

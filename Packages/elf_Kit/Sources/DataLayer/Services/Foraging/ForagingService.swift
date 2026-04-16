@@ -22,5 +22,5 @@ public protocol ForagingService: Sendable {
         availableHerbs: [Herb],
         currentExp: Int,
         expPerLevel: Int
-    ) async -> ForagingResult
+    ) -> ForagingResult
 }

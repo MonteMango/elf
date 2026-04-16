@@ -205,8 +205,8 @@ private struct NoOpGameSaveStorage: GameSaveStorage {
 }
 
 private struct NoOpItemsRepository: ItemsRepository {
-    func getHeroItem(_ id: UUID) async -> Item? { nil }
-    func getItems(for type: HeroItemType) async -> [Item] { [] }
+    func getHeroItem(_ id: UUID) -> Item? { nil }
+    func getItems(for type: HeroItemType) -> [Item] { [] }
 }
 
 #endif

@@ -23,7 +23,7 @@ public final class DefaultGatheringEngine: GatheringEngine {
     public func gather<Item: GatherableItem>(
         from items: [Item],
         maxCount: Int = DefaultGatheringEngine.defaultMaxCount
-    ) async -> [Item] {
+    ) -> [Item] {
         let sortedItems = items.sorted { $0.tier < $1.tier }
         var result: [Item] = []
 

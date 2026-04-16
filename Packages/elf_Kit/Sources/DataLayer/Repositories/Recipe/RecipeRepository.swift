@@ -10,5 +10,5 @@ import Foundation
 public protocol RecipeRepository: Repository<Recipe> {
 
     /// Get all recipes for a given category.
-    func recipes(for category: RecipeCategory) async -> [Recipe]
+    func recipes(for category: RecipeCategory) -> [Recipe]
 }

@@ -27,9 +27,9 @@ public final class ElfCritService: CritService {
 
     // MARK: - CritService
 
-    public func calculateCrit(power: Int16, instinct: Int16, defenderAgility: Int16) async -> CritCalculationResult {
+    public func calculateCrit(power: Int16, instinct: Int16, defenderAgility: Int16) -> CritCalculationResult {
         // Get distribution
-        let distribution = await distributionStrategy.distribution(
+        let distribution = distributionStrategy.distribution(
             power: power,
             instinct: instinct
         )

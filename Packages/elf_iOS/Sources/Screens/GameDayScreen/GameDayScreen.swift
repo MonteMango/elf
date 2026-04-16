@@ -11,17 +11,11 @@ import SwiftUI
 internal struct GameDayScreen: View {
     @Environment(ElfGameContainer.self) private var gameContainer
 
-    let game: Game
-    let playTime: TimeInterval
-
-    internal init(game: Game, playTime: TimeInterval = 0) {
-        self.game = game
-        self.playTime = playTime
-    }
+    internal init() {}
 
     internal var body: some View {
         GameDayScreenContent(
-            viewModel: gameContainer.makeGameDayViewModel(game: game, playTime: playTime),
+            viewModel: gameContainer.makeGameDayViewModel(),
             inventoryViewModel: gameContainer.makeInventoryViewModel()
         )
     }

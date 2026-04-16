@@ -46,28 +46,28 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
 
     // MARK: - Private Helpers
 
-    private func createDefaultWeapon() async -> ElfWeaponItem? {
+    private func createDefaultWeapon() -> ElfWeaponItem? {
         guard let weaponId = defaultWeaponId,
-              let weaponItem = await itemsRepository.getHeroItem(weaponId) as? WeaponItem else {
+              let weaponItem = itemsRepository.getHeroItem(weaponId) as? WeaponItem else {
             return nil
         }
         return ElfWeaponItem(weaponItem: weaponItem)
     }
 
-    private func createDefaultShirt() async -> ElfRobeItem? {
+    private func createDefaultShirt() -> ElfRobeItem? {
         guard let robeId = defaultRobeId,
-              let robeItem = await itemsRepository.getHeroItem(robeId) as? RobeItem else {
+              let robeItem = itemsRepository.getHeroItem(robeId) as? RobeItem else {
             return nil
         }
         return ElfRobeItem(robeItem: robeItem)
     }
 
     /// Creates default equipped items and inventory for new characters
-    private func createDefaultEquipment() async -> (equipped: EquippedItems, inventory: ElfInventory) {
-        guard let weapon = await createDefaultWeapon() else {
+    private func createDefaultEquipment() -> (equipped: EquippedItems, inventory: ElfInventory) {
+        guard let weapon = createDefaultWeapon() else {
             fatalError("Default weapon (Recruit's Spear) not found in repository")
         }
-        let shirt = await createDefaultShirt()
+        let shirt = createDefaultShirt()
 
         var inventory = ElfInventory()
         inventory = inventoryService.addWeapon(weapon, to: inventory)
@@ -85,8 +85,8 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
 
     // MARK: - ElfInfoFactory
 
-    public func create(from character: PlayerCharacter) async -> ElfInfo {
-        let (equipped, inventory) = await createDefaultEquipment()
+    public func create(from character: PlayerCharacter) -> ElfInfo {
+        let (equipped, inventory) = createDefaultEquipment()
 
         // New characters start at level 1 (currentExp = 0)
         return ElfInfo(
@@ -105,29 +105,27 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
         )
     }
 
-    public func createRandomAI(level: Int) async -> ElfInfo {
-        let fightStyle = availableFightStyles.randomElement()!
+    public func createRandomAI(level: Int) -> ElfInfo {
+        let fightStyle = availableFightStyles.randomElement() ?? .dodge
 
-        // Use AttributeService like in BattleSetup
-        let fightStyleAttributes = await attributeService.getAllFightStyleAttributes(
+        let fightStyleAttributes = attributeService.getAllFightStyleAttributes(
             for: fightStyle,
             at: Int16(level)
         )
-        let randomLevelAttributes = await attributeService.getAllRandomLevelAttributes(
+        let randomLevelAttributes = attributeService.getAllRandomLevelAttributes(
             for: Int16(level)
         )
 
         let totalHP = fightStyleAttributes.hitPoints + randomLevelAttributes.hitPoints
         let totalMP = fightStyleAttributes.manaPoints + randomLevelAttributes.manaPoints
 
-        let (equipped, inventory) = await createDefaultEquipment()
+        let (equipped, inventory) = createDefaultEquipment()
 
         // Calculate currentExp for desired level
-        // level 1 → 0 XP, level N (N>1) → N*100 XP
         let currentExp = level <= 1 ? 0 : level * 100
 
         return ElfInfo(
-            name: aiNames.randomElement()!,
+            name: aiNames.randomElement() ?? "AI",
             imageName: "elf_ai_\(Int.random(in: 1...10))",
             fightStyle: fightStyle,
             currentExp: currentExp,

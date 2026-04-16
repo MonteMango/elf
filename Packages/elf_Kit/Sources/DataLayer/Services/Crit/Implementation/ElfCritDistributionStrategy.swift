@@ -24,7 +24,7 @@ public final class ElfCritDistributionStrategy: CritDistributionStrategy {
 
     public init() {}
 
-    public func distribution(power: Int16, instinct: Int16) async -> CritDistribution {
+    public func distribution(power: Int16, instinct: Int16) -> CritDistribution {
         let powerInt = Int(power)
         let instinctInt = Int(instinct)
 

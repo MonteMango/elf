@@ -31,7 +31,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         defendingPoints: Set<BodyPart>,
         attacker: CombatantSnapshot,
         defender: CombatantSnapshot
-    ) async -> [BodyPart: PointStatus] {
+    ) -> [BodyPart: PointStatus] {
         var results: [BodyPart: PointStatus] = [:]
         let allBodyParts: [BodyPart] = [.head, .body, .leftHand, .rightHand, .legs]
 
@@ -41,13 +41,13 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
 
             if isAttacked && isDefended {
                 // Case 1: Attack meets Defense - Check if crit breaks the block
-                let critResult = await critService.calculateCrit(
+                let critResult = critService.calculateCrit(
                     power: Int16(attacker.power),
                     instinct: Int16(defender.intuition),
                     defenderAgility: Int16(defender.agility)
                 )
 
-                await debugLogger.logCritCalculation(
+                debugLogger.logCritCalculation(
                     attacker: attacker.name,
                     result: critResult,
                     power: Int16(attacker.power),
@@ -56,7 +56,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
 
                 if critResult.success {
                     // Crit breaks the block
-                    let (strengthDamage, attackDamage, defenderArmor) = await calculateDamageComponents(
+                    let (strengthDamage, attackDamage, defenderArmor) = calculateDamageComponents(
                         attacker: attacker,
                         defender: defender,
                         bodyPart: bodyPart
@@ -70,7 +70,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                     )
                     results[bodyPart] = finalStatus
 
-                    await logBodyPartResult(
+                    logBodyPartResult(
                         attacker: attacker,
                         defender: defender,
                         bodyPart: bodyPart,
@@ -87,7 +87,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                     let finalStatus = PointStatus.blocked(wasCrit: false)
                     results[bodyPart] = finalStatus
 
-                    await debugLogger.logBodyPartCalculation(
+                    debugLogger.logBodyPartCalculation(
                         attacker: attacker.name,
                         defender: defender.name,
                         bodyPart: bodyPart,
@@ -102,12 +102,12 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
 
             } else if isAttacked && !isDefended {
                 // Case 2: Attack without Defense - Check dodge first, then crit
-                let dodgeResult = await dodgeService.calculateDodge(
+                let dodgeResult = dodgeService.calculateDodge(
                     agility: Int16(defender.agility),
                     instinct: Int16(attacker.intuition)
                 )
 
-                await debugLogger.logDodgeCalculation(
+                debugLogger.logDodgeCalculation(
                     defender: defender.name,
                     result: dodgeResult,
                     agility: Int16(defender.agility),
@@ -116,7 +116,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
 
                 if dodgeResult.success {
                     // Dodged
-                    let critResult = await critService.calculateCrit(
+                    let critResult = critService.calculateCrit(
                         power: Int16(attacker.power),
                         instinct: Int16(defender.intuition),
                         defenderAgility: Int16(defender.agility)
@@ -125,7 +125,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                     let finalStatus = PointStatus.dodged(wasCrit: critResult.success)
                     results[bodyPart] = finalStatus
 
-                    await debugLogger.logBodyPartCalculation(
+                    debugLogger.logBodyPartCalculation(
                         attacker: attacker.name,
                         defender: defender.name,
                         bodyPart: bodyPart,
@@ -138,20 +138,20 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                     )
                 } else {
                     // Not dodged - check for crit
-                    let critResult = await critService.calculateCrit(
+                    let critResult = critService.calculateCrit(
                         power: Int16(attacker.power),
                         instinct: Int16(defender.intuition),
                         defenderAgility: Int16(defender.agility)
                     )
 
-                    await debugLogger.logCritCalculation(
+                    debugLogger.logCritCalculation(
                         attacker: attacker.name,
                         result: critResult,
                         power: Int16(attacker.power),
                         instinct: Int16(defender.intuition)
                     )
 
-                    let (strengthDamage, attackDamage, defenderArmor) = await calculateDamageComponents(
+                    let (strengthDamage, attackDamage, defenderArmor) = calculateDamageComponents(
                         attacker: attacker,
                         defender: defender,
                         bodyPart: bodyPart
@@ -167,7 +167,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                         )
                         results[bodyPart] = finalStatus
 
-                        await logBodyPartResult(
+                        logBodyPartResult(
                             attacker: attacker,
                             defender: defender,
                             bodyPart: bodyPart,
@@ -188,7 +188,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                         )
                         results[bodyPart] = finalStatus
 
-                        await logBodyPartResult(
+                        logBodyPartResult(
                             attacker: attacker,
                             defender: defender,
                             bodyPart: bodyPart,
@@ -208,7 +208,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                 let finalStatus = PointStatus.nothing
                 results[bodyPart] = finalStatus
 
-                await debugLogger.logBodyPartCalculation(
+                debugLogger.logBodyPartCalculation(
                     attacker: attacker.name,
                     defender: defender.name,
                     bodyPart: bodyPart,
@@ -231,9 +231,9 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         attacker: CombatantSnapshot,
         defender: CombatantSnapshot,
         bodyPart: BodyPart
-    ) async -> (strengthDamage: Int, attackDamage: Int, defenderArmor: Int) {
+    ) -> (strengthDamage: Int, attackDamage: Int, defenderArmor: Int) {
         // Get strength-based damage
-        let strengthDamage = await damageService.getRandomStrengthDamage(Int16(attacker.strength))
+        let strengthDamage = damageService.getRandomStrengthDamage(Int16(attacker.strength))
 
         // Get attack damage (weapon damage for elves, natural attack for monsters)
         let attackDamage: Int
@@ -262,7 +262,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         defenderArmor: Int,
         multiplier: Double?,
         finalStatus: PointStatus
-    ) async {
+    ) {
         let baseDamage = strengthDamage + attackDamage
         let finalDamage: Int
 
@@ -272,7 +272,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
             finalDamage = max(0, baseDamage - defenderArmor)
         }
 
-        await debugLogger.logBodyPartCalculation(
+        debugLogger.logBodyPartCalculation(
             attacker: attacker.name,
             defender: defender.name,
             bodyPart: bodyPart,

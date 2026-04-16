@@ -35,18 +35,16 @@ public final class InventoryViewModel {
 
     public var onClose: () -> Void = {}
 
-    // MARK: - Internal Access
+    // MARK: - Derived State (computed reactively)
 
-    func player() async -> ElfInfo {
-        (await gameService.game).player
+    /// All display items for the current player — rebuilt automatically on any
+    /// change to `gameService.player.inventory` / `equipped` observed through services.
+    public var allDisplayItems: [InventoryDisplayItem] {
+        buildDisplayItems()
     }
 
-    // MARK: - Cached State
-
-    private var cachedItems: [InventoryDisplayItem] = []
-
     public var filteredItems: [InventoryDisplayItem] {
-        cachedItems.filter { item in
+        allDisplayItems.filter { item in
             guard item.category == selectedCategory else { return false }
             return passesSubcategoryFilter(item)
         }
@@ -54,7 +52,7 @@ public final class InventoryViewModel {
 
     public var selectedItem: InventoryDisplayItem? {
         guard let id = selectedItemId else { return nil }
-        return cachedItems.first { $0.id == id }
+        return allDisplayItems.first { $0.id == id }
     }
 
     public var currentSubcategoryTitles: [String] {
@@ -103,13 +101,6 @@ public final class InventoryViewModel {
         self.equipmentQueryService = equipmentQueryService
     }
 
-    // MARK: - Data Loading
-
-    /// Refreshes display items from repositories. Call from View's .task {} modifier.
-    public func refreshItems() async {
-        cachedItems = await buildDisplayItems()
-    }
-
     // MARK: - Actions
 
     public func selectCategory(_ category: InventoryCategory) {
@@ -147,7 +138,7 @@ public final class InventoryViewModel {
     public func selectItemById(_ itemId: UUID?) {
         guard let itemId = itemId else { return }
 
-        guard let item = cachedItems.first(where: { $0.id == itemId }) else { return }
+        guard let item = allDisplayItems.first(where: { $0.id == itemId }) else { return }
 
         // Switch category if needed
         if selectedCategory != item.category {
@@ -171,14 +162,14 @@ public final class InventoryViewModel {
         }
     }
 
-    public func equipSelectedItem() async {
+    public func equipSelectedItem() {
         guard let item = selectedItem, !item.isEquipped else { return }
-        await equipItem(item)
+        equipItem(item)
     }
 
-    public func unequipSelectedItem() async {
+    public func unequipSelectedItem() {
         guard let item = selectedItem, item.isEquipped else { return }
-        await unequipItem(item)
+        unequipItem(item)
     }
 
     public func closeInventory() {

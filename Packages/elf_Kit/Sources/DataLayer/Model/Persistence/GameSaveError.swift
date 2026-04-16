@@ -9,6 +9,8 @@ import Foundation
 
 /// Errors that can occur during game save/load operations
 enum GameSaveError: Error, LocalizedError {
+    // TODO: [persistence/P1] Currently unused — wire up in FileGameSaveStorage.save/load.
+    // See matching TODO there for the SHA256 integrity-check plan.
     case checksumMismatch
     case unsupportedVersion(Int)
     case migrationFailed(from: Int, to: Int)

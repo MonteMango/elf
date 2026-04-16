@@ -35,11 +35,11 @@ public final class ElfItemsRepository: ItemsRepository {
         self.lookup = lookup
     }
 
-    public func getHeroItem(_ id: UUID) async -> Item? {
+    public func getHeroItem(_ id: UUID) -> Item? {
         lookup[id]
     }
 
-    public func getItems(for type: HeroItemType) async -> [Item] {
+    public func getItems(for type: HeroItemType) -> [Item] {
         switch type {
         case .helmet:
             return heroItems.helmets

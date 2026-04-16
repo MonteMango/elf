@@ -6,5 +6,5 @@
 //
 
 public protocol StrengthDamageDistributionStrategy: Sendable {
-    func distribution(for strength: Int16) async -> DamageDistribution
+    func distribution(for strength: Int16) -> DamageDistribution
 }

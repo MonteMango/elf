@@ -17,5 +17,5 @@ public protocol BattleSimulationService: Sendable {
     ///
     /// - Parameter battle: The battle configuration with both teams
     /// - Returns: Complete battle result including winner, rounds, and statistics
-    func runSingleBattle(_ battle: Battle) async -> BattleResult
+    func runSingleBattle(_ battle: Battle) -> BattleResult
 }

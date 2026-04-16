@@ -23,6 +23,7 @@ public enum AppRoute {
 
     case craft
     case questList
+    case quest(QuestID, ownerImageName: String)
 
     case battleSetup
     case battleFight(Battle)
@@ -52,6 +53,8 @@ extension AppRoute: Hashable {
             return true
         case (.questList, .questList):
             return true
+        case (.quest(let lhsId, _), .quest(let rhsId, _)):
+            return lhsId == rhsId
         case (.farmActivity(let lhs), .farmActivity(let rhs)):
             return lhs == rhs
         case (.battleSetup, .battleSetup):
@@ -87,6 +90,9 @@ extension AppRoute: Hashable {
             hasher.combine("craft")
         case .questList:
             hasher.combine("questList")
+        case .quest(let ownerId, _):
+            hasher.combine("quest")
+            hasher.combine(ownerId)
         case .farmActivity(let activity):
             hasher.combine("farmActivity")
             hasher.combine(activity.id)
@@ -117,8 +123,8 @@ extension AppRoute {
             MainMenuScreen()
         case .characterCreation:
             CharacterCreationScreen()
-        case .gameSession(let game, let playTime):
-            GameDayScreen(game: game, playTime: playTime)
+        case .gameSession:
+            GameDayScreen()
         case .calendar(let calendar, let currentDayNumber):
             CalendarScreen(calendar: calendar, currentDayNumber: currentDayNumber)
         case .hunt:
@@ -129,6 +135,8 @@ extension AppRoute {
             CraftScreen()
         case .questList:
             QuestListScreen()
+        case .quest(let questId, let ownerImageName):
+            QuestScreen(questId: questId, ownerImageName: ownerImageName)
         case .farmActivity(let activity):
             FarmActivityScreen(activity: activity)
         case .battleSetup:

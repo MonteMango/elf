@@ -24,11 +24,11 @@ public final class ElfRecipeRepository: RecipeRepository {
         self.items = recipesData.weapons + recipesData.armor
     }
 
-    public func getAll() async -> [Recipe] { items }
+    public func getAll() -> [Recipe] { items }
 
-    public func getById(id: UUID) async -> Recipe? { lookup[id] }
+    public func getById(id: UUID) -> Recipe? { lookup[id] }
 
-    public func recipes(for category: RecipeCategory) async -> [Recipe] {
+    public func recipes(for category: RecipeCategory) -> [Recipe] {
         switch category {
         case .weapon: return recipesData.weapons
         case .armor: return recipesData.armor

@@ -29,5 +29,5 @@ public enum NameValidationResult: Sendable, Equatable {
 
 /// Protocol for validating character names
 public protocol CharacterNameValidator: Sendable {
-    func validate(_ name: String) async -> NameValidationResult
+    func validate(_ name: String) -> NameValidationResult
 }

@@ -11,6 +11,7 @@ import Foundation
 
 public struct QuestOwnerDisplay: Identifiable, Equatable, Sendable {
     public let id: QuestCharacterID
+    public let questId: QuestID
     public let name: String
     public let title: String
     public let imageName: String
@@ -30,38 +31,21 @@ public final class QuestListViewModel {
     private let questRepository: any QuestRepository
     private let materialRepository: any Repository<Material>
 
-    // MARK: - Game State
+    // MARK: - Display Data (derived reactively from repositories)
 
-    private var game: Game
-
-    // MARK: - Display Data
-
-    public var questOwners: [QuestOwnerDisplay] = []
-
-    // MARK: - Computed Properties (ScreenTopBar)
-
-    public var currentActionPoints: Int {
-        game.gameState.currentActionPoints
-    }
-
-    public var maxActionPoints: Int {
-        game.gameState.maxActionPoints
-    }
-
-    public var isLastDay: Bool {
-        game.gameState.isLastDay
-    }
-
-    public var currentDay: GameDay {
-        game.gameState.currentDay
-    }
-
-    public var upcomingDays: [GameDay] {
-        game.gameState.upcomingDays
-    }
-
-    public var calendar: [GameDay] {
-        game.gameState.calendar
+    public var questOwners: [QuestOwnerDisplay] {
+        questRepository.allCharacters().compactMap { character in
+            guard let quest = questRepository.quests(for: character.id).first else { return nil }
+            return QuestOwnerDisplay(
+                id: character.id,
+                questId: quest.id,
+                name: character.name,
+                title: character.title,
+                imageName: character.imageName,
+                questTitle: quest.title,
+                rewardText: formatReward(quest.rewards)
+            )
+        }
     }
 
     // MARK: - Initialization
@@ -74,65 +58,24 @@ public final class QuestListViewModel {
         self.gameService = gameService
         self.questRepository = questRepository
         self.materialRepository = materialRepository
-        self.game = gameService.currentGame
-    }
-
-    // MARK: - Game State Observation
-
-    public func observeGameState() async {
-        self.game = gameService.currentGame
-        await loadQuestOwners()
-        for await game in await gameService.gameUpdates() {
-            self.game = game
-        }
     }
 
     // MARK: - Actions
 
-    public func onQuestOwnerTapped(_ title: String) {
-        print("Quest owner tapped: \(title)")
-    }
-
     public func advanceToNextDay() async {
-        await gameService.advanceToNextDay()
+        gameService.advanceToNextDay()
         try? await gameService.saveGame()
     }
 
     // MARK: - Private
 
-    private func loadQuestOwners() async {
-        let characters = await questRepository.allCharacters()
-        var displays: [QuestOwnerDisplay] = []
-
-        for character in characters {
-            let quests = await questRepository.quests(for: character.id)
-            guard let quest = quests.first else { continue }
-
-            let rewardText = await formatReward(quest.rewards)
-
-            displays.append(QuestOwnerDisplay(
-                id: character.id,
-                name: character.name,
-                title: character.title,
-                imageName: character.imageName,
-                questTitle: quest.title,
-                rewardText: rewardText
-            ))
-        }
-
-        self.questOwners = displays
-    }
-
-    private func formatReward(_ rewards: [QuestReward]) async -> String {
-        var parts: [String] = []
-        for reward in rewards {
+    private func formatReward(_ rewards: [QuestReward]) -> String {
+        rewards.map { reward in
             switch reward {
             case .item(let itemId, let amount):
-                let material = await materialRepository.getById(id: itemId)
-                let name = material?.title ?? "Unknown"
-                parts.append("\(amount)x \(name)")
+                let name = materialRepository.getById(id: itemId)?.title ?? "Unknown"
+                return "\(amount)x \(name)"
             }
-        }
-        return parts.joined(separator: ", ")
+        }.joined(separator: ", ")
     }
 }

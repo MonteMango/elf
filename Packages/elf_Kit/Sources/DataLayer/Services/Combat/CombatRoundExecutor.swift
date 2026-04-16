@@ -29,5 +29,5 @@ public protocol CombatRoundExecutor: Sendable {
         playerDefensePoints: Set<BodyPart>,
         botAttackPoints: Set<BodyPart>,
         botDefensePoints: Set<BodyPart>
-    ) async -> CombatRoundResult
+    ) -> CombatRoundResult
 }

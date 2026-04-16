@@ -10,11 +10,11 @@ import Foundation
 public protocol QuestRepository: Repository<Quest> {
 
     /// Get all quests belonging to a specific quest character.
-    func quests(for ownerId: QuestCharacterID) async -> [Quest]
+    func quests(for ownerId: QuestCharacterID) -> [Quest]
 
     /// Get all quest characters.
-    func allCharacters() async -> [QuestCharacter]
+    func allCharacters() -> [QuestCharacter]
 
     /// Get a quest character by ID.
-    func character(by id: QuestCharacterID) async -> QuestCharacter?
+    func character(by id: QuestCharacterID) -> QuestCharacter?
 }

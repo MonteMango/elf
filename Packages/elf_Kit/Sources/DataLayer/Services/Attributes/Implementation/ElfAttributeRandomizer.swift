@@ -23,7 +23,7 @@ public final class ElfAttributeRandomizer: AttributeRandomizer {
         self.totalWeight = weightedAttributes.map { $0.1 }.reduce(0, +)
     }
 
-    public func nextAttribute() async -> String {
+    public func nextAttribute() -> String {
         let r = Double.random(in: 0..<totalWeight)
         var cumulative: Double = 0
 

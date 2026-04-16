@@ -24,7 +24,7 @@ public final class ArrayRepository<T: Identifiable & Sendable>: Repository
         self.lookup = lookup
     }
 
-    public func getAll() async -> [T] { items }
+    public func getAll() -> [T] { items }
 
-    public func getById(id: T.ID) async -> T? { lookup[id] }
+    public func getById(id: T.ID) -> T? { lookup[id] }
 }

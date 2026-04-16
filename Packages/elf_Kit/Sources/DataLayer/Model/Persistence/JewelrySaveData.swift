@@ -22,8 +22,8 @@ public struct JewelrySaveData: Codable, Sendable, Equatable {
     }
 
     /// Convert to ElfJewelryItem using items repository
-    public func toElfJewelryItem(using repository: ItemsRepository) async -> ElfJewelryItem? {
-        guard let item = await repository.getHeroItem(itemId) as? JewelryItem else {
+    public func toElfJewelryItem(using repository: ItemsRepository) -> ElfJewelryItem? {
+        guard let item = repository.getHeroItem(itemId) as? JewelryItem else {
             return nil
         }
         return ElfJewelryItem(id: id, item: item)

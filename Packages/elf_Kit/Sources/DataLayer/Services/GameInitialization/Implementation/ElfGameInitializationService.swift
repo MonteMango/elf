@@ -35,16 +35,13 @@ public final class ElfGameInitializationService: GameInitializationService {
     public func createNewGame(
         playerCharacter: PlayerCharacter
     ) async throws -> Game {
-        // Create ElfInfo from player character
-        let playerElfInfo = await elfInfoFactory.create(from: playerCharacter)
+        let playerElfInfo = elfInfoFactory.create(from: playerCharacter)
 
-        // Create all houses with the player assigned to one of them
         let (houses, houseIndex, memberIndex) = await houseService.createAllHouses(
             playerElfInfo: playerElfInfo
         )
 
-        // Generate full calendar
-        let calendar = await calendarService.generateFullCalendar()
+        let calendar = calendarService.generateFullCalendar()
         let firstDay = calendar.first ?? GameDay(dayNumber: 1, dayType: .normal)
 
         // Create game state with full action points

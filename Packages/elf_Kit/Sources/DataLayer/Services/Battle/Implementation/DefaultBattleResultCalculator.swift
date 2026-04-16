@@ -29,7 +29,7 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
         outcome: BattleOutcome,
         monster: Monster?,
         currentExp: Int
-    ) async -> ManualBattleResult {
+    ) -> ManualBattleResult {
         // Calculate rewards if we have monster data
         var experienceGained = 0
         var drops: [DropItem] = []
@@ -38,21 +38,21 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
         if let monster = monster {
             let didWin = outcome == .victory
             if didWin {
-                let rewards = await huntService.calculateRewards(for: monster)
+                let rewards = huntService.calculateRewards(for: monster)
                 huntRewards = rewards
                 experienceGained = rewards.experience
-                drops = await dropService.convertToDropItems(rewards: rewards, didWin: didWin)
+                drops = dropService.convertToDropItems(rewards: rewards, didWin: didWin)
             }
         }
 
         // XP state before battle
-        let previousLevel = await progressionService.calculateLevel(currentExp: currentExp)
-        let previousExpToNext = await progressionService.expToNextLevel(currentExp: currentExp)
+        let previousLevel = progressionService.calculateLevel(currentExp: currentExp)
+        let previousExpToNext = progressionService.expToNextLevel(currentExp: currentExp)
 
         // XP state after battle
         let newExp = currentExp + experienceGained
-        let newLevel = await progressionService.calculateLevel(currentExp: newExp)
-        let newExpToNext = await progressionService.expToNextLevel(currentExp: newExp)
+        let newLevel = progressionService.calculateLevel(currentExp: newExp)
+        let newExpToNext = progressionService.expToNextLevel(currentExp: newExp)
 
         return ManualBattleResult(
             outcome: outcome,

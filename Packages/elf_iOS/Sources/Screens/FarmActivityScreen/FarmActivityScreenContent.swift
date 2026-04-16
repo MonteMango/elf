@@ -11,6 +11,7 @@ import SwiftUI
 
 struct FarmActivityScreenContent: View {
     @Environment(ElfGameContainer.self) private var gameContainer
+    @Environment(DefaultGameService.self) private var gameService
     @Environment(AppRouter.self) private var router
     @Environment(\.dismiss) private var dismiss
     @Environment(\.farmZoomNamespace) private var zoomNamespace
@@ -26,14 +27,14 @@ struct FarmActivityScreenContent: View {
 
     private var currentDayData: CalendarDayData {
         CalendarDayData(
-            id: viewModel.currentDay.id,
-            dayNumber: viewModel.currentDay.dayNumber,
-            backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
+            id: gameService.currentDay.id,
+            dayNumber: gameService.currentDay.dayNumber,
+            backgroundColor: ElfColors.Calendar.dayColor(for: gameService.currentDay.dayType.rawValue)
         )
     }
 
     private var upcomingDaysData: [CalendarDayData] {
-        viewModel.upcomingDays.map {
+        gameService.upcomingDays.map {
             CalendarDayData(
                 id: $0.id,
                 dayNumber: $0.dayNumber,
@@ -56,6 +57,10 @@ struct FarmActivityScreenContent: View {
         viewModel.activityState == .performing
     }
 
+    private var canPerformAction: Bool {
+        gameService.actionPoints.current >= viewModel.actionCost && viewModel.activityState == .idle
+    }
+
     // MARK: - Background
 
     @ViewBuilder
@@ -75,11 +80,10 @@ struct FarmActivityScreenContent: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Top bar
             ScreenTopBar(
-                currentActionPoints: viewModel.currentActionPoints,
-                maxActionPoints: viewModel.maxActionPoints,
-                isLastDay: viewModel.isLastDay,
+                currentActionPoints: gameService.actionPoints.current,
+                maxActionPoints: gameService.actionPoints.maximum,
+                isLastDay: gameService.isLastDay,
                 currentDay: currentDayData,
                 upcomingDays: upcomingDaysData,
                 onNextDay: { Task { await viewModel.advanceToNextDay() } },
@@ -93,7 +97,6 @@ struct FarmActivityScreenContent: View {
 
             Spacer()
 
-            // Skill Info Section
             SkillInfoSection(
                 title: viewModel.skillTitle,
                 progress: viewModel.skillProgress,
@@ -104,7 +107,6 @@ struct FarmActivityScreenContent: View {
 
             Spacer()
 
-            // Items Grid
             ItemsGridView(items: itemsGridData)
                 .padding(.horizontal, ElfSpacing.screen)
 
@@ -112,7 +114,6 @@ struct FarmActivityScreenContent: View {
 
             // Bottom: Action Button + Warning
             HStack(spacing: ElfSpacing.xxxl) {
-                // Left balancing block (same width as right section)
                 Color.clear
                     .frame(maxWidth: 300, maxHeight: 0)
 
@@ -121,8 +122,8 @@ struct FarmActivityScreenContent: View {
                         await viewModel.performActivity()
                     }
                 }
-                .buttonStyle(.elfPrimary(isEnabled: viewModel.canPerformAction))
-                .disabled(!viewModel.canPerformAction)
+                .buttonStyle(.elfPrimary(isEnabled: canPerformAction))
+                .disabled(!canPerformAction)
                 .overlay(alignment: .bottomTrailing) {
                     Text("\(viewModel.actionCost) pt")
                         .font(.footnote)
@@ -130,7 +131,6 @@ struct FarmActivityScreenContent: View {
                         .padding(4)
                 }
 
-                // Right section with warning
                 HStack {
                     ActivityWarningBadge(text: viewModel.warningText)
                     Spacer()
@@ -142,24 +142,21 @@ struct FarmActivityScreenContent: View {
         .background {
             activityBackground
         }
-        .task { await viewModel.observeGameState() }
         .toolbar(.hidden, for: .navigationBar)
         .modifier(FarmZoomTransitionModifier(sourceID: viewModel.activity.id, namespace: zoomNamespace))
         .navigationDestination(isPresented: $showCalendar) {
             CalendarScreenContent(
                 viewModel: gameContainer.makeCalendarViewModel(
-                    calendar: viewModel.calendar,
-                    currentDayNumber: viewModel.currentDay.dayNumber
+                    calendar: gameService.calendar,
+                    currentDayNumber: gameService.currentDay.dayNumber
                 )
             )
         }
         .overlay {
-            // Local overlay for activity progress
             if isPerformingActivity {
                 ActivityInProgressView(activity: viewModel.activity)
             }
 
-            // Monster attack alert overlay
             if viewModel.attackingMonster != nil {
                 MonsterAttackAlertView(
                     activityName: viewModel.activity.rawValue,
@@ -174,7 +171,6 @@ struct FarmActivityScreenContent: View {
         }
         .onChange(of: viewModel.activityResult) { _, result in
             if let result = result {
-                // Route to appropriate modal based on result type
                 switch result {
                 case .fishing(let fishingResult):
                     router.presentModal(.fishingResult(fishingResult))
@@ -187,7 +183,6 @@ struct FarmActivityScreenContent: View {
             }
         }
         .onChange(of: router.navigationPath.count) { oldCount, newCount in
-            // Handle return from battle (navigation stack decreased)
             if navigatedToBattle && newCount < oldCount {
                 navigatedToBattle = false
                 viewModel.onReturnFromBattle()
@@ -204,13 +199,14 @@ struct FarmActivityScreenContent: View {
     @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @Namespace var previewNamespace
 
-    if let gameContainer {
+    if let gameContainer, let gameService = gameContainer.activeGameService {
         NavigationStack {
             FarmActivityScreenContent(
                 viewModel: gameContainer.makeFarmActivityViewModel(activity: .fishing)
             )
             .environment(\.farmZoomNamespace, previewNamespace)
             .environment(gameContainer)
+            .environment(gameService)
             .environment(AppRouter())
         }
     } else {

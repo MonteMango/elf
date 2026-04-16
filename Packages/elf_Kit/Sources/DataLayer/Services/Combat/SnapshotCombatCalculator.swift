@@ -23,5 +23,5 @@ public protocol SnapshotCombatCalculator: Sendable {
         defendingPoints: Set<BodyPart>,
         attacker: CombatantSnapshot,
         defender: CombatantSnapshot
-    ) async -> [BodyPart: PointStatus]
+    ) -> [BodyPart: PointStatus]
 }

@@ -32,12 +32,12 @@ public struct InventorySaveData: Sendable, Equatable, Codable {
     public func toElfInventory(
         itemsRepository: ItemsRepository,
         inventoryService: InventoryService
-    ) async throws -> ElfInventory {
+    ) throws -> ElfInventory {
         var inventory = ElfInventory()
 
         // Restore weapons
         for weaponData in weapons {
-            guard let weapon = await weaponData.toElfWeaponItem(using: itemsRepository) else {
+            guard let weapon = weaponData.toElfWeaponItem(using: itemsRepository) else {
                 throw GameSaveError.missingItemData(itemId: weaponData.itemId, itemType: "weapon")
             }
             inventory = inventoryService.addWeapon(weapon, to: inventory)
@@ -45,7 +45,7 @@ public struct InventorySaveData: Sendable, Equatable, Codable {
 
         // Restore shields
         for shieldData in shields {
-            guard let shield = await shieldData.toElfShieldItem(using: itemsRepository) else {
+            guard let shield = shieldData.toElfShieldItem(using: itemsRepository) else {
                 throw GameSaveError.missingItemData(itemId: shieldData.itemId, itemType: "shield")
             }
             inventory = inventoryService.addShield(shield, to: inventory)
@@ -53,7 +53,7 @@ public struct InventorySaveData: Sendable, Equatable, Codable {
 
         // Restore armor
         for armorData in armor {
-            guard let defense = await armorData.toElfDefenseItem(using: itemsRepository) else {
+            guard let defense = armorData.toElfDefenseItem(using: itemsRepository) else {
                 throw GameSaveError.missingItemData(itemId: armorData.itemId, itemType: "armor")
             }
             inventory = inventoryService.addArmor(defense, to: inventory)
@@ -61,7 +61,7 @@ public struct InventorySaveData: Sendable, Equatable, Codable {
 
         // Restore robes
         for robeData in robes {
-            guard let robe = await robeData.toElfRobeItem(using: itemsRepository) else {
+            guard let robe = robeData.toElfRobeItem(using: itemsRepository) else {
                 throw GameSaveError.missingItemData(itemId: robeData.itemId, itemType: "robe")
             }
             inventory = inventoryService.addRobe(robe, to: inventory)
@@ -69,7 +69,7 @@ public struct InventorySaveData: Sendable, Equatable, Codable {
 
         // Restore jewelry
         for jewelryData in jewelry {
-            guard let jewelryItem = await jewelryData.toElfJewelryItem(using: itemsRepository) else {
+            guard let jewelryItem = jewelryData.toElfJewelryItem(using: itemsRepository) else {
                 throw GameSaveError.missingItemData(itemId: jewelryData.itemId, itemType: "jewelry")
             }
             inventory = inventoryService.addJewelry(jewelryItem, to: inventory)

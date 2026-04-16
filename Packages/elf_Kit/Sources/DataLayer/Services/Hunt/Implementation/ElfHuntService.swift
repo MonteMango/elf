@@ -17,7 +17,7 @@ public final class ElfHuntService: HuntService {
 
     // MARK: - HuntService
 
-    public func calculateRewards(for monster: Monster) async -> HuntRewards {
+    public func calculateRewards(for monster: Monster) -> HuntRewards {
         let experience = rollExperience(from: monster.expReward)
         let materials = rollMaterials(from: monster.drops.materials)
 
@@ -25,7 +25,7 @@ public final class ElfHuntService: HuntService {
         var weapon: ElfWeaponItem?
         if let weaponIdStr = rollItemDrop(from: monster.drops.weapons),
            let weaponId = UUID(uuidString: weaponIdStr),
-           let weaponItem = await itemsRepository.getHeroItem(weaponId) as? WeaponItem {
+           let weaponItem = itemsRepository.getHeroItem(weaponId) as? WeaponItem {
             weapon = ElfWeaponItem(weaponItem: weaponItem)
         }
 
@@ -33,7 +33,7 @@ public final class ElfHuntService: HuntService {
         var armor: ElfDefenseItem?
         if let armorIdStr = rollItemDrop(from: monster.drops.armor),
            let armorId = UUID(uuidString: armorIdStr),
-           let defenseItem = await itemsRepository.getHeroItem(armorId) as? DefenseItem {
+           let defenseItem = itemsRepository.getHeroItem(armorId) as? DefenseItem {
             armor = ElfDefenseItem(defenseItem: defenseItem)
         }
 

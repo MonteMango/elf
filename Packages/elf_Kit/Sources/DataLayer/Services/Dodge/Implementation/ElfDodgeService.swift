@@ -24,9 +24,9 @@ public final class ElfDodgeService: DodgeService {
 
     // MARK: - DodgeService
 
-    public func calculateDodge(agility: Int16, instinct: Int16) async -> DodgeCalculationResult {
+    public func calculateDodge(agility: Int16, instinct: Int16) -> DodgeCalculationResult {
         // Get distribution
-        let distribution = await distributionStrategy.distribution(
+        let distribution = distributionStrategy.distribution(
             agility: agility,
             instinct: instinct
         )

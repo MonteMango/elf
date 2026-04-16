@@ -10,6 +10,7 @@ import Foundation
 
 /// Contains all game services, repositories, and ViewModel factories.
 /// Created asynchronously — loads JSON data on the cooperative thread pool.
+@MainActor
 @Observable
 public final class ElfGameContainer {
 
@@ -214,7 +215,6 @@ public final class ElfGameContainer {
 
     // MARK: - ViewModel Factories
 
-    @MainActor
     public func makeBattleSetupViewModel() -> BattleSetupViewModel {
         return BattleSetupViewModel(
             itemsRepository: self.gameDataRepository.items,
@@ -227,7 +227,6 @@ public final class ElfGameContainer {
         )
     }
 
-    @MainActor
     public func makeBattleFightViewModel(battle: Battle) -> BattleFightViewModel {
         return BattleFightViewModel(
             battle: battle,
@@ -242,7 +241,6 @@ public final class ElfGameContainer {
         )
     }
 
-    @MainActor
     public func makeAutoBattleViewModel(battle: Battle) -> AutoBattleViewModel {
         return AutoBattleViewModel(
             battle: battle,
@@ -253,7 +251,6 @@ public final class ElfGameContainer {
         )
     }
 
-    @MainActor
     public func makeMultiBattleViewModel(battle: Battle) -> MultiBattleViewModel {
         return MultiBattleViewModel(
             battle: battle,
@@ -262,27 +259,22 @@ public final class ElfGameContainer {
         )
     }
 
-    @MainActor
     public func makeBattleResultViewModel(result: ManualBattleResult) -> BattleResultViewModel {
         return BattleResultViewModel(result: result)
     }
 
-    @MainActor
     public func makeFishingResultViewModel(result: FishingResult) -> FishingResultViewModel {
         return FishingResultViewModel(result: result)
     }
 
-    @MainActor
     public func makeForagingResultViewModel(result: ForagingResult) -> ForagingResultViewModel {
         return ForagingResultViewModel(result: result)
     }
 
-    @MainActor
     public func makeMiningResultViewModel(result: MiningResult) -> MiningResultViewModel {
         return MiningResultViewModel(result: result)
     }
 
-    @MainActor
     public func makeCharacterCreationViewModel() -> CharacterCreationViewModel {
         let nameValidator = DefaultCharacterNameValidator()
         let characterBuilder = DefaultCharacterBuilder()
@@ -297,7 +289,6 @@ public final class ElfGameContainer {
         )
     }
 
-    @MainActor
     public func makeSelectHeroItemViewModel(
         heroType: HeroType,
         heroItemType: HeroItemType,
@@ -311,19 +302,30 @@ public final class ElfGameContainer {
         )
     }
 
-    @MainActor
-    public func makeGameDayViewModel(game: Game, playTime: TimeInterval = 0) -> GameDayViewModel {
-        // Clean up previous game session if exists
-        activeGameService = nil
-
-        let gameService = DefaultGameService(
+    /// Starts (or replaces) the active game session. Must be called before navigating
+    /// to `.gameSession` so that `DefaultGameService` is available in the environment.
+    public func startGameSession(game: Game, playTime: TimeInterval = 0) {
+        activeGameService = DefaultGameService(
             game: game,
             gameRepository: self.gameRepository,
             inventoryService: self.inventoryService,
             debugGameLogger: self.debugGameLogger,
             playTime: playTime
         )
-        self.activeGameService = gameService
+    }
+
+    /// Ends the active game session and releases the `DefaultGameService`.
+    /// Callers must unwind navigation to the root (`router.popToRoot()`) *before*
+    /// invoking this, so that no game-session view is still reading
+    /// `@Environment(DefaultGameService.self)` when the service disappears.
+    public func endGameSession() {
+        activeGameService = nil
+    }
+
+    public func makeGameDayViewModel() -> GameDayViewModel {
+        guard let gameService = activeGameService else {
+            fatalError("No active game session. Call startGameSession(game:playTime:) first.")
+        }
         return GameDayViewModel(
             gameService: gameService,
             progressionService: self.progressionService,
@@ -331,7 +333,6 @@ public final class ElfGameContainer {
         )
     }
 
-    @MainActor
     public func makeHuntViewModel() -> HuntViewModel {
         guard let gameService = activeGameService else {
             fatalError("No active game session. HuntViewModel requires an active game.")
@@ -347,7 +348,6 @@ public final class ElfGameContainer {
         )
     }
 
-    @MainActor
     public func makeFarmViewModel() -> FarmViewModel {
         guard let gameService = activeGameService else {
             fatalError("No active game session. FarmViewModel requires an active game.")
@@ -358,7 +358,6 @@ public final class ElfGameContainer {
         )
     }
 
-    @MainActor
     public func makeFarmActivityViewModel(activity: FarmActivity) -> FarmActivityViewModel {
         guard let gameService = activeGameService else {
             fatalError("No active game session. FarmActivityViewModel requires an active game.")
@@ -374,7 +373,6 @@ public final class ElfGameContainer {
         )
     }
 
-    @MainActor
     public func makeCalendarViewModel(
         calendar: [GameDay],
         currentDayNumber: Int
@@ -386,7 +384,6 @@ public final class ElfGameContainer {
         )
     }
 
-    @MainActor
     public func makeCraftViewModel() -> CraftViewModel {
         guard let gameService = activeGameService else {
             fatalError("No active game session. CraftViewModel requires an active game.")
@@ -403,7 +400,21 @@ public final class ElfGameContainer {
         )
     }
 
-    @MainActor
+    public func makeQuestViewModel(questId: QuestID) -> QuestViewModel {
+        guard let gameService = activeGameService else {
+            fatalError("No active game session. QuestViewModel requires an active game.")
+        }
+        return QuestViewModel(
+            questId: questId,
+            gameService: gameService,
+            questRepository: self.gameDataRepository.quests,
+            materialRepository: self.gameDataRepository.materials,
+            oreRepository: self.gameDataRepository.ores,
+            herbRepository: self.gameDataRepository.herbs,
+            monsterRepository: self.gameDataRepository.monsters
+        )
+    }
+
     public func makeQuestListViewModel() -> QuestListViewModel {
         guard let gameService = activeGameService else {
             fatalError("No active game session. QuestListViewModel requires an active game.")
@@ -415,7 +426,6 @@ public final class ElfGameContainer {
         )
     }
 
-    @MainActor
     public func makeInventoryViewModel() -> InventoryViewModel {
         guard let gameService = activeGameService else {
             fatalError("No active game session. InventoryViewModel requires an active game.")
@@ -435,7 +445,6 @@ public final class ElfGameContainer {
     // MARK: - Game Session Management
 
     /// Saves active game if exists (called on app background)
-    @MainActor
     public func saveActiveGameIfNeeded() async {
         guard let gameService = activeGameService else { return }
         try? await gameService.saveGame()
@@ -445,7 +454,6 @@ public final class ElfGameContainer {
 
     #if DEBUG
     /// Initialize a game session for SwiftUI previews without side effects
-    @MainActor
     public func initializePreviewSession(game: Game) {
         activeGameService = DefaultGameService(
             game: game,

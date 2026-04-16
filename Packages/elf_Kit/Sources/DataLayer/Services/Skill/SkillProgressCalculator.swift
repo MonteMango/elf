@@ -25,7 +25,7 @@ public protocol SkillProgressCalculator: Sendable {
         currentExp: Int,
         expGained: Int,
         expPerLevel: Int
-    ) async -> SkillProgressData
+    ) -> SkillProgressData
 
     /// Calculates skill progress from gathered items using their tier XP values
     ///
@@ -40,5 +40,5 @@ public protocol SkillProgressCalculator: Sendable {
         skillName: String,
         currentExp: Int,
         expPerLevel: Int
-    ) async -> SkillProgressData
+    ) -> SkillProgressData
 }

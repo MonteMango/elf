@@ -13,8 +13,8 @@ import Foundation
 private let defaultWeaponId = UUID(uuidString: "dfbd2742-5470-4f97-84ea-fb17b5f3a6d2")!
 
 /// Creates the default weapon configuration using the repository
-private func createDefaultWeaponConfig(using repository: ItemsRepository) async -> WeaponConfiguration {
-    guard let weaponItem = await repository.getHeroItem(defaultWeaponId) as? WeaponItem else {
+private func createDefaultWeaponConfig(using repository: ItemsRepository) -> WeaponConfiguration {
+    guard let weaponItem = repository.getHeroItem(defaultWeaponId) as? WeaponItem else {
         fatalError("Default weapon (Recruit's Spear) not found in repository")
     }
     let defaultWeapon = ElfWeaponItem(weaponItem: weaponItem)
@@ -72,41 +72,40 @@ public struct WeaponConfigSaveData: Codable, Sendable, Equatable {
 
     /// Convert to WeaponConfiguration using items repository
     /// Note: If loading fails or type is `empty`, returns default weapon configuration
-    public func toWeaponConfiguration(using repository: ItemsRepository) async -> WeaponConfiguration {
+    public func toWeaponConfiguration(using repository: ItemsRepository) -> WeaponConfiguration {
         switch type {
         case .empty:
-            // Backwards compatibility: old saves with empty config get default weapon
-            return await createDefaultWeaponConfig(using: repository)
+            return createDefaultWeaponConfig(using: repository)
 
         case .oneHanded:
             guard let weaponData = weapon,
-                  let weapon = await weaponData.toElfWeaponItem(using: repository) else {
-                return await createDefaultWeaponConfig(using: repository)
+                  let weapon = weaponData.toElfWeaponItem(using: repository) else {
+                return createDefaultWeaponConfig(using: repository)
             }
             return .oneHanded(weapon: weapon)
 
         case .oneHandedWithShield:
             guard let weaponData = weapon,
-                  let weapon = await weaponData.toElfWeaponItem(using: repository),
+                  let weapon = weaponData.toElfWeaponItem(using: repository),
                   let shieldData = shield,
-                  let shield = await shieldData.toElfShieldItem(using: repository) else {
-                return await createDefaultWeaponConfig(using: repository)
+                  let shield = shieldData.toElfShieldItem(using: repository) else {
+                return createDefaultWeaponConfig(using: repository)
             }
             return .oneHandedWithShield(weapon: weapon, shield: shield)
 
         case .twoHanded:
             guard let weaponData = weapon,
-                  let weapon = await weaponData.toElfWeaponItem(using: repository) else {
-                return await createDefaultWeaponConfig(using: repository)
+                  let weapon = weaponData.toElfWeaponItem(using: repository) else {
+                return createDefaultWeaponConfig(using: repository)
             }
             return .twoHanded(weapon: weapon)
 
         case .dualWield:
             guard let primaryData = weapon,
-                  let primary = await primaryData.toElfWeaponItem(using: repository),
+                  let primary = primaryData.toElfWeaponItem(using: repository),
                   let secondaryData = secondaryWeapon,
-                  let secondary = await secondaryData.toElfWeaponItem(using: repository) else {
-                return await createDefaultWeaponConfig(using: repository)
+                  let secondary = secondaryData.toElfWeaponItem(using: repository) else {
+                return createDefaultWeaponConfig(using: repository)
             }
             return .dualWield(primary: primary, secondary: secondary)
         }
@@ -157,17 +156,17 @@ public struct EquippedItemsSaveData: Codable, Sendable, Equatable {
     }
 
     /// Convert to EquippedItems using items repository
-    public func toEquippedItems(using repository: ItemsRepository) async -> EquippedItems {
-        let weapons = await weaponConfig.toWeaponConfiguration(using: repository)
-        let helmet = await helmet?.toElfDefenseItem(using: repository)
-        let gloves = await gloves?.toElfDefenseItem(using: repository)
-        let shoes = await shoes?.toElfDefenseItem(using: repository)
-        let upperBody = await upperBody?.toElfDefenseItem(using: repository)
-        let bottomBody = await bottomBody?.toElfDefenseItem(using: repository)
-        let shirt = await shirt?.toElfRobeItem(using: repository)
-        let ring = await ring?.toElfJewelryItem(using: repository)
-        let necklace = await necklace?.toElfJewelryItem(using: repository)
-        let earrings = await earrings?.toElfJewelryItem(using: repository)
+    public func toEquippedItems(using repository: ItemsRepository) -> EquippedItems {
+        let weapons = weaponConfig.toWeaponConfiguration(using: repository)
+        let helmet = helmet?.toElfDefenseItem(using: repository)
+        let gloves = gloves?.toElfDefenseItem(using: repository)
+        let shoes = shoes?.toElfDefenseItem(using: repository)
+        let upperBody = upperBody?.toElfDefenseItem(using: repository)
+        let bottomBody = bottomBody?.toElfDefenseItem(using: repository)
+        let shirt = shirt?.toElfRobeItem(using: repository)
+        let ring = ring?.toElfJewelryItem(using: repository)
+        let necklace = necklace?.toElfJewelryItem(using: repository)
+        let earrings = earrings?.toElfJewelryItem(using: repository)
 
         return EquippedItems(
             weapons: weapons,

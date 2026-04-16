@@ -15,7 +15,7 @@ public final class ElfArmorService: ArmorService {
         self.itemsRepository = itemsRepository
     }
 
-    public func getAllItemsArmor(for itemIds: [UUID]) async -> [BodyPart: Int16] {
+    public func getAllItemsArmor(for itemIds: [UUID]) -> [BodyPart: Int16] {
         var armorPoints: [BodyPart: Int16] = [
                .head: 0,
                .leftHand: 0,
@@ -25,7 +25,7 @@ public final class ElfArmorService: ArmorService {
            ]
 
         for id in itemIds {
-            guard let item = await itemsRepository.getHeroItem(id),
+            guard let item = itemsRepository.getHeroItem(id),
                   let defenseItem = item as? HasPhysicalDefense else {
                 continue
             }

@@ -40,11 +40,11 @@ public final class ElfMonsterRepository: MonsterRepository {
         self.lookup = lookup
     }
 
-    public func getAll() async -> [Monster] { items }
+    public func getAll() -> [Monster] { items }
 
-    public func getById(id: UUID) async -> Monster? { lookup[id] }
+    public func getById(id: UUID) -> Monster? { lookup[id] }
 
-    public func getMonsters(world: WorldType, level: Int) async -> [Monster] {
+    public func getMonsters(world: WorldType, level: Int) -> [Monster] {
         let worldLevels: WorldLevels
         switch world {
         case .upper: worldLevels = monstersData.upperWorld

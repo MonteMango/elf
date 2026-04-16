@@ -20,14 +20,14 @@ public final class ElfDamageService: DamageService {
         self.distributionStrategy = distributionStrategy
     }
 
-    public func getWeaponDamage(weaponId: UUID?) async -> (minDmg: Int16, maxDmg: Int16)? {
+    public func getWeaponDamage(weaponId: UUID?) -> (minDmg: Int16, maxDmg: Int16)? {
         // No weapon equipped
         guard let weaponId = weaponId else {
             return (minDmg: 0, maxDmg: 0)
         }
 
         // Fetch weapon item
-        guard let item = await itemsRepository.getHeroItem(weaponId),
+        guard let item = itemsRepository.getHeroItem(weaponId),
               let weapon = item as? WeaponItem else {
             // Item not found or not a weapon
             return (minDmg: 0, maxDmg: 0)
@@ -36,9 +36,9 @@ public final class ElfDamageService: DamageService {
         return (minDmg: weapon.minimumAttackPoint, maxDmg: weapon.maximumAttackPoint)
     }
 
-    public func getRandomStrengthDamage(_ strengthAttribute: Int16) async -> Int16 {
+    public func getRandomStrengthDamage(_ strengthAttribute: Int16) -> Int16 {
         // Get distribution from strategy
-        let distribution = await distributionStrategy.distribution(for: strengthAttribute)
+        let distribution = distributionStrategy.distribution(for: strengthAttribute)
 
         // Calculate total weight
         let totalWeight = distribution.weights.reduce(0, +)
@@ -64,7 +64,7 @@ public final class ElfDamageService: DamageService {
         return distribution.values.last ?? 0
     }
 
-    public func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) async -> Int {
+    public func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) -> Int {
         var totalDamage = 0
 
         for (_, status) in pointStatus {

@@ -147,7 +147,7 @@ internal struct BattleFightScreenContent: View {
                 if hasNoSelection {
                     // AUTO button - when nothing is selected
                     Button(action: {
-                        Task { await viewModel.autoFillPoints() }
+                        viewModel.autoFillPoints()
                     }) {
                         Text("AUTO")
                             .font(ElfFonts.Component.actionButton)
@@ -176,7 +176,7 @@ internal struct BattleFightScreenContent: View {
                 }
             }
         }
-        .task { await viewModel.loadInitialData() }
+        .onAppear { viewModel.loadInitialData() }
         .onChange(of: viewModel.battleResult) { _, result in
             // When battle result is ready, present modal
             if let result = result {

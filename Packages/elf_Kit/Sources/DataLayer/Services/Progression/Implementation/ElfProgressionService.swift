@@ -32,25 +32,25 @@ public final class ElfProgressionService: ProgressionService {
 
     // MARK: - ProgressionService
 
-    public func calculateLevel(currentExp: Int) async -> Int {
+    public func calculateLevel(currentExp: Int) -> Int {
         max(1, min(maxLevel, currentExp / characterExpPerLevel))
     }
 
-    public func expToNextLevel(currentExp: Int) async -> Int {
-        let level = await calculateLevel(currentExp: currentExp)
+    public func expToNextLevel(currentExp: Int) -> Int {
+        let level = calculateLevel(currentExp: currentExp)
         guard level < maxLevel else { return 0 }
         return (level + 1) * characterExpPerLevel
     }
 
-    public func expProgress(currentExp: Int) async -> Double {
+    public func expProgress(currentExp: Int) -> Double {
         levelProgress(exp: currentExp, expPerLevel: characterExpPerLevel)
     }
 
-    public func farmingLevel(exp: Int) async -> Int {
+    public func farmingLevel(exp: Int) -> Int {
         max(1, min(maxLevel, exp / farmingExpPerLevel))
     }
 
-    public func farmingProgress(exp: Int) async -> Double {
+    public func farmingProgress(exp: Int) -> Double {
         levelProgress(exp: exp, expPerLevel: farmingExpPerLevel)
     }
 

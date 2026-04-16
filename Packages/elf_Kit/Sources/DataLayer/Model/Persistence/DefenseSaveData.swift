@@ -22,8 +22,8 @@ public struct DefenseSaveData: Codable, Sendable, Equatable {
     }
 
     /// Convert to ElfDefenseItem using items repository
-    public func toElfDefenseItem(using repository: ItemsRepository) async -> ElfDefenseItem? {
-        guard let item = await repository.getHeroItem(itemId) as? DefenseItem else {
+    public func toElfDefenseItem(using repository: ItemsRepository) -> ElfDefenseItem? {
+        guard let item = repository.getHeroItem(itemId) as? DefenseItem else {
             return nil
         }
         return ElfDefenseItem(id: id, item: item)

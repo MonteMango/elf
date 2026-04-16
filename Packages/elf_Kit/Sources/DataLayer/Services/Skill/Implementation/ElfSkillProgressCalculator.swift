@@ -23,7 +23,7 @@ public final class ElfSkillProgressCalculator: SkillProgressCalculator {
         currentExp: Int,
         expGained: Int,
         expPerLevel: Int
-    ) async -> SkillProgressData {
+    ) -> SkillProgressData {
         let currentLevel = max(1, currentExp / expPerLevel)
         let previousExpInLevel = currentExp % expPerLevel
         let newTotalExp = currentExp + expGained
@@ -47,9 +47,9 @@ public final class ElfSkillProgressCalculator: SkillProgressCalculator {
         skillName: String,
         currentExp: Int,
         expPerLevel: Int
-    ) async -> SkillProgressData {
+    ) -> SkillProgressData {
         let expGained = items.reduce(0) { $0 + $1.tier.xpValue }
-        return await calculate(
+        return calculate(
             skillName: skillName,
             currentExp: currentExp,
             expGained: expGained,

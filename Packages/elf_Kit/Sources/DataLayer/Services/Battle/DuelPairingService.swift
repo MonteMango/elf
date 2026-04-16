@@ -19,5 +19,5 @@ public protocol DuelPairingService: Sendable {
         leftTeam: [CombatantSnapshot],
         rightTeam: [CombatantSnapshot],
         roundNumber: Int
-    ) async -> BattleRound
+    ) -> BattleRound
 }

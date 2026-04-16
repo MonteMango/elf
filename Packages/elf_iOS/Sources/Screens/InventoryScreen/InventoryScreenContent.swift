@@ -27,16 +27,15 @@ struct InventoryScreenContent: View {
             // Right panel: item details
             ItemDetailPanel(
                 item: viewModel.selectedItem,
-                onEquip: { Task { await viewModel.equipSelectedItem() } },
-                onUnequip: { Task { await viewModel.unequipSelectedItem() } }
+                onEquip: { viewModel.equipSelectedItem() },
+                onUnequip: { viewModel.unequipSelectedItem() }
             )
             .frame(width: 220)
         }
         .background {
             Color.white
         }
-        .task {
-            await viewModel.refreshItems()
+        .onAppear {
             viewModel.selectItemById(selectedItemId)
         }
         .onChange(of: selectedItemId) { _, newValue in
@@ -48,27 +47,23 @@ struct InventoryScreenContent: View {
 
     private var leftPanel: some View {
         VStack(spacing: 10) {
-            // Category buttons
             CategoryButtonsRow(
                 selectedCategory: viewModel.selectedCategory,
                 onCategoryTap: viewModel.selectCategory
             )
 
-            // Subcategory buttons
             SubcategoryButtonsRow(
                 titles: viewModel.currentSubcategoryTitles,
                 selectedIndex: viewModel.selectedSubcategoryIndex,
                 onSubcategoryTap: viewModel.selectSubcategory
             )
 
-            // Inventory grid
             InventoryGrid(
                 items: viewModel.filteredItems,
                 selectedItemId: viewModel.selectedItemId,
                 onItemTap: viewModel.selectItem
             )
 
-            // Close button
             closeButton
         }
         .padding(.horizontal, 10)

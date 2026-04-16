@@ -30,7 +30,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         let strategy = ElfDodgeDistributionStrategy()
 
         // When
-        let distribution = await strategy.distribution(agility: 22, instinct: 10)
+        let distribution = strategy.distribution(agility: 22, instinct: 10)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, 12, "Minimum should be agility - instinct")
@@ -59,7 +59,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         let strategy = ElfDodgeDistributionStrategy()
 
         // When
-        let distribution = await strategy.distribution(agility: 5, instinct: 8)
+        let distribution = strategy.distribution(agility: 5, instinct: 8)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, -3, "Minimum can be negative")
@@ -80,7 +80,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         let strategy = ElfDodgeDistributionStrategy()
 
         // When
-        let distribution = await strategy.distribution(agility: 110, instinct: 10)
+        let distribution = strategy.distribution(agility: 110, instinct: 10)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, 100, "Minimum = agility - instinct")
@@ -96,7 +96,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         let strategy = ElfDodgeDistributionStrategy()
 
         // When
-        let distribution = await strategy.distribution(agility: 100, instinct: 0)
+        let distribution = strategy.distribution(agility: 100, instinct: 0)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, 100)
@@ -111,7 +111,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         let strategy = ElfDodgeDistributionStrategy()
 
         // When
-        let distribution = await strategy.distribution(agility: 10, instinct: 10)
+        let distribution = strategy.distribution(agility: 10, instinct: 10)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, 0, "Minimum = 0 when agility equals instinct")
@@ -126,7 +126,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         let strategy = ElfDodgeDistributionStrategy()
 
         // When
-        let distribution = await strategy.distribution(agility: 15, instinct: 12)
+        let distribution = strategy.distribution(agility: 15, instinct: 12)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, 3)
@@ -148,7 +148,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         let strategy = ElfDodgeDistributionStrategy()
 
         // When
-        let distribution = await strategy.distribution(agility: 1, instinct: 100)
+        let distribution = strategy.distribution(agility: 1, instinct: 100)
 
         // Then
         XCTAssertEqual(distribution.minimumChance, -99, "Large negative minimum")
@@ -167,7 +167,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         // When: Simulate many rolls with negative chance
         var failures = 0
         for _ in 0..<100 {
-            let result = await service.calculateDodge(agility: 5, instinct: 10) // min = -5
+            let result = service.calculateDodge(agility: 5, instinct: 10) // min = -5
             // Force minimum selection by testing distribution directly
             if result.selectedChance < 0 {
                 failures += result.success ? 0 : 1
@@ -183,7 +183,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         let service = makeService()
 
         // When
-        let result = await service.calculateDodge(agility: 110, instinct: 5) // min = 105, max = 100 (capped)
+        let result = service.calculateDodge(agility: 110, instinct: 5) // min = 105, max = 100 (capped)
 
         // Then
         XCTAssertTrue(result.success, "100+ chance should always succeed")
@@ -196,7 +196,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         let service = makeService()
 
         // When
-        let result = await service.calculateDodge(agility: 100, instinct: 0)
+        let result = service.calculateDodge(agility: 100, instinct: 0)
 
         // Then
         XCTAssertTrue(result.success, "100% chance should always succeed")
@@ -210,7 +210,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         let service = makeService()
 
         // When
-        let result = await service.calculateDodge(agility: 22, instinct: 10)
+        let result = service.calculateDodge(agility: 22, instinct: 10)
 
         // Then
         XCTAssertNotNil(result.distribution, "Should have distribution")
@@ -232,7 +232,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         // When: Run same calculation multiple times
         var results: [DodgeCalculationResult] = []
         for _ in 0..<100 {
-            let result = await service.calculateDodge(agility: 20, instinct: 10)
+            let result = service.calculateDodge(agility: 20, instinct: 10)
             results.append(result)
         }
 
@@ -256,7 +256,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         // When: Count selections for each value
         var selections: [Int16: Int] = [:]
         for _ in 0..<iterations {
-            let result = await service.calculateDodge(agility: 20, instinct: 10) // min=10, max=20
+            let result = service.calculateDodge(agility: 20, instinct: 10) // min=10, max=20
             selections[result.selectedChance, default: 0] += 1
         }
 
@@ -279,7 +279,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         // When: Count selections for each value in range
         var selections: [Int16: Int] = [:]
         for _ in 0..<iterations {
-            let result = await service.calculateDodge(agility: 20, instinct: 10) // min=10, max=20
+            let result = service.calculateDodge(agility: 20, instinct: 10) // min=10, max=20
             selections[result.selectedChance, default: 0] += 1
         }
 
@@ -297,7 +297,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         let service = makeService()
 
         // When
-        let result = await service.calculateDodge(agility: 1, instinct: 100)
+        let result = service.calculateDodge(agility: 1, instinct: 100)
 
         // Then
         XCTAssertEqual(result.distribution.minimumChance, -99)
@@ -310,7 +310,7 @@ final class ElfDodgeServiceTests: XCTestCase {
         let service = makeService()
 
         // When
-        let result = await service.calculateDodge(agility: 100, instinct: 100)
+        let result = service.calculateDodge(agility: 100, instinct: 100)
 
         // Then
         XCTAssertEqual(result.distribution.minimumChance, 0)

@@ -17,14 +17,14 @@ public final class DefaultDropService: DropService {
 
     // MARK: - DropService
 
-    public func convertToDropItems(rewards: HuntRewards, didWin: Bool) async -> [DropItem] {
+    public func convertToDropItems(rewards: HuntRewards, didWin: Bool) -> [DropItem] {
         guard didWin else { return [] }
 
         var dropItems: [DropItem] = []
 
         // Convert materials
         for materialReward in rewards.materials {
-            if let dropItem = await createMaterialDropItem(from: materialReward) {
+            if let dropItem = createMaterialDropItem(from: materialReward) {
                 dropItems.append(dropItem)
             }
         }
@@ -58,8 +58,8 @@ public final class DefaultDropService: DropService {
 
     // MARK: - Private Helpers
 
-    private func createMaterialDropItem(from reward: MaterialReward) async -> DropItem? {
-        guard let material = await materialRepository.getById(id: reward.id) else {
+    private func createMaterialDropItem(from reward: MaterialReward) -> DropItem? {
+        guard let material = materialRepository.getById(id: reward.id) else {
             return nil
         }
 

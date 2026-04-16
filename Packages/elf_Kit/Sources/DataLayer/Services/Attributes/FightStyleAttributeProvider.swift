@@ -16,5 +16,5 @@ public protocol FightStyleAttributeProvider: Sendable {
     ///   - fightStyle: The hero's fighting style
     ///   - level: The hero's level
     /// - Returns: Calculated attributes for the fight style
-    func getAllFightStyleAttributes(for fightStyle: FightStyle, at level: Int16) async -> HeroAttributes
+    func getAllFightStyleAttributes(for fightStyle: FightStyle, at level: Int16) -> HeroAttributes
 }

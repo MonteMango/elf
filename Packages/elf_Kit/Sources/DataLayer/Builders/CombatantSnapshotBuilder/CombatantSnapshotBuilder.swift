@@ -27,7 +27,7 @@ public protocol CombatantSnapshotBuilder: Sendable {
         fightStyleAttributes: HeroAttributes,
         randomLevelAttributes: HeroAttributes,
         selectedItems: [HeroItemType: UUID?]
-    ) async -> CombatantSnapshot?
+    ) -> CombatantSnapshot?
 
     /// Build a CombatantSnapshot from a Monster
     /// - Parameter monster: The Monster to create a snapshot from

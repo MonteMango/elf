@@ -22,5 +22,5 @@ public protocol MiningService: Sendable {
         availableOres: [Ore],
         currentExp: Int,
         expPerLevel: Int
-    ) async -> MiningResult
+    ) -> MiningResult
 }

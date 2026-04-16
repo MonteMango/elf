@@ -31,8 +31,6 @@ struct CraftScreenContent: View {
             .frame(width: ElfSizing.Craft.detailPanelWidth)
         }
         .background(ElfColors.Background.primary)
-        .task(id: viewModel.selectedCategory) { await viewModel.refreshRecipes() }
-        .task(id: viewModel.selectedRecipeId) { await viewModel.refreshSelectedDetail() }
         .overlay {
             if viewModel.isCrafting {
                 ZStack {

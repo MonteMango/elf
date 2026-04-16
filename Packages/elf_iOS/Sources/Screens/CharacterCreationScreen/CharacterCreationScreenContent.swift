@@ -11,6 +11,7 @@ import SwiftUI
 
 struct CharacterCreationScreenContent: View {
     @Environment(AppRouter.self) private var router
+    @Environment(ElfGameContainer.self) private var gameContainer
     @State private var viewModel: CharacterCreationViewModel
     @FocusState private var isTextFieldFocused: Bool
 
@@ -74,10 +75,10 @@ struct CharacterCreationScreenContent: View {
                                 validationError: $viewModel.nameValidationError,
                                 safeAreaInsets: safeArea,
                                 onRandomName: {
-                                    await viewModel.generateRandomName()
+                                    viewModel.generateRandomName()
                                 },
                                 onNameChanged: {
-                                    await viewModel.validateName()
+                                    viewModel.validateName()
                                 },
                                 isTextFieldFocused: $isTextFieldFocused
                             )
@@ -90,9 +91,9 @@ struct CharacterCreationScreenContent: View {
                                 fightStyleDescription: viewModel.fightStyleDescription,
                                 fightStyleAttributesDescription: viewModel.fightStyleAttributesDescription
                             )
-                            .task {
+                            .onAppear {
                                 if let style = viewModel.selectedFightStyle {
-                                    await viewModel.loadFightStyleDescriptions(for: style)
+                                    viewModel.loadFightStyleDescriptions(for: style)
                                 }
                             }
                             .frame(width: fullWidth, height: fullHeight)
@@ -145,6 +146,7 @@ struct CharacterCreationScreenContent: View {
                 } else {
                     // Stage 4 after Ready: Start - Navigate to game screen
                     if let game = viewModel.createdGame {
+                        gameContainer.startGameSession(game: game, playTime: 0)
                         router.navigate(to: .gameSession(game, playTime: 0), removingPrevious: 1)
                     }
                 }
@@ -167,8 +169,7 @@ struct CharacterCreationScreenContent: View {
     }
 
     private var isButtonEnabled: Bool {
-        (viewModel.canProceedToNextStage || viewModel.isCharacterReady)
-        && !viewModel.isLoadingAttributes
+        viewModel.canProceedToNextStage || viewModel.isCharacterReady
     }
 }
 

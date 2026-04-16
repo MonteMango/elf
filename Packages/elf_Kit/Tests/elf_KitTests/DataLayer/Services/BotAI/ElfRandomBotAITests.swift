@@ -21,115 +21,72 @@ final class ElfRandomBotAITests: XCTestCase {
 
     // MARK: - Attack Points Tests
 
-    func testSelectAttackPoints_SinglePoint_ReturnsOnePoint() async {
-        // Given
+    func testSelectAttackPoints_SinglePoint_ReturnsOnePoint() {
         let count = 1
-
-        // When
-        let attackPoints = await botAI.selectAttackPoints(count: count)
-
-        // Then
+        let attackPoints = botAI.selectAttackPoints(count: count)
         XCTAssertEqual(attackPoints.count, 1, "Should return exactly 1 attack point")
     }
 
-    func testSelectAttackPoints_TwoPoints_ReturnsTwoPoints() async {
-        // Given
+    func testSelectAttackPoints_TwoPoints_ReturnsTwoPoints() {
         let count = 2
-
-        // When
-        let attackPoints = await botAI.selectAttackPoints(count: count)
-
-        // Then
+        let attackPoints = botAI.selectAttackPoints(count: count)
         XCTAssertEqual(attackPoints.count, 2, "Should return exactly 2 attack points")
     }
 
-    func testSelectAttackPoints_ReturnsValidBodyParts() async {
-        // Given
+    func testSelectAttackPoints_ReturnsValidBodyParts() {
         let validBodyParts: Set<BodyPart> = [.head, .body, .leftHand, .rightHand, .legs]
-
-        // When
-        let attackPoints = await botAI.selectAttackPoints(count: 2)
-
-        // Then
+        let attackPoints = botAI.selectAttackPoints(count: 2)
         for bodyPart in attackPoints {
             XCTAssertTrue(validBodyParts.contains(bodyPart),
                          "\(bodyPart) should be a valid body part")
         }
     }
 
-    func testSelectAttackPoints_IsRandom() async {
-        // Given
+    func testSelectAttackPoints_IsRandom() {
         var selectedPoints: [Set<BodyPart>] = []
-
-        // When: Run multiple times
         for _ in 0..<50 {
-            let points = await botAI.selectAttackPoints(count: 2)
+            let points = botAI.selectAttackPoints(count: 2)
             selectedPoints.append(points)
         }
-
-        // Then: Should have some variety (not all the same)
         let uniqueSelections = Set(selectedPoints.map { $0.hashValue })
         XCTAssertGreaterThan(uniqueSelections.count, 1,
                             "Should select different body parts over multiple runs")
     }
 
-    func testSelectAttackPoints_ZeroCount_ReturnsEmpty() async {
-        // When
-        let attackPoints = await botAI.selectAttackPoints(count: 0)
-
-        // Then
+    func testSelectAttackPoints_ZeroCount_ReturnsEmpty() {
+        let attackPoints = botAI.selectAttackPoints(count: 0)
         XCTAssertTrue(attackPoints.isEmpty, "Should return empty set for count 0")
     }
 
     // MARK: - Defense Points Tests
 
-    func testSelectDefensePoints_TwoPoints_ReturnsTwoPoints() async {
-        // Given
+    func testSelectDefensePoints_TwoPoints_ReturnsTwoPoints() {
         let count = 2
-
-        // When
-        let defensePoints = await botAI.selectDefensePoints(count: count)
-
-        // Then
+        let defensePoints = botAI.selectDefensePoints(count: count)
         XCTAssertEqual(defensePoints.count, 2, "Should return exactly 2 defense points")
     }
 
-    func testSelectDefensePoints_ThreePoints_ReturnsThreePoints() async {
-        // Given
+    func testSelectDefensePoints_ThreePoints_ReturnsThreePoints() {
         let count = 3
-
-        // When
-        let defensePoints = await botAI.selectDefensePoints(count: count)
-
-        // Then
+        let defensePoints = botAI.selectDefensePoints(count: count)
         XCTAssertEqual(defensePoints.count, 3, "Should return exactly 3 defense points")
     }
 
-    func testSelectDefensePoints_ReturnsValidBodyParts() async {
-        // Given
+    func testSelectDefensePoints_ReturnsValidBodyParts() {
         let validBodyParts: Set<BodyPart> = [.head, .body, .leftHand, .rightHand, .legs]
-
-        // When
-        let defensePoints = await botAI.selectDefensePoints(count: 3)
-
-        // Then
+        let defensePoints = botAI.selectDefensePoints(count: 3)
         for bodyPart in defensePoints {
             XCTAssertTrue(validBodyParts.contains(bodyPart),
                          "\(bodyPart) should be a valid body part")
         }
     }
 
-    func testSelectDefensePoints_IsRandom() async {
-        // Given
+    func testSelectDefensePoints_IsRandom() {
         var selectedPoints: [Set<BodyPart>] = []
-
-        // When: Run multiple times
         for _ in 0..<50 {
-            let points = await botAI.selectDefensePoints(count: 3)
+            let points = botAI.selectDefensePoints(count: 3)
             selectedPoints.append(points)
         }
-
-        // Then: Should have some variety
         let uniqueSelections = Set(selectedPoints.map { $0.hashValue })
         XCTAssertGreaterThan(uniqueSelections.count, 1,
                             "Should select different body parts over multiple runs")
@@ -137,33 +94,23 @@ final class ElfRandomBotAITests: XCTestCase {
 
     // MARK: - All Body Parts Can Be Selected
 
-    func testAllBodyPartsCanBeSelected_Attack() async {
-        // Given
+    func testAllBodyPartsCanBeSelected_Attack() {
         var allSelectedParts: Set<BodyPart> = []
-
-        // When: Run many times to collect all possible selections
         for _ in 0..<100 {
-            let points = await botAI.selectAttackPoints(count: 2)
+            let points = botAI.selectAttackPoints(count: 2)
             allSelectedParts.formUnion(points)
         }
-
-        // Then: All 5 body parts should have been selected at least once
         let expectedParts: Set<BodyPart> = [.head, .body, .leftHand, .rightHand, .legs]
         XCTAssertEqual(allSelectedParts, expectedParts,
                       "All body parts should be selectable for attack")
     }
 
-    func testAllBodyPartsCanBeSelected_Defense() async {
-        // Given
+    func testAllBodyPartsCanBeSelected_Defense() {
         var allSelectedParts: Set<BodyPart> = []
-
-        // When: Run many times to collect all possible selections
         for _ in 0..<100 {
-            let points = await botAI.selectDefensePoints(count: 3)
+            let points = botAI.selectDefensePoints(count: 3)
             allSelectedParts.formUnion(points)
         }
-
-        // Then: All 5 body parts should have been selected at least once
         let expectedParts: Set<BodyPart> = [.head, .body, .leftHand, .rightHand, .legs]
         XCTAssertEqual(allSelectedParts, expectedParts,
                       "All body parts should be selectable for defense")
@@ -171,31 +118,22 @@ final class ElfRandomBotAITests: XCTestCase {
 
     // MARK: - Edge Cases
 
-    func testSelectAttackPoints_MaxCount_ReturnsFivePoints() async {
-        // When
-        let attackPoints = await botAI.selectAttackPoints(count: 5)
-
-        // Then
+    func testSelectAttackPoints_MaxCount_ReturnsFivePoints() {
+        let attackPoints = botAI.selectAttackPoints(count: 5)
         XCTAssertEqual(attackPoints.count, 5, "Should return all 5 body parts")
         let expectedParts: Set<BodyPart> = [.head, .body, .leftHand, .rightHand, .legs]
         XCTAssertEqual(attackPoints, expectedParts, "Should contain all body parts")
     }
 
-    func testSelectDefensePoints_MaxCount_ReturnsFivePoints() async {
-        // When
-        let defensePoints = await botAI.selectDefensePoints(count: 5)
-
-        // Then
+    func testSelectDefensePoints_MaxCount_ReturnsFivePoints() {
+        let defensePoints = botAI.selectDefensePoints(count: 5)
         XCTAssertEqual(defensePoints.count, 5, "Should return all 5 body parts")
         let expectedParts: Set<BodyPart> = [.head, .body, .leftHand, .rightHand, .legs]
         XCTAssertEqual(defensePoints, expectedParts, "Should contain all body parts")
     }
 
-    func testSelectAttackPoints_ExceedingMaxCount_ReturnsOnlyFive() async {
-        // When: Request more than available body parts
-        let attackPoints = await botAI.selectAttackPoints(count: 10)
-
-        // Then: Should cap at 5 (total body parts)
+    func testSelectAttackPoints_ExceedingMaxCount_ReturnsOnlyFive() {
+        let attackPoints = botAI.selectAttackPoints(count: 10)
         XCTAssertEqual(attackPoints.count, 5, "Should not exceed total body parts count")
     }
 }
