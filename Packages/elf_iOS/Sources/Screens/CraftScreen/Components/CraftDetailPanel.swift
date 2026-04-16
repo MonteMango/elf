@@ -10,7 +10,7 @@ import elf_SwiftUI
 import SwiftUI
 
 struct CraftDetailPanel: View {
-    let detail: CraftRecipeDetail?
+    let detail: CraftRecipeDetailDisplay?
     let onCraft: () -> Void
 
     var body: some View {
@@ -65,7 +65,7 @@ struct CraftDetailPanel: View {
     // MARK: - Item Header
 
     @ViewBuilder
-    private func itemHeader(_ detail: CraftRecipeDetail) -> some View {
+    private func itemHeader(_ detail: CraftRecipeDetailDisplay) -> some View {
         HStack(spacing: ElfSpacing.large) {
             Image(detail.imageName)
                 .resizable()
@@ -115,7 +115,7 @@ struct CraftDetailPanel: View {
     // MARK: - Materials
 
     @ViewBuilder
-    private func materialsSection(_ detail: CraftRecipeDetail) -> some View {
+    private func materialsSection(_ detail: CraftRecipeDetailDisplay) -> some View {
         VStack(alignment: .leading, spacing: ElfSpacing.xs) {
             Text("Required materials:")
                 .font(ElfFonts.Component.statLabel)
@@ -144,7 +144,7 @@ struct CraftDetailPanel: View {
     // MARK: - Missing Warning
 
     @ViewBuilder
-    private func missingWarning(_ detail: CraftRecipeDetail) -> some View {
+    private func missingWarning(_ detail: CraftRecipeDetailDisplay) -> some View {
         if !detail.missingIngredients.isEmpty {
             VStack(alignment: .trailing, spacing: ElfSpacing.xxxs) {
                 ForEach(detail.missingIngredients, id: \.itemId) { missing in

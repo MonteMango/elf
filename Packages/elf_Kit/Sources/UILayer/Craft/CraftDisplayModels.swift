@@ -39,19 +39,19 @@ public enum CraftCategory: String, CaseIterable, Sendable, Identifiable {
 
 // MARK: - Recipe List Item (left panel)
 
-public struct CraftRecipeListItem: Identifiable, Equatable, Sendable {
+public struct CraftRecipeDisplay: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let title: String
     public let imageName: String
     public let shortInfo: String
-    public let ingredients: [CraftIngredientBadge]
+    public let ingredients: [CraftIngredientCompactDisplay]
 
     public init(
         id: UUID,
         title: String,
         imageName: String,
         shortInfo: String,
-        ingredients: [CraftIngredientBadge]
+        ingredients: [CraftIngredientCompactDisplay]
     ) {
         self.id = id
         self.title = title
@@ -63,7 +63,7 @@ public struct CraftRecipeListItem: Identifiable, Equatable, Sendable {
 
 // MARK: - Ingredient Badge (compact, for list cells)
 
-public struct CraftIngredientBadge: Identifiable, Equatable, Sendable {
+public struct CraftIngredientCompactDisplay: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let imageName: String
     public let amount: Int
@@ -77,7 +77,7 @@ public struct CraftIngredientBadge: Identifiable, Equatable, Sendable {
 
 // MARK: - Recipe Detail (right panel)
 
-public struct CraftRecipeDetail: Equatable, Sendable {
+public struct CraftRecipeDetailDisplay: Equatable, Sendable {
     public let recipeId: UUID
     public let title: String
     public let imageName: String

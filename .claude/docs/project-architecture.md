@@ -44,7 +44,7 @@ Models (Data)
 | Stat calculations | `*Calculator` | `BattleResultCalculator` |
 | Validation | `*Validator` | `CharacterNameValidator` |
 | Data queries | `*Repository` | `MonsterRepository` |
-| UI formatting | `*Formatter` | `ItemDetailsFormatter` |
+| UI formatting | `*Formatter` | `ItemAttributesFormatter` |
 | Aggregation | `*Aggregator` | `BattleStatisticsAggregator` |
 
 ### ❌ Anti-patterns (avoid):
@@ -64,7 +64,7 @@ extension FarmSkillInfo {
 }
 
 // BAD: UI formatting in Model
-struct WeaponDetails {
+struct WeaponAttributes {
     var descriptionLines: [String] {
         ["Attack: \(attackMin)-\(attackMax)", ...]
     }
@@ -85,7 +85,7 @@ class DefaultFarmActivityService {
 }
 
 // GOOD: Formatter in UILayer
-struct ItemDetailsFormatter {
+struct ItemAttributesFormatter {
     func descriptionLines(for details: ItemDetails) -> [String]
 }
 ```
@@ -267,6 +267,49 @@ public final class HuntViewModel {
         gameService.spendActionPoints(huntCost)
         // ...
     }
+}
+```
+
+---
+
+## Presentation Types
+
+Types that live between ViewModel and View. Two categories with different rules:
+
+### Two concepts
+
+- **Display DTO** — immutable projection of domain data for rendering. Built by the ViewModel, consumed by the View. Flat structure with render-ready fields (`imageName: String`, pre-formatted strings, `canComplete: Bool`).
+- **View State** — local UI state. Usually mutable, stored as a ViewModel property. Enum for tab/stage; struct/class for multi-field UI state.
+
+### Rules
+
+| Rule | Description |
+|------|-------------|
+| Location | Feature presentation types live in `Packages/elf_Kit/Sources/UILayer/{Feature}/`. Never in `DataLayer` or `elf_SwiftUI` (design system only). |
+| File grouping | One file `{Feature}DisplayModels.swift` per feature contains all presentation types of that feature. Exception: a single enum ≤~20 lines, purely view-state, stays inline in the VM file. |
+| DTO suffix | `*Display`. Do not use `*DisplayData`, `*DisplayItem`, `*ListItem`. |
+| Numeric attribute bag suffix | `*Attributes` (e.g., `WeaponAttributes`, `CraftItemAttributes`). |
+| View-state enum suffix | Pick by meaning: `Mode`, `Tab`, `Stage`, `Phase`, `Step`, `Selection`. Do not force a uniform suffix — semantics differ. |
+| View-state struct/class suffix | `*State` (e.g., `HeroConfigurationState`, `ItemSelectorState`). |
+| DTO conformances | `Sendable + Equatable` — always. `Identifiable` — only if used in `ForEach`, with a **stable** `id` (from domain, not `UUID()` on each mapping). `Hashable` — only when actually used as a dict key, `Set` element, or `NavigationDestination` value. `Codable` — do not add (DTOs are not persisted). |
+| When NOT to create a DTO | If the View consumes a single domain value as-is and that value is already `Sendable + Equatable`, pass the domain value directly. Wrapping for wrapping's sake is an anti-pattern. Create a DTO when the VM **formats, combines, or filters** domain data for the view. |
+
+### Example
+
+```swift
+// Display DTO — in UILayer/Hunt/HuntDisplayModels.swift
+public struct MonsterDisplay: Identifiable, Equatable, Sendable {
+    public let id: UUID                 // from the domain Monster
+    public let title: String
+    public let imageName: String
+    public let drops: [DropDisplay]
+}
+
+// View State enum — inline at the top of UILayer/Calendar/CalendarViewModel.swift
+public enum ViewMode: Int, CaseIterable, Sendable {
+    case line, grid
+    var title: String { ... }
+    var iconName: String { ... }
 }
 ```
 

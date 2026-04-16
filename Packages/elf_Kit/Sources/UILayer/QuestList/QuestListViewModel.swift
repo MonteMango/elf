@@ -7,20 +7,6 @@
 
 import Foundation
 
-// MARK: - Display Data
-
-public struct QuestOwnerDisplay: Identifiable, Equatable, Sendable {
-    public let id: QuestCharacterID
-    public let questId: QuestID
-    public let name: String
-    public let title: String
-    public let imageName: String
-    public let questTitle: String
-    public let rewardText: String
-}
-
-// MARK: - ViewModel
-
 @MainActor
 @Observable
 public final class QuestListViewModel {

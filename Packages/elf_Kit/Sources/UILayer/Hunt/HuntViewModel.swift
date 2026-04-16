@@ -40,7 +40,7 @@ public final class HuntViewModel {
     }
 
     /// Display data for monsters — rebuilt automatically when player level changes.
-    public var availableMonstersDisplayData: [MonsterDisplayData] {
+    public var availableMonstersDisplayData: [MonsterDisplay] {
         availableMonsters.map { buildDisplayData(from: $0) }
     }
 
@@ -102,37 +102,46 @@ public final class HuntViewModel {
 
     // MARK: - Private Helpers
 
-    private func buildDisplayData(from monster: Monster) -> MonsterDisplayData {
-        var drops: [DropDisplayData] = []
+    private func buildDisplayData(from monster: Monster) -> MonsterDisplay {
+        var drops: [DropDisplay] = []
 
-        for itemDrop in monster.drops.weapons {
+        for (idx, itemDrop) in monster.drops.weapons.enumerated() {
             if let uuid = UUID(uuidString: itemDrop.id),
                let item = itemsRepository.getHeroItem(uuid) {
-                drops.append(DropDisplayData(imageName: itemDrop.id, tier: Int(item.tier)))
+                drops.append(DropDisplay(
+                    id: "weapon-\(idx)",
+                    imageName: itemDrop.id,
+                    tier: Int(item.tier)
+                ))
             }
         }
 
-        for itemDrop in monster.drops.armor {
+        for (idx, itemDrop) in monster.drops.armor.enumerated() {
             if let uuid = UUID(uuidString: itemDrop.id),
                let item = itemsRepository.getHeroItem(uuid) {
-                drops.append(DropDisplayData(imageName: itemDrop.id, tier: Int(item.tier)))
+                drops.append(DropDisplay(
+                    id: "armor-\(idx)",
+                    imageName: itemDrop.id,
+                    tier: Int(item.tier)
+                ))
             }
         }
 
-        for materialDrop in monster.drops.materials {
+        for (idx, materialDrop) in monster.drops.materials.enumerated() {
             if let material = materialRepository.getById(id: materialDrop.id) {
-                drops.append(DropDisplayData(imageName: material.imageName, tier: 4))
+                drops.append(DropDisplay(
+                    id: "material-\(idx)",
+                    imageName: material.imageName,
+                    tier: 4
+                ))
             }
         }
 
-        var seen = Set<String>()
-        let uniqueDrops = drops.filter { seen.insert($0.imageName).inserted }
-
-        return MonsterDisplayData(
+        return MonsterDisplay(
             id: monster.id,
             title: monster.title,
             imageName: monster.imageName,
-            drops: uniqueDrops
+            drops: drops
         )
     }
 }

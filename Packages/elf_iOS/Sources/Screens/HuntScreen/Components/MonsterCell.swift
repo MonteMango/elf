@@ -10,7 +10,7 @@ import elf_SwiftUI
 import SwiftUI
 
 struct MonsterCell: View {
-    let displayData: MonsterDisplayData
+    let displayData: MonsterDisplay
 
     var body: some View {
         #if DEBUG
@@ -75,13 +75,13 @@ struct MonsterCell: View {
 }
 
 #Preview {
-    let mockDisplayData = MonsterDisplayData(
+    let mockDisplayData = MonsterDisplay(
         id: UUID(),
         title: "Wolf",
         imageName: "monster_wolf",
         drops: [
-            DropDisplayData(imageName: "sword_1", tier: 2),
-            DropDisplayData(imageName: "material_monster_soul_gem", tier: 4)
+            DropDisplay(id: "weapon-0", imageName: "sword_1", tier: 2),
+            DropDisplay(id: "material-0", imageName: "material_monster_soul_gem", tier: 4)
         ]
     )
 

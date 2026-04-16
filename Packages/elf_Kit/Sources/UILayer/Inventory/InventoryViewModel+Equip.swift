@@ -11,7 +11,7 @@ import Foundation
 
 extension InventoryViewModel {
 
-    func equipItem(_ item: InventoryDisplayItem) {
+    func equipItem(_ item: InventoryItemDisplay) {
         switch item.itemDetails {
         case .weapon:  equipmentService.equipWeapon(id: item.id)
         case .shield:  equipmentService.equipShield(id: item.id)
@@ -21,7 +21,7 @@ extension InventoryViewModel {
         }
     }
 
-    func unequipItem(_ item: InventoryDisplayItem) {
+    func unequipItem(_ item: InventoryItemDisplay) {
         switch item.itemDetails {
         case .weapon:  equipmentService.unequipWeapon(id: item.id)
         case .shield:  equipmentService.unequipShield()

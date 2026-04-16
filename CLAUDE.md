@@ -61,6 +61,7 @@ App supports **landscape orientation only**.
 | Writing SwiftUI views | `swiftui-patterns.md` — @Observable, .task{}, @Bindable |
 | Saving/loading game data | `persistence-patterns.md` — ID-Reference pattern, migrations |
 | Creating new types/models | `type-driven-design.md` — Make impossible states unrepresentable |
+| Creating presentation types (Display DTO / View State) | `project-architecture.md` — Presentation Types section |
 | Working with async/actors | `threading-model.md` — @MainActor, actors, thread safety |
 | Using colors, fonts, spacing | `project-architecture.md` — Design System section |
 | Unsure about something | `common-mistakes.md` — check anti-patterns first! |

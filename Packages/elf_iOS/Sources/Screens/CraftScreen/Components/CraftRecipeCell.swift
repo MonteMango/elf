@@ -10,7 +10,7 @@ import elf_SwiftUI
 import SwiftUI
 
 struct CraftRecipeCell: View {
-    let item: CraftRecipeListItem
+    let item: CraftRecipeDisplay
     let isSelected: Bool
     let onTap: () -> Void
 

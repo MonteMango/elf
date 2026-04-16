@@ -39,18 +39,18 @@ public final class InventoryViewModel {
 
     /// All display items for the current player — rebuilt automatically on any
     /// change to `gameService.player.inventory` / `equipped` observed through services.
-    public var allDisplayItems: [InventoryDisplayItem] {
+    public var allDisplayItems: [InventoryItemDisplay] {
         buildDisplayItems()
     }
 
-    public var filteredItems: [InventoryDisplayItem] {
+    public var filteredItems: [InventoryItemDisplay] {
         allDisplayItems.filter { item in
             guard item.category == selectedCategory else { return false }
             return passesSubcategoryFilter(item)
         }
     }
 
-    public var selectedItem: InventoryDisplayItem? {
+    public var selectedItem: InventoryItemDisplay? {
         guard let id = selectedItemId else { return nil }
         return allDisplayItems.first { $0.id == id }
     }
@@ -130,7 +130,7 @@ public final class InventoryViewModel {
         selectedItemId = nil
     }
 
-    public func selectItem(_ item: InventoryDisplayItem) {
+    public func selectItem(_ item: InventoryItemDisplay) {
         selectedItemId = item.id
     }
 
@@ -178,13 +178,13 @@ public final class InventoryViewModel {
 
     // MARK: - Private Helpers
 
-    private func passesSubcategoryFilter(_ item: InventoryDisplayItem) -> Bool {
+    private func passesSubcategoryFilter(_ item: InventoryItemDisplay) -> Bool {
         switch selectedCategory {
         case .weapons:
             guard selectedWeaponSubcategory != .all else { return true }
             switch item.itemDetails {
-            case .weapon(let details):
-                return matchesWeaponSubcategory(details, selectedWeaponSubcategory)
+            case .weapon(let attributes):
+                return matchesWeaponSubcategory(attributes, selectedWeaponSubcategory)
             case .shield:
                 return selectedWeaponSubcategory == .shields
             default:
@@ -208,19 +208,19 @@ public final class InventoryViewModel {
         case .materials:
             guard selectedMaterialSubcategory != .all else { return true }
             switch item.itemDetails {
-            case .material(let details):
-                return details.subcategory == selectedMaterialSubcategory
+            case .material(let attributes):
+                return attributes.subcategory == selectedMaterialSubcategory
             default:
                 return false
             }
         }
     }
 
-    private func matchesWeaponSubcategory(_ details: WeaponDetails, _ sub: WeaponSubcategory) -> Bool {
+    private func matchesWeaponSubcategory(_ attributes: WeaponAttributes, _ sub: WeaponSubcategory) -> Bool {
         switch sub {
         case .all: return true
-        case .oneHand: return details.handUse.lowercased().contains("one")
-        case .twoHands: return details.handUse.lowercased().contains("two")
+        case .oneHand: return attributes.handUse.lowercased().contains("one")
+        case .twoHands: return attributes.handUse.lowercased().contains("two")
         case .shields: return false
         }
     }

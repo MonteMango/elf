@@ -1,5 +1,5 @@
 //
-//  ItemDetailsFormatter.swift
+//  ItemAttributesFormatter.swift
 //  elf_Kit
 //
 //  Created by Vitalii Lytvynov
@@ -8,7 +8,7 @@
 import Foundation
 
 /// Formats item details into human-readable description lines for UI display
-public struct ItemDetailsFormatter: Sendable {
+public struct ItemAttributesFormatter: Sendable {
 
     public init() {}
 
@@ -32,62 +32,62 @@ public struct ItemDetailsFormatter: Sendable {
 
     // MARK: - Private Formatters
 
-    private func formatWeapon(_ details: WeaponDetails) -> [String] {
+    private func formatWeapon(_ attributes: WeaponAttributes) -> [String] {
         var lines: [String] = []
-        lines.append("Attack: \(details.attackMin)-\(details.attackMax)")
-        lines.append("Attack points: \(details.attackPoints)")
-        lines.append("Hands use: \(details.handUse)")
+        lines.append("Attack: \(attributes.attackMin)-\(attributes.attackMax)")
+        lines.append("Attack points: \(attributes.attackPoints)")
+        lines.append("Hands use: \(attributes.handUse)")
         lines.append("")
         appendAttributes(
             to: &lines,
-            strength: details.strength, agility: details.agility,
-            power: details.power, instinct: details.instinct,
-            hitPoints: details.hitPoints
+            strength: attributes.strength, agility: attributes.agility,
+            power: attributes.power, instinct: attributes.instinct,
+            hitPoints: attributes.hitPoints
         )
-        if let enchant = details.enchantLevel, enchant > 0 {
+        if let enchant = attributes.enchantLevel, enchant > 0 {
             lines.append("Enchant: +\(enchant)")
         }
         return lines
     }
 
-    private func formatArmor(_ details: ArmorDetails) -> [String] {
+    private func formatArmor(_ attributes: ArmorAttributes) -> [String] {
         var lines: [String] = []
-        lines.append("Defense: \(details.defense)")
-        if !details.protectedParts.isEmpty {
-            lines.append("Protects: \(details.protectedParts.joined(separator: ", "))")
+        lines.append("Defense: \(attributes.defense)")
+        if !attributes.protectedParts.isEmpty {
+            lines.append("Protects: \(attributes.protectedParts.joined(separator: ", "))")
         }
         lines.append("")
         appendAttributes(
             to: &lines,
-            strength: details.strength, agility: details.agility,
-            power: details.power, instinct: details.instinct,
-            hitPoints: details.hitPoints
+            strength: attributes.strength, agility: attributes.agility,
+            power: attributes.power, instinct: attributes.instinct,
+            hitPoints: attributes.hitPoints
         )
         return lines
     }
 
-    private func formatShield(_ details: ShieldDetails) -> [String] {
+    private func formatShield(_ attributes: ShieldAttributes) -> [String] {
         var lines: [String] = []
-        lines.append("Defense: \(details.defense)")
-        lines.append("Block points: +\(details.blockPoints)")
+        lines.append("Defense: \(attributes.defense)")
+        lines.append("Block points: +\(attributes.blockPoints)")
         lines.append("")
         appendAttributes(
             to: &lines,
-            strength: details.strength, agility: details.agility,
-            hitPoints: details.hitPoints
+            strength: attributes.strength, agility: attributes.agility,
+            hitPoints: attributes.hitPoints
         )
         return lines
     }
 
-    private func formatJewelry(_ details: JewelryDetails) -> [String] {
+    private func formatJewelry(_ attributes: JewelryAttributes) -> [String] {
         var lines: [String] = []
-        if details.magicDefense > 0 { lines.append("Magic defense: \(details.magicDefense)") }
+        if attributes.magicDefense > 0 { lines.append("Magic defense: \(attributes.magicDefense)") }
         lines.append("")
         appendAttributes(
             to: &lines,
-            strength: details.strength, agility: details.agility,
-            power: details.power, instinct: details.instinct,
-            hitPoints: details.hitPoints, manaPoints: details.manaPoints
+            strength: attributes.strength, agility: attributes.agility,
+            power: attributes.power, instinct: attributes.instinct,
+            hitPoints: attributes.hitPoints, manaPoints: attributes.manaPoints
         )
         return lines
     }
@@ -106,13 +106,13 @@ public struct ItemDetailsFormatter: Sendable {
         if manaPoints > 0 { lines.append("MP: \(manaPoints)") }
     }
 
-    private func formatMaterial(_ details: MaterialDetails) -> [String] {
-        [details.description]
+    private func formatMaterial(_ attributes: MaterialAttributes) -> [String] {
+        [attributes.description]
     }
 
-    private func formatPotionScroll(_ details: PotionScrollDetails) -> [String] {
-        var lines = [details.effect]
-        if let dur = details.duration {
+    private func formatPotionScroll(_ attributes: PotionScrollAttributes) -> [String] {
+        var lines = [attributes.effect]
+        if let dur = attributes.duration {
             lines.append("Duration: \(dur) turns")
         }
         return lines

@@ -7,34 +7,6 @@
 
 import Foundation
 
-// MARK: - Display Data
-
-public struct QuestConditionDisplay: Identifiable, Equatable, Sendable {
-    public let id: String
-    public let imageName: String
-    public let amount: Int
-    public let text: String
-}
-
-public struct QuestRewardDisplay: Identifiable, Equatable, Sendable {
-    public let id: String
-    public let imageName: String
-    public let quantity: Int
-}
-
-public struct QuestDisplayData: Equatable, Sendable {
-    public let ownerName: String
-    public let ownerTitle: String
-    public let ownerImageName: String
-    public let questTitle: String
-    public let questDescription: String
-    public let conditions: [QuestConditionDisplay]
-    public let rewards: [QuestRewardDisplay]
-    public let canComplete: Bool
-}
-
-// MARK: - ViewModel
-
 @MainActor
 @Observable
 public final class QuestViewModel {
@@ -51,11 +23,11 @@ public final class QuestViewModel {
 
     // MARK: - Display Data (derived reactively from repositories)
 
-    public var questData: QuestDisplayData? {
+    public var questData: QuestDisplay? {
         guard let quest = questRepository.getById(id: questId) else { return nil }
         guard let character = questRepository.character(by: quest.questOwnerId) else { return nil }
 
-        return QuestDisplayData(
+        return QuestDisplay(
             ownerName: character.name,
             ownerTitle: character.title,
             ownerImageName: character.imageName,

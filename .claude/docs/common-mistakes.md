@@ -154,3 +154,55 @@ class ViewModel {
     var items: [Item] = []
 }
 ```
+
+---
+
+## Presentation Types
+
+### DisplayDTO in the wrong layer
+```swift
+// ❌ Display DTO in DataLayer
+// Packages/elf_Kit/Sources/DataLayer/Model/Inventory/InventoryDisplayItem.swift
+public struct InventoryDisplayItem { ... }
+
+// ✅ Display DTO in UILayer, co-located with the VM that builds it
+// Packages/elf_Kit/Sources/UILayer/Inventory/InventoryDisplayModels.swift
+public struct InventoryItemDisplay { ... }
+```
+
+### Inconsistent suffixes for one concept
+```swift
+// ❌ Six suffixes for the same idea
+MonsterDisplayData, QuestDisplayData     // DisplayData
+InventoryDisplayItem                      // DisplayItem
+CraftRecipeListItem                       // ListItem
+WeaponDetails, ArmorDetails               // Details
+
+// ✅ One suffix — *Display — for presentation DTOs
+MonsterDisplay, QuestDisplay, InventoryItemDisplay, CraftRecipeDisplay
+
+// ✅ *Attributes — for numeric stat bags
+WeaponAttributes, ArmorAttributes, CraftItemAttributes
+```
+
+### Conformances "just in case"
+```swift
+// ❌ Adding Hashable / Codable without a reason
+public struct MonsterDisplay: Identifiable, Hashable, Codable, Sendable { ... }
+
+// ✅ Only what's actually used
+public struct MonsterDisplay: Identifiable, Equatable, Sendable { ... }
+// Add Hashable only when used as dict key / Set element / NavigationDestination.
+// DTOs are not persisted → never Codable.
+```
+
+### Unstable id in DTO mapping
+```swift
+// ❌ New UUID on every rebuild → SwiftUI re-renders the whole list
+items.map { MonsterDisplay(id: UUID(), title: $0.name, ...) }
+
+// ✅ id comes from the domain → stable diff
+items.map { MonsterDisplay(id: $0.id, title: $0.name, ...) }
+```
+
+See `project-architecture.md` → **Presentation Types** for the full convention.

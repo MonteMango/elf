@@ -9,9 +9,9 @@ import elf_Kit
 import SwiftUI
 
 struct InventoryGrid: View {
-    let items: [InventoryDisplayItem]
+    let items: [InventoryItemDisplay]
     let selectedItemId: UUID?
-    let onItemTap: (InventoryDisplayItem) -> Void
+    let onItemTap: (InventoryItemDisplay) -> Void
 
     private let cellSize: CGFloat = 45
     private let spacing: CGFloat = 5
@@ -42,22 +42,22 @@ struct InventoryGrid: View {
 #Preview {
     InventoryGrid(
         items: [
-            InventoryDisplayItem(
+            InventoryItemDisplay(
                 id: UUID(),
                 title: "Wooden club",
                 imageName: "weapon_club",
                 isEquipped: true,
                 category: .weapons,
-                itemDetails: .weapon(WeaponDetails(
+                itemDetails: .weapon(WeaponAttributes(
                     attackMin: 8, attackMax: 9, attackPoints: 1, handUse: "one hand"
                 ))
             ),
-            InventoryDisplayItem(
+            InventoryItemDisplay(
                 id: UUID(),
                 title: "Iron sword",
                 imageName: "weapon_sword",
                 category: .weapons,
-                itemDetails: .weapon(WeaponDetails(
+                itemDetails: .weapon(WeaponAttributes(
                     attackMin: 12, attackMax: 15, attackPoints: 1, handUse: "one hand"
                 ))
             )

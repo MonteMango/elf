@@ -2,13 +2,13 @@
 //  CharacterCreationStage.swift
 //  elf_Kit
 //
-//  Created by Claude on 25.11.25.
+//  Created by Vitalii Lytvynov on 25.11.25.
 //
 
 import Foundation
 
 /// Stages of character creation flow
-public enum CharacterCreationStage: Int, CaseIterable, Sendable, Hashable, Codable {
+public enum CharacterCreationStage: Int, CaseIterable, Sendable, Hashable {
     case selectAppearance = 1
     case enterName = 2
     case selectFightStyle = 3

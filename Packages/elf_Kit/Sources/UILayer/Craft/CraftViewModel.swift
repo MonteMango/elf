@@ -32,12 +32,12 @@ public final class CraftViewModel {
 
     // MARK: - Derived state (computed reactively)
 
-    public var filteredRecipes: [CraftRecipeListItem] {
+    public var filteredRecipes: [CraftRecipeDisplay] {
         guard let recipeCategory = selectedCategory.recipeCategory else { return [] }
         return recipeRepository.recipes(for: recipeCategory).map { buildListItem(from: $0) }
     }
 
-    public var selectedRecipeDetail: CraftRecipeDetail? {
+    public var selectedRecipeDetail: CraftRecipeDetailDisplay? {
         guard let recipeId = selectedRecipeId,
               let recipe = recipeRepository.getById(id: recipeId) else {
             return nil
@@ -95,17 +95,17 @@ public final class CraftViewModel {
 
     // MARK: - Private builders
 
-    private func buildListItem(from recipe: Recipe) -> CraftRecipeListItem {
+    private func buildListItem(from recipe: Recipe) -> CraftRecipeDisplay {
         let item = itemsRepository.getHeroItem(recipe.resultItemId)
-        let badges: [CraftIngredientBadge] = recipe.ingredients.map { ingredient in
+        let badges: [CraftIngredientCompactDisplay] = recipe.ingredients.map { ingredient in
             let info = ingredientInfo(for: ingredient)
-            return CraftIngredientBadge(
+            return CraftIngredientCompactDisplay(
                 id: ingredient.itemId,
                 imageName: info.imageName,
                 amount: ingredient.amount
             )
         }
-        return CraftRecipeListItem(
+        return CraftRecipeDisplay(
             id: recipe.id,
             title: item?.title ?? "Unknown",
             imageName: itemImageName(for: item),
@@ -114,7 +114,7 @@ public final class CraftViewModel {
         )
     }
 
-    private func buildDetail(from recipe: Recipe) -> CraftRecipeDetail {
+    private func buildDetail(from recipe: Recipe) -> CraftRecipeDetailDisplay {
         let item = itemsRepository.getHeroItem(recipe.resultItemId)
         let inventory = currentInventory
         let attributes = CraftItemAttributes(
@@ -138,7 +138,7 @@ public final class CraftViewModel {
             )
         }
 
-        return CraftRecipeDetail(
+        return CraftRecipeDetailDisplay(
             recipeId: recipe.id,
             title: item?.title ?? "Unknown",
             imageName: itemImageName(for: item),

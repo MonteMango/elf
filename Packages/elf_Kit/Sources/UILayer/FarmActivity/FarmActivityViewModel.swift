@@ -28,7 +28,7 @@ public final class FarmActivityViewModel {
 
     public var activityState: ActivityState = .idle
 
-    public enum ActivityState: Equatable {
+    public enum ActivityState: Equatable, Sendable {
         case idle
         case performing
     }

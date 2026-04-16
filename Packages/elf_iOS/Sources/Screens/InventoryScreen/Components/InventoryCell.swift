@@ -10,7 +10,7 @@ import elf_SwiftUI
 import SwiftUI
 
 struct InventoryCell: View {
-    let item: InventoryDisplayItem
+    let item: InventoryItemDisplay
     let isSelected: Bool
     let onTap: () -> Void
 
@@ -71,12 +71,12 @@ struct InventoryCell: View {
     HStack(spacing: 10) {
         // Normal item
         InventoryCell(
-            item: InventoryDisplayItem(
+            item: InventoryItemDisplay(
                 id: UUID(),
                 title: "Sword",
                 imageName: "sword",
                 category: .weapons,
-                itemDetails: .weapon(WeaponDetails(
+                itemDetails: .weapon(WeaponAttributes(
                     attackMin: 10,
                     attackMax: 15,
                     attackPoints: 1,
@@ -89,13 +89,13 @@ struct InventoryCell: View {
 
         // Selected item
         InventoryCell(
-            item: InventoryDisplayItem(
+            item: InventoryItemDisplay(
                 id: UUID(),
                 title: "Axe",
                 imageName: "axe",
                 isEquipped: true,
                 category: .weapons,
-                itemDetails: .weapon(WeaponDetails(
+                itemDetails: .weapon(WeaponAttributes(
                     attackMin: 10,
                     attackMax: 15,
                     attackPoints: 1,
@@ -108,13 +108,13 @@ struct InventoryCell: View {
 
         // Material with quantity
         InventoryCell(
-            item: InventoryDisplayItem(
+            item: InventoryItemDisplay(
                 id: UUID(),
                 title: "Iron ore",
                 imageName: "ore",
                 quantity: 12,
                 category: .materials,
-                itemDetails: .material(MaterialDetails(description: "Raw iron"))
+                itemDetails: .material(MaterialAttributes(description: "Raw iron"))
             ),
             isSelected: false,
             onTap: {}

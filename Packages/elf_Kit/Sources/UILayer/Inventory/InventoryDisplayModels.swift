@@ -1,5 +1,5 @@
 //
-//  InventoryDisplayItem.swift
+//  InventoryDisplayModels.swift
 //  elf_Kit
 //
 //  Created by Vitalii Lytvynov
@@ -8,7 +8,7 @@
 import Foundation
 
 /// Unified item representation for inventory UI display
-public struct InventoryDisplayItem: Identifiable, Equatable, Sendable {
+public struct InventoryItemDisplay: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let title: String
     public let imageName: String
@@ -39,17 +39,17 @@ public struct InventoryDisplayItem: Identifiable, Equatable, Sendable {
 // MARK: - Item Details
 
 public enum ItemDetails: Equatable, Sendable {
-    case weapon(WeaponDetails)
-    case armor(ArmorDetails)
-    case shield(ShieldDetails)
-    case jewelry(JewelryDetails)
-    case material(MaterialDetails)
-    case potionScroll(PotionScrollDetails)
+    case weapon(WeaponAttributes)
+    case armor(ArmorAttributes)
+    case shield(ShieldAttributes)
+    case jewelry(JewelryAttributes)
+    case material(MaterialAttributes)
+    case potionScroll(PotionScrollAttributes)
 }
 
-// MARK: - Weapon Details
+// MARK: - Weapon Attributes
 
-public struct WeaponDetails: Equatable, Sendable {
+public struct WeaponAttributes: Equatable, Sendable {
     public let attackMin: Int
     public let attackMax: Int
     public let attackPoints: Int
@@ -86,9 +86,9 @@ public struct WeaponDetails: Equatable, Sendable {
     }
 }
 
-// MARK: - Armor Details
+// MARK: - Armor Attributes
 
-public struct ArmorDetails: Equatable, Sendable {
+public struct ArmorAttributes: Equatable, Sendable {
     public let defense: Int
     public let protectedParts: [String]
     public let strength: Int
@@ -116,9 +116,9 @@ public struct ArmorDetails: Equatable, Sendable {
     }
 }
 
-// MARK: - Shield Details
+// MARK: - Shield Attributes
 
-public struct ShieldDetails: Equatable, Sendable {
+public struct ShieldAttributes: Equatable, Sendable {
     public let defense: Int
     public let blockPoints: Int
     public let strength: Int
@@ -140,9 +140,9 @@ public struct ShieldDetails: Equatable, Sendable {
     }
 }
 
-// MARK: - Jewelry Details
+// MARK: - Jewelry Attributes
 
-public struct JewelryDetails: Equatable, Sendable {
+public struct JewelryAttributes: Equatable, Sendable {
     public let magicDefense: Int
     public let strength: Int
     public let agility: Int
@@ -170,9 +170,9 @@ public struct JewelryDetails: Equatable, Sendable {
     }
 }
 
-// MARK: - Material Details
+// MARK: - Material Attributes
 
-public struct MaterialDetails: Equatable, Sendable {
+public struct MaterialAttributes: Equatable, Sendable {
     public let description: String
     public let stackSize: Int
     public let subcategory: MaterialSubcategory
@@ -188,9 +188,9 @@ public struct MaterialDetails: Equatable, Sendable {
     }
 }
 
-// MARK: - Potion/Scroll Details (placeholder)
+// MARK: - Potion/Scroll Attributes (placeholder)
 
-public struct PotionScrollDetails: Equatable, Sendable {
+public struct PotionScrollAttributes: Equatable, Sendable {
     public let effect: String
     public let duration: Int?
 

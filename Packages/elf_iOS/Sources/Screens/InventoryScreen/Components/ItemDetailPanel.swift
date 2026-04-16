@@ -10,11 +10,11 @@ import elf_SwiftUI
 import SwiftUI
 
 struct ItemDetailPanel: View {
-    let item: InventoryDisplayItem?
+    let item: InventoryItemDisplay?
     let onEquip: () -> Void
     let onUnequip: () -> Void
 
-    private let formatter = ItemDetailsFormatter()
+    private let formatter = ItemAttributesFormatter()
 
     var body: some View {
         #if DEBUG
@@ -36,7 +36,7 @@ struct ItemDetailPanel: View {
     // MARK: - Item Content
 
     @ViewBuilder
-    private func itemContent(_ item: InventoryDisplayItem) -> some View {
+    private func itemContent(_ item: InventoryItemDisplay) -> some View {
         VStack(spacing: 15) {
             // Item image
             itemImage(item)
@@ -60,7 +60,7 @@ struct ItemDetailPanel: View {
 
     // MARK: - Item Image
 
-    private func itemImage(_ item: InventoryDisplayItem) -> some View {
+    private func itemImage(_ item: InventoryItemDisplay) -> some View {
         ZStack {
             Rectangle()
                 .fill(Color.gray.opacity(0.1))
@@ -76,7 +76,7 @@ struct ItemDetailPanel: View {
     // MARK: - Item Stats
 
     @ViewBuilder
-    private func itemStats(_ item: InventoryDisplayItem) -> some View {
+    private func itemStats(_ item: InventoryItemDisplay) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             ForEach(formatter.descriptionLines(for: item.itemDetails), id: \.self) { line in
                 if line.isEmpty {
@@ -94,7 +94,7 @@ struct ItemDetailPanel: View {
     // MARK: - Equip Button
 
     @ViewBuilder
-    private func equipButton(_ item: InventoryDisplayItem) -> some View {
+    private func equipButton(_ item: InventoryItemDisplay) -> some View {
         // Don't show equip button for materials
         if item.category != .materials {
             Button(action: {
@@ -132,13 +132,13 @@ struct ItemDetailPanel: View {
     HStack(spacing: 0) {
         // With item selected
         ItemDetailPanel(
-            item: InventoryDisplayItem(
+            item: InventoryItemDisplay(
                 id: UUID(),
                 title: "Wooden club",
                 imageName: "weapon_club",
                 isEquipped: true,
                 category: .weapons,
-                itemDetails: .weapon(WeaponDetails(
+                itemDetails: .weapon(WeaponAttributes(
                     attackMin: 8,
                     attackMax: 9,
                     attackPoints: 1,

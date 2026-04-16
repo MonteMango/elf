@@ -14,7 +14,7 @@ public final class CalendarViewModel {
 
     // MARK: - Types
 
-    public enum ViewMode: Int, CaseIterable {
+    public enum ViewMode: Int, CaseIterable, Sendable {
         case line = 0
         case grid = 1
 
