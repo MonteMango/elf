@@ -20,6 +20,7 @@ struct QuestScreen: View {
         #endif
         QuestScreenContent(
             viewModel: gameContainer.makeQuestViewModel(questId: questId),
+            dayStateViewModel: gameContainer.requireGameDayStateViewModel(),
             zoomSourceID: ownerImageName
         )
     }

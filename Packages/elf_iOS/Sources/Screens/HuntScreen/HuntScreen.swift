@@ -12,6 +12,9 @@ struct HuntScreen: View {
     @Environment(ElfGameContainer.self) private var gameContainer
 
     var body: some View {
-        HuntScreenContent(viewModel: gameContainer.makeHuntViewModel())
+        HuntScreenContent(
+            viewModel: gameContainer.makeHuntViewModel(),
+            dayStateViewModel: gameContainer.requireGameDayStateViewModel()
+        )
     }
 }

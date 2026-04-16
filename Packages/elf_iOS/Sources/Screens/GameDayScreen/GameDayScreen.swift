@@ -17,7 +17,8 @@ internal struct GameDayScreen: View {
         if gameContainer.activeGameService != nil {
             GameDayScreenContent(
                 viewModel: gameContainer.makeGameDayViewModel(),
-                inventoryViewModel: gameContainer.makeInventoryViewModel()
+                inventoryViewModel: gameContainer.makeInventoryViewModel(),
+                dayStateViewModel: gameContainer.requireGameDayStateViewModel()
             )
         }
     }

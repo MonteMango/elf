@@ -172,15 +172,6 @@ enum PreviewMockData {
     }
 
     @MainActor
-    static func createMockGameDayViewModel() -> GameDayViewModel {
-        GameDayViewModel(
-            gameService: createMockGameService(),
-            progressionService: ElfProgressionService(),
-            equipmentQueryService: ElfEquipmentQueryService()
-        )
-    }
-
-    @MainActor
     static func createMockInventoryViewModel() -> InventoryViewModel {
         let gameService = createMockGameService()
         let equipmentService = DefaultEquipmentService(gameService: gameService)

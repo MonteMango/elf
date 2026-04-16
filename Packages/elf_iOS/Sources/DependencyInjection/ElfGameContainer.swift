@@ -61,6 +61,11 @@ public final class ElfGameContainer {
     /// Currently active game service (nil when not in game)
     public private(set) var activeGameService: DefaultGameService?
 
+    /// Shared view model for the day header (action points + calendar).
+    /// Lifecycle is bound to `activeGameService`: created when a session starts,
+    /// nil'd when it ends.
+    public private(set) var gameDayStateViewModel: GameDayStateViewModel?
+
     // MARK: - Initialization
 
     public init() async {
@@ -424,11 +429,11 @@ public final class ElfGameContainer {
     }
 
     // MARK: - Game Session Management
-    
+
     /// Starts (or replaces) the active game session. Must be called before navigating
     /// to `.gameSession` so that `DefaultGameService` is available in the environment.
     public func startGameSession(game: Game, playTime: TimeInterval = 0) {
-        activeGameService = DefaultGameService(
+        let service = DefaultGameService(
             game: game,
             gameRepository: self.gameRepository,
             inventoryService: self.inventoryService,
@@ -436,6 +441,8 @@ public final class ElfGameContainer {
             debugGameLogger: self.debugGameLogger,
             playTime: playTime
         )
+        activeGameService = service
+        gameDayStateViewModel = GameDayStateViewModel(gameService: service)
     }
 
     /// Ends the active game session and releases the `DefaultGameService`.
@@ -443,6 +450,7 @@ public final class ElfGameContainer {
     /// ViewModel, which retains a strong reference until the view unmounts.
     public func endGameSession() {
         activeGameService = nil
+        gameDayStateViewModel = nil
     }
 
     /// Saves active game if exists (called on app background)
@@ -456,7 +464,7 @@ public final class ElfGameContainer {
     #if DEBUG
     /// Initialize a game session for SwiftUI previews without side effects
     public func initializePreviewSession(game: Game) {
-        activeGameService = DefaultGameService(
+        let service = DefaultGameService(
             game: game,
             gameRepository: self.gameRepository,
             inventoryService: self.inventoryService,
@@ -464,6 +472,19 @@ public final class ElfGameContainer {
             debugGameLogger: self.debugGameLogger,
             playTime: 0
         )
+        activeGameService = service
+        gameDayStateViewModel = GameDayStateViewModel(gameService: service)
     }
     #endif
+
+    // MARK: - Required Accessors
+
+    /// Returns the shared `GameDayStateViewModel`. Must only be called while a
+    /// game session is active.
+    public func requireGameDayStateViewModel() -> GameDayStateViewModel {
+        guard let viewModel = gameDayStateViewModel else {
+            fatalError("No active game session. GameDayStateViewModel requires an active game.")
+        }
+        return viewModel
+    }
 }

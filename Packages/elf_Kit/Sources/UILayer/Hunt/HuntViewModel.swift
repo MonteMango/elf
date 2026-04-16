@@ -27,15 +27,11 @@ public final class HuntViewModel {
     public let huntCost: Int = 20
     public private(set) var isHunting: Bool = false
 
-    // MARK: - Game Session State (exposed for top bar / calendar nav)
-
-    public var currentDay: GameDay { gameService.currentDay }
-    public var upcomingDays: [GameDay] { gameService.upcomingDays }
-    public var calendar: [GameDay] { gameService.calendar }
-    public var actionPoints: ActionPoints { gameService.actionPoints }
-    public var isLastDay: Bool { gameService.isLastDay }
-
     // MARK: - Derived (computed reactively)
+
+    public var canHunt: Bool {
+        gameService.actionPoints.current >= huntCost && !isHunting
+    }
 
     /// Pool of monsters for the player's current level.
     private var availableMonsters: [Monster] {
@@ -69,12 +65,6 @@ public final class HuntViewModel {
     }
 
     // MARK: - Actions
-
-    /// Advances to the next day and restores action points
-    public func advanceToNextDay() async {
-        gameService.advanceToNextDay()
-        try? await gameService.saveGame()
-    }
 
     /// Starts a hunt: spends action points, selects random monster, returns Battle
     public func startHunt() -> Battle? {

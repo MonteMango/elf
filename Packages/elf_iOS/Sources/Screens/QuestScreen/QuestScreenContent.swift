@@ -15,31 +15,13 @@ struct QuestScreenContent: View {
     @Environment(AppRouter.self) private var router
     @Environment(\.questZoomNamespace) private var zoomNamespace
     @State private var viewModel: QuestViewModel
+    let dayStateViewModel: GameDayStateViewModel
     let zoomSourceID: String
 
-    init(viewModel: QuestViewModel, zoomSourceID: String) {
+    init(viewModel: QuestViewModel, dayStateViewModel: GameDayStateViewModel, zoomSourceID: String) {
         self._viewModel = State(initialValue: viewModel)
+        self.dayStateViewModel = dayStateViewModel
         self.zoomSourceID = zoomSourceID
-    }
-
-    // MARK: - Calendar Data
-
-    private var currentDayData: CalendarDayData {
-        CalendarDayData(
-            id: viewModel.currentDay.id,
-            dayNumber: viewModel.currentDay.dayNumber,
-            backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
-        )
-    }
-
-    private var upcomingDaysData: [CalendarDayData] {
-        viewModel.upcomingDays.map {
-            CalendarDayData(
-                id: $0.id,
-                dayNumber: $0.dayNumber,
-                backgroundColor: ElfColors.Calendar.dayColor(for: $0.dayType.rawValue)
-            )
-        }
     }
 
     // MARK: - Image Aspect Ratio
@@ -102,23 +84,16 @@ struct QuestScreenContent: View {
             .ignoresSafeArea()
         }
         .overlay(alignment: .top) {
-            ScreenTopBar(
-                currentActionPoints: viewModel.actionPoints.current,
-                maxActionPoints: viewModel.actionPoints.maximum,
-                isLastDay: viewModel.isLastDay,
-                currentDay: currentDayData,
-                upcomingDays: upcomingDaysData,
-                onNextDay: { Task { await viewModel.advanceToNextDay() } },
+            GameDayHeader(
+                viewModel: dayStateViewModel,
                 onBack: { router.pop() },
                 onCalendarTap: {
                     router.navigate(to: .calendar(
-                        calendar: viewModel.calendar,
-                        currentDayNumber: viewModel.currentDay.dayNumber
+                        calendar: dayStateViewModel.calendar,
+                        currentDayNumber: dayStateViewModel.currentDay.dayNumber
                     ))
                 }
             )
-            .padding(.top, ElfSizing.standardPadding)
-            .padding(.horizontal, ElfSpacing.screen)
         }
         .background(ElfColors.Background.primary)
         .toolbar(.hidden, for: .navigationBar)
@@ -222,6 +197,7 @@ struct QuestScreenContent: View {
                 viewModel: gameContainer.makeQuestViewModel(
                     questId: QuestID()
                 ),
+                dayStateViewModel: gameContainer.requireGameDayStateViewModel(),
                 zoomSourceID: "quest_preview"
             )
             .environment(\.questZoomNamespace, previewNamespace)

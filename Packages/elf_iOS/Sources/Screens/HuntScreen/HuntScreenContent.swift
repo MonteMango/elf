@@ -12,52 +12,25 @@ import SwiftUI
 struct HuntScreenContent: View {
     @Environment(AppRouter.self) private var router
     @State private var viewModel: HuntViewModel
+    let dayStateViewModel: GameDayStateViewModel
 
-    init(viewModel: HuntViewModel) {
+    init(viewModel: HuntViewModel, dayStateViewModel: GameDayStateViewModel) {
         self._viewModel = State(initialValue: viewModel)
-    }
-
-    private var currentDayData: CalendarDayData {
-        CalendarDayData(
-            id: viewModel.currentDay.id,
-            dayNumber: viewModel.currentDay.dayNumber,
-            backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
-        )
-    }
-
-    private var upcomingDaysData: [CalendarDayData] {
-        viewModel.upcomingDays.map {
-            CalendarDayData(
-                id: $0.id,
-                dayNumber: $0.dayNumber,
-                backgroundColor: ElfColors.Calendar.dayColor(for: $0.dayType.rawValue)
-            )
-        }
-    }
-
-    private var canHunt: Bool {
-        viewModel.actionPoints.current >= viewModel.huntCost && !viewModel.isHunting
+        self.dayStateViewModel = dayStateViewModel
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenTopBar(
-                currentActionPoints: viewModel.actionPoints.current,
-                maxActionPoints: viewModel.actionPoints.maximum,
-                isLastDay: viewModel.isLastDay,
-                currentDay: currentDayData,
-                upcomingDays: upcomingDaysData,
-                onNextDay: { Task { await viewModel.advanceToNextDay() } },
+            GameDayHeader(
+                viewModel: dayStateViewModel,
                 onBack: { router.pop() },
                 onCalendarTap: {
                     router.navigate(to: .calendar(
-                        calendar: viewModel.calendar,
-                        currentDayNumber: viewModel.currentDay.dayNumber
+                        calendar: dayStateViewModel.calendar,
+                        currentDayNumber: dayStateViewModel.currentDay.dayNumber
                     ))
                 }
             )
-            .padding(.top, ElfSizing.standardPadding)
-            .padding(.horizontal, ElfSpacing.screen)
 
             Spacer()
 
@@ -92,8 +65,8 @@ struct HuntScreenContent: View {
                 router.navigationPath.append(AppRoute.battleFight(battle))
             }
         }
-        .buttonStyle(.elfPrimary(isEnabled: canHunt))
-        .disabled(!canHunt)
+        .buttonStyle(.elfPrimary(isEnabled: viewModel.canHunt))
+        .disabled(!viewModel.canHunt)
         .overlay(alignment: .bottomTrailing) {
             Text("\(viewModel.huntCost) pt")
                 .font(.footnote)
@@ -111,7 +84,8 @@ struct HuntScreenContent: View {
     if let gameContainer, gameContainer.activeGameService != nil {
         NavigationStack(path: $router.navigationPath) {
             HuntScreenContent(
-                viewModel: gameContainer.makeHuntViewModel()
+                viewModel: gameContainer.makeHuntViewModel(),
+                dayStateViewModel: gameContainer.requireGameDayStateViewModel()
             )
             .environment(router)
         }

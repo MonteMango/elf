@@ -17,29 +17,11 @@ struct FarmActivityScreenContent: View {
     @State private var viewModel: FarmActivityViewModel
     @State private var showCalendar = false
     @State private var navigatedToBattle = false
+    let dayStateViewModel: GameDayStateViewModel
 
-    init(viewModel: FarmActivityViewModel) {
+    init(viewModel: FarmActivityViewModel, dayStateViewModel: GameDayStateViewModel) {
         self._viewModel = State(initialValue: viewModel)
-    }
-
-    // MARK: - Calendar Data
-
-    private var currentDayData: CalendarDayData {
-        CalendarDayData(
-            id: viewModel.currentDay.id,
-            dayNumber: viewModel.currentDay.dayNumber,
-            backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
-        )
-    }
-
-    private var upcomingDaysData: [CalendarDayData] {
-        viewModel.upcomingDays.map {
-            CalendarDayData(
-                id: $0.id,
-                dayNumber: $0.dayNumber,
-                backgroundColor: ElfColors.Calendar.dayColor(for: $0.dayType.rawValue)
-            )
-        }
+        self.dayStateViewModel = dayStateViewModel
     }
 
     // MARK: - Items Grid Data
@@ -54,10 +36,6 @@ struct FarmActivityScreenContent: View {
 
     private var isPerformingActivity: Bool {
         viewModel.activityState == .performing
-    }
-
-    private var canPerformAction: Bool {
-        viewModel.actionPoints.current >= viewModel.actionCost && viewModel.activityState == .idle
     }
 
     // MARK: - Background
@@ -79,20 +57,11 @@ struct FarmActivityScreenContent: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenTopBar(
-                currentActionPoints: viewModel.actionPoints.current,
-                maxActionPoints: viewModel.actionPoints.maximum,
-                isLastDay: viewModel.isLastDay,
-                currentDay: currentDayData,
-                upcomingDays: upcomingDaysData,
-                onNextDay: { Task { await viewModel.advanceToNextDay() } },
+            GameDayHeader(
+                viewModel: dayStateViewModel,
                 onBack: { dismiss() },
-                onCalendarTap: {
-                    showCalendar = true
-                }
+                onCalendarTap: { showCalendar = true }
             )
-            .padding(.top, ElfSizing.standardPadding)
-            .padding(.horizontal, ElfSpacing.screen)
 
             Spacer()
 
@@ -121,8 +90,8 @@ struct FarmActivityScreenContent: View {
                         await viewModel.performActivity()
                     }
                 }
-                .buttonStyle(.elfPrimary(isEnabled: canPerformAction))
-                .disabled(!canPerformAction)
+                .buttonStyle(.elfPrimary(isEnabled: viewModel.canPerformAction))
+                .disabled(!viewModel.canPerformAction)
                 .overlay(alignment: .bottomTrailing) {
                     Text("\(viewModel.actionCost) pt")
                         .font(.footnote)
@@ -146,8 +115,8 @@ struct FarmActivityScreenContent: View {
         .navigationDestination(isPresented: $showCalendar) {
             CalendarScreenContent(
                 viewModel: gameContainer.makeCalendarViewModel(
-                    calendar: viewModel.calendar,
-                    currentDayNumber: viewModel.currentDay.dayNumber
+                    calendar: dayStateViewModel.calendar,
+                    currentDayNumber: dayStateViewModel.currentDay.dayNumber
                 )
             )
         }
@@ -201,7 +170,8 @@ struct FarmActivityScreenContent: View {
     if let gameContainer, gameContainer.activeGameService != nil {
         NavigationStack {
             FarmActivityScreenContent(
-                viewModel: gameContainer.makeFarmActivityViewModel(activity: .fishing)
+                viewModel: gameContainer.makeFarmActivityViewModel(activity: .fishing),
+                dayStateViewModel: gameContainer.requireGameDayStateViewModel()
             )
             .environment(\.farmZoomNamespace, previewNamespace)
             .environment(gameContainer)

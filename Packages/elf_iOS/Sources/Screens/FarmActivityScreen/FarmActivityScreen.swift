@@ -15,7 +15,8 @@ struct FarmActivityScreen: View {
 
     var body: some View {
         FarmActivityScreenContent(
-            viewModel: gameContainer.makeFarmActivityViewModel(activity: activity)
+            viewModel: gameContainer.makeFarmActivityViewModel(activity: activity),
+            dayStateViewModel: gameContainer.requireGameDayStateViewModel()
         )
     }
 }

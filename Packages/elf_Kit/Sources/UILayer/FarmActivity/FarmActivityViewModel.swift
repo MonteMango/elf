@@ -54,15 +54,11 @@ public final class FarmActivityViewModel {
         "Monsters could attack you during \(activity.rawValue)."
     }
 
-    // MARK: - Game Session State (exposed for top bar / calendar nav)
-
-    public var currentDay: GameDay { gameService.currentDay }
-    public var upcomingDays: [GameDay] { gameService.upcomingDays }
-    public var calendar: [GameDay] { gameService.calendar }
-    public var actionPoints: ActionPoints { gameService.actionPoints }
-    public var isLastDay: Bool { gameService.isLastDay }
-
     // MARK: - Derived state (computed reactively)
+
+    public var canPerformAction: Bool {
+        gameService.actionPoints.current >= actionCost && activityState == .idle
+    }
 
     private var skillInfo: FarmSkillInfo {
         let exp: Int = switch activity {
@@ -111,11 +107,6 @@ public final class FarmActivityViewModel {
     }
 
     // MARK: - Actions
-
-    public func advanceToNextDay() async {
-        gameService.advanceToNextDay()
-        try? await gameService.saveGame()
-    }
 
     /// Perform the current farm activity
     public func performActivity() async {

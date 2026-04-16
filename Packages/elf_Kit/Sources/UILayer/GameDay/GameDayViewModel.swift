@@ -28,11 +28,6 @@ public final class GameDayViewModel {
     // MARK: - Derived state (computed reactively)
 
     public var player: PlayerStore { gameService.player }
-    public var currentDay: GameDay { gameService.currentDay }
-    public var upcomingDays: [GameDay] { gameService.upcomingDays }
-    public var calendar: [GameDay] { gameService.calendar }
-    public var actionPoints: ActionPoints { gameService.actionPoints }
-    public var isLastDay: Bool { gameService.isLastDay }
 
     public var characterLevel: Int {
         progressionService.calculateLevel(currentExp: gameService.player.currentExp)
@@ -97,11 +92,5 @@ public final class GameDayViewModel {
     /// Called when a pocket slot is tapped
     public func onPocketTapped(_ index: Int) {
         print("Pocket tapped: \(index)")
-    }
-
-    /// Advances the game to the next day and persists the save.
-    public func advanceToNextDay() async {
-        gameService.advanceToNextDay()
-        try? await gameService.saveGame()
     }
 }

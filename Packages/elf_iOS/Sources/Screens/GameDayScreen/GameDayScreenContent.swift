@@ -14,20 +14,16 @@ internal struct GameDayScreenContent: View {
     @Environment(ElfGameContainer.self) private var gameContainer
     @State private var viewModel: GameDayViewModel
     @State private var inventoryViewModel: InventoryViewModel
+    let dayStateViewModel: GameDayStateViewModel
 
-    internal init(viewModel: GameDayViewModel, inventoryViewModel: InventoryViewModel) {
+    internal init(
+        viewModel: GameDayViewModel,
+        inventoryViewModel: InventoryViewModel,
+        dayStateViewModel: GameDayStateViewModel
+    ) {
         self._viewModel = State(initialValue: viewModel)
         self._inventoryViewModel = State(initialValue: inventoryViewModel)
-    }
-
-    private var upcomingDaysData: [CalendarDayData] {
-        viewModel.upcomingDays.map {
-            CalendarDayData(
-                id: $0.id,
-                dayNumber: $0.dayNumber,
-                backgroundColor: ElfColors.Calendar.dayColor(for: $0.dayType.rawValue)
-            )
-        }
+        self.dayStateViewModel = dayStateViewModel
     }
 
     var body: some View {
@@ -109,11 +105,11 @@ internal struct GameDayScreenContent: View {
     private var centerSection: some View {
         VStack(spacing: ElfSpacing.section) {
             elf_SwiftUI.ActionPointsBar(
-                current: viewModel.actionPoints.current,
-                max: viewModel.actionPoints.maximum,
+                current: dayStateViewModel.actionPoints.current,
+                max: dayStateViewModel.actionPoints.maximum,
                 showNextDayButton: true,
-                isLastDay: viewModel.isLastDay,
-                onNextDay: { Task { await viewModel.advanceToNextDay() } }
+                isLastDay: dayStateViewModel.isLastDay,
+                onNextDay: { Task { await dayStateViewModel.advanceToNextDay() } }
             )
 
             ActionButtonsList(onAction: { action in
@@ -143,16 +139,12 @@ internal struct GameDayScreenContent: View {
                 Spacer()
 
                 elf_SwiftUI.CalendarSection(
-                    currentDay: CalendarDayData(
-                        id: viewModel.currentDay.id,
-                        dayNumber: viewModel.currentDay.dayNumber,
-                        backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
-                    ),
-                    upcomingDays: upcomingDaysData,
+                    currentDay: dayStateViewModel.currentDay.calendarDayData,
+                    upcomingDays: dayStateViewModel.upcomingDays.map(\.calendarDayData),
                     onTap: {
                         router.navigate(to: .calendar(
-                            calendar: viewModel.calendar,
-                            currentDayNumber: viewModel.currentDay.dayNumber
+                            calendar: dayStateViewModel.calendar,
+                            currentDayNumber: dayStateViewModel.currentDay.dayNumber
                         ))
                     }
                 )
@@ -177,13 +169,25 @@ internal struct GameDayScreenContent: View {
 
 #if DEBUG
 #Preview {
+    @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @State var router = AppRouter()
 
-    GameDayScreenContent(
-        viewModel: PreviewMockData.createMockGameDayViewModel(),
-        inventoryViewModel: PreviewMockData.createMockInventoryViewModel()
-    )
-    .environment(router)
-    .preferredColorScheme(.light)
+    if let gameContainer, gameContainer.activeGameService != nil {
+        GameDayScreenContent(
+            viewModel: gameContainer.makeGameDayViewModel(),
+            inventoryViewModel: gameContainer.makeInventoryViewModel(),
+            dayStateViewModel: gameContainer.requireGameDayStateViewModel()
+        )
+        .environment(router)
+        .environment(gameContainer)
+        .preferredColorScheme(.light)
+    } else {
+        ProgressView()
+            .task {
+                let container = await ElfGameContainer()
+                container.initializePreviewSession(game: PreviewMockData.createMockGame())
+                gameContainer = container
+            }
+    }
 }
 #endif

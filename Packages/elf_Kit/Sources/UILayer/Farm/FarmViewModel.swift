@@ -16,14 +16,6 @@ public final class FarmViewModel {
     private let gameService: any GameService
     private let progressionService: any ProgressionService
 
-    // MARK: - Game Session State (exposed for top bar / calendar nav)
-
-    public var currentDay: GameDay { gameService.currentDay }
-    public var upcomingDays: [GameDay] { gameService.upcomingDays }
-    public var calendar: [GameDay] { gameService.calendar }
-    public var actionPoints: ActionPoints { gameService.actionPoints }
-    public var isLastDay: Bool { gameService.isLastDay }
-
     // MARK: - Farming Skills (computed reactively)
 
     public var foragingLevel: Int {
@@ -50,12 +42,5 @@ public final class FarmViewModel {
     public init(gameService: any GameService, progressionService: any ProgressionService) {
         self.gameService = gameService
         self.progressionService = progressionService
-    }
-
-    // MARK: - Actions
-
-    public func advanceToNextDay() async {
-        gameService.advanceToNextDay()
-        try? await gameService.saveGame()
     }
 }

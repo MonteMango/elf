@@ -15,52 +15,27 @@ struct FarmScreenContent: View {
     @Environment(AppRouter.self) private var router
     @Environment(\.farmZoomNamespace) private var zoomNamespace
     @State private var viewModel: FarmViewModel
+    let dayStateViewModel: GameDayStateViewModel
 
-    init(viewModel: FarmViewModel) {
+    init(viewModel: FarmViewModel, dayStateViewModel: GameDayStateViewModel) {
         self._viewModel = State(initialValue: viewModel)
-    }
-
-    // MARK: - Calendar Data
-
-    private var currentDayData: CalendarDayData {
-        CalendarDayData(
-            id: viewModel.currentDay.id,
-            dayNumber: viewModel.currentDay.dayNumber,
-            backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
-        )
-    }
-
-    private var upcomingDaysData: [CalendarDayData] {
-        viewModel.upcomingDays.map {
-            CalendarDayData(
-                id: $0.id,
-                dayNumber: $0.dayNumber,
-                backgroundColor: ElfColors.Calendar.dayColor(for: $0.dayType.rawValue)
-            )
-        }
+        self.dayStateViewModel = dayStateViewModel
     }
 
     // MARK: - Body
 
     var body: some View {
         VStack(spacing: 0) {
-            ScreenTopBar(
-                currentActionPoints: viewModel.actionPoints.current,
-                maxActionPoints: viewModel.actionPoints.maximum,
-                isLastDay: viewModel.isLastDay,
-                currentDay: currentDayData,
-                upcomingDays: upcomingDaysData,
-                onNextDay: { Task { await viewModel.advanceToNextDay() } },
+            GameDayHeader(
+                viewModel: dayStateViewModel,
                 onBack: { router.pop() },
                 onCalendarTap: {
                     router.navigate(to: .calendar(
-                        calendar: viewModel.calendar,
-                        currentDayNumber: viewModel.currentDay.dayNumber
+                        calendar: dayStateViewModel.calendar,
+                        currentDayNumber: dayStateViewModel.currentDay.dayNumber
                     ))
                 }
             )
-            .padding(.top, ElfSizing.standardPadding)
-            .padding(.horizontal, ElfSpacing.screen)
 
             Spacer()
 
@@ -121,7 +96,8 @@ struct FarmScreenContent: View {
     if let gameContainer, gameContainer.activeGameService != nil {
         NavigationStack(path: $router.navigationPath) {
             FarmScreenContent(
-                viewModel: gameContainer.makeFarmViewModel()
+                viewModel: gameContainer.makeFarmViewModel(),
+                dayStateViewModel: gameContainer.requireGameDayStateViewModel()
             )
             .environment(router)
             .environment(gameContainer)

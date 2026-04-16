@@ -31,14 +31,6 @@ public final class QuestListViewModel {
     private let questRepository: any QuestRepository
     private let materialRepository: any Repository<Material>
 
-    // MARK: - Game Session State (exposed for top bar / calendar nav)
-
-    public var currentDay: GameDay { gameService.currentDay }
-    public var upcomingDays: [GameDay] { gameService.upcomingDays }
-    public var calendar: [GameDay] { gameService.calendar }
-    public var actionPoints: ActionPoints { gameService.actionPoints }
-    public var isLastDay: Bool { gameService.isLastDay }
-
     // MARK: - Display Data (derived reactively from repositories)
 
     public var questOwners: [QuestOwnerDisplay] {
@@ -66,13 +58,6 @@ public final class QuestListViewModel {
         self.gameService = gameService
         self.questRepository = questRepository
         self.materialRepository = materialRepository
-    }
-
-    // MARK: - Actions
-
-    public func advanceToNextDay() async {
-        gameService.advanceToNextDay()
-        try? await gameService.saveGame()
     }
 
     // MARK: - Private

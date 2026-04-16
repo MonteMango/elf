@@ -49,14 +49,6 @@ public final class QuestViewModel {
     private let herbRepository: any Repository<Herb>
     private let monsterRepository: any MonsterRepository
 
-    // MARK: - Game Session State (exposed for top bar / calendar nav)
-
-    public var currentDay: GameDay { gameService.currentDay }
-    public var upcomingDays: [GameDay] { gameService.upcomingDays }
-    public var calendar: [GameDay] { gameService.calendar }
-    public var actionPoints: ActionPoints { gameService.actionPoints }
-    public var isLastDay: Bool { gameService.isLastDay }
-
     // MARK: - Display Data (derived reactively from repositories)
 
     public var questData: QuestDisplayData? {
@@ -93,13 +85,6 @@ public final class QuestViewModel {
         self.oreRepository = oreRepository
         self.herbRepository = herbRepository
         self.monsterRepository = monsterRepository
-    }
-
-    // MARK: - Actions
-
-    public func advanceToNextDay() async {
-        gameService.advanceToNextDay()
-        try? await gameService.saveGame()
     }
 
     // MARK: - Private
