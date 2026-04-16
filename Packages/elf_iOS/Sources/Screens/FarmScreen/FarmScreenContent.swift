@@ -87,7 +87,7 @@ struct FarmScreenContent: View {
                         router.navigate(to: .farmActivity(activity))
                     }
                 )
-                .modifier(FarmZoomSourceModifier(id: activity.id, namespace: zoomNamespace))
+                .modifier(ZoomSourceModifier(id: activity.id, namespace: zoomNamespace))
             }
         }
         .padding(.horizontal, ElfSpacing.screen)

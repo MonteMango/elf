@@ -143,7 +143,7 @@ struct FarmActivityScreenContent: View {
             activityBackground
         }
         .toolbar(.hidden, for: .navigationBar)
-        .modifier(FarmZoomTransitionModifier(sourceID: viewModel.activity.id, namespace: zoomNamespace))
+        .modifier(ZoomTransitionModifier(sourceID: viewModel.activity.id, namespace: zoomNamespace))
         .navigationDestination(isPresented: $showCalendar) {
             CalendarScreenContent(
                 viewModel: gameContainer.makeCalendarViewModel(

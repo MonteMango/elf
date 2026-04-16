@@ -123,7 +123,7 @@ struct QuestScreenContent: View {
         }
         .background(ElfColors.Background.primary)
         .toolbar(.hidden, for: .navigationBar)
-        .modifier(QuestZoomTransitionModifier(
+        .modifier(ZoomTransitionModifier(
             sourceID: zoomSourceID,
             namespace: zoomNamespace
         ))

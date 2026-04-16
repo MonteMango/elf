@@ -1,5 +1,5 @@
 //
-//  QuestZoomNamespace.swift
+//  ZoomNamespace.swift
 //  elf_iOS
 //
 //  Created by Vitalii Lytvynov
@@ -7,13 +7,22 @@
 
 import SwiftUI
 
-// MARK: - QuestZoomNamespace Environment Key
+// MARK: - Environment Keys
+
+private struct FarmZoomNamespaceKey: EnvironmentKey {
+    static let defaultValue: Namespace.ID? = nil
+}
 
 private struct QuestZoomNamespaceKey: EnvironmentKey {
     static let defaultValue: Namespace.ID? = nil
 }
 
 extension EnvironmentValues {
+    var farmZoomNamespace: Namespace.ID? {
+        get { self[FarmZoomNamespaceKey.self] }
+        set { self[FarmZoomNamespaceKey.self] = newValue }
+    }
+
     var questZoomNamespace: Namespace.ID? {
         get { self[QuestZoomNamespaceKey.self] }
         set { self[QuestZoomNamespaceKey.self] = newValue }
@@ -23,7 +32,7 @@ extension EnvironmentValues {
 // MARK: - Zoom Transition Modifiers
 
 /// Applies matchedTransitionSource if namespace is available
-struct QuestZoomSourceModifier: ViewModifier {
+struct ZoomSourceModifier: ViewModifier {
     let id: String
     let namespace: Namespace.ID?
 
@@ -37,7 +46,7 @@ struct QuestZoomSourceModifier: ViewModifier {
 }
 
 /// Applies navigationTransition zoom if namespace is available
-struct QuestZoomTransitionModifier: ViewModifier {
+struct ZoomTransitionModifier: ViewModifier {
     let sourceID: String
     let namespace: Namespace.ID?
 

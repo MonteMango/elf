@@ -98,7 +98,7 @@ struct QuestListScreenContent: View {
                         .fill(.clear)
                         .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
-                .modifier(QuestZoomSourceModifier(
+                .modifier(ZoomSourceModifier(
                     id: owner.imageName,
                     namespace: zoomNamespace
                 ))
