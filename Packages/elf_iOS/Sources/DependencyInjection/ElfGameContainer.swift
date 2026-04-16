@@ -439,9 +439,8 @@ public final class ElfGameContainer {
     }
 
     /// Ends the active game session and releases the `DefaultGameService`.
-    /// Callers must unwind navigation to the root (`router.popToRoot()`) *before*
-    /// invoking this, so that no game-session view is still reading
-    /// `@Environment(DefaultGameService.self)` when the service disappears.
+    /// Safe to call at any time: screens access the service only through their
+    /// ViewModel, which retains a strong reference until the view unmounts.
     public func endGameSession() {
         activeGameService = nil
     }

@@ -54,6 +54,14 @@ public final class FarmActivityViewModel {
         "Monsters could attack you during \(activity.rawValue)."
     }
 
+    // MARK: - Game Session State (exposed for top bar / calendar nav)
+
+    public var currentDay: GameDay { gameService.currentDay }
+    public var upcomingDays: [GameDay] { gameService.upcomingDays }
+    public var calendar: [GameDay] { gameService.calendar }
+    public var actionPoints: ActionPoints { gameService.actionPoints }
+    public var isLastDay: Bool { gameService.isLastDay }
+
     // MARK: - Derived state (computed reactively)
 
     private var skillInfo: FarmSkillInfo {

@@ -11,7 +11,6 @@ import SwiftUI
 
 struct FarmActivityScreenContent: View {
     @Environment(ElfGameContainer.self) private var gameContainer
-    @Environment(DefaultGameService.self) private var gameService
     @Environment(AppRouter.self) private var router
     @Environment(\.dismiss) private var dismiss
     @Environment(\.farmZoomNamespace) private var zoomNamespace
@@ -27,14 +26,14 @@ struct FarmActivityScreenContent: View {
 
     private var currentDayData: CalendarDayData {
         CalendarDayData(
-            id: gameService.currentDay.id,
-            dayNumber: gameService.currentDay.dayNumber,
-            backgroundColor: ElfColors.Calendar.dayColor(for: gameService.currentDay.dayType.rawValue)
+            id: viewModel.currentDay.id,
+            dayNumber: viewModel.currentDay.dayNumber,
+            backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
         )
     }
 
     private var upcomingDaysData: [CalendarDayData] {
-        gameService.upcomingDays.map {
+        viewModel.upcomingDays.map {
             CalendarDayData(
                 id: $0.id,
                 dayNumber: $0.dayNumber,
@@ -58,7 +57,7 @@ struct FarmActivityScreenContent: View {
     }
 
     private var canPerformAction: Bool {
-        gameService.actionPoints.current >= viewModel.actionCost && viewModel.activityState == .idle
+        viewModel.actionPoints.current >= viewModel.actionCost && viewModel.activityState == .idle
     }
 
     // MARK: - Background
@@ -81,9 +80,9 @@ struct FarmActivityScreenContent: View {
     var body: some View {
         VStack(spacing: 0) {
             ScreenTopBar(
-                currentActionPoints: gameService.actionPoints.current,
-                maxActionPoints: gameService.actionPoints.maximum,
-                isLastDay: gameService.isLastDay,
+                currentActionPoints: viewModel.actionPoints.current,
+                maxActionPoints: viewModel.actionPoints.maximum,
+                isLastDay: viewModel.isLastDay,
                 currentDay: currentDayData,
                 upcomingDays: upcomingDaysData,
                 onNextDay: { Task { await viewModel.advanceToNextDay() } },
@@ -147,8 +146,8 @@ struct FarmActivityScreenContent: View {
         .navigationDestination(isPresented: $showCalendar) {
             CalendarScreenContent(
                 viewModel: gameContainer.makeCalendarViewModel(
-                    calendar: gameService.calendar,
-                    currentDayNumber: gameService.currentDay.dayNumber
+                    calendar: viewModel.calendar,
+                    currentDayNumber: viewModel.currentDay.dayNumber
                 )
             )
         }
@@ -199,14 +198,13 @@ struct FarmActivityScreenContent: View {
     @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @Namespace var previewNamespace
 
-    if let gameContainer, let gameService = gameContainer.activeGameService {
+    if let gameContainer, gameContainer.activeGameService != nil {
         NavigationStack {
             FarmActivityScreenContent(
                 viewModel: gameContainer.makeFarmActivityViewModel(activity: .fishing)
             )
             .environment(\.farmZoomNamespace, previewNamespace)
             .environment(gameContainer)
-            .environment(gameService)
             .environment(AppRouter())
         }
     } else {

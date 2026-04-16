@@ -49,19 +49,14 @@ public struct RootScreen: View {
 
 private extension View {
 
-    /// Injects `ElfGameContainer` and the active `DefaultGameService` (when present)
-    /// into the environment so screens can read game state directly with
-    /// `@Environment(DefaultGameService.self)`.
+    /// Injects `ElfGameContainer` into the environment so screens can access
+    /// ViewModel factories. Game-session state (player, calendar, action points)
+    /// is exposed through the per-screen ViewModel — never read from a
+    /// `@Environment(DefaultGameService.self)` binding.
     @ViewBuilder
     func gameContainerEnvironment(_ gameContainer: ElfGameContainer?) -> some View {
         if let gameContainer {
-            if let gameService = gameContainer.activeGameService {
-                self
-                    .environment(gameContainer)
-                    .environment(gameService)
-            } else {
-                self.environment(gameContainer)
-            }
+            self.environment(gameContainer)
         } else {
             self
         }

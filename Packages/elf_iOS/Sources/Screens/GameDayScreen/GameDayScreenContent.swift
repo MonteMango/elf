@@ -11,7 +11,6 @@ import SwiftUI
 
 internal struct GameDayScreenContent: View {
     @Environment(AppRouter.self) private var router
-    @Environment(DefaultGameService.self) private var gameService
     @Environment(ElfGameContainer.self) private var gameContainer
     @State private var viewModel: GameDayViewModel
     @State private var inventoryViewModel: InventoryViewModel
@@ -22,7 +21,7 @@ internal struct GameDayScreenContent: View {
     }
 
     private var upcomingDaysData: [CalendarDayData] {
-        gameService.upcomingDays.map {
+        viewModel.upcomingDays.map {
             CalendarDayData(
                 id: $0.id,
                 dayNumber: $0.dayNumber,
@@ -77,8 +76,8 @@ internal struct GameDayScreenContent: View {
         VStack(spacing: 5) {
             PlayerInfoSection(
                 level: viewModel.characterLevel,
-                name: gameService.player.name,
-                currentExp: gameService.player.currentExp,
+                name: viewModel.player.name,
+                currentExp: viewModel.player.currentExp,
                 expToNextLevel: viewModel.expToNextLevel,
                 xpProgress: viewModel.xpProgress
             )
@@ -86,20 +85,20 @@ internal struct GameDayScreenContent: View {
             BuffsScrollView(buffs: viewModel.activeBuffs)
 
             HeroSection(
-                imageName: gameService.player.imageName,
+                imageName: viewModel.player.imageName,
                 equippedItems: viewModel.equippedItems,
-                currentHP: Int(gameService.player.currentHP),
-                currentMP: Int(gameService.player.currentMP),
-                reputation: gameService.player.reputation,
+                currentHP: Int(viewModel.player.currentHP),
+                currentMP: Int(viewModel.player.currentMP),
+                reputation: viewModel.player.reputation,
                 onEquipmentSlotTapped: viewModel.onEquipmentSlotTapped,
                 onPocketTapped: viewModel.onPocketTapped
             )
 
             elf_SwiftUI.AttributesCompactView(
-                strength: gameService.player.totalAttributes.strength.intValue,
-                agility: gameService.player.totalAttributes.agility.intValue,
-                power: gameService.player.totalAttributes.power.intValue,
-                instinct: gameService.player.totalAttributes.instinct.intValue
+                strength: viewModel.player.totalAttributes.strength.intValue,
+                agility: viewModel.player.totalAttributes.agility.intValue,
+                power: viewModel.player.totalAttributes.power.intValue,
+                instinct: viewModel.player.totalAttributes.instinct.intValue
             )
         }
     }
@@ -110,11 +109,11 @@ internal struct GameDayScreenContent: View {
     private var centerSection: some View {
         VStack(spacing: ElfSpacing.section) {
             elf_SwiftUI.ActionPointsBar(
-                current: gameService.actionPoints.current,
-                max: gameService.actionPoints.maximum,
+                current: viewModel.actionPoints.current,
+                max: viewModel.actionPoints.maximum,
                 showNextDayButton: true,
-                isLastDay: gameService.isLastDay,
-                onNextDay: { Task { await viewModel.onConfirmActionPoints() } }
+                isLastDay: viewModel.isLastDay,
+                onNextDay: { Task { await viewModel.advanceToNextDay() } }
             )
 
             ActionButtonsList(onAction: { action in
@@ -145,15 +144,15 @@ internal struct GameDayScreenContent: View {
 
                 elf_SwiftUI.CalendarSection(
                     currentDay: CalendarDayData(
-                        id: gameService.currentDay.id,
-                        dayNumber: gameService.currentDay.dayNumber,
-                        backgroundColor: ElfColors.Calendar.dayColor(for: gameService.currentDay.dayType.rawValue)
+                        id: viewModel.currentDay.id,
+                        dayNumber: viewModel.currentDay.dayNumber,
+                        backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
                     ),
                     upcomingDays: upcomingDaysData,
                     onTap: {
                         router.navigate(to: .calendar(
-                            calendar: gameService.calendar,
-                            currentDayNumber: gameService.currentDay.dayNumber
+                            calendar: viewModel.calendar,
+                            currentDayNumber: viewModel.currentDay.dayNumber
                         ))
                     }
                 )
@@ -164,9 +163,6 @@ internal struct GameDayScreenContent: View {
                     Task {
                         await viewModel.exitGame()
                         router.popToRoot()
-                        // Defer one tick so SwiftUI unmounts the game-session views
-                        // before the DefaultGameService environment disappears.
-                        await Task.yield()
                         gameContainer.endGameSession()
                     }
                 }

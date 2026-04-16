@@ -13,7 +13,6 @@ import SwiftUI
 
 struct QuestScreenContent: View {
     @Environment(AppRouter.self) private var router
-    @Environment(DefaultGameService.self) private var gameService
     @Environment(\.questZoomNamespace) private var zoomNamespace
     @State private var viewModel: QuestViewModel
     let zoomSourceID: String
@@ -27,14 +26,14 @@ struct QuestScreenContent: View {
 
     private var currentDayData: CalendarDayData {
         CalendarDayData(
-            id: gameService.currentDay.id,
-            dayNumber: gameService.currentDay.dayNumber,
-            backgroundColor: ElfColors.Calendar.dayColor(for: gameService.currentDay.dayType.rawValue)
+            id: viewModel.currentDay.id,
+            dayNumber: viewModel.currentDay.dayNumber,
+            backgroundColor: ElfColors.Calendar.dayColor(for: viewModel.currentDay.dayType.rawValue)
         )
     }
 
     private var upcomingDaysData: [CalendarDayData] {
-        gameService.upcomingDays.map {
+        viewModel.upcomingDays.map {
             CalendarDayData(
                 id: $0.id,
                 dayNumber: $0.dayNumber,
@@ -104,17 +103,17 @@ struct QuestScreenContent: View {
         }
         .overlay(alignment: .top) {
             ScreenTopBar(
-                currentActionPoints: gameService.actionPoints.current,
-                maxActionPoints: gameService.actionPoints.maximum,
-                isLastDay: gameService.isLastDay,
+                currentActionPoints: viewModel.actionPoints.current,
+                maxActionPoints: viewModel.actionPoints.maximum,
+                isLastDay: viewModel.isLastDay,
                 currentDay: currentDayData,
                 upcomingDays: upcomingDaysData,
                 onNextDay: { Task { await viewModel.advanceToNextDay() } },
                 onBack: { router.pop() },
                 onCalendarTap: {
                     router.navigate(to: .calendar(
-                        calendar: gameService.calendar,
-                        currentDayNumber: gameService.currentDay.dayNumber
+                        calendar: viewModel.calendar,
+                        currentDayNumber: viewModel.currentDay.dayNumber
                     ))
                 }
             )
@@ -217,7 +216,7 @@ struct QuestScreenContent: View {
     @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @Namespace var previewNamespace
 
-    if let gameContainer, let gameService = gameContainer.activeGameService {
+    if let gameContainer, gameContainer.activeGameService != nil {
         NavigationStack {
             QuestScreenContent(
                 viewModel: gameContainer.makeQuestViewModel(
@@ -227,7 +226,6 @@ struct QuestScreenContent: View {
             )
             .environment(\.questZoomNamespace, previewNamespace)
             .environment(gameContainer)
-            .environment(gameService)
             .environment(AppRouter())
         }
     } else {

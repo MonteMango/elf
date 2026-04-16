@@ -27,6 +27,14 @@ public final class HuntViewModel {
     public let huntCost: Int = 20
     public private(set) var isHunting: Bool = false
 
+    // MARK: - Game Session State (exposed for top bar / calendar nav)
+
+    public var currentDay: GameDay { gameService.currentDay }
+    public var upcomingDays: [GameDay] { gameService.upcomingDays }
+    public var calendar: [GameDay] { gameService.calendar }
+    public var actionPoints: ActionPoints { gameService.actionPoints }
+    public var isLastDay: Bool { gameService.isLastDay }
+
     // MARK: - Derived (computed reactively)
 
     /// Pool of monsters for the player's current level.

@@ -74,11 +74,9 @@ Saves/
 ### Code Example
 ```swift
 // GameDayViewModel
-public func onConfirmActionPoints() {
+public func advanceToNextDay() async {
     gameService.advanceToNextDay()
-    Task {
-        try? await gameService.saveGame()
-    }
+    try? await gameService.saveGame()
 }
 
 // DefaultGameService
@@ -261,7 +259,7 @@ This error means:
 
 | Trigger | Location | When |
 |---------|----------|------|
-| Day change | `GameDayViewModel.onConfirmActionPoints()` | After spending all AP |
+| Day change | `GameDayViewModel.advanceToNextDay()` | After spending all AP |
 | App background | `ElfApp.onChange(scenePhase)` | When app goes to background/inactive |
 | After battle | `DefaultBattleResultCalculator` | After battle results calculated |
 | New game | `ElfGameInitializationService` | After creating new game |
