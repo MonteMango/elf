@@ -11,6 +11,7 @@ public final class ElfItemsRepository: ItemsRepository {
 
     private let heroItems: HeroItems
     private let lookup: [UUID: Item]
+    private let armorSlotLookup: [UUID: ArmorSlot]
 
     public init(heroItems: HeroItems) {
         self.heroItems = heroItems
@@ -33,10 +34,24 @@ public final class ElfItemsRepository: ItemsRepository {
         index(heroItems.earrings)
 
         self.lookup = lookup
+
+        // Slot is driven by the JSON category, not by protectParts — the latter overlap
+        // (e.g. an upper-body piece can list `head` to grant head defense without being a helmet).
+        var armorSlotLookup: [UUID: ArmorSlot] = [:]
+        heroItems.helmets.forEach { armorSlotLookup[$0.id] = .helmet }
+        heroItems.gloves.forEach { armorSlotLookup[$0.id] = .gloves }
+        heroItems.shoes.forEach { armorSlotLookup[$0.id] = .shoes }
+        heroItems.upperBodies.forEach { armorSlotLookup[$0.id] = .upperBody }
+        heroItems.bottomBodies.forEach { armorSlotLookup[$0.id] = .bottomBody }
+        self.armorSlotLookup = armorSlotLookup
     }
 
     public func getHeroItem(_ id: UUID) -> Item? {
         lookup[id]
+    }
+
+    public func armorSlot(for itemId: UUID) -> ArmorSlot? {
+        armorSlotLookup[itemId]
     }
 
     public func getItems(for type: HeroItemType) -> [Item] {

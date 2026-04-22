@@ -198,6 +198,14 @@ public final class DefaultGameService: GameService {
         player.inventory = inventory
     }
 
+    public func addItemsToPlayerInventory(_ items: [Item]) {
+        var inventory = player.inventory
+        for item in items {
+            inventory = inventoryService.addCraftedItem(item, to: inventory)
+        }
+        player.inventory = inventory
+    }
+
     // MARK: - Crafting
 
     /// Atomically validates, deducts materials, and adds the crafted item to inventory.

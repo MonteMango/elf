@@ -97,21 +97,31 @@ struct ItemDetailPanel: View {
     private func equipButton(_ item: InventoryItemDisplay) -> some View {
         // Don't show equip button for materials
         if item.category != .materials {
-            Button(action: {
-                if item.isEquipped {
-                    onUnequip()
-                } else {
-                    onEquip()
-                }
-            }) {
-                Text(item.isEquipped ? "Unequip" : "Equip")
+            if item.isEquipped && !item.canUnequip {
+                // Equipped weapon that can't be unequipped — only swapped for another weapon.
+                Text("Equipped")
                     .font(ElfFonts.Component.itemTitle)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
-                    .background(Color.orange, in: RoundedRectangle(cornerRadius: 8))
+                    .background(Color.gray, in: RoundedRectangle(cornerRadius: 8))
+            } else {
+                Button(action: {
+                    if item.isEquipped {
+                        onUnequip()
+                    } else {
+                        onEquip()
+                    }
+                }) {
+                    Text(item.isEquipped ? "Unequip" : "Equip")
+                        .font(ElfFonts.Component.itemTitle)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(Color.orange, in: RoundedRectangle(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
     }
 

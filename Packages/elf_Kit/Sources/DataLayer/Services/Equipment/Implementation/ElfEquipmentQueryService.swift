@@ -36,7 +36,9 @@ public final class ElfEquipmentQueryService: EquipmentQueryService {
     public func equippedItemId(for slot: HeroItemType, in equipped: EquippedItems) -> UUID? {
         switch slot {
         case .weapons: return equipped.weapons.weapon.id
-        case .shields: return equipped.weapons.shield?.id
+        // Shield slot is physically shared with off-hand weapon in dual-wield:
+        // WeaponConfiguration enforces they never coexist, so overloading the slot is safe.
+        case .shields: return equipped.weapons.shield?.id ?? equipped.weapons.secondaryWeapon?.id
         case .helmet: return equipped.helmet?.id
         case .gloves: return equipped.gloves?.id
         case .shoes: return equipped.shoes?.id
@@ -52,7 +54,12 @@ public final class ElfEquipmentQueryService: EquipmentQueryService {
     public func equippedBaseItemIds(from equipped: EquippedItems) -> [HeroItemType: UUID] {
         var result: [HeroItemType: UUID] = [:]
         result[.weapons] = equipped.weapons.weapon.item.id
-        if let shield = equipped.weapons.shield { result[.shields] = shield.item.id }
+        if let shield = equipped.weapons.shield {
+            result[.shields] = shield.item.id
+        } else if let secondary = equipped.weapons.secondaryWeapon {
+            // Dual-wield off-hand weapon shares the shield slot (mutually exclusive by type).
+            result[.shields] = secondary.item.id
+        }
         if let helmet = equipped.helmet { result[.helmet] = helmet.item.id }
         if let gloves = equipped.gloves { result[.gloves] = gloves.item.id }
         if let shoes = equipped.shoes { result[.shoes] = shoes.item.id }
@@ -69,8 +76,9 @@ public final class ElfEquipmentQueryService: EquipmentQueryService {
 
     private func allItemIds(from weapons: WeaponConfiguration) -> Set<UUID> {
         switch weapons {
-        case .oneHanded(let weapon),
-             .twoHanded(let weapon):
+        case .oneHanded(let weapon):
+            return [weapon.id]
+        case .twoHanded(let weapon):
             return [weapon.id]
         case .oneHandedWithShield(let weapon, let shield):
             return [weapon.id, shield.id]

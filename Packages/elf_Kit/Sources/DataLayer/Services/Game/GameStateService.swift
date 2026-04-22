@@ -87,6 +87,10 @@ public protocol GameStateService: AnyObject, Observable {
     /// Adds mined ores to player's inventory as materials.
     func addOresToInventory(_ ores: [Ore])
 
+    /// Adds the given hero items to the player's inventory, routed by concrete type
+    /// (weapon / armor / shield / robe). Used by dev shortcuts that seed equipment in bulk.
+    func addItemsToPlayerInventory(_ items: [Item])
+
     // MARK: - Crafting
 
     /// Atomically crafts `item` from `recipe`: validates materials, deducts

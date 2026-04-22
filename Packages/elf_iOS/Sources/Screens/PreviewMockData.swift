@@ -18,7 +18,10 @@ enum PreviewMockData {
 
     private static func createDefaultEquipped() -> EquippedItems {
         let mockWeapon = ElfWeaponItem(weaponItem: createMockWeaponItem())
-        return EquippedItems(weapons: .twoHanded(weapon: mockWeapon))
+        guard let twoHanded = ElfTwoHandedWeaponItem(weapon: mockWeapon) else {
+            fatalError("Mock weapon must be two-handed")
+        }
+        return EquippedItems(weapons: .twoHanded(weapon: twoHanded))
     }
 
     private static func createMockWeaponItem() -> WeaponItem {
@@ -174,7 +177,10 @@ enum PreviewMockData {
     @MainActor
     static func createMockInventoryViewModel() -> InventoryViewModel {
         let gameService = createMockGameService()
-        let equipmentService = DefaultEquipmentService(gameService: gameService)
+        let equipmentService = DefaultEquipmentService(
+            gameService: gameService,
+            itemsRepository: NoOpItemsRepository()
+        )
         return InventoryViewModel(
             gameService: gameService,
             equipmentService: equipmentService,
@@ -199,6 +205,7 @@ private struct NoOpGameSaveStorage: GameSaveStorage {
 private struct NoOpItemsRepository: ItemsRepository {
     func getHeroItem(_ id: UUID) -> Item? { nil }
     func getItems(for type: HeroItemType) -> [Item] { [] }
+    func armorSlot(for itemId: UUID) -> ArmorSlot? { nil }
 }
 
 #endif

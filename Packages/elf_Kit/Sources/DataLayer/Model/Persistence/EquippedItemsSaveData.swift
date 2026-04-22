@@ -18,7 +18,10 @@ private func createDefaultWeaponConfig(using repository: ItemsRepository) -> Wea
         fatalError("Default weapon (Recruit's Spear) not found in repository")
     }
     let defaultWeapon = ElfWeaponItem(weaponItem: weaponItem)
-    return .twoHanded(weapon: defaultWeapon)
+    guard let twoHanded = ElfTwoHandedWeaponItem(weapon: defaultWeapon) else {
+        fatalError("Default weapon (Recruit's Spear) must be two-handed")
+    }
+    return .twoHanded(weapon: twoHanded)
 }
 
 // MARK: - WeaponConfigSaveData
@@ -46,32 +49,34 @@ public struct WeaponConfigSaveData: Codable, Sendable, Equatable {
         switch config {
         case .oneHanded(let weapon):
             self.type = .oneHanded
-            self.weapon = WeaponSaveData(from: weapon)
+            self.weapon = WeaponSaveData(from: weapon.weapon)
             self.shield = nil
             self.secondaryWeapon = nil
 
         case .oneHandedWithShield(let weapon, let shield):
             self.type = .oneHandedWithShield
-            self.weapon = WeaponSaveData(from: weapon)
+            self.weapon = WeaponSaveData(from: weapon.weapon)
             self.shield = ShieldSaveData(from: shield)
             self.secondaryWeapon = nil
 
         case .twoHanded(let weapon):
             self.type = .twoHanded
-            self.weapon = WeaponSaveData(from: weapon)
+            self.weapon = WeaponSaveData(from: weapon.weapon)
             self.shield = nil
             self.secondaryWeapon = nil
 
         case .dualWield(let primary, let secondary):
             self.type = .dualWield
-            self.weapon = WeaponSaveData(from: primary)
+            self.weapon = WeaponSaveData(from: primary.weapon)
             self.shield = nil
-            self.secondaryWeapon = WeaponSaveData(from: secondary)
+            self.secondaryWeapon = WeaponSaveData(from: secondary.weapon)
         }
     }
 
-    /// Convert to WeaponConfiguration using items repository
-    /// Note: If loading fails or type is `empty`, returns default weapon configuration
+    /// Convert to WeaponConfiguration using items repository.
+    /// If the persisted data is stale (missing weapon, wrong handUse for the declared slot), falls back
+    /// to the default weapon configuration — same behaviour as before the type-safe refactor, so no
+    /// save migration is needed; invalid states from older saves are silently corrected on load.
     public func toWeaponConfiguration(using repository: ItemsRepository) -> WeaponConfiguration {
         switch type {
         case .empty:
@@ -79,35 +84,40 @@ public struct WeaponConfigSaveData: Codable, Sendable, Equatable {
 
         case .oneHanded:
             guard let weaponData = weapon,
-                  let weapon = weaponData.toElfWeaponItem(using: repository) else {
+                  let weapon = weaponData.toElfWeaponItem(using: repository),
+                  let oneHanded = ElfOneHandedWeaponItem(weapon: weapon) else {
                 return createDefaultWeaponConfig(using: repository)
             }
-            return .oneHanded(weapon: weapon)
+            return .oneHanded(weapon: oneHanded)
 
         case .oneHandedWithShield:
             guard let weaponData = weapon,
                   let weapon = weaponData.toElfWeaponItem(using: repository),
+                  let oneHanded = ElfOneHandedWeaponItem(weapon: weapon),
                   let shieldData = shield,
                   let shield = shieldData.toElfShieldItem(using: repository) else {
                 return createDefaultWeaponConfig(using: repository)
             }
-            return .oneHandedWithShield(weapon: weapon, shield: shield)
+            return .oneHandedWithShield(weapon: oneHanded, shield: shield)
 
         case .twoHanded:
             guard let weaponData = weapon,
-                  let weapon = weaponData.toElfWeaponItem(using: repository) else {
+                  let weapon = weaponData.toElfWeaponItem(using: repository),
+                  let twoHanded = ElfTwoHandedWeaponItem(weapon: weapon) else {
                 return createDefaultWeaponConfig(using: repository)
             }
-            return .twoHanded(weapon: weapon)
+            return .twoHanded(weapon: twoHanded)
 
         case .dualWield:
             guard let primaryData = weapon,
                   let primary = primaryData.toElfWeaponItem(using: repository),
+                  let primaryOneHanded = ElfOneHandedWeaponItem(weapon: primary),
                   let secondaryData = secondaryWeapon,
-                  let secondary = secondaryData.toElfWeaponItem(using: repository) else {
+                  let secondary = secondaryData.toElfWeaponItem(using: repository),
+                  let secondaryOneHanded = ElfOneHandedWeaponItem(weapon: secondary) else {
                 return createDefaultWeaponConfig(using: repository)
             }
-            return .dualWield(primary: primary, secondary: secondary)
+            return .dualWield(primary: primaryOneHanded, secondary: secondaryOneHanded)
         }
     }
 }

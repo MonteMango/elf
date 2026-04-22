@@ -16,6 +16,7 @@ public final class GameDayViewModel {
     private let gameService: any GameService
     private let progressionService: any ProgressionService
     private let equipmentQueryService: any EquipmentQueryService
+    private let itemsRepository: any ItemsRepository
 
     // MARK: - Local UI State
 
@@ -47,11 +48,13 @@ public final class GameDayViewModel {
     public init(
         gameService: any GameService,
         progressionService: any ProgressionService,
-        equipmentQueryService: any EquipmentQueryService
+        equipmentQueryService: any EquipmentQueryService,
+        itemsRepository: any ItemsRepository
     ) {
         self.gameService = gameService
         self.progressionService = progressionService
         self.equipmentQueryService = equipmentQueryService
+        self.itemsRepository = itemsRepository
     }
 
     // MARK: - Actions
@@ -66,9 +69,50 @@ public final class GameDayViewModel {
         switch menu {
         case .items:
             isInventoryVisible.toggle()
+        case .house:
+            fillEquipmentInventory()
         default:
             print("Side menu tapped: \(menu.rawValue)")
         }
+    }
+
+    /// Dev shortcut: ensure the player's inventory contains every weapon and armor piece defined in the game.
+    /// One-handed weapons (handUse `.primary` / `.secondary`) top up to two copies; two-handed (`.both`)
+    /// and each armor slot top up to one. Copies already present (matched by base item id) are preserved.
+    private func fillEquipmentInventory() {
+        var toAdd: [Item] = []
+        toAdd.append(contentsOf: missingWeapons())
+        toAdd.append(contentsOf: missingArmor())
+        gameService.addItemsToPlayerInventory(toAdd)
+    }
+
+    private func missingWeapons() -> [Item] {
+        let allWeapons = itemsRepository.getItems(for: .weapons).compactMap { $0 as? WeaponItem }
+        let existingCountByItemId = gameService.player.inventory.weapons
+            .reduce(into: [UUID: Int]()) { counts, weapon in counts[weapon.item.id, default: 0] += 1 }
+
+        var toAdd: [Item] = []
+        for weapon in allWeapons {
+            let desiredCount = weapon.handUse == .both ? 1 : 2
+            let missing = desiredCount - (existingCountByItemId[weapon.id] ?? 0)
+            if missing > 0 {
+                toAdd.append(contentsOf: Array(repeating: weapon as Item, count: missing))
+            }
+        }
+        return toAdd
+    }
+
+    private func missingArmor() -> [Item] {
+        let armorSlots: [HeroItemType] = [.helmet, .gloves, .shoes, .upperBody, .bottomBody]
+        let existingItemIds = Set(gameService.player.inventory.armor.map { $0.item.id })
+
+        var toAdd: [Item] = []
+        for slot in armorSlots {
+            for item in itemsRepository.getItems(for: slot) where !existingItemIds.contains(item.id) {
+                toAdd.append(item)
+            }
+        }
+        return toAdd
     }
 
     /// Called to close inventory overlay

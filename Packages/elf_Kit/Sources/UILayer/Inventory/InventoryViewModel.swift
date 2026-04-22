@@ -168,7 +168,7 @@ public final class InventoryViewModel {
     }
 
     public func unequipSelectedItem() {
-        guard let item = selectedItem, item.isEquipped else { return }
+        guard let item = selectedItem, item.isEquipped, item.canUnequip else { return }
         unequipItem(item)
     }
 

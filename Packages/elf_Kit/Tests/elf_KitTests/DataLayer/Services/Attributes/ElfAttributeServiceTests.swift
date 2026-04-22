@@ -48,6 +48,8 @@ final class ElfAttributeServiceTests: XCTestCase {
         func getItems(for type: HeroItemType) -> [Item] {
             return []
         }
+
+        func armorSlot(for itemId: UUID) -> ArmorSlot? { nil }
     }
     
     final class FixedRandomizer: AttributeRandomizer, @unchecked Sendable {

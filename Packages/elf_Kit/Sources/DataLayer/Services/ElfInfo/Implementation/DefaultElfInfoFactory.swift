@@ -67,6 +67,9 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
         guard let weapon = createDefaultWeapon() else {
             fatalError("Default weapon (Recruit's Spear) not found in repository")
         }
+        guard let twoHanded = ElfTwoHandedWeaponItem(weapon: weapon) else {
+            fatalError("Default weapon (Recruit's Spear) must be two-handed")
+        }
         let shirt = createDefaultShirt()
 
         var inventory = ElfInventory()
@@ -76,7 +79,7 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
         }
 
         let equipped = EquippedItems(
-            weapons: .twoHanded(weapon: weapon),
+            weapons: .twoHanded(weapon: twoHanded),
             shirt: shirt
         )
 

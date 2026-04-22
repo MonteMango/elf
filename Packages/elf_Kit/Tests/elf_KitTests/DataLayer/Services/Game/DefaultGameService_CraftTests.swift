@@ -44,6 +44,11 @@ final class DefaultGameService_CraftTests: XCTestCase {
     private func makeElf(inventory: ElfInventory = ElfInventory()) -> ElfInfo {
         let attrs = HeroAttributes(hitPoints: 80, manaPoints: 20, agility: 1, strength: 1, power: 1, instinct: 1)
         let weapon = ElfWeaponItem(weaponItem: makeWeaponItem())
+        // The fixture weapon has `handUse: "primary"` so it must be wrapped as a one-handed weapon
+        // (the old code mistakenly put it in `.twoHanded`, which the type system now forbids).
+        guard let oneHanded = ElfOneHandedWeaponItem(weapon: weapon) else {
+            fatalError("Test fixture weapon must be one-handed")
+        }
         return ElfInfo(
             name: "Tester",
             imageName: "elf_1",
@@ -53,7 +58,7 @@ final class DefaultGameService_CraftTests: XCTestCase {
             randomLevelAttributes: HeroAttributes(),
             currentHP: 80,
             currentMP: 20,
-            equipped: EquippedItems(weapons: .twoHanded(weapon: weapon)),
+            equipped: EquippedItems(weapons: .oneHanded(weapon: oneHanded)),
             inventory: inventory
         )
     }

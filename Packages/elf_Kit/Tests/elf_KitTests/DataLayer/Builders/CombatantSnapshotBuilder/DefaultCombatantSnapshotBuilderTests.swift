@@ -38,6 +38,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
 
         func getItems(for heroItemType: HeroItemType) -> [Item] { [] }
         func getHeroItem(_ itemId: UUID) -> Item? { itemsToReturn[itemId] }
+        func armorSlot(for itemId: UUID) -> ArmorSlot? { nil }
     }
 
     final class MockArmorService: ArmorService, @unchecked Sendable {

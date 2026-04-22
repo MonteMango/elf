@@ -17,11 +17,13 @@ public final class DefaultEquipmentService: EquipmentService {
     // MARK: - Dependencies
 
     private let gameService: any GameStateService
+    private let itemsRepository: any ItemsRepository
 
     // MARK: - Initialization
 
-    public init(gameService: any GameStateService) {
+    public init(gameService: any GameStateService, itemsRepository: any ItemsRepository) {
         self.gameService = gameService
+        self.itemsRepository = itemsRepository
     }
 
     // MARK: - Weapon
@@ -35,15 +37,37 @@ public final class DefaultEquipmentService: EquipmentService {
 
         switch weaponItem.handUse {
         case .both:
-            equipped.weapons = .twoHanded(weapon: weapon)
+            guard let twoHanded = ElfTwoHandedWeaponItem(weapon: weapon) else { return }
+            // Two-handed weapon occupies both hands: drops shield and any off-hand weapon.
+            equipped.weapons = .twoHanded(weapon: twoHanded)
+
         case .primary:
-            if let existingShield = currentConfig.shield {
-                equipped.weapons = .oneHandedWithShield(weapon: weapon, shield: existingShield)
-            } else {
-                equipped.weapons = .oneHanded(weapon: weapon)
+            guard let oneHanded = ElfOneHandedWeaponItem(weapon: weapon) else { return }
+            switch currentConfig {
+            case .oneHandedWithShield(_, let shield):
+                equipped.weapons = .oneHandedWithShield(weapon: oneHanded, shield: shield)
+            case .dualWield(_, let secondary):
+                // Replace primary; keep existing secondary so the dual-wield invariant is preserved.
+                equipped.weapons = .dualWield(primary: oneHanded, secondary: secondary)
+            case .oneHanded, .twoHanded:
+                // Two-handed is auto-unequipped: its single slot is replaced by the new one-hander.
+                equipped.weapons = .oneHanded(weapon: oneHanded)
             }
+
         case .secondary:
-            equipped.weapons = .dualWield(primary: currentConfig.weapon, secondary: weapon)
+            guard let oneHanded = ElfOneHandedWeaponItem(weapon: weapon) else { return }
+            switch currentConfig {
+            case .oneHanded(let primary), .dualWield(let primary, _):
+                equipped.weapons = .dualWield(primary: primary, secondary: oneHanded)
+            case .oneHandedWithShield(let primary, _):
+                // Shield is auto-unequipped to make room for the off-hand weapon.
+                equipped.weapons = .dualWield(primary: primary, secondary: oneHanded)
+            case .twoHanded:
+                // Two-handed is auto-unequipped. The new off-hand weapon becomes the sole weapon;
+                // `ElfOneHandedWeaponItem` accepts both `.primary` and `.secondary` handUse values,
+                // so the game rule "at least one weapon equipped" is preserved.
+                equipped.weapons = .oneHanded(weapon: oneHanded)
+            }
         }
         gameService.player.equipped = equipped
     }
@@ -69,7 +93,12 @@ public final class DefaultEquipmentService: EquipmentService {
         switch equipped.weapons {
         case .oneHanded(let weapon), .oneHandedWithShield(let weapon, _):
             equipped.weapons = .oneHandedWithShield(weapon: weapon, shield: shield)
-        case .twoHanded, .dualWield:
+        case .dualWield(let primary, _):
+            // Off-hand weapon is auto-unequipped to make room for the shield.
+            equipped.weapons = .oneHandedWithShield(weapon: primary, shield: shield)
+        case .twoHanded:
+            // No one-handed primary to pair with: the type system forbids `.oneHandedWithShield`
+            // without a one-handed weapon. Player must first swap the two-hander for a one-hander.
             return
         }
         gameService.player.equipped = equipped
@@ -96,7 +125,7 @@ public final class DefaultEquipmentService: EquipmentService {
 
         guard let armor = inventory.armor.first(where: { $0.id == id }),
               let defenseItem = armor.item as? DefenseItem,
-              let slot = Self.determineArmorSlot(from: defenseItem) else { return }
+              let slot = itemsRepository.armorSlot(for: defenseItem.id) else { return }
 
         var equipped = gameService.player.equipped
         Self.setArmor(armor, slot: slot, on: &equipped)
@@ -156,19 +185,6 @@ public final class DefaultEquipmentService: EquipmentService {
     }
 
     // MARK: - Private Helpers
-
-    private static func determineArmorSlot(from defenseItem: DefenseItem) -> ArmorSlot? {
-        if defenseItem.protectParts.contains(.head) {
-            return .helmet
-        } else if defenseItem.protectParts.contains(.leftHand) || defenseItem.protectParts.contains(.rightHand) {
-            return .gloves
-        } else if defenseItem.protectParts.contains(.legs) {
-            return .shoes
-        } else if defenseItem.protectParts.contains(.body) {
-            return .upperBody
-        }
-        return nil
-    }
 
     private static func setArmor(_ armor: ElfDefenseItem?, slot: ArmorSlot, on equipped: inout EquippedItems) {
         switch slot {

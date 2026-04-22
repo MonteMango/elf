@@ -86,6 +86,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
         func getItems(for type: HeroItemType) -> [Item] {
             return []
         }
+
+        func armorSlot(for itemId: UUID) -> ArmorSlot? { nil }
     }
 
     // MARK: - Category A: Basic Operations

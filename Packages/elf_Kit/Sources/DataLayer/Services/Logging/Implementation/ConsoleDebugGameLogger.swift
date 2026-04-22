@@ -156,15 +156,15 @@ public final class ConsoleDebugGameLogger: DebugGameLogger {
         // Weapon configuration
         switch equipped.weapons {
         case .oneHanded(let weapon):
-            print("  Weapon: \(formatItem(weapon)) (one-handed)")
+            print("  Weapon: \(formatItem(weapon.weapon)) (one-handed)")
         case .oneHandedWithShield(let weapon, let shield):
-            print("  Weapon: \(formatItem(weapon)) (one-handed + shield)")
+            print("  Weapon: \(formatItem(weapon.weapon)) (one-handed + shield)")
             print("  Shield: \(formatItem(shield))")
         case .twoHanded(let weapon):
-            print("  Weapon: \(formatItem(weapon)) (two-handed)")
+            print("  Weapon: \(formatItem(weapon.weapon)) (two-handed)")
         case .dualWield(let primary, let secondary):
-            print("  Weapon L: \(formatItem(primary)) (dual wield)")
-            print("  Weapon R: \(formatItem(secondary))")
+            print("  Weapon L: \(formatItem(primary.weapon)) (dual wield)")
+            print("  Weapon R: \(formatItem(secondary.weapon))")
         }
 
         print("  Helmet: \(formatSlot(equipped.helmet))")

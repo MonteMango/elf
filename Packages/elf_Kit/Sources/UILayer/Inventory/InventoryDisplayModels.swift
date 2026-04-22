@@ -14,6 +14,9 @@ public struct InventoryItemDisplay: Identifiable, Equatable, Sendable {
     public let imageName: String
     public let quantity: Int?
     public let isEquipped: Bool
+    /// Whether the item can be unequipped.
+    /// Weapons cannot be unequipped except when in dual-wield (at least one weapon must remain equipped).
+    public let canUnequip: Bool
     public let category: InventoryCategory
     public let itemDetails: ItemDetails
 
@@ -23,6 +26,7 @@ public struct InventoryItemDisplay: Identifiable, Equatable, Sendable {
         imageName: String,
         quantity: Int? = nil,
         isEquipped: Bool = false,
+        canUnequip: Bool = false,
         category: InventoryCategory,
         itemDetails: ItemDetails
     ) {
@@ -31,6 +35,7 @@ public struct InventoryItemDisplay: Identifiable, Equatable, Sendable {
         self.imageName = imageName
         self.quantity = quantity
         self.isEquipped = isEquipped
+        self.canUnequip = canUnequip
         self.category = category
         self.itemDetails = itemDetails
     }

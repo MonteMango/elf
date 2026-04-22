@@ -317,7 +317,8 @@ public final class ElfGameContainer {
         return GameDayViewModel(
             gameService: gameService,
             progressionService: self.progressionService,
-            equipmentQueryService: self.equipmentQueryService
+            equipmentQueryService: self.equipmentQueryService,
+            itemsRepository: self.gameDataRepository.items
         )
     }
 
@@ -416,7 +417,10 @@ public final class ElfGameContainer {
         guard let gameService = activeGameService else {
             fatalError("No active game session. InventoryViewModel requires an active game.")
         }
-        let equipmentService = DefaultEquipmentService(gameService: gameService)
+        let equipmentService = DefaultEquipmentService(
+            gameService: gameService,
+            itemsRepository: self.gameDataRepository.items
+        )
         return InventoryViewModel(
             gameService: gameService,
             equipmentService: equipmentService,
