@@ -1,5 +1,5 @@
 //
-//  InventoryScreenContent.swift
+//  InventoryView.swift
 //  elf_iOS
 //
 //  Created by Vitalii Lytvynov
@@ -9,7 +9,9 @@ import elf_Kit
 import elf_SwiftUI
 import SwiftUI
 
-struct InventoryScreenContent: View {
+/// Inventory overlay embedded inside `GameDayScreen`. Not a navigation destination —
+/// rendered inline, so it stays as a reusable view rather than a Screen.
+struct InventoryView: View {
     @State private var viewModel: InventoryViewModel
     let selectedItemId: UUID?
 
@@ -94,7 +96,7 @@ struct InventoryScreenContent: View {
 
 #if DEBUG
 #Preview {
-    InventoryScreenContent(
+    InventoryView(
         viewModel: PreviewMockData.createMockInventoryViewModel()
     )
 }

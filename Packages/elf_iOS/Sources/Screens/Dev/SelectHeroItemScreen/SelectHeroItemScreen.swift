@@ -9,10 +9,10 @@ import elf_Kit
 import SwiftUI
 
 internal struct SelectHeroItemScreen: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var viewModel: SelectHeroItemViewModel
 
-    private let heroType: HeroType
     private let heroItemType: HeroItemType
-    private let currentItemId: UUID?
     private let onEquip: (UUID?) -> Void
 
     internal init(
@@ -21,9 +21,14 @@ internal struct SelectHeroItemScreen: View {
         currentItemId: UUID?,
         onEquip: @escaping (UUID?) -> Void
     ) {
-        self.heroType = heroType
+        self._viewModel = State(
+            initialValue: SelectHeroItemViewModel(
+                heroType: heroType,
+                heroItemType: heroItemType,
+                currentItemId: currentItemId
+            )
+        )
         self.heroItemType = heroItemType
-        self.currentItemId = currentItemId
         self.onEquip = onEquip
     }
 
@@ -31,14 +36,104 @@ internal struct SelectHeroItemScreen: View {
         #if DEBUG
         let _ = Self._printChanges()
         #endif
-        SelectHeroItemScreenContent(
-            viewModel: SelectHeroItemViewModel(
-                heroType: heroType,
-                heroItemType: heroItemType,
-                currentItemId: currentItemId
-            ),
-            heroItemType: heroItemType,
-            onEquip: onEquip
+        ZStack {
+            // Items Grid - full size
+            ScrollView(.horizontal) {
+                HStack(spacing: 20) {
+                    // Empty cell (unequip option)
+                    EmptyItemCell(isSelected: viewModel.selectedItemId == nil)
+                        .onTapGesture {
+                            viewModel.selectItem(nil)
+                        }
+
+                    // Available items
+                    ForEach(viewModel.availableItems, id: \.id) { item in
+                        ItemCell(
+                            item: item,
+                            isSelected: viewModel.selectedItemId == item.id
+                        )
+                        .onTapGesture {
+                            viewModel.selectItem(item.id)
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                .frame(maxHeight: .infinity)
+            }
+            .scrollIndicators(.hidden)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .overlay(alignment: .top) {
+            // Title
+            Text(itemTypeTitle)
+                .font(.title2.weight(.bold))
+                .foregroundStyle(.white)
+                .padding(.top, 20)
+        }
+        .overlay(alignment: .topTrailing) {
+            // Close button
+            Button(action: {
+                dismiss()
+            }) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 32))
+                    .foregroundStyle(.white)
+                    .shadow(radius: 4)
+            }
+            .padding(20)
+        }
+        .overlay(alignment: .bottomTrailing) {
+            // Equip button
+            Button(action: {
+                onEquip(viewModel.selectedItemId)
+                dismiss()
+            }) {
+                Text("EQUIP")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 200)
+                    .frame(height: 50)
+                    .background(Color.orange, in: RoundedRectangle(cornerRadius: 8))
+            }
+            .padding(20)
+        }
+    }
+
+    private var itemTypeTitle: String {
+        switch heroItemType {
+        case .helmet: return "Select Helmet"
+        case .gloves: return "Select Gloves"
+        case .shoes: return "Select Shoes"
+        case .upperBody: return "Select Upper Body"
+        case .bottomBody: return "Select Bottom Body"
+        case .shirt: return "Select Shirt"
+        case .weapons: return "Select Weapon"
+        case .shields: return "Select Shield"
+        case .ring: return "Select Ring"
+        case .necklace: return "Select Necklace"
+        case .earrings: return "Select Earrings"
+        }
+    }
+}
+
+#Preview {
+    @Previewable @State var isReady = false
+
+    if isReady {
+        SelectHeroItemScreen(
+            heroType: .player,
+            heroItemType: .weapons,
+            currentItemId: nil,
+            onEquip: { itemId in
+                print("Selected item: \(itemId?.uuidString ?? "none")")
+            }
         )
+    } else {
+        ProgressView()
+            .task {
+                await DependencyBootstrap.run()
+                isReady = true
+            }
     }
 }

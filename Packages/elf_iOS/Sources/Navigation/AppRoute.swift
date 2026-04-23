@@ -124,25 +124,25 @@ extension AppRoute {
         case .characterCreation:
             CharacterCreationScreen()
         case .gameSession:
-            GameDayScreen()
+            SessionRouteView { GameDayScreen(session: $0) }
         case .calendar(let calendar, let currentDayNumber):
             CalendarScreen(calendar: calendar, currentDayNumber: currentDayNumber)
         case .hunt:
-            HuntScreen()
+            SessionRouteView { HuntScreen(session: $0) }
         case .farm:
-            FarmScreen()
+            SessionRouteView { FarmScreen(session: $0) }
         case .craft:
-            CraftScreen()
+            SessionRouteView { CraftScreen(session: $0) }
         case .questList:
-            QuestListScreen()
+            SessionRouteView { QuestListScreen(session: $0) }
         case .quest(let questId, let ownerImageName):
-            QuestScreen(questId: questId, ownerImageName: ownerImageName)
+            SessionRouteView { QuestScreen(questId: questId, ownerImageName: ownerImageName, session: $0) }
         case .farmActivity(let activity):
-            FarmActivityScreen(activity: activity)
+            SessionRouteView { FarmActivityScreen(activity: activity, session: $0) }
         case .battleSetup:
             BattleSetupScreen()
         case .battleFight(let battle):
-            BattleFightScreen(battle: battle)
+            BattleFightRouteView(battle: battle)
         case .autoBattleResult(let battle):
             AutoBattleResultScreen(battle: battle)
         case .multiBattleResult(let battle):
