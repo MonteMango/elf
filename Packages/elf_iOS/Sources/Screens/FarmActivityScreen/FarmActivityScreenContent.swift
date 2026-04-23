@@ -170,11 +170,11 @@ struct FarmActivityScreenContent: View {
     @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @Namespace var previewNamespace
 
-    if let gameContainer, gameContainer.activeGameService != nil {
+    if let gameContainer, let session = gameContainer.sessionModel {
         NavigationStack {
             FarmActivityScreenContent(
-                viewModel: gameContainer.makeFarmActivityViewModel(activity: .fishing),
-                dayStateViewModel: gameContainer.requireGameDayStateViewModel()
+                viewModel: session.makeFarmActivityViewModel(activity: .fishing),
+                dayStateViewModel: session.dayState
             )
             .environment(\.farmZoomNamespace, previewNamespace)
             .environment(gameContainer)

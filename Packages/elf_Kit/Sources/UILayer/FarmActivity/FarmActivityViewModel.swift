@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov
 //
 
+import Dependencies
 import Foundation
 
 @MainActor
@@ -14,11 +15,21 @@ public final class FarmActivityViewModel {
     // MARK: - Dependencies
 
     private let gameService: any GameService
-    private let farmActivityService: any FarmActivityService
-    private let monsterRepository: (any MonsterRepository)?
-    private let snapshotBuilder: (any CombatantSnapshotBuilder)?
-    private let progressionService: any ProgressionService
-    private let equipmentQueryService: any EquipmentQueryService
+
+    @ObservationIgnored
+    @Dependency(\.farmActivityService) private var farmActivityService
+
+    @ObservationIgnored
+    @Dependency(\.monsterRepository) private var monsterRepository
+
+    @ObservationIgnored
+    @Dependency(\.snapshotBuilder) private var snapshotBuilder
+
+    @ObservationIgnored
+    @Dependency(\.progressionService) private var progressionService
+
+    @ObservationIgnored
+    @Dependency(\.equipmentQueryService) private var equipmentQueryService
 
     // MARK: - Activity
 
@@ -81,29 +92,15 @@ public final class FarmActivityViewModel {
 
     /// Pool of monsters that may attack during the activity.
     private var availableMonsters: [Monster] {
-        guard let repo = monsterRepository else { return [] }
         let level = min(progressionService.calculateLevel(currentExp: gameService.player.currentExp), 3)
-        return repo.getMonsters(world: .upper, level: level)
+        return monsterRepository.getMonsters(world: .upper, level: level)
     }
 
     // MARK: - Initialization
 
-    public init(
-        activity: FarmActivity,
-        gameService: any GameService,
-        farmActivityService: any FarmActivityService,
-        progressionService: any ProgressionService,
-        equipmentQueryService: any EquipmentQueryService,
-        monsterRepository: (any MonsterRepository)? = nil,
-        snapshotBuilder: (any CombatantSnapshotBuilder)? = nil
-    ) {
+    public init(activity: FarmActivity, gameService: any GameService) {
         self.activity = activity
         self.gameService = gameService
-        self.farmActivityService = farmActivityService
-        self.progressionService = progressionService
-        self.equipmentQueryService = equipmentQueryService
-        self.monsterRepository = monsterRepository
-        self.snapshotBuilder = snapshotBuilder
     }
 
     // MARK: - Actions
@@ -200,8 +197,7 @@ public final class FarmActivityViewModel {
     /// Checks if a monster should attack and prepares the battle if so
     private func checkMonsterAttack() -> Bool {
         guard shouldMonsterAttack(),
-              let monster = availableMonsters.randomElement(),
-              let snapshotBuilder = snapshotBuilder else {
+              let monster = availableMonsters.randomElement() else {
             return false
         }
 

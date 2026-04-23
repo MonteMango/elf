@@ -58,13 +58,16 @@ public final class ElfGameContainer {
 
     // MARK: - Game Session State
 
-    /// Currently active game service (nil when not in game)
-    public private(set) var activeGameService: DefaultGameService?
+    /// Non-optional owner of the active game session (game service + day state VM).
+    /// Created in `startGameSession(game:playTime:)`, released in `endGameSession()`.
+    public private(set) var sessionModel: GameSessionModel?
 
-    /// Shared view model for the day header (action points + calendar).
-    /// Lifecycle is bound to `activeGameService`: created when a session starts,
-    /// nil'd when it ends.
-    public private(set) var gameDayStateViewModel: GameDayStateViewModel?
+    /// Currently active game service (nil when not in game).
+    /// Forwards to `sessionModel.gameService` and is kept for the screens/factories
+    /// that have not yet been migrated to read from `sessionModel` directly.
+    public var activeGameService: DefaultGameService? {
+        sessionModel?.gameService as? DefaultGameService
+    }
 
     // MARK: - Initialization
 
@@ -337,31 +340,6 @@ public final class ElfGameContainer {
         )
     }
 
-    public func makeFarmViewModel() -> FarmViewModel {
-        guard let gameService = activeGameService else {
-            fatalError("No active game session. FarmViewModel requires an active game.")
-        }
-        return FarmViewModel(
-            gameService: gameService,
-            progressionService: self.progressionService
-        )
-    }
-
-    public func makeFarmActivityViewModel(activity: FarmActivity) -> FarmActivityViewModel {
-        guard let gameService = activeGameService else {
-            fatalError("No active game session. FarmActivityViewModel requires an active game.")
-        }
-        return FarmActivityViewModel(
-            activity: activity,
-            gameService: gameService,
-            farmActivityService: farmActivityService,
-            progressionService: self.progressionService,
-            equipmentQueryService: self.equipmentQueryService,
-            monsterRepository: self.gameDataRepository.monsters,
-            snapshotBuilder: snapshotBuilder
-        )
-    }
-
     public func makeCalendarViewModel(
         calendar: [GameDay],
         currentDayNumber: Int
@@ -445,21 +423,19 @@ public final class ElfGameContainer {
             debugGameLogger: self.debugGameLogger,
             playTime: playTime
         )
-        activeGameService = service
-        gameDayStateViewModel = GameDayStateViewModel(gameService: service)
+        sessionModel = GameSessionModel(gameService: service)
     }
 
     /// Ends the active game session and releases the `DefaultGameService`.
     /// Safe to call at any time: screens access the service only through their
     /// ViewModel, which retains a strong reference until the view unmounts.
     public func endGameSession() {
-        activeGameService = nil
-        gameDayStateViewModel = nil
+        sessionModel = nil
     }
 
     /// Saves active game if exists (called on app background)
     public func saveActiveGameIfNeeded() async {
-        guard let gameService = activeGameService else { return }
+        guard let gameService = sessionModel?.gameService else { return }
         try? await gameService.saveGame()
     }
 
@@ -476,8 +452,7 @@ public final class ElfGameContainer {
             debugGameLogger: self.debugGameLogger,
             playTime: 0
         )
-        activeGameService = service
-        gameDayStateViewModel = GameDayStateViewModel(gameService: service)
+        sessionModel = GameSessionModel(gameService: service)
     }
     #endif
 
@@ -486,7 +461,7 @@ public final class ElfGameContainer {
     /// Returns the shared `GameDayStateViewModel`. Must only be called while a
     /// game session is active.
     public func requireGameDayStateViewModel() -> GameDayStateViewModel {
-        guard let viewModel = gameDayStateViewModel else {
+        guard let viewModel = sessionModel?.dayState else {
             fatalError("No active game session. GameDayStateViewModel requires an active game.")
         }
         return viewModel

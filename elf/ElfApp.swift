@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 10.11.25.
 //
 
+import Dependencies
 import elf_iOS
 import elf_SwiftUI
 import SwiftUI
@@ -23,7 +24,12 @@ internal struct ElfApp: App {
                 .environment(appContainer)
                 .onScenePhaseChange(appContainer: appContainer)
                 .task {
-                    await appContainer.createGameContainer()
+                    let gameContainer = await appContainer.createGameContainer()
+                    prepareDependencies {
+                        $0.farmActivityService = gameContainer.farmActivityService
+                        $0.monsterRepository = gameContainer.gameDataRepository.monsters
+                        $0.snapshotBuilder = gameContainer.snapshotBuilder
+                    }
                 }
         }
     }

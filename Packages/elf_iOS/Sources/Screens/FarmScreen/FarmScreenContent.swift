@@ -96,11 +96,11 @@ struct FarmScreenContent: View {
     @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @State var router = AppRouter()
 
-    if let gameContainer, gameContainer.activeGameService != nil {
+    if let gameContainer, let session = gameContainer.sessionModel {
         NavigationStack(path: $router.navigationPath) {
             FarmScreenContent(
-                viewModel: gameContainer.makeFarmViewModel(),
-                dayStateViewModel: gameContainer.requireGameDayStateViewModel()
+                viewModel: session.makeFarmViewModel(),
+                dayStateViewModel: session.dayState
             )
             .environment(router)
             .environment(gameContainer)

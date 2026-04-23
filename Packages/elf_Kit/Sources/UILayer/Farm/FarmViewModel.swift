@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 06.01.26.
 //
 
+import Dependencies
 import Foundation
 
 @MainActor
@@ -14,7 +15,9 @@ public final class FarmViewModel {
     // MARK: - Dependencies
 
     private let gameService: any GameService
-    private let progressionService: any ProgressionService
+
+    @ObservationIgnored
+    @Dependency(\.progressionService) private var progressionService
 
     // MARK: - Farming Skills (computed reactively)
 
@@ -39,8 +42,7 @@ public final class FarmViewModel {
 
     // MARK: - Initialization
 
-    public init(gameService: any GameService, progressionService: any ProgressionService) {
+    public init(gameService: any GameService) {
         self.gameService = gameService
-        self.progressionService = progressionService
     }
 }

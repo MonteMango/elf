@@ -16,14 +16,19 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../elf_SwiftUI"),
-        .package(path: "../elf_Kit")
+        .package(path: "../elf_Kit"),
+        .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.4.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "elf_iOS",
-            dependencies: ["elf_SwiftUI", "elf_Kit"],
+            dependencies: [
+                "elf_SwiftUI",
+                "elf_Kit",
+                .product(name: "Dependencies", package: "swift-dependencies"),
+            ],
             swiftSettings: [
                 .enableExperimentalFeature("DebugDescriptionMacro")
             ]),

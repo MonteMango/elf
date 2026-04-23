@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		09259ED82EE4C4E200DE5A84 /* Monsters.json in Resources */ = {isa = PBXBuildFile; fileRef = 09259ED72EE4C4D700DE5A84 /* Monsters.json */; };
 		09259EDA2EE7651800DE5A84 /* Materials.json in Resources */ = {isa = PBXBuildFile; fileRef = 09259ED92EE7650D00DE5A84 /* Materials.json */; };
+		09294B4F2F99922C00D9FAD0 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = 09294B4E2F99922C00D9FAD0 /* Dependencies */; };
 		0993F1FD2EC2994000B568F3 /* ElfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0993F1FC2EC2993700B568F3 /* ElfApp.swift */; };
 		09A089D72F29529E001A1A85 /* Herbs.json in Resources */ = {isa = PBXBuildFile; fileRef = 09A089D62F29529E001A1A85 /* Herbs.json */; };
 		09A089D92F29AF2F001A1A85 /* Ores.json in Resources */ = {isa = PBXBuildFile; fileRef = 09A089D82F29AF2F001A1A85 /* Ores.json */; };
@@ -47,6 +48,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				09294B4F2F99922C00D9FAD0 /* Dependencies in Frameworks */,
 				09C0BB0B2F2F5CAF0095867F /* elf_SwiftUI in Frameworks */,
 				09F2ACCE2C3274EF004139A1 /* elf_iOS in Frameworks */,
 			);
@@ -130,6 +132,7 @@
 			packageProductDependencies = (
 				09F2ACCD2C3274EF004139A1 /* elf_iOS */,
 				09C0BB0A2F2F5CAF0095867F /* elf_SwiftUI */,
+				09294B4E2F99922C00D9FAD0 /* Dependencies */,
 			);
 			productName = elf;
 			productReference = 09A8CD5E2BE13E3100DDC851 /* elf.app */;
@@ -159,6 +162,9 @@
 				Base,
 			);
 			mainGroup = 09A8CD552BE13E3100DDC851;
+			packageReferences = (
+				09294B4D2F99922C00D9FAD0 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
+			);
 			productRefGroup = 09A8CD5F2BE13E3100DDC851 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -445,7 +451,23 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		09294B4D2F99922C00D9FAD0 /* XCRemoteSwiftPackageReference "swift-dependencies" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-dependencies";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		09294B4E2F99922C00D9FAD0 /* Dependencies */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 09294B4D2F99922C00D9FAD0 /* XCRemoteSwiftPackageReference "swift-dependencies" */;
+			productName = Dependencies;
+		};
 		09C0BB0A2F2F5CAF0095867F /* elf_SwiftUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = elf_SwiftUI;

@@ -15,9 +15,11 @@ struct FarmScreen: View {
         #if DEBUG
         let _ = Self._printChanges()
         #endif
-        FarmScreenContent(
-            viewModel: gameContainer.makeFarmViewModel(),
-            dayStateViewModel: gameContainer.requireGameDayStateViewModel()
-        )
+        if let session = gameContainer.sessionModel {
+            FarmScreenContent(
+                viewModel: session.makeFarmViewModel(),
+                dayStateViewModel: session.dayState
+            )
+        }
     }
 }
