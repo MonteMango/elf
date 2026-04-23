@@ -42,4 +42,8 @@ public final class GameSessionModel {
     public func makeFarmActivityViewModel(activity: FarmActivity) -> FarmActivityViewModel {
         FarmActivityViewModel(activity: activity, gameService: gameService)
     }
+
+    public func makeHuntViewModel() -> HuntViewModel {
+        HuntViewModel(gameService: gameService)
+    }
 }

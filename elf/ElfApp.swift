@@ -29,6 +29,8 @@ internal struct ElfApp: App {
                         $0.farmActivityService = gameContainer.farmActivityService
                         $0.monsterRepository = gameContainer.gameDataRepository.monsters
                         $0.snapshotBuilder = gameContainer.snapshotBuilder
+                        $0.itemsRepository = gameContainer.gameDataRepository.items
+                        $0.materialRepository = gameContainer.gameDataRepository.materials
                     }
                 }
         }

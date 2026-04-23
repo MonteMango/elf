@@ -325,21 +325,6 @@ public final class ElfGameContainer {
         )
     }
 
-    public func makeHuntViewModel() -> HuntViewModel {
-        guard let gameService = activeGameService else {
-            fatalError("No active game session. HuntViewModel requires an active game.")
-        }
-        return HuntViewModel(
-            gameService: gameService,
-            monsterRepository: self.gameDataRepository.monsters,
-            materialRepository: self.gameDataRepository.materials,
-            itemsRepository: self.gameDataRepository.items,
-            snapshotBuilder: self.snapshotBuilder,
-            progressionService: self.progressionService,
-            equipmentQueryService: self.equipmentQueryService
-        )
-    }
-
     public func makeCalendarViewModel(
         calendar: [GameDay],
         currentDayNumber: Int

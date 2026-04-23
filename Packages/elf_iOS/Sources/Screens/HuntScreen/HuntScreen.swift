@@ -15,9 +15,11 @@ struct HuntScreen: View {
         #if DEBUG
         let _ = Self._printChanges()
         #endif
-        HuntScreenContent(
-            viewModel: gameContainer.makeHuntViewModel(),
-            dayStateViewModel: gameContainer.requireGameDayStateViewModel()
-        )
+        if let session = gameContainer.sessionModel {
+            HuntScreenContent(
+                viewModel: session.makeHuntViewModel(),
+                dayStateViewModel: session.dayState
+            )
+        }
     }
 }

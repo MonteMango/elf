@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 08.12.25.
 //
 
+import Dependencies
 import Foundation
 
 @MainActor
@@ -14,12 +15,24 @@ public final class HuntViewModel {
     // MARK: - Dependencies
 
     private let gameService: any GameService
-    private let monsterRepository: any MonsterRepository
-    private let materialRepository: any Repository<Material>
-    private let itemsRepository: any ItemsRepository
-    private let snapshotBuilder: any CombatantSnapshotBuilder
-    private let progressionService: any ProgressionService
-    private let equipmentQueryService: any EquipmentQueryService
+
+    @ObservationIgnored
+    @Dependency(\.monsterRepository) private var monsterRepository
+
+    @ObservationIgnored
+    @Dependency(\.materialRepository) private var materialRepository
+
+    @ObservationIgnored
+    @Dependency(\.itemsRepository) private var itemsRepository
+
+    @ObservationIgnored
+    @Dependency(\.snapshotBuilder) private var snapshotBuilder
+
+    @ObservationIgnored
+    @Dependency(\.progressionService) private var progressionService
+
+    @ObservationIgnored
+    @Dependency(\.equipmentQueryService) private var equipmentQueryService
 
     // MARK: - Constants / Local UI state
 
@@ -46,22 +59,8 @@ public final class HuntViewModel {
 
     // MARK: - Initialization
 
-    public init(
-        gameService: any GameService,
-        monsterRepository: any MonsterRepository,
-        materialRepository: any Repository<Material>,
-        itemsRepository: any ItemsRepository,
-        snapshotBuilder: any CombatantSnapshotBuilder,
-        progressionService: any ProgressionService,
-        equipmentQueryService: any EquipmentQueryService
-    ) {
+    public init(gameService: any GameService) {
         self.gameService = gameService
-        self.monsterRepository = monsterRepository
-        self.materialRepository = materialRepository
-        self.itemsRepository = itemsRepository
-        self.snapshotBuilder = snapshotBuilder
-        self.progressionService = progressionService
-        self.equipmentQueryService = equipmentQueryService
     }
 
     // MARK: - Actions

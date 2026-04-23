@@ -84,11 +84,11 @@ struct HuntScreenContent: View {
     @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @State var router = AppRouter()
 
-    if let gameContainer, gameContainer.activeGameService != nil {
+    if let gameContainer, let session = gameContainer.sessionModel {
         NavigationStack(path: $router.navigationPath) {
             HuntScreenContent(
-                viewModel: gameContainer.makeHuntViewModel(),
-                dayStateViewModel: gameContainer.requireGameDayStateViewModel()
+                viewModel: session.makeHuntViewModel(),
+                dayStateViewModel: session.dayState
             )
             .environment(router)
         }
