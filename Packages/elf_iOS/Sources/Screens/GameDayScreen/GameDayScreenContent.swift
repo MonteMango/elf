@@ -175,11 +175,11 @@ internal struct GameDayScreenContent: View {
     @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @State var router = AppRouter()
 
-    if let gameContainer, gameContainer.activeGameService != nil {
+    if let gameContainer, let session = gameContainer.sessionModel {
         GameDayScreenContent(
-            viewModel: gameContainer.makeGameDayViewModel(),
+            viewModel: session.makeGameDayViewModel(),
             inventoryViewModel: gameContainer.makeInventoryViewModel(),
-            dayStateViewModel: gameContainer.requireGameDayStateViewModel()
+            dayStateViewModel: session.dayState
         )
         .environment(router)
         .environment(gameContainer)

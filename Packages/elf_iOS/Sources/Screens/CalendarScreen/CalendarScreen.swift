@@ -19,11 +19,13 @@ struct CalendarScreen: View {
         #if DEBUG
         let _ = Self._printChanges()
         #endif
-        CalendarScreenContent(
-            viewModel: gameContainer.makeCalendarViewModel(
-                calendar: calendar,
-                currentDayNumber: currentDayNumber
+        if let session = gameContainer.sessionModel {
+            CalendarScreenContent(
+                viewModel: session.makeCalendarViewModel(
+                    calendar: calendar,
+                    currentDayNumber: currentDayNumber
+                )
             )
-        )
+        }
     }
 }

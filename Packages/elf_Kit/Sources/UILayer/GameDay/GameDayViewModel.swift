@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 28.11.25.
 //
 
+import Dependencies
 import Foundation
 
 @MainActor
@@ -14,9 +15,15 @@ public final class GameDayViewModel {
     // MARK: - Dependencies
 
     private let gameService: any GameService
-    private let progressionService: any ProgressionService
-    private let equipmentQueryService: any EquipmentQueryService
-    private let itemsRepository: any ItemsRepository
+
+    @ObservationIgnored
+    @Dependency(\.progressionService) private var progressionService
+
+    @ObservationIgnored
+    @Dependency(\.equipmentQueryService) private var equipmentQueryService
+
+    @ObservationIgnored
+    @Dependency(\.itemsRepository) private var itemsRepository
 
     // MARK: - Local UI State
 
@@ -45,16 +52,8 @@ public final class GameDayViewModel {
 
     // MARK: - Initialization
 
-    public init(
-        gameService: any GameService,
-        progressionService: any ProgressionService,
-        equipmentQueryService: any EquipmentQueryService,
-        itemsRepository: any ItemsRepository
-    ) {
+    public init(gameService: any GameService) {
         self.gameService = gameService
-        self.progressionService = progressionService
-        self.equipmentQueryService = equipmentQueryService
-        self.itemsRepository = itemsRepository
     }
 
     // MARK: - Actions

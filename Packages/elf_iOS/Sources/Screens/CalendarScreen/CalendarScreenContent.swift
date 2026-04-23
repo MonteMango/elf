@@ -67,8 +67,7 @@ struct CalendarScreenContent: View {
     CalendarScreenContent(
         viewModel: CalendarViewModel(
             calendar: PreviewMockData.createMockCalendar(),
-            currentDayNumber: 25,
-            daysPerIteration: PreviewMockData.daysPerIteration
+            currentDayNumber: 25
         )
     )
 }

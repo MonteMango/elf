@@ -17,11 +17,11 @@ internal struct GameDayScreen: View {
         #if DEBUG
         let _ = Self._printChanges()
         #endif
-        if gameContainer.activeGameService != nil {
+        if let session = gameContainer.sessionModel {
             GameDayScreenContent(
-                viewModel: gameContainer.makeGameDayViewModel(),
+                viewModel: session.makeGameDayViewModel(),
                 inventoryViewModel: gameContainer.makeInventoryViewModel(),
-                dayStateViewModel: gameContainer.requireGameDayStateViewModel()
+                dayStateViewModel: session.dayState
             )
         }
     }

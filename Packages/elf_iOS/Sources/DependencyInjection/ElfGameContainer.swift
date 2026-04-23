@@ -313,28 +313,6 @@ public final class ElfGameContainer {
         )
     }
 
-    public func makeGameDayViewModel() -> GameDayViewModel {
-        guard let gameService = activeGameService else {
-            fatalError("No active game session. Call startGameSession(game:playTime:) first.")
-        }
-        return GameDayViewModel(
-            gameService: gameService,
-            progressionService: self.progressionService,
-            equipmentQueryService: self.equipmentQueryService,
-            itemsRepository: self.gameDataRepository.items
-        )
-    }
-
-    public func makeCalendarViewModel(
-        calendar: [GameDay],
-        currentDayNumber: Int
-    ) -> CalendarViewModel {
-        return CalendarViewModel(
-            calendar: calendar,
-            currentDayNumber: currentDayNumber,
-            daysPerIteration: self.calendarService.daysPerIteration
-        )
-    }
 
     public func makeInventoryViewModel() -> InventoryViewModel {
         guard let gameService = activeGameService else {

@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 06.12.25.
 //
 
+import Dependencies
 import Foundation
 
 /// ViewModel for Calendar screen
@@ -33,6 +34,11 @@ public final class CalendarViewModel {
         }
     }
 
+    // MARK: - Dependencies
+
+    @ObservationIgnored
+    @Dependency(\.calendarService) private var calendarService
+
     // MARK: - State
 
     public var viewMode: ViewMode = .line
@@ -41,14 +47,13 @@ public final class CalendarViewModel {
 
     public let calendar: [GameDay]
     public let currentDayNumber: Int
-    public let daysPerIteration: Int
+
+    public var daysPerIteration: Int { calendarService.daysPerIteration }
 
     // MARK: - Initialization
 
-    public init(calendar: [GameDay], currentDayNumber: Int, daysPerIteration: Int) {
+    public init(calendar: [GameDay], currentDayNumber: Int) {
         self.calendar = calendar
         self.currentDayNumber = currentDayNumber
-        self.daysPerIteration = daysPerIteration
     }
-
 }

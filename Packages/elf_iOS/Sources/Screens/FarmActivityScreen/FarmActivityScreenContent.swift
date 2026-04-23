@@ -116,12 +116,14 @@ struct FarmActivityScreenContent: View {
         .toolbar(.hidden, for: .navigationBar)
         .modifier(ZoomTransitionModifier(sourceID: viewModel.activity.id, namespace: zoomNamespace))
         .navigationDestination(isPresented: $showCalendar) {
-            CalendarScreenContent(
-                viewModel: gameContainer.makeCalendarViewModel(
-                    calendar: dayStateViewModel.calendar,
-                    currentDayNumber: dayStateViewModel.currentDay.dayNumber
+            if let session = gameContainer.sessionModel {
+                CalendarScreenContent(
+                    viewModel: session.makeCalendarViewModel(
+                        calendar: dayStateViewModel.calendar,
+                        currentDayNumber: dayStateViewModel.currentDay.dayNumber
+                    )
                 )
-            )
+            }
         }
         .overlay {
             if isPerformingActivity {

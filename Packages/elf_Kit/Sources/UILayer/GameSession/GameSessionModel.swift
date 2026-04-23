@@ -58,4 +58,12 @@ public final class GameSessionModel {
     public func makeQuestListViewModel() -> QuestListViewModel {
         QuestListViewModel(gameService: gameService)
     }
+
+    public func makeGameDayViewModel() -> GameDayViewModel {
+        GameDayViewModel(gameService: gameService)
+    }
+
+    public func makeCalendarViewModel(calendar: [GameDay], currentDayNumber: Int) -> CalendarViewModel {
+        CalendarViewModel(calendar: calendar, currentDayNumber: currentDayNumber)
+    }
 }
