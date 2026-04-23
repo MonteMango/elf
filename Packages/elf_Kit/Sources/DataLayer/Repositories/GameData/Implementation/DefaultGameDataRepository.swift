@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov
 //
 
+import Dependencies
 import Foundation
 import os.log
 
@@ -20,8 +21,10 @@ public final class DefaultGameDataRepository: GameDataRepository {
     public let quests: any QuestRepository
 
     /// Async init — loads all JSON data on the cooperative thread pool,
-    /// then creates immutable repositories.
-    public init(dataLoader: any DataLoader = ElfDataLoader()) async {
+    /// then creates immutable repositories. `DataLoader` is resolved via
+    /// `@Dependency(\.dataLoader)`, so tests can override with a stub.
+    public init() async {
+        @Dependency(\.dataLoader) var dataLoader
         let log = OSLog(subsystem: "com.elfy.kit", category: "GameData")
 
         let fishData: FishData = await dataLoader.loadAndDecode(
