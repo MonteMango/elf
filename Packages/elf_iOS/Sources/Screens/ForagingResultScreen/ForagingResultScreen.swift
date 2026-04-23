@@ -9,7 +9,6 @@ import elf_Kit
 import SwiftUI
 
 struct ForagingResultScreen: View {
-    @Environment(ElfGameContainer.self) private var gameContainer
     let result: ForagingResult
 
     var body: some View {
@@ -17,7 +16,7 @@ struct ForagingResultScreen: View {
         let _ = Self._printChanges()
         #endif
         ForagingResultScreenContent(
-            viewModel: gameContainer.makeForagingResultViewModel(result: result)
+            viewModel: ForagingResultViewModel(result: result)
         )
     }
 }

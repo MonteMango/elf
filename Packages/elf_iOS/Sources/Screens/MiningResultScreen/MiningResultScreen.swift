@@ -9,7 +9,6 @@ import elf_Kit
 import SwiftUI
 
 struct MiningResultScreen: View {
-    @Environment(ElfGameContainer.self) private var gameContainer
     let result: MiningResult
 
     var body: some View {
@@ -17,7 +16,7 @@ struct MiningResultScreen: View {
         let _ = Self._printChanges()
         #endif
         MiningResultScreenContent(
-            viewModel: gameContainer.makeMiningResultViewModel(result: result)
+            viewModel: MiningResultViewModel(result: result)
         )
     }
 }

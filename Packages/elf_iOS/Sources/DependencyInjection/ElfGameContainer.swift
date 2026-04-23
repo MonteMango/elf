@@ -225,18 +225,6 @@ public final class ElfGameContainer {
 
     // MARK: - ViewModel Factories
 
-    public func makeFishingResultViewModel(result: FishingResult) -> FishingResultViewModel {
-        return FishingResultViewModel(result: result)
-    }
-
-    public func makeForagingResultViewModel(result: ForagingResult) -> ForagingResultViewModel {
-        return ForagingResultViewModel(result: result)
-    }
-
-    public func makeMiningResultViewModel(result: MiningResult) -> MiningResultViewModel {
-        return MiningResultViewModel(result: result)
-    }
-
     public func makeCharacterCreationViewModel() -> CharacterCreationViewModel {
         let nameValidator = DefaultCharacterNameValidator()
         let characterBuilder = DefaultCharacterBuilder()
