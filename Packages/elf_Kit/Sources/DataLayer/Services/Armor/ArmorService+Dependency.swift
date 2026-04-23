@@ -16,6 +16,7 @@ extension DependencyValues {
 
 private enum ArmorServiceKey: DependencyKey {
     static var liveValue: any ArmorService {
-        fatalError("ArmorService must be registered via prepareDependencies at app bootstrap (see ElfApp.swift). It depends on async-loaded ItemsRepository.")
+        @Dependency(\.itemsRepository) var itemsRepository
+        return ElfArmorService(itemsRepository: itemsRepository)
     }
 }

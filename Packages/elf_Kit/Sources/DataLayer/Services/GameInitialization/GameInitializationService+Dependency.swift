@@ -16,6 +16,15 @@ extension DependencyValues {
 
 private enum GameInitializationServiceKey: DependencyKey {
     static var liveValue: any GameInitializationService {
-        fatalError("GameInitializationService must be registered via prepareDependencies at app bootstrap (see ElfApp.swift). It composes houseService, elfInfoFactory, calendarService, and gameRepository.")
+        @Dependency(\.houseService) var houseService
+        @Dependency(\.elfInfoFactory) var elfInfoFactory
+        @Dependency(\.calendarService) var calendarService
+        @Dependency(\.gameRepository) var gameRepository
+        return ElfGameInitializationService(
+            houseService: houseService,
+            elfInfoFactory: elfInfoFactory,
+            calendarService: calendarService,
+            gameRepository: gameRepository
+        )
     }
 }

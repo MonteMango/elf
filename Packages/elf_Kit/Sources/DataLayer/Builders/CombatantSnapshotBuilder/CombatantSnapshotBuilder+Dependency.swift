@@ -16,6 +16,11 @@ extension DependencyValues {
 
 private enum CombatantSnapshotBuilderKey: DependencyKey {
     static var liveValue: any CombatantSnapshotBuilder {
-        fatalError("CombatantSnapshotBuilder must be registered via prepareDependencies at app bootstrap (see ElfApp.swift). It depends on async-loaded GameDataRepository and armorService.")
+        @Dependency(\.itemsRepository) var itemsRepository
+        @Dependency(\.armorService) var armorService
+        return DefaultCombatantSnapshotBuilder(
+            itemsRepository: itemsRepository,
+            armorService: armorService
+        )
     }
 }

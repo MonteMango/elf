@@ -16,6 +16,15 @@ extension DependencyValues {
 
 private enum BattleSimulationServiceKey: DependencyKey {
     static var liveValue: any BattleSimulationService {
-        fatalError("BattleSimulationService must be registered via prepareDependencies at app bootstrap (see ElfApp.swift). It composes several bootstrap-required services.")
+        @Dependency(\.botAI) var botAI
+        @Dependency(\.snapshotCombatCalculator) var snapshotCombatCalculator
+        @Dependency(\.damageService) var damageService
+        @Dependency(\.statisticsParser) var statisticsParser
+        return ElfBattleSimulationService(
+            botAI: botAI,
+            snapshotCombatCalculator: snapshotCombatCalculator,
+            damageService: damageService,
+            statisticsParser: statisticsParser
+        )
     }
 }

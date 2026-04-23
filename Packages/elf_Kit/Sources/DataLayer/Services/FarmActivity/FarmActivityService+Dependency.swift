@@ -16,6 +16,21 @@ extension DependencyValues {
 
 private enum FarmActivityServiceKey: DependencyKey {
     static var liveValue: any FarmActivityService {
-        fatalError("FarmActivityService must be registered via prepareDependencies at app bootstrap (see ElfApp.swift). It depends on async-loaded GameDataRepository and cannot be constructed from liveValue directly.")
+        @Dependency(\.fishingService) var fishingService
+        @Dependency(\.foragingService) var foragingService
+        @Dependency(\.miningService) var miningService
+        @Dependency(\.fishRepository) var fishRepository
+        @Dependency(\.herbRepository) var herbRepository
+        @Dependency(\.oreRepository) var oreRepository
+        @Dependency(\.progressionService) var progressionService
+        return DefaultFarmActivityService(
+            fishingService: fishingService,
+            foragingService: foragingService,
+            miningService: miningService,
+            fishRepository: fishRepository,
+            herbRepository: herbRepository,
+            oreRepository: oreRepository,
+            progressionService: progressionService
+        )
     }
 }

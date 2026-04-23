@@ -16,6 +16,15 @@ extension DependencyValues {
 
 private enum SnapshotCombatCalculatorKey: DependencyKey {
     static var liveValue: any SnapshotCombatCalculator {
-        fatalError("SnapshotCombatCalculator must be registered via prepareDependencies at app bootstrap (see ElfApp.swift). It composes several bootstrap-required services.")
+        @Dependency(\.damageService) var damageService
+        @Dependency(\.dodgeService) var dodgeService
+        @Dependency(\.critService) var critService
+        @Dependency(\.debugBattleLogger) var debugBattleLogger
+        return ElfSnapshotCombatCalculator(
+            damageService: damageService,
+            dodgeService: dodgeService,
+            critService: critService,
+            debugLogger: debugBattleLogger
+        )
     }
 }

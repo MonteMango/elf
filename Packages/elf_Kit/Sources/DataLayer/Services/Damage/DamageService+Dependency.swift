@@ -16,6 +16,10 @@ extension DependencyValues {
 
 private enum DamageServiceKey: DependencyKey {
     static var liveValue: any DamageService {
-        fatalError("DamageService must be registered via prepareDependencies at app bootstrap (see ElfApp.swift). It depends on async-loaded ItemsRepository.")
+        @Dependency(\.itemsRepository) var itemsRepository
+        return ElfDamageService(
+            itemsRepository: itemsRepository,
+            distributionStrategy: ElfStrengthDamageDistributionStrategy()
+        )
     }
 }

@@ -16,6 +16,13 @@ extension DependencyValues {
 
 private enum BattleResultCalculatorKey: DependencyKey {
     static var liveValue: any BattleResultCalculator {
-        fatalError("BattleResultCalculator must be registered via prepareDependencies at app bootstrap (see ElfApp.swift). It composes several bootstrap-required services.")
+        @Dependency(\.huntService) var huntService
+        @Dependency(\.dropService) var dropService
+        @Dependency(\.progressionService) var progressionService
+        return DefaultBattleResultCalculator(
+            huntService: huntService,
+            dropService: dropService,
+            progressionService: progressionService
+        )
     }
 }

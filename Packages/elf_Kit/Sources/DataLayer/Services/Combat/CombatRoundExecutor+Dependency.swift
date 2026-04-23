@@ -16,6 +16,11 @@ extension DependencyValues {
 
 private enum CombatRoundExecutorKey: DependencyKey {
     static var liveValue: any CombatRoundExecutor {
-        fatalError("CombatRoundExecutor must be registered via prepareDependencies at app bootstrap (see ElfApp.swift). It composes several bootstrap-required services.")
+        @Dependency(\.snapshotCombatCalculator) var snapshotCombatCalculator
+        @Dependency(\.damageService) var damageService
+        return ElfCombatRoundExecutor(
+            snapshotCombatCalculator: snapshotCombatCalculator,
+            damageService: damageService
+        )
     }
 }

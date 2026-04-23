@@ -16,6 +16,13 @@ extension DependencyValues {
 
 private enum GameRepositoryKey: DependencyKey {
     static var liveValue: any GameSaveStorage {
-        fatalError("GameRepository must be registered via prepareDependencies at app bootstrap (see DependencyBootstrap.swift).")
+        @Dependency(\.itemsRepository) var itemsRepository
+        @Dependency(\.progressionService) var progressionService
+        @Dependency(\.inventoryService) var inventoryService
+        return FileGameSaveStorage(
+            itemsRepository: itemsRepository,
+            progressionService: progressionService,
+            inventoryService: inventoryService
+        )
     }
 }
