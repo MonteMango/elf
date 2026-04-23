@@ -176,15 +176,7 @@ enum PreviewMockData {
 
     @MainActor
     static func createMockInventoryViewModel() -> InventoryViewModel {
-        let gameService = createMockGameService()
-        let equipmentService = DefaultEquipmentService(
-            gameService: gameService,
-            itemsRepository: NoOpItemsRepository()
-        )
-        return InventoryViewModel(
-            gameService: gameService,
-            equipmentService: equipmentService
-        )
+        InventoryViewModel(gameService: createMockGameService())
     }
 }
 

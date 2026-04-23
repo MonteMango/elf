@@ -5,16 +5,15 @@
 //  Created by Vitalii Lytvynov
 //
 
-import Dependencies
 import Foundation
 
 /// Non-optional owner of an active game session.
 ///
-/// Wraps the session-scoped `gameService`, the shared `GameDayStateViewModel`,
-/// and the session-scoped `EquipmentService`. Exposes factories for session-bound
-/// ViewModels. Because `gameService` is non-optional, it is structurally impossible
-/// to build a session-bound ViewModel without a live session — removing the need
-/// for runtime `fatalError` guards in ViewModel factories.
+/// Wraps the session-scoped `gameService` and the shared `GameDayStateViewModel`.
+/// Exposes factories for session-bound ViewModels. Because `gameService` is
+/// non-optional, it is structurally impossible to build a session-bound ViewModel
+/// without a live session — removing the need for runtime `fatalError` guards in
+/// ViewModel factories.
 ///
 /// Lifecycle: created when a game starts and released when it ends (see
 /// `AppCoordinator.startGame` / `endGame`).
@@ -26,18 +25,12 @@ public final class GameSessionModel {
 
     public let gameService: any GameService
     public let dayState: GameDayStateViewModel
-    public let equipmentService: any EquipmentService
 
     // MARK: - Initialization
 
     public init(gameService: any GameService) {
-        @Dependency(\.itemsRepository) var itemsRepository
         self.gameService = gameService
         self.dayState = GameDayStateViewModel(gameService: gameService)
-        self.equipmentService = DefaultEquipmentService(
-            gameService: gameService,
-            itemsRepository: itemsRepository
-        )
     }
 
     // MARK: - ViewModel Factories
@@ -75,6 +68,6 @@ public final class GameSessionModel {
     }
 
     public func makeInventoryViewModel() -> InventoryViewModel {
-        InventoryViewModel(gameService: gameService, equipmentService: equipmentService)
+        InventoryViewModel(gameService: gameService)
     }
 }
