@@ -316,7 +316,10 @@ internal struct BattleFightScreenContent: View {
     if let gameContainer {
         NavigationStack {
             BattleFightScreenContent(
-                viewModel: gameContainer.makeBattleFightViewModel(battle: mockBattle)
+                viewModel: BattleFightViewModel(
+                    battle: mockBattle,
+                    gameService: gameContainer.sessionModel?.gameService
+                )
             )
             .environment(AppRouter())
         }

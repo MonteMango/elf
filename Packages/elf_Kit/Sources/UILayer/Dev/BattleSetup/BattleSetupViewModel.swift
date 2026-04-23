@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 12.11.25.
 //
 
+import Dependencies
 import Foundation
 
 @MainActor
@@ -13,13 +14,26 @@ public final class BattleSetupViewModel {
 
     // MARK: - Dependencies
 
-    private let itemsRepository: any ItemsRepository
-    private let attributeService: any AttributeService
-    private let armorService: any ArmorService
-    private let damageService: any DamageService
-    private let weaponValidator: any WeaponValidator
-    private let snapshotBuilder: any CombatantSnapshotBuilder
-    private let monsterRepository: any MonsterRepository
+    @ObservationIgnored
+    @Dependency(\.itemsRepository) private var itemsRepository
+
+    @ObservationIgnored
+    @Dependency(\.attributeService) private var attributeService
+
+    @ObservationIgnored
+    @Dependency(\.armorService) private var armorService
+
+    @ObservationIgnored
+    @Dependency(\.damageService) private var damageService
+
+    @ObservationIgnored
+    @Dependency(\.weaponValidator) private var weaponValidator
+
+    @ObservationIgnored
+    @Dependency(\.snapshotBuilder) private var snapshotBuilder
+
+    @ObservationIgnored
+    @Dependency(\.monsterRepository) private var monsterRepository
 
     // MARK: - State
 
@@ -126,23 +140,7 @@ public final class BattleSetupViewModel {
 
     // MARK: - Initialization
 
-    public init(
-        itemsRepository: any ItemsRepository,
-        attributeService: any AttributeService,
-        armorService: any ArmorService,
-        damageService: any DamageService,
-        weaponValidator: any WeaponValidator,
-        snapshotBuilder: any CombatantSnapshotBuilder,
-        monsterRepository: any MonsterRepository
-    ) {
-        self.itemsRepository = itemsRepository
-        self.attributeService = attributeService
-        self.armorService = armorService
-        self.damageService = damageService
-        self.weaponValidator = weaponValidator
-        self.snapshotBuilder = snapshotBuilder
-        self.monsterRepository = monsterRepository
-
+    public init() {
         Task { await loadAllMonsters() }
     }
 

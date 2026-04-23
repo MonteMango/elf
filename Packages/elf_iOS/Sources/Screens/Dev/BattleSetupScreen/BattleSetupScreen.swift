@@ -9,7 +9,6 @@ import elf_Kit
 import SwiftUI
 
 internal struct BattleSetupScreen: View {
-    @Environment(ElfGameContainer.self) private var gameContainer
 
     internal init() {}
 
@@ -18,7 +17,7 @@ internal struct BattleSetupScreen: View {
         let _ = Self._printChanges()
         #endif
         BattleSetupScreenContent(
-            viewModel: gameContainer.makeBattleSetupViewModel()
+            viewModel: BattleSetupViewModel()
         )
     }
 }

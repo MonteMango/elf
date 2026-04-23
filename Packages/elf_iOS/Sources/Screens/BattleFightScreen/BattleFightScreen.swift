@@ -18,7 +18,10 @@ internal struct BattleFightScreen: View {
         let _ = Self._printChanges()
         #endif
         BattleFightScreenContent(
-            viewModel: gameContainer.makeBattleFightViewModel(battle: battle)
+            viewModel: BattleFightViewModel(
+                battle: battle,
+                gameService: gameContainer.sessionModel?.gameService
+            )
         )
     }
 }

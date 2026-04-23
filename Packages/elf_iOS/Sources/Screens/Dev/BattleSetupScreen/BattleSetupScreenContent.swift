@@ -266,7 +266,7 @@ internal struct BattleSetupScreenContent: View {
     if let gameContainer {
         NavigationStack(path: $router.navigationPath) {
             BattleSetupScreenContent(
-                viewModel: gameContainer.makeBattleSetupViewModel()
+                viewModel: BattleSetupViewModel()
             )
             .environment(gameContainer)
             .environment(router)

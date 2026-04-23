@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 12.11.25.
 //
 
+import Dependencies
 import Foundation
 
 @MainActor
@@ -13,16 +14,29 @@ public final class BattleFightViewModel {
 
     // MARK: - Dependencies
 
-    private let botAI: any BotAIService
-    private let combatRoundExecutor: any CombatRoundExecutor
-    private let battleLogger: any BattleLogger
-    private let debugLogger: any DebugBattleLogger
-    private let duelPairingService: any DuelPairingService
+    @ObservationIgnored
+    @Dependency(\.botAI) private var botAI
 
-    // Result calculation dependencies (optional for non-hunt battles)
+    @ObservationIgnored
+    @Dependency(\.combatRoundExecutor) private var combatRoundExecutor
+
+    @ObservationIgnored
+    @Dependency(\.battleLogger) private var battleLogger
+
+    @ObservationIgnored
+    @Dependency(\.debugBattleLogger) private var debugLogger
+
+    @ObservationIgnored
+    @Dependency(\.duelPairingService) private var duelPairingService
+
+    @ObservationIgnored
+    @Dependency(\.monsterRepository) private var monsterRepository
+
+    @ObservationIgnored
+    @Dependency(\.battleResultCalculator) private var battleResultCalculator
+
+    // Optional session context (nil for non-hunt battles like dev BattleSetup flow)
     private let gameService: (any GameService)?
-    private let monsterRepository: (any MonsterRepository)?
-    private let battleResultCalculator: (any BattleResultCalculator)?
 
     // MARK: - State
 
@@ -77,26 +91,9 @@ public final class BattleFightViewModel {
 
     // MARK: - Initialization
 
-    public init(
-        battle: Battle,
-        botAI: any BotAIService,
-        combatRoundExecutor: any CombatRoundExecutor,
-        battleLogger: any BattleLogger,
-        debugLogger: any DebugBattleLogger,
-        duelPairingService: any DuelPairingService,
-        gameService: (any GameService)? = nil,
-        monsterRepository: (any MonsterRepository)? = nil,
-        battleResultCalculator: (any BattleResultCalculator)? = nil
-    ) {
+    public init(battle: Battle, gameService: (any GameService)? = nil) {
         self.battle = battle
-        self.botAI = botAI
-        self.combatRoundExecutor = combatRoundExecutor
-        self.battleLogger = battleLogger
-        self.debugLogger = debugLogger
-        self.duelPairingService = duelPairingService
         self.gameService = gameService
-        self.monsterRepository = monsterRepository
-        self.battleResultCalculator = battleResultCalculator
 
         // Initialize HP values from snapshots
         let player = battle.leftTeam[0]
@@ -106,7 +103,6 @@ public final class BattleFightViewModel {
         let bot = battle.rightTeam[0]
         self.botMaxHP = bot.maxHP
         self.botCurrentHP = bot.currentHP
-
     }
 
     // MARK: - Data Loading
@@ -241,23 +237,7 @@ public final class BattleFightViewModel {
         let monster = getMonsterFromBot()
         let currentExp: Int = gameService?.player.currentExp ?? 0
 
-        guard let calculator = battleResultCalculator else {
-            // Fallback for battles without result calculator
-            battleResult = ManualBattleResult(
-                outcome: outcome,
-                experienceGained: 0,
-                drops: [],
-                previousLevel: 1,
-                previousExp: 0,
-                previousExpToNext: 100,
-                newLevel: 1,
-                newExp: 0,
-                newExpToNext: 100
-            )
-            return
-        }
-
-        let result = calculator.calculateResult(
+        let result = battleResultCalculator.calculateResult(
             outcome: outcome,
             monster: monster,
             currentExp: currentExp
@@ -305,8 +285,7 @@ public final class BattleFightViewModel {
 
     private func getMonsterFromBot() -> Monster? {
         guard let botSnapshot = battle.rightTeam.first,
-              botSnapshot.combatantType == .monster,
-              let monsterRepository = monsterRepository else {
+              botSnapshot.combatantType == .monster else {
             return nil
         }
         return monsterRepository.getById(id: botSnapshot.sourceId)

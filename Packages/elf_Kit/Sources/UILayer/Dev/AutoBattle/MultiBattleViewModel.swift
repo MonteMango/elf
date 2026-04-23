@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 21.11.25.
 //
 
+import Dependencies
 import Foundation
 import Observation
 
@@ -15,8 +16,12 @@ public final class MultiBattleViewModel {
     // MARK: - Dependencies
 
     private let battle: Battle
-    private let battleSimulationService: any BattleSimulationService
-    private let statisticsAggregator: any BattleStatisticsAggregator
+
+    @ObservationIgnored
+    @Dependency(\.battleSimulationService) private var battleSimulationService
+
+    @ObservationIgnored
+    @Dependency(\.statisticsAggregator) private var statisticsAggregator
 
     // MARK: - Configuration
 
@@ -50,16 +55,8 @@ public final class MultiBattleViewModel {
 
     // MARK: - Initialization
 
-    public init(
-        battle: Battle,
-        battleSimulationService: any BattleSimulationService,
-        statisticsAggregator: any BattleStatisticsAggregator,
-        totalBattles: Int = 1000,
-        batchSize: Int = 25
-    ) {
+    public init(battle: Battle, totalBattles: Int = 1000, batchSize: Int = 25) {
         self.battle = battle
-        self.battleSimulationService = battleSimulationService
-        self.statisticsAggregator = statisticsAggregator
         self.totalBattles = totalBattles
         self.batchSize = batchSize
     }

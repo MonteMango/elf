@@ -225,55 +225,6 @@ public final class ElfGameContainer {
 
     // MARK: - ViewModel Factories
 
-    public func makeBattleSetupViewModel() -> BattleSetupViewModel {
-        return BattleSetupViewModel(
-            itemsRepository: self.gameDataRepository.items,
-            attributeService: self.attributeService,
-            armorService: self.armorService,
-            damageService: self.damageService,
-            weaponValidator: self.weaponValidator,
-            snapshotBuilder: self.snapshotBuilder,
-            monsterRepository: self.gameDataRepository.monsters
-        )
-    }
-
-    public func makeBattleFightViewModel(battle: Battle) -> BattleFightViewModel {
-        return BattleFightViewModel(
-            battle: battle,
-            botAI: self.botAI,
-            combatRoundExecutor: self.combatRoundExecutor,
-            battleLogger: self.battleLogger,
-            debugLogger: self.debugBattleLogger,
-            duelPairingService: self.duelPairingService,
-            gameService: self.activeGameService,
-            monsterRepository: self.gameDataRepository.monsters,
-            battleResultCalculator: self.battleResultCalculator
-        )
-    }
-
-    public func makeAutoBattleViewModel(battle: Battle) -> AutoBattleViewModel {
-        return AutoBattleViewModel(
-            battle: battle,
-            botAI: self.botAI,
-            snapshotCombatCalculator: self.snapshotCombatCalculator,
-            damageService: self.damageService,
-            statisticsParser: self.statisticsParser
-        )
-    }
-
-    public func makeMultiBattleViewModel(battle: Battle) -> MultiBattleViewModel {
-        return MultiBattleViewModel(
-            battle: battle,
-            battleSimulationService: self.battleSimulationService,
-            statisticsAggregator: self.statisticsAggregator,
-            totalBattles: PerfTestConfig.multiBattleCount
-        )
-    }
-
-    public func makeBattleResultViewModel(result: ManualBattleResult) -> BattleResultViewModel {
-        return BattleResultViewModel(result: result)
-    }
-
     public func makeFishingResultViewModel(result: FishingResult) -> FishingResultViewModel {
         return FishingResultViewModel(result: result)
     }

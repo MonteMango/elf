@@ -36,6 +36,14 @@ internal struct ElfApp: App {
                         $0.questRepository = gameContainer.gameDataRepository.quests
                         $0.herbRepository = gameContainer.gameDataRepository.herbs
                         $0.fishRepository = gameContainer.gameDataRepository.fish
+                        $0.attributeService = gameContainer.attributeService
+                        $0.armorService = gameContainer.armorService
+                        $0.damageService = gameContainer.damageService
+                        $0.weaponValidator = gameContainer.weaponValidator
+                        $0.snapshotCombatCalculator = gameContainer.snapshotCombatCalculator
+                        $0.combatRoundExecutor = gameContainer.combatRoundExecutor
+                        $0.battleSimulationService = gameContainer.battleSimulationService
+                        $0.battleResultCalculator = gameContainer.battleResultCalculator
                     }
                 }
         }

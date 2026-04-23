@@ -9,7 +9,6 @@ import elf_Kit
 import SwiftUI
 
 internal struct MultiBattleResultScreen: View {
-    @Environment(ElfGameContainer.self) private var gameContainer
     @Environment(\.dismiss) private var dismiss
 
     let battle: Battle
@@ -19,7 +18,10 @@ internal struct MultiBattleResultScreen: View {
         let _ = Self._printChanges()
         #endif
         MultiBattleResultScreenContent(
-            viewModel: gameContainer.makeMultiBattleViewModel(battle: battle),
+            viewModel: MultiBattleViewModel(
+                battle: battle,
+                totalBattles: PerfTestConfig.multiBattleCount
+            ),
             onClose: { dismiss() }
         )
     }

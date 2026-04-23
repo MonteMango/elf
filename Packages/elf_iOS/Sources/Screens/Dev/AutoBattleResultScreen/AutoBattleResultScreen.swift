@@ -9,7 +9,6 @@ import elf_Kit
 import SwiftUI
 
 internal struct AutoBattleResultScreen: View {
-    @Environment(ElfGameContainer.self) private var gameContainer
     @Environment(\.dismiss) private var dismiss
 
     let battle: Battle
@@ -19,7 +18,7 @@ internal struct AutoBattleResultScreen: View {
         let _ = Self._printChanges()
         #endif
         AutoBattleResultScreenContent(
-            viewModel: gameContainer.makeAutoBattleViewModel(battle: battle),
+            viewModel: AutoBattleViewModel(battle: battle),
             onClose: { dismiss() }
         )
     }

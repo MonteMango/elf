@@ -9,7 +9,6 @@ import elf_Kit
 import SwiftUI
 
 struct BattleResultScreen: View {
-    @Environment(ElfGameContainer.self) private var gameContainer
     let result: ManualBattleResult
 
     var body: some View {
@@ -17,7 +16,7 @@ struct BattleResultScreen: View {
         let _ = Self._printChanges()
         #endif
         BattleResultScreenContent(
-            viewModel: gameContainer.makeBattleResultViewModel(result: result)
+            viewModel: BattleResultViewModel(result: result)
         )
     }
 }

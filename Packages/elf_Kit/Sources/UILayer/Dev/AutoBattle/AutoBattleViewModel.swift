@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 19.11.25.
 //
 
+import Dependencies
 import Foundation
 import Observation
 
@@ -15,10 +16,18 @@ public final class AutoBattleViewModel {
     // MARK: - Dependencies
 
     private let battle: Battle
-    private let botAI: any BotAIService
-    private let snapshotCombatCalculator: any SnapshotCombatCalculator
-    private let damageService: any DamageService
-    private let statisticsParser: any BattleStatisticsParser
+
+    @ObservationIgnored
+    @Dependency(\.botAI) private var botAI
+
+    @ObservationIgnored
+    @Dependency(\.snapshotCombatCalculator) private var snapshotCombatCalculator
+
+    @ObservationIgnored
+    @Dependency(\.damageService) private var damageService
+
+    @ObservationIgnored
+    @Dependency(\.statisticsParser) private var statisticsParser
 
     // MARK: - State
 
@@ -33,18 +42,8 @@ public final class AutoBattleViewModel {
 
     // MARK: - Initialization
 
-    public init(
-        battle: Battle,
-        botAI: any BotAIService,
-        snapshotCombatCalculator: any SnapshotCombatCalculator,
-        damageService: any DamageService,
-        statisticsParser: any BattleStatisticsParser
-    ) {
+    public init(battle: Battle) {
         self.battle = battle
-        self.botAI = botAI
-        self.snapshotCombatCalculator = snapshotCombatCalculator
-        self.damageService = damageService
-        self.statisticsParser = statisticsParser
     }
 
     // MARK: - Public Methods
