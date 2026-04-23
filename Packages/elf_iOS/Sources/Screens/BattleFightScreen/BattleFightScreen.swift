@@ -9,7 +9,7 @@ import elf_Kit
 import SwiftUI
 
 internal struct BattleFightScreen: View {
-    @Environment(ElfGameContainer.self) private var gameContainer
+    @Environment(AppCoordinator.self) private var coordinator
 
     let battle: Battle
 
@@ -20,7 +20,7 @@ internal struct BattleFightScreen: View {
         BattleFightScreenContent(
             viewModel: BattleFightViewModel(
                 battle: battle,
-                gameService: gameContainer.sessionModel?.gameService
+                gameService: coordinator.sessionModel?.gameService
             )
         )
     }

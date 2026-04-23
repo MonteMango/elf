@@ -11,7 +11,7 @@ import SwiftUI
 
 internal struct GameDayScreenContent: View {
     @Environment(AppRouter.self) private var router
-    @Environment(ElfGameContainer.self) private var gameContainer
+    @Environment(AppCoordinator.self) private var coordinator
     @State private var viewModel: GameDayViewModel
     @State private var inventoryViewModel: InventoryViewModel
     let dayStateViewModel: GameDayStateViewModel
@@ -158,7 +158,7 @@ internal struct GameDayScreenContent: View {
                     Task {
                         await viewModel.exitGame()
                         router.popToRoot()
-                        gameContainer.endGameSession()
+                        coordinator.endGame()
                     }
                 }
             }
@@ -172,24 +172,25 @@ internal struct GameDayScreenContent: View {
 
 #if DEBUG
 #Preview {
-    @Previewable @State var gameContainer: ElfGameContainer?
+    @Previewable @State var coordinator: AppCoordinator?
     @Previewable @State var router = AppRouter()
 
-    if let gameContainer, let session = gameContainer.sessionModel {
+    if let coordinator, let session = coordinator.sessionModel {
         GameDayScreenContent(
             viewModel: session.makeGameDayViewModel(),
             inventoryViewModel: session.makeInventoryViewModel(),
             dayStateViewModel: session.dayState
         )
         .environment(router)
-        .environment(gameContainer)
+        .environment(coordinator)
         .preferredColorScheme(.light)
     } else {
         ProgressView()
             .task {
-                let container = await ElfGameContainer()
-                container.initializePreviewSession(game: PreviewMockData.createMockGame())
-                gameContainer = container
+                await DependencyBootstrap.run()
+                let c = AppCoordinator()
+                c.initializePreviewSession(game: PreviewMockData.createMockGame())
+                coordinator = c
             }
     }
 }

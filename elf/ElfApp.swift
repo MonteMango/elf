@@ -5,14 +5,14 @@
 //  Created by Vitalii Lytvynov on 10.11.25.
 //
 
-import Dependencies
 import elf_iOS
 import elf_SwiftUI
 import SwiftUI
 
 @main
 internal struct ElfApp: App {
-    @State private var appContainer = ElfAppContainer()
+    @State private var coordinator = AppCoordinator()
+    @State private var isBootstrapped = false
 
     init() {
         configureAppearance()
@@ -20,33 +20,17 @@ internal struct ElfApp: App {
 
     internal var body: some Scene {
         WindowGroup {
-            RootScreen()
-                .environment(appContainer)
-                .onScenePhaseChange(appContainer: appContainer)
-                .task {
-                    let gameContainer = await appContainer.createGameContainer()
-                    prepareDependencies {
-                        $0.farmActivityService = gameContainer.farmActivityService
-                        $0.monsterRepository = gameContainer.gameDataRepository.monsters
-                        $0.snapshotBuilder = gameContainer.snapshotBuilder
-                        $0.itemsRepository = gameContainer.gameDataRepository.items
-                        $0.materialRepository = gameContainer.gameDataRepository.materials
-                        $0.recipeRepository = gameContainer.gameDataRepository.recipes
-                        $0.oreRepository = gameContainer.gameDataRepository.ores
-                        $0.questRepository = gameContainer.gameDataRepository.quests
-                        $0.herbRepository = gameContainer.gameDataRepository.herbs
-                        $0.fishRepository = gameContainer.gameDataRepository.fish
-                        $0.attributeService = gameContainer.attributeService
-                        $0.armorService = gameContainer.armorService
-                        $0.damageService = gameContainer.damageService
-                        $0.weaponValidator = gameContainer.weaponValidator
-                        $0.snapshotCombatCalculator = gameContainer.snapshotCombatCalculator
-                        $0.combatRoundExecutor = gameContainer.combatRoundExecutor
-                        $0.battleSimulationService = gameContainer.battleSimulationService
-                        $0.battleResultCalculator = gameContainer.battleResultCalculator
-                        $0.gameInitializationService = gameContainer.gameInitializationService
+            if isBootstrapped {
+                RootScreen()
+                    .environment(coordinator)
+                    .onScenePhaseChange(coordinator: coordinator)
+            } else {
+                ProgressView()
+                    .task {
+                        await DependencyBootstrap.run()
+                        isBootstrapped = true
                     }
-                }
+            }
         }
     }
 
@@ -68,10 +52,13 @@ internal struct ElfApp: App {
 
 // MARK: - Scene Phase Handler
 
-/// View modifier that handles scene phase changes without causing App body re-evaluation
+/// View modifier that handles scene phase changes without causing App body re-evaluation.
+/// Takes `AppCoordinator` as a parameter rather than reading from environment — the modifier
+/// lives on the outside of the `.environment(coordinator)` wrapper, so @Environment wouldn't
+/// resolve inside it.
 private struct ScenePhaseChangeModifier: ViewModifier {
     @Environment(\.scenePhase) private var scenePhase
-    let appContainer: ElfAppContainer
+    let coordinator: AppCoordinator
 
     func body(content: Content) -> some View {
         content
@@ -84,7 +71,7 @@ private struct ScenePhaseChangeModifier: ViewModifier {
                 // See: https://developer.apple.com/documentation/uikit/uiapplication/beginbackgroundtask(expirationhandler:)
                 if newPhase == .background || newPhase == .inactive {
                     Task { @MainActor in
-                        await appContainer.gameContainer?.saveActiveGameIfNeeded()
+                        await coordinator.saveIfNeeded()
                     }
                 }
             }
@@ -92,7 +79,7 @@ private struct ScenePhaseChangeModifier: ViewModifier {
 }
 
 extension View {
-    func onScenePhaseChange(appContainer: ElfAppContainer) -> some View {
-        modifier(ScenePhaseChangeModifier(appContainer: appContainer))
+    func onScenePhaseChange(coordinator: AppCoordinator) -> some View {
+        modifier(ScenePhaseChangeModifier(coordinator: coordinator))
     }
 }

@@ -111,9 +111,9 @@ internal struct SelectHeroItemScreenContent: View {
 }
 
 #Preview {
-    @Previewable @State var gameContainer: ElfGameContainer?
+    @Previewable @State var isReady = false
 
-    if gameContainer != nil {
+    if isReady {
         SelectHeroItemScreenContent(
             viewModel: SelectHeroItemViewModel(
                 heroType: .player,
@@ -127,6 +127,9 @@ internal struct SelectHeroItemScreenContent: View {
         )
     } else {
         ProgressView()
-            .task { gameContainer = await ElfGameContainer() }
+            .task {
+                await DependencyBootstrap.run()
+                isReady = true
+            }
     }
 }

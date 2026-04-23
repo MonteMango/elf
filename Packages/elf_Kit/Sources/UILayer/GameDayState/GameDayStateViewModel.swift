@@ -8,7 +8,7 @@
 import Foundation
 
 /// Shared view model for the current-day state (action points, calendar position,
-/// next-day transition). One instance lives on `ElfGameContainer` for the duration
+/// next-day transition). One instance lives on `GameSessionModel` for the duration
 /// of a game session and is reused by every screen that needs day context.
 @MainActor
 @Observable

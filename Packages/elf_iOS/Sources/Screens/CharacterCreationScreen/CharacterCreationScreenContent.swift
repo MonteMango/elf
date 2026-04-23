@@ -11,7 +11,7 @@ import SwiftUI
 
 struct CharacterCreationScreenContent: View {
     @Environment(AppRouter.self) private var router
-    @Environment(ElfGameContainer.self) private var gameContainer
+    @Environment(AppCoordinator.self) private var coordinator
     @State private var viewModel: CharacterCreationViewModel
     @FocusState private var isTextFieldFocused: Bool
 
@@ -149,7 +149,7 @@ struct CharacterCreationScreenContent: View {
                 } else {
                     // Stage 4 after Ready: Start - Navigate to game screen
                     if let game = viewModel.createdGame {
-                        gameContainer.startGameSession(game: game, playTime: 0)
+                        coordinator.startGame(game, playTime: 0)
                         router.navigate(to: .gameSession(game, playTime: 0), removingPrevious: 1)
                     }
                 }
@@ -177,22 +177,22 @@ struct CharacterCreationScreenContent: View {
 }
 
 #Preview {
-    @Previewable @State var gameContainer: ElfGameContainer?
+    @Previewable @State var coordinator: AppCoordinator?
     @Previewable @State var router = AppRouter()
 
-    if let gameContainer {
+    if let coordinator {
         NavigationStack(path: $router.navigationPath) {
             CharacterCreationScreenContent(
                 viewModel: CharacterCreationViewModel()
             )
             .environment(router)
-            .environment(gameContainer)
+            .environment(coordinator)
         }
     } else {
         ProgressView()
             .task {
-                let container = await ElfGameContainer()
-                gameContainer = container
+                await DependencyBootstrap.run()
+                coordinator = AppCoordinator()
             }
     }
 }

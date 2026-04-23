@@ -10,7 +10,7 @@ import elf_SwiftUI
 import SwiftUI
 
 struct FarmActivityScreenContent: View {
-    @Environment(ElfGameContainer.self) private var gameContainer
+    @Environment(AppCoordinator.self) private var coordinator
     @Environment(AppRouter.self) private var router
     @Environment(\.dismiss) private var dismiss
     @Environment(\.farmZoomNamespace) private var zoomNamespace
@@ -116,7 +116,7 @@ struct FarmActivityScreenContent: View {
         .toolbar(.hidden, for: .navigationBar)
         .modifier(ZoomTransitionModifier(sourceID: viewModel.activity.id, namespace: zoomNamespace))
         .navigationDestination(isPresented: $showCalendar) {
-            if let session = gameContainer.sessionModel {
+            if let session = coordinator.sessionModel {
                 CalendarScreenContent(
                     viewModel: session.makeCalendarViewModel(
                         calendar: dayStateViewModel.calendar,
@@ -169,25 +169,26 @@ struct FarmActivityScreenContent: View {
 
 #if DEBUG
 #Preview {
-    @Previewable @State var gameContainer: ElfGameContainer?
+    @Previewable @State var coordinator: AppCoordinator?
     @Previewable @Namespace var previewNamespace
 
-    if let gameContainer, let session = gameContainer.sessionModel {
+    if let coordinator, let session = coordinator.sessionModel {
         NavigationStack {
             FarmActivityScreenContent(
                 viewModel: session.makeFarmActivityViewModel(activity: .fishing),
                 dayStateViewModel: session.dayState
             )
             .environment(\.farmZoomNamespace, previewNamespace)
-            .environment(gameContainer)
+            .environment(coordinator)
             .environment(AppRouter())
         }
     } else {
         ProgressView()
             .task {
-                let container = await ElfGameContainer()
-                container.initializePreviewSession(game: PreviewMockData.createMockGame())
-                gameContainer = container
+                await DependencyBootstrap.run()
+                let c = AppCoordinator()
+                c.initializePreviewSession(game: PreviewMockData.createMockGame())
+                coordinator = c
             }
     }
 }

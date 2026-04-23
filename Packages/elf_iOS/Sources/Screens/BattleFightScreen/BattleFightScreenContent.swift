@@ -205,7 +205,7 @@ internal struct BattleFightScreenContent: View {
 // MARK: - Preview
 
 #Preview("Battle Fight Screen (3v2)") {
-    @Previewable @State var gameContainer: ElfGameContainer?
+    @Previewable @State var coordinator: AppCoordinator?
 
     let elfA = CombatantSnapshot(
         sourceId: UUID(),
@@ -313,18 +313,21 @@ internal struct BattleFightScreenContent: View {
         rightTeam: [goblinD, goblinE]
     )
 
-    if let gameContainer {
+    if let coordinator {
         NavigationStack {
             BattleFightScreenContent(
                 viewModel: BattleFightViewModel(
                     battle: mockBattle,
-                    gameService: gameContainer.sessionModel?.gameService
+                    gameService: coordinator.sessionModel?.gameService
                 )
             )
             .environment(AppRouter())
         }
     } else {
         ProgressView()
-            .task { gameContainer = await ElfGameContainer() }
+            .task {
+                await DependencyBootstrap.run()
+                coordinator = AppCoordinator()
+            }
     }
 }

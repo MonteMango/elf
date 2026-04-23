@@ -93,24 +93,25 @@ struct FarmScreenContent: View {
 
 #if DEBUG
 #Preview {
-    @Previewable @State var gameContainer: ElfGameContainer?
+    @Previewable @State var coordinator: AppCoordinator?
     @Previewable @State var router = AppRouter()
 
-    if let gameContainer, let session = gameContainer.sessionModel {
+    if let coordinator, let session = coordinator.sessionModel {
         NavigationStack(path: $router.navigationPath) {
             FarmScreenContent(
                 viewModel: session.makeFarmViewModel(),
                 dayStateViewModel: session.dayState
             )
             .environment(router)
-            .environment(gameContainer)
+            .environment(coordinator)
         }
     } else {
         ProgressView()
             .task {
-                let container = await ElfGameContainer()
-                container.initializePreviewSession(game: PreviewMockData.createMockGame())
-                gameContainer = container
+                await DependencyBootstrap.run()
+                let c = AppCoordinator()
+                c.initializePreviewSession(game: PreviewMockData.createMockGame())
+                coordinator = c
             }
     }
 }

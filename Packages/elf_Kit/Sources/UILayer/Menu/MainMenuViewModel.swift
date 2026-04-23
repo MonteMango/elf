@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 13.11.25.
 //
 
+import Dependencies
 import Foundation
 
 @MainActor
@@ -13,16 +14,13 @@ public final class MainMenuViewModel {
 
     // MARK: - Dependencies
 
-    /// Set when game data finishes loading. Nil before that.
-    private var gameRepository: (any GameSaveStorage)?
+    @ObservationIgnored
+    @Dependency(\.gameRepository) private var gameRepository
 
     // MARK: - State
 
-    /// Whether a saved game exists. False until game data is loaded.
-    public var hasSavedGame: Bool = false
-
-    /// Whether game data repos are ready.
-    public var isGameDataReady: Bool = false
+    /// Whether a saved game exists. Safe to call — bootstrap completes before any VM is constructed.
+    public var hasSavedGame: Bool { gameRepository.hasAnySave() }
 
     /// Whether the load operation is in progress.
     public var isLoading: Bool = false
@@ -38,21 +36,10 @@ public final class MainMenuViewModel {
 
     public init() {}
 
-    // MARK: - Game Data Ready
-
-    /// Called when ElfGameContainer finishes loading.
-    /// Receives the game repository for save/load operations.
-    public func onGameDataReady(gameRepository: any GameSaveStorage) {
-        self.gameRepository = gameRepository
-        isGameDataReady = true
-        hasSavedGame = gameRepository.hasAnySave()
-    }
-
     // MARK: - Actions
 
     /// Loads saved game from the default slot.
     public func loadGame() async {
-        guard let gameRepository else { return }
         isLoading = true
 
         do {

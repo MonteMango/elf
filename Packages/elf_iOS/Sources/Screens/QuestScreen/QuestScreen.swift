@@ -9,7 +9,7 @@ import elf_Kit
 import SwiftUI
 
 struct QuestScreen: View {
-    @Environment(ElfGameContainer.self) private var gameContainer
+    @Environment(AppCoordinator.self) private var coordinator
 
     let questId: QuestID
     let ownerImageName: String
@@ -18,7 +18,7 @@ struct QuestScreen: View {
         #if DEBUG
         let _ = Self._printChanges()
         #endif
-        if let session = gameContainer.sessionModel {
+        if let session = coordinator.sessionModel {
             QuestScreenContent(
                 viewModel: session.makeQuestViewModel(questId: questId),
                 dayStateViewModel: session.dayState,

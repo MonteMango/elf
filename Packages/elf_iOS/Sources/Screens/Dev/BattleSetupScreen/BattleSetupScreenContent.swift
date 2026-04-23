@@ -11,7 +11,6 @@ import SwiftUI
 internal struct BattleSetupScreenContent: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppRouter.self) private var router
-    @Environment(ElfGameContainer.self) private var gameContainer
     @State private var viewModel: BattleSetupViewModel
 
     internal init(viewModel: BattleSetupViewModel) {
@@ -149,7 +148,6 @@ internal struct BattleSetupScreenContent: View {
                     )
                 }
             )
-            .environment(gameContainer)
         }
         .interactiveDismissDisabled(true)
     }
@@ -260,22 +258,21 @@ internal struct BattleSetupScreenContent: View {
 }
 
 #Preview {
-    @Previewable @State var gameContainer: ElfGameContainer?
+    @Previewable @State var isReady = false
     @Previewable @State var router = AppRouter()
 
-    if let gameContainer {
+    if isReady {
         NavigationStack(path: $router.navigationPath) {
             BattleSetupScreenContent(
                 viewModel: BattleSetupViewModel()
             )
-            .environment(gameContainer)
             .environment(router)
         }
     } else {
         ProgressView()
             .task {
-                let container = await ElfGameContainer()
-                gameContainer = container
+                await DependencyBootstrap.run()
+                isReady = true
             }
     }
 }

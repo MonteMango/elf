@@ -9,7 +9,7 @@ import elf_Kit
 import SwiftUI
 
 struct FarmActivityScreen: View {
-    @Environment(ElfGameContainer.self) private var gameContainer
+    @Environment(AppCoordinator.self) private var coordinator
 
     let activity: FarmActivity
 
@@ -17,7 +17,7 @@ struct FarmActivityScreen: View {
         #if DEBUG
         let _ = Self._printChanges()
         #endif
-        if let session = gameContainer.sessionModel {
+        if let session = coordinator.sessionModel {
             FarmActivityScreenContent(
                 viewModel: session.makeFarmActivityViewModel(activity: activity),
                 dayStateViewModel: session.dayState

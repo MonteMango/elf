@@ -11,7 +11,7 @@ import SwiftUI
 
 internal struct MainMenuScreenContent: View {
     @Environment(AppRouter.self) private var router
-    @Environment(ElfAppContainer.self) private var appContainer
+    @Environment(AppCoordinator.self) private var coordinator
     @State private var viewModel: MainMenuViewModel
 
     internal init(viewModel: MainMenuViewModel) {
@@ -23,7 +23,7 @@ internal struct MainMenuScreenContent: View {
         let _ = Self._printChanges()
         #endif
         VStack(spacing: 30) {
-            // Continue button — appears when game data loaded AND save exists
+            // Continue button — appears when a save exists.
             if viewModel.hasSavedGame {
                 Button {
                     Task { await viewModel.loadGame() }
@@ -42,31 +42,16 @@ internal struct MainMenuScreenContent: View {
             Button("New Game") {
                 router.navigate(to: .characterCreation)
             }
-            .buttonStyle(.elfPrimary(isEnabled: viewModel.isGameDataReady))
-            .disabled(!viewModel.isGameDataReady)
+            .buttonStyle(.elfPrimary)
 
             Button("Battle") {
                 router.navigate(to: .battleSetup)
             }
-            .buttonStyle(.elfPrimary(isEnabled: viewModel.isGameDataReady))
-            .disabled(!viewModel.isGameDataReady)
-        }
-        // Covers the edge case where gameContainer is already loaded
-        // before this view appears (e.g. navigating back to MainMenu).
-        // onChange below only fires on transitions, not on initial state.
-        .task {
-            if let gc = appContainer.gameContainer {
-                viewModel.onGameDataReady(gameRepository: gc.gameRepository)
-            }
-        }
-        .onChange(of: appContainer.gameContainer != nil) { _, isReady in
-            if isReady, let gameContainer = appContainer.gameContainer {
-                viewModel.onGameDataReady(gameRepository: gameContainer.gameRepository)
-            }
+            .buttonStyle(.elfPrimary)
         }
         .onChange(of: viewModel.loadedGame) { _, newGame in
-            if let game = newGame, let gameContainer = appContainer.gameContainer {
-                gameContainer.startGameSession(game: game, playTime: viewModel.loadedPlayTime)
+            if let game = newGame {
+                coordinator.startGame(game, playTime: viewModel.loadedPlayTime)
                 router.navigate(to: .gameSession(game, playTime: viewModel.loadedPlayTime))
                 viewModel.consumeLoadedGame()
             }
@@ -87,21 +72,20 @@ internal struct MainMenuScreenContent: View {
 }
 
 #Preview {
-    @Previewable @State var appContainer: ElfAppContainer?
+    @Previewable @State var coordinator: AppCoordinator?
     @Previewable @State var router = AppRouter()
 
-    if let appContainer {
+    if let coordinator {
         NavigationStack(path: $router.navigationPath) {
             MainMenuScreenContent(viewModel: MainMenuViewModel())
                 .environment(router)
-                .environment(appContainer)
+                .environment(coordinator)
         }
     } else {
         ProgressView()
             .task {
-                let container = ElfAppContainer()
-                await container.createGameContainer()
-                appContainer = container
+                await DependencyBootstrap.run()
+                coordinator = AppCoordinator()
             }
     }
 }

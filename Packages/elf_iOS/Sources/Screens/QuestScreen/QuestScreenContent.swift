@@ -188,10 +188,10 @@ struct QuestScreenContent: View {
 
 #if DEBUG
 #Preview {
-    @Previewable @State var gameContainer: ElfGameContainer?
+    @Previewable @State var coordinator: AppCoordinator?
     @Previewable @Namespace var previewNamespace
 
-    if let gameContainer, let session = gameContainer.sessionModel {
+    if let coordinator, let session = coordinator.sessionModel {
         NavigationStack {
             QuestScreenContent(
                 viewModel: session.makeQuestViewModel(
@@ -201,15 +201,16 @@ struct QuestScreenContent: View {
                 zoomSourceID: "quest_preview"
             )
             .environment(\.questZoomNamespace, previewNamespace)
-            .environment(gameContainer)
+            .environment(coordinator)
             .environment(AppRouter())
         }
     } else {
         ProgressView()
             .task {
-                let container = await ElfGameContainer()
-                container.initializePreviewSession(game: PreviewMockData.createMockGame())
-                gameContainer = container
+                await DependencyBootstrap.run()
+                let c = AppCoordinator()
+                c.initializePreviewSession(game: PreviewMockData.createMockGame())
+                coordinator = c
             }
     }
 }

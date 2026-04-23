@@ -17,7 +17,7 @@ import Foundation
 /// for runtime `fatalError` guards in ViewModel factories.
 ///
 /// Lifecycle: created when a game starts and released when it ends (see
-/// `ElfGameContainer.startGameSession` / `endGameSession`).
+/// `AppCoordinator.startGame` / `endGame`).
 @MainActor
 @Observable
 public final class GameSessionModel {
