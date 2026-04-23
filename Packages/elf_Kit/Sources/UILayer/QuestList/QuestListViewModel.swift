@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov
 //
 
+import Dependencies
 import Foundation
 
 @MainActor
@@ -14,8 +15,12 @@ public final class QuestListViewModel {
     // MARK: - Dependencies
 
     private let gameService: any GameService
-    private let questRepository: any QuestRepository
-    private let materialRepository: any Repository<Material>
+
+    @ObservationIgnored
+    @Dependency(\.questRepository) private var questRepository
+
+    @ObservationIgnored
+    @Dependency(\.materialRepository) private var materialRepository
 
     // MARK: - Display Data (derived reactively from repositories)
 
@@ -36,14 +41,8 @@ public final class QuestListViewModel {
 
     // MARK: - Initialization
 
-    public init(
-        gameService: any GameService,
-        questRepository: any QuestRepository,
-        materialRepository: any Repository<Material>
-    ) {
+    public init(gameService: any GameService) {
         self.gameService = gameService
-        self.questRepository = questRepository
-        self.materialRepository = materialRepository
     }
 
     // MARK: - Private

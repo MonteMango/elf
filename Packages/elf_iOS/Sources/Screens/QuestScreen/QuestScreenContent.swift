@@ -191,13 +191,13 @@ struct QuestScreenContent: View {
     @Previewable @State var gameContainer: ElfGameContainer?
     @Previewable @Namespace var previewNamespace
 
-    if let gameContainer, gameContainer.activeGameService != nil {
+    if let gameContainer, let session = gameContainer.sessionModel {
         NavigationStack {
             QuestScreenContent(
-                viewModel: gameContainer.makeQuestViewModel(
+                viewModel: session.makeQuestViewModel(
                     questId: QuestID()
                 ),
-                dayStateViewModel: gameContainer.requireGameDayStateViewModel(),
+                dayStateViewModel: session.dayState,
                 zoomSourceID: "quest_preview"
             )
             .environment(\.questZoomNamespace, previewNamespace)

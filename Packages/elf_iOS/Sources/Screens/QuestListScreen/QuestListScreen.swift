@@ -15,9 +15,11 @@ struct QuestListScreen: View {
         #if DEBUG
         let _ = Self._printChanges()
         #endif
-        QuestListScreenContent(
-            viewModel: gameContainer.makeQuestListViewModel(),
-            dayStateViewModel: gameContainer.requireGameDayStateViewModel()
-        )
+        if let session = gameContainer.sessionModel {
+            QuestListScreenContent(
+                viewModel: session.makeQuestListViewModel(),
+                dayStateViewModel: session.dayState
+            )
+        }
     }
 }

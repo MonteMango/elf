@@ -50,4 +50,12 @@ public final class GameSessionModel {
     public func makeCraftViewModel() -> CraftViewModel {
         CraftViewModel(gameService: gameService)
     }
+
+    public func makeQuestViewModel(questId: QuestID) -> QuestViewModel {
+        QuestViewModel(questId: questId, gameService: gameService)
+    }
+
+    public func makeQuestListViewModel() -> QuestListViewModel {
+        QuestListViewModel(gameService: gameService)
+    }
 }

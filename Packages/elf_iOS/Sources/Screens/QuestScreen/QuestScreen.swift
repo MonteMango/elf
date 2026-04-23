@@ -18,10 +18,12 @@ struct QuestScreen: View {
         #if DEBUG
         let _ = Self._printChanges()
         #endif
-        QuestScreenContent(
-            viewModel: gameContainer.makeQuestViewModel(questId: questId),
-            dayStateViewModel: gameContainer.requireGameDayStateViewModel(),
-            zoomSourceID: ownerImageName
-        )
+        if let session = gameContainer.sessionModel {
+            QuestScreenContent(
+                viewModel: session.makeQuestViewModel(questId: questId),
+                dayStateViewModel: session.dayState,
+                zoomSourceID: ownerImageName
+            )
+        }
     }
 }

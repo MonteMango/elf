@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov
 //
 
+import Dependencies
 import Foundation
 
 @MainActor
@@ -15,11 +16,21 @@ public final class QuestViewModel {
 
     private let questId: QuestID
     private let gameService: any GameService
-    private let questRepository: any QuestRepository
-    private let materialRepository: any Repository<Material>
-    private let oreRepository: any Repository<Ore>
-    private let herbRepository: any Repository<Herb>
-    private let monsterRepository: any MonsterRepository
+
+    @ObservationIgnored
+    @Dependency(\.questRepository) private var questRepository
+
+    @ObservationIgnored
+    @Dependency(\.materialRepository) private var materialRepository
+
+    @ObservationIgnored
+    @Dependency(\.oreRepository) private var oreRepository
+
+    @ObservationIgnored
+    @Dependency(\.herbRepository) private var herbRepository
+
+    @ObservationIgnored
+    @Dependency(\.monsterRepository) private var monsterRepository
 
     // MARK: - Display Data (derived reactively from repositories)
 
@@ -41,22 +52,9 @@ public final class QuestViewModel {
 
     // MARK: - Initialization
 
-    public init(
-        questId: QuestID,
-        gameService: any GameService,
-        questRepository: any QuestRepository,
-        materialRepository: any Repository<Material>,
-        oreRepository: any Repository<Ore>,
-        herbRepository: any Repository<Herb>,
-        monsterRepository: any MonsterRepository
-    ) {
+    public init(questId: QuestID, gameService: any GameService) {
         self.questId = questId
         self.gameService = gameService
-        self.questRepository = questRepository
-        self.materialRepository = materialRepository
-        self.oreRepository = oreRepository
-        self.herbRepository = herbRepository
-        self.monsterRepository = monsterRepository
     }
 
     // MARK: - Private

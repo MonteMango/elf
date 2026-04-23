@@ -336,32 +336,6 @@ public final class ElfGameContainer {
         )
     }
 
-    public func makeQuestViewModel(questId: QuestID) -> QuestViewModel {
-        guard let gameService = activeGameService else {
-            fatalError("No active game session. QuestViewModel requires an active game.")
-        }
-        return QuestViewModel(
-            questId: questId,
-            gameService: gameService,
-            questRepository: self.gameDataRepository.quests,
-            materialRepository: self.gameDataRepository.materials,
-            oreRepository: self.gameDataRepository.ores,
-            herbRepository: self.gameDataRepository.herbs,
-            monsterRepository: self.gameDataRepository.monsters
-        )
-    }
-
-    public func makeQuestListViewModel() -> QuestListViewModel {
-        guard let gameService = activeGameService else {
-            fatalError("No active game session. QuestListViewModel requires an active game.")
-        }
-        return QuestListViewModel(
-            gameService: gameService,
-            questRepository: self.gameDataRepository.quests,
-            materialRepository: self.gameDataRepository.materials
-        )
-    }
-
     public func makeInventoryViewModel() -> InventoryViewModel {
         guard let gameService = activeGameService else {
             fatalError("No active game session. InventoryViewModel requires an active game.")
