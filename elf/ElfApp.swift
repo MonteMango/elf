@@ -35,6 +35,7 @@ internal struct ElfApp: App {
                         $0.oreRepository = gameContainer.gameDataRepository.ores
                         $0.questRepository = gameContainer.gameDataRepository.quests
                         $0.herbRepository = gameContainer.gameDataRepository.herbs
+                        $0.fishRepository = gameContainer.gameDataRepository.fish
                     }
                 }
         }

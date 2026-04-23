@@ -178,7 +178,7 @@ internal struct GameDayScreenContent: View {
     if let gameContainer, let session = gameContainer.sessionModel {
         GameDayScreenContent(
             viewModel: session.makeGameDayViewModel(),
-            inventoryViewModel: gameContainer.makeInventoryViewModel(),
+            inventoryViewModel: session.makeInventoryViewModel(),
             dayStateViewModel: session.dayState
         )
         .environment(router)

@@ -113,9 +113,9 @@ internal struct SelectHeroItemScreenContent: View {
 #Preview {
     @Previewable @State var gameContainer: ElfGameContainer?
 
-    if let gameContainer {
+    if gameContainer != nil {
         SelectHeroItemScreenContent(
-            viewModel: gameContainer.makeSelectHeroItemViewModel(
+            viewModel: SelectHeroItemViewModel(
                 heroType: .player,
                 heroItemType: .weapons,
                 currentItemId: nil

@@ -300,39 +300,6 @@ public final class ElfGameContainer {
         )
     }
 
-    public func makeSelectHeroItemViewModel(
-        heroType: HeroType,
-        heroItemType: HeroItemType,
-        currentItemId: UUID?
-    ) -> SelectHeroItemViewModel {
-        return SelectHeroItemViewModel(
-            heroType: heroType,
-            heroItemType: heroItemType,
-            currentItemId: currentItemId,
-            itemsRepository: self.gameDataRepository.items
-        )
-    }
-
-
-    public func makeInventoryViewModel() -> InventoryViewModel {
-        guard let gameService = activeGameService else {
-            fatalError("No active game session. InventoryViewModel requires an active game.")
-        }
-        let equipmentService = DefaultEquipmentService(
-            gameService: gameService,
-            itemsRepository: self.gameDataRepository.items
-        )
-        return InventoryViewModel(
-            gameService: gameService,
-            equipmentService: equipmentService,
-            materialRepository: self.gameDataRepository.materials,
-            fishRepository: self.gameDataRepository.fish,
-            herbRepository: self.gameDataRepository.herbs,
-            oreRepository: self.gameDataRepository.ores,
-            equipmentQueryService: self.equipmentQueryService
-        )
-    }
-
     // MARK: - Game Session Management
 
     /// Starts (or replaces) the active game session. Must be called before navigating

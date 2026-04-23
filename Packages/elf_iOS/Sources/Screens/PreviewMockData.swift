@@ -183,12 +183,7 @@ enum PreviewMockData {
         )
         return InventoryViewModel(
             gameService: gameService,
-            equipmentService: equipmentService,
-            materialRepository: ArrayRepository<Material>(items: []),
-            fishRepository: ArrayRepository<Fish>(items: []),
-            herbRepository: ArrayRepository<Herb>(items: []),
-            oreRepository: ArrayRepository<Ore>(items: []),
-            equipmentQueryService: ElfEquipmentQueryService()
+            equipmentService: equipmentService
         )
     }
 }

@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 14.11.25.
 //
 
+import Dependencies
 import Foundation
 
 @MainActor
@@ -13,7 +14,8 @@ public final class SelectHeroItemViewModel {
 
     // MARK: - Dependencies
 
-    private let itemsRepository: any ItemsRepository
+    @ObservationIgnored
+    @Dependency(\.itemsRepository) private var itemsRepository
 
     // MARK: - Input
 
@@ -27,14 +29,8 @@ public final class SelectHeroItemViewModel {
 
     // MARK: - Initialization
 
-    public init(
-        heroType: HeroType,
-        heroItemType: HeroItemType,
-        currentItemId: UUID?,
-        itemsRepository: any ItemsRepository
-    ) {
+    public init(heroType: HeroType, heroItemType: HeroItemType, currentItemId: UUID?) {
         self.heroItemType = heroItemType
-        self.itemsRepository = itemsRepository
         self.selectedItemId = currentItemId
 
         Task {
