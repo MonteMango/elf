@@ -92,7 +92,7 @@ internal struct MainMenuScreenContent: View {
 
     if let appContainer {
         NavigationStack(path: $router.navigationPath) {
-            MainMenuScreenContent(viewModel: appContainer.makeMainMenuViewModel())
+            MainMenuScreenContent(viewModel: MainMenuViewModel())
                 .environment(router)
                 .environment(appContainer)
         }

@@ -223,22 +223,6 @@ public final class ElfGameContainer {
         )
     }
 
-    // MARK: - ViewModel Factories
-
-    public func makeCharacterCreationViewModel() -> CharacterCreationViewModel {
-        let nameValidator = DefaultCharacterNameValidator()
-        let characterBuilder = DefaultCharacterBuilder()
-
-        return CharacterCreationViewModel(
-            attributeService: self.attributeService,
-            nameValidator: nameValidator,
-            characterBuilder: characterBuilder,
-            fightStyleDescriptionService: self.fightStyleDescriptionService,
-            nameSuggestionService: self.nameSuggestionService,
-            gameInitializationService: self.gameInitializationService
-        )
-    }
-
     // MARK: - Game Session Management
 
     /// Starts (or replaces) the active game session. Must be called before navigating

@@ -183,7 +183,7 @@ struct CharacterCreationScreenContent: View {
     if let gameContainer {
         NavigationStack(path: $router.navigationPath) {
             CharacterCreationScreenContent(
-                viewModel: gameContainer.makeCharacterCreationViewModel()
+                viewModel: CharacterCreationViewModel()
             )
             .environment(router)
             .environment(gameContainer)

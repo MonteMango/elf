@@ -44,6 +44,7 @@ internal struct ElfApp: App {
                         $0.combatRoundExecutor = gameContainer.combatRoundExecutor
                         $0.battleSimulationService = gameContainer.battleSimulationService
                         $0.battleResultCalculator = gameContainer.battleResultCalculator
+                        $0.gameInitializationService = gameContainer.gameInitializationService
                     }
                 }
         }

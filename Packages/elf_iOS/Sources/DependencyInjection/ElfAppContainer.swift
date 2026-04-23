@@ -18,13 +18,6 @@ public final class ElfAppContainer {
 
     public init() {}
 
-    // MARK: - ViewModel Factories
-
-    @MainActor
-    public func makeMainMenuViewModel() -> MainMenuViewModel {
-        MainMenuViewModel()
-    }
-
     // MARK: - Game Container
 
     /// Creates game container on the cooperative thread pool.

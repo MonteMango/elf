@@ -2,9 +2,10 @@
 //  CharacterCreationViewModel.swift
 //  elf_Kit
 //
-//  Created by Claude on 23.11.25.
+//  Created by Vitalii Lytvynov on 23.11.25.
 //
 
+import Dependencies
 import Foundation
 
 @MainActor
@@ -13,12 +14,23 @@ public final class CharacterCreationViewModel {
 
     // MARK: - Dependencies
 
-    private let attributeService: any AttributeService
-    private let nameValidator: any CharacterNameValidator
-    private let characterBuilder: any CharacterBuilder
-    private let fightStyleDescriptionService: any FightStyleDescriptionService
-    private let nameSuggestionService: any CharacterNameSuggestionService
-    private let gameInitializationService: any GameInitializationService
+    @ObservationIgnored
+    @Dependency(\.attributeService) private var attributeService
+
+    @ObservationIgnored
+    @Dependency(\.characterNameValidator) private var nameValidator
+
+    @ObservationIgnored
+    @Dependency(\.fightStyleDescriptionService) private var fightStyleDescriptionService
+
+    @ObservationIgnored
+    @Dependency(\.characterNameSuggestionService) private var nameSuggestionService
+
+    @ObservationIgnored
+    @Dependency(\.gameInitializationService) private var gameInitializationService
+
+    /// Stateful per-VM builder — not a DI candidate (accumulates state across stages).
+    private let characterBuilder: any CharacterBuilder = DefaultCharacterBuilder()
 
     // MARK: - Stage State
 
@@ -104,21 +116,7 @@ public final class CharacterCreationViewModel {
 
     // MARK: - Initialization
 
-    public init(
-        attributeService: any AttributeService,
-        nameValidator: any CharacterNameValidator,
-        characterBuilder: any CharacterBuilder,
-        fightStyleDescriptionService: any FightStyleDescriptionService,
-        nameSuggestionService: any CharacterNameSuggestionService,
-        gameInitializationService: any GameInitializationService
-    ) {
-        self.attributeService = attributeService
-        self.nameValidator = nameValidator
-        self.characterBuilder = characterBuilder
-        self.fightStyleDescriptionService = fightStyleDescriptionService
-        self.nameSuggestionService = nameSuggestionService
-        self.gameInitializationService = gameInitializationService
-
+    public init() {
         if let style = selectedFightStyle {
             characterBuilder.setFightStyle(style)
         }
