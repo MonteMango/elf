@@ -46,4 +46,8 @@ public final class GameSessionModel {
     public func makeHuntViewModel() -> HuntViewModel {
         HuntViewModel(gameService: gameService)
     }
+
+    public func makeCraftViewModel() -> CraftViewModel {
+        CraftViewModel(gameService: gameService)
+    }
 }

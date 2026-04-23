@@ -15,6 +15,8 @@ struct CraftScreen: View {
         #if DEBUG
         let _ = Self._printChanges()
         #endif
-        CraftScreenContent(viewModel: gameContainer.makeCraftViewModel())
+        if let session = gameContainer.sessionModel {
+            CraftScreenContent(viewModel: session.makeCraftViewModel())
+        }
     }
 }

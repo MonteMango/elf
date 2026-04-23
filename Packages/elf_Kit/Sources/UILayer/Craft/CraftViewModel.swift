@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov
 //
 
+import Dependencies
 import Foundation
 
 @MainActor
@@ -13,12 +14,22 @@ public final class CraftViewModel {
 
     // MARK: - Dependencies
 
-    let gameService: any GameService
-    let recipeRepository: any RecipeRepository
-    let itemsRepository: any ItemsRepository
-    let materialRepository: any Repository<Material>
-    let oreRepository: any Repository<Ore>
-    let craftService: any CraftService
+    private let gameService: any GameService
+
+    @ObservationIgnored
+    @Dependency(\.recipeRepository) private var recipeRepository
+
+    @ObservationIgnored
+    @Dependency(\.itemsRepository) private var itemsRepository
+
+    @ObservationIgnored
+    @Dependency(\.materialRepository) private var materialRepository
+
+    @ObservationIgnored
+    @Dependency(\.oreRepository) private var oreRepository
+
+    @ObservationIgnored
+    @Dependency(\.craftService) private var craftService
 
     // MARK: - Local UI State
 
@@ -51,20 +62,8 @@ public final class CraftViewModel {
 
     // MARK: - Initialization
 
-    public init(
-        gameService: any GameService,
-        recipeRepository: any RecipeRepository,
-        itemsRepository: any ItemsRepository,
-        materialRepository: any Repository<Material>,
-        oreRepository: any Repository<Ore>,
-        craftService: any CraftService
-    ) {
+    public init(gameService: any GameService) {
         self.gameService = gameService
-        self.recipeRepository = recipeRepository
-        self.itemsRepository = itemsRepository
-        self.materialRepository = materialRepository
-        self.oreRepository = oreRepository
-        self.craftService = craftService
     }
 
     // MARK: - Actions
