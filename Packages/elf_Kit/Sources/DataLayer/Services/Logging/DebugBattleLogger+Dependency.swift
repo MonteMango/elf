@@ -18,4 +18,5 @@ private enum DebugBattleLoggerKey: DependencyKey {
     static var liveValue: any DebugBattleLogger {
         ConsoleDebugBattleLogger(categories: [])
     }
+    static var testValue: any DebugBattleLogger { NoOpDebugBattleLogger() }
 }

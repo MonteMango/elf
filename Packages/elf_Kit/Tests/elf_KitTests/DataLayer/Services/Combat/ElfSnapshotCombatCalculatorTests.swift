@@ -108,21 +108,11 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         }
     }
 
-    /// Mock Debug Logger (no-op)
-    final class MockDebugLogger: DebugBattleLogger {
-        func logRoundStart(roundNumber: Int, playerSnapshot: CombatantSnapshot, botSnapshot: CombatantSnapshot, playerAttack: [BodyPart], playerDefense: [BodyPart], botAttack: [BodyPart], botDefense: [BodyPart]) {}
-        func logDodgeCalculation(defender: String, result: DodgeCalculationResult, agility: Int16, instinct: Int16) {}
-        func logCritCalculation(attacker: String, result: CritCalculationResult, power: Int16, instinct: Int16) {}
-        func logBodyPartCalculation(attacker: String, defender: String, bodyPart: BodyPart, isAttacked: Bool, isDefended: Bool, baseDamage: Int?, armor: Int?, finalDamage: Int?, finalStatus: PointStatus) {}
-        func logRoundEnd(roundNumber: Int, playerOldHP: Int, playerNewHP: Int, botOldHP: Int, botNewHP: Int, playerResults: [BodyPart: PointStatus], botResults: [BodyPart: PointStatus]) {}
-    }
-
     // MARK: - Test Helpers
 
     private var mockDamageService: MockDamageService!
     private var mockDodgeService: MockDodgeService!
     private var mockCritService: MockCritService!
-    private var mockLogger: MockDebugLogger!
 
     private func makeCalculator() -> ElfSnapshotCombatCalculator {
         ElfSnapshotCombatCalculator()
@@ -161,27 +151,24 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
     /// wrappers resolve to per-test mocks. Mocks are created here (before
     /// `super.invokeTest()`) because `setUp` would otherwise run after the
     /// `withDependencies` block opens and leave the closure reading `nil`.
+    /// `debugBattleLogger` is not overridden — its `testValue` is `NoOpDebugBattleLogger`.
     override func invokeTest() {
         let damage = MockDamageService()
         let dodge = MockDodgeService()
         let crit = MockCritService()
-        let logger = MockDebugLogger()
         self.mockDamageService = damage
         self.mockDodgeService = dodge
         self.mockCritService = crit
-        self.mockLogger = logger
 
         withDependencies {
             $0.damageService = damage
             $0.dodgeService = dodge
             $0.critService = crit
-            $0.debugBattleLogger = logger
         } operation: {
             super.invokeTest()
             self.mockDamageService = nil
             self.mockDodgeService = nil
             self.mockCritService = nil
-            self.mockLogger = nil
         }
     }
 
