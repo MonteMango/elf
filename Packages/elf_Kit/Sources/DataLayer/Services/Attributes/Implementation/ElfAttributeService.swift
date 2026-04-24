@@ -10,8 +10,11 @@ import Foundation
 
 public final class ElfAttributeService: AttributeService {
 
-    @Dependency(\.itemsRepository) private var itemsRepository
-    @Dependency(\.attributeRandomizer) private var randomizer
+    private let _itemsRepository = Dependency(\.itemsRepository)
+    private var itemsRepository: any ItemsRepository { _itemsRepository.wrappedValue }
+
+    private let _randomizer = Dependency(\.attributeRandomizer)
+    private var randomizer: any AttributeRandomizer { _randomizer.wrappedValue }
 
     public init() {}
 

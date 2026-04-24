@@ -10,7 +10,8 @@ import Foundation
 
 public final class ElfWeaponValidator: WeaponValidator {
 
-    @Dependency(\.itemsRepository) private var itemsRepository
+    private let _itemsRepository = Dependency(\.itemsRepository)
+    private var itemsRepository: any ItemsRepository { _itemsRepository.wrappedValue }
 
     public init() {}
 

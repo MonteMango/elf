@@ -13,10 +13,17 @@ public final class ElfBattleSimulationService: BattleSimulationService {
 
     // MARK: - Dependencies
 
-    @Dependency(\.botAI) private var botAI
-    @Dependency(\.snapshotCombatCalculator) private var snapshotCombatCalculator
-    @Dependency(\.damageService) private var damageService
-    @Dependency(\.statisticsParser) private var statisticsParser
+    private let _botAI = Dependency(\.botAI)
+    private var botAI: any BotAIService { _botAI.wrappedValue }
+
+    private let _snapshotCombatCalculator = Dependency(\.snapshotCombatCalculator)
+    private var snapshotCombatCalculator: any SnapshotCombatCalculator { _snapshotCombatCalculator.wrappedValue }
+
+    private let _damageService = Dependency(\.damageService)
+    private var damageService: any DamageService { _damageService.wrappedValue }
+
+    private let _statisticsParser = Dependency(\.statisticsParser)
+    private var statisticsParser: any BattleStatisticsParser { _statisticsParser.wrappedValue }
 
     // MARK: - Initialization
 

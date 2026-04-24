@@ -10,8 +10,11 @@ import Foundation
 
 public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 
-    @Dependency(\.itemsRepository) private var itemsRepository
-    @Dependency(\.armorService) private var armorService
+    private let _itemsRepository = Dependency(\.itemsRepository)
+    private var itemsRepository: any ItemsRepository { _itemsRepository.wrappedValue }
+
+    private let _armorService = Dependency(\.armorService)
+    private var armorService: any ArmorService { _armorService.wrappedValue }
 
     public init() {}
 
@@ -219,8 +222,3 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
         return ElfJewelryItem(id: itemId, item: item)
     }
 }
-
-// MARK: - Sendable Conformance
-// Thread-safe: All stored properties are immutable (let) after initialization.
-// All dependencies are Sendable protocols: ItemsRepository, ArmorService.
-extension DefaultCombatantSnapshotBuilder: @unchecked Sendable {}

@@ -13,7 +13,8 @@ public final class DefaultHouseService: HouseService {
 
     // MARK: - Dependencies
 
-    @Dependency(\.elfInfoFactory) private var elfInfoFactory
+    private let _elfInfoFactory = Dependency(\.elfInfoFactory)
+    private var elfInfoFactory: any ElfInfoFactory { _elfInfoFactory.wrappedValue }
 
     // MARK: - Properties
 

@@ -12,10 +12,17 @@ public final class ElfGameInitializationService: GameInitializationService {
 
     // MARK: - Dependencies
 
-    @Dependency(\.houseService) private var houseService
-    @Dependency(\.elfInfoFactory) private var elfInfoFactory
-    @Dependency(\.calendarService) private var calendarService
-    @Dependency(\.gameRepository) private var gameRepository
+    private let _houseService = Dependency(\.houseService)
+    private var houseService: any HouseService { _houseService.wrappedValue }
+
+    private let _elfInfoFactory = Dependency(\.elfInfoFactory)
+    private var elfInfoFactory: any ElfInfoFactory { _elfInfoFactory.wrappedValue }
+
+    private let _calendarService = Dependency(\.calendarService)
+    private var calendarService: any CalendarService { _calendarService.wrappedValue }
+
+    private let _gameRepository = Dependency(\.gameRepository)
+    private var gameRepository: any GameSaveStorage { _gameRepository.wrappedValue }
 
     // MARK: - Initialization
 

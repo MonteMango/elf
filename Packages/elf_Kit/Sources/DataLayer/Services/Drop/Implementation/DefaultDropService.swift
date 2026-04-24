@@ -10,7 +10,8 @@ import Foundation
 
 public final class DefaultDropService: DropService {
 
-    @Dependency(\.materialRepository) private var materialRepository
+    private let _materialRepository = Dependency(\.materialRepository)
+    private var materialRepository: any Repository<Material> { _materialRepository.wrappedValue }
 
     public init() {}
 

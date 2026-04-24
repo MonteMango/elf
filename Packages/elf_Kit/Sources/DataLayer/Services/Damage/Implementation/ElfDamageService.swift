@@ -10,8 +10,11 @@ import Foundation
 
 public final class ElfDamageService: DamageService {
 
-    @Dependency(\.itemsRepository) private var itemsRepository
-    @Dependency(\.strengthDamageDistributionStrategy) private var distributionStrategy
+    private let _itemsRepository = Dependency(\.itemsRepository)
+    private var itemsRepository: any ItemsRepository { _itemsRepository.wrappedValue }
+
+    private let _distributionStrategy = Dependency(\.strengthDamageDistributionStrategy)
+    private var distributionStrategy: any StrengthDamageDistributionStrategy { _distributionStrategy.wrappedValue }
 
     public init() {}
 

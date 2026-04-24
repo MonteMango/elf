@@ -10,10 +10,17 @@ import Foundation
 
 public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
 
-    @Dependency(\.damageService) private var damageService
-    @Dependency(\.dodgeService) private var dodgeService
-    @Dependency(\.critService) private var critService
-    @Dependency(\.debugBattleLogger) private var debugLogger
+    private let _damageService = Dependency(\.damageService)
+    private var damageService: any DamageService { _damageService.wrappedValue }
+
+    private let _dodgeService = Dependency(\.dodgeService)
+    private var dodgeService: any DodgeService { _dodgeService.wrappedValue }
+
+    private let _critService = Dependency(\.critService)
+    private var critService: any CritService { _critService.wrappedValue }
+
+    private let _debugLogger = Dependency(\.debugBattleLogger)
+    private var debugLogger: any DebugBattleLogger { _debugLogger.wrappedValue }
 
     public init() {}
 

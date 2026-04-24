@@ -10,7 +10,8 @@ import Foundation
 
 public final class ElfArmorService: ArmorService {
 
-    @Dependency(\.itemsRepository) private var itemsRepository
+    private let _itemsRepository = Dependency(\.itemsRepository)
+    private var itemsRepository: any ItemsRepository { _itemsRepository.wrappedValue }
 
     public init() {}
 

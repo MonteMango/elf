@@ -12,8 +12,11 @@ public final class ElfCombatRoundExecutor: CombatRoundExecutor {
 
     // MARK: - Dependencies
 
-    @Dependency(\.snapshotCombatCalculator) private var snapshotCombatCalculator
-    @Dependency(\.damageService) private var damageService
+    private let _snapshotCombatCalculator = Dependency(\.snapshotCombatCalculator)
+    private var snapshotCombatCalculator: any SnapshotCombatCalculator { _snapshotCombatCalculator.wrappedValue }
+
+    private let _damageService = Dependency(\.damageService)
+    private var damageService: any DamageService { _damageService.wrappedValue }
 
     // MARK: - Initialization
 

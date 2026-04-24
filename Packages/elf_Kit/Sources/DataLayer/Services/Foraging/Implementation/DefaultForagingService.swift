@@ -12,8 +12,11 @@ public final class DefaultForagingService: ForagingService {
 
     // MARK: - Dependencies
 
-    @Dependency(\.gatheringEngine) private var gatheringEngine
-    @Dependency(\.skillProgressCalculator) private var skillProgressCalculator
+    private let _gatheringEngine = Dependency(\.gatheringEngine)
+    private var gatheringEngine: any GatheringEngine { _gatheringEngine.wrappedValue }
+
+    private let _skillProgressCalculator = Dependency(\.skillProgressCalculator)
+    private var skillProgressCalculator: any SkillProgressCalculator { _skillProgressCalculator.wrappedValue }
 
     // MARK: - Initialization
 

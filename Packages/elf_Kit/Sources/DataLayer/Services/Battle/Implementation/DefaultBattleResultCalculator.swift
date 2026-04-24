@@ -12,9 +12,14 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
 
     // MARK: - Dependencies
 
-    @Dependency(\.huntService) private var huntService
-    @Dependency(\.dropService) private var dropService
-    @Dependency(\.progressionService) private var progressionService
+    private let _huntService = Dependency(\.huntService)
+    private var huntService: any HuntService { _huntService.wrappedValue }
+
+    private let _dropService = Dependency(\.dropService)
+    private var dropService: any DropService { _dropService.wrappedValue }
+
+    private let _progressionService = Dependency(\.progressionService)
+    private var progressionService: any ProgressionService { _progressionService.wrappedValue }
 
     // MARK: - Initialization
 

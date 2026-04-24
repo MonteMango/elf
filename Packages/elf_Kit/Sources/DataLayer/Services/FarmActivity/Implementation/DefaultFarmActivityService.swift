@@ -18,13 +18,26 @@ public final class DefaultFarmActivityService: FarmActivityService {
 
     // MARK: - Dependencies
 
-    @Dependency(\.fishingService) private var fishingService
-    @Dependency(\.foragingService) private var foragingService
-    @Dependency(\.miningService) private var miningService
-    @Dependency(\.fishRepository) private var fishRepository
-    @Dependency(\.herbRepository) private var herbRepository
-    @Dependency(\.oreRepository) private var oreRepository
-    @Dependency(\.progressionService) private var progressionService
+    private let _fishingService = Dependency(\.fishingService)
+    private var fishingService: any FishingService { _fishingService.wrappedValue }
+
+    private let _foragingService = Dependency(\.foragingService)
+    private var foragingService: any ForagingService { _foragingService.wrappedValue }
+
+    private let _miningService = Dependency(\.miningService)
+    private var miningService: any MiningService { _miningService.wrappedValue }
+
+    private let _fishRepository = Dependency(\.fishRepository)
+    private var fishRepository: any Repository<Fish> { _fishRepository.wrappedValue }
+
+    private let _herbRepository = Dependency(\.herbRepository)
+    private var herbRepository: any Repository<Herb> { _herbRepository.wrappedValue }
+
+    private let _oreRepository = Dependency(\.oreRepository)
+    private var oreRepository: any Repository<Ore> { _oreRepository.wrappedValue }
+
+    private let _progressionService = Dependency(\.progressionService)
+    private var progressionService: any ProgressionService { _progressionService.wrappedValue }
 
     // MARK: - Initialization
 

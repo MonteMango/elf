@@ -13,9 +13,14 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
 
     // MARK: - Dependencies
 
-    @Dependency(\.attributeService) private var attributeService
-    @Dependency(\.itemsRepository) private var itemsRepository
-    @Dependency(\.inventoryService) private var inventoryService
+    private let _attributeService = Dependency(\.attributeService)
+    private var attributeService: any AttributeService { _attributeService.wrappedValue }
+
+    private let _itemsRepository = Dependency(\.itemsRepository)
+    private var itemsRepository: any ItemsRepository { _itemsRepository.wrappedValue }
+
+    private let _inventoryService = Dependency(\.inventoryService)
+    private var inventoryService: any InventoryService { _inventoryService.wrappedValue }
 
     // MARK: - Constants
 
