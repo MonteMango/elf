@@ -81,7 +81,7 @@ public final class DefaultHouseService: HouseService {
         let members = await withTaskGroup(of: ElfInfo.self) { group in
             for _ in 0..<House.membersCount {
                 group.addTask {
-                    await self.elfInfoFactory.createRandomAI(level: level)
+                    self.elfInfoFactory.createRandomAI(level: level)
                 }
             }
 
@@ -118,7 +118,7 @@ public final class DefaultHouseService: HouseService {
                     }
                 } else {
                     group.addTask {
-                        let elf = await self.elfInfoFactory.createRandomAI(level: level)
+                        let elf = self.elfInfoFactory.createRandomAI(level: level)
                         return (memberIndex, elf)
                     }
                 }
