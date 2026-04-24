@@ -41,6 +41,13 @@ public protocol InventoryService: Sendable {
     /// - Returns: New inventory with the material added/stacked
     func addMaterial(id: UUID, source: MaterialSource, quantity: Int, to inventory: ElfInventory) -> ElfInventory
 
+    /// Adds multiple materials to inventory in a single pass. Stacks each entry
+    /// with existing material of the same ID. Prefer this over calling
+    /// `addMaterial` in a loop — a single local mutation avoids repeated COW
+    /// copies of the materials buffer across iterations.
+    /// - Returns: New inventory with all materials added/stacked
+    func addMaterials(_ materials: [MaterialAddition], to inventory: ElfInventory) -> ElfInventory
+
     // MARK: - Add Crafted Item
 
     /// Adds a crafted item to inventory based on its concrete type (weapon, armor, shield, robe)

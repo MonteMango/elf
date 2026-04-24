@@ -85,4 +85,22 @@ public final class ElfInventoryService: InventoryService {
 
         return newInventory
     }
+
+    public func addMaterials(_ materials: [MaterialAddition], to inventory: ElfInventory) -> ElfInventory {
+        guard !materials.isEmpty else { return inventory }
+
+        // Single local accumulator: after the first append/update the `materials`
+        // buffer is uniquely owned, so subsequent iterations mutate in-place.
+        var newInventory = inventory
+        for addition in materials where addition.quantity > 0 {
+            if let index = newInventory.materials.firstIndex(where: { $0.id == addition.id }) {
+                newInventory.materials[index].quantity += addition.quantity
+            } else {
+                newInventory.materials.append(
+                    InventoryMaterial(id: addition.id, source: addition.source, quantity: addition.quantity)
+                )
+            }
+        }
+        return newInventory
+    }
 }

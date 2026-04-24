@@ -134,15 +134,10 @@ public final class DefaultGameService: GameService {
     }
 
     public func addDropsToPlayerInventory(rewards: HuntRewards) {
-        var inventory = player.inventory
-        for material in rewards.materials {
-            inventory = inventoryService.addMaterial(
-                id: material.id,
-                source: .monster,
-                quantity: material.amount,
-                to: inventory
-            )
+        let additions = rewards.materials.map {
+            MaterialAddition(id: $0.id, source: .monster, quantity: $0.amount)
         }
+        var inventory = inventoryService.addMaterials(additions, to: player.inventory)
         if let weapon = rewards.weapon {
             inventory = inventoryService.addWeapon(weapon, to: inventory)
         }
@@ -153,42 +148,24 @@ public final class DefaultGameService: GameService {
     }
 
     public func addFishToInventory(_ fish: [Fish]) {
-        var inventory = player.inventory
-        for f in fish {
-            inventory = inventoryService.addMaterial(
-                id: f.id.rawValue,
-                source: .fish,
-                quantity: 1,
-                to: inventory
-            )
+        let additions = fish.map {
+            MaterialAddition(id: $0.id.rawValue, source: .fish, quantity: 1)
         }
-        player.inventory = inventory
+        player.inventory = inventoryService.addMaterials(additions, to: player.inventory)
     }
 
     public func addHerbsToInventory(_ herbs: [Herb]) {
-        var inventory = player.inventory
-        for herb in herbs {
-            inventory = inventoryService.addMaterial(
-                id: herb.id.rawValue,
-                source: .herb,
-                quantity: 1,
-                to: inventory
-            )
+        let additions = herbs.map {
+            MaterialAddition(id: $0.id.rawValue, source: .herb, quantity: 1)
         }
-        player.inventory = inventory
+        player.inventory = inventoryService.addMaterials(additions, to: player.inventory)
     }
 
     public func addOresToInventory(_ ores: [Ore]) {
-        var inventory = player.inventory
-        for ore in ores {
-            inventory = inventoryService.addMaterial(
-                id: ore.id.rawValue,
-                source: .ore,
-                quantity: 1,
-                to: inventory
-            )
+        let additions = ores.map {
+            MaterialAddition(id: $0.id.rawValue, source: .ore, quantity: 1)
         }
-        player.inventory = inventory
+        player.inventory = inventoryService.addMaterials(additions, to: player.inventory)
     }
 
     public func addItemsToPlayerInventory(_ items: [Item]) {
