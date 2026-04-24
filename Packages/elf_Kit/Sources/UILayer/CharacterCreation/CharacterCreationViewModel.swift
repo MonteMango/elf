@@ -29,8 +29,11 @@ public final class CharacterCreationViewModel {
     @ObservationIgnored
     @Dependency(\.gameInitializationService) private var gameInitializationService
 
-    /// Stateful per-VM builder — not a DI candidate (accumulates state across stages).
-    private let characterBuilder: any CharacterBuilder = DefaultCharacterBuilder()
+    /// Stateful per-VM builder — we inject a factory (not the builder itself)
+    /// so each VM owns its own accumulation of appearance/name/fight-style,
+    /// while tests can still substitute the builder via `withDependencies`.
+    @ObservationIgnored
+    private let characterBuilder: any CharacterBuilder
 
     // MARK: - Stage State
 
@@ -117,6 +120,8 @@ public final class CharacterCreationViewModel {
     // MARK: - Initialization
 
     public init() {
+        @Dependency(\.characterBuilderFactory) var makeBuilder
+        self.characterBuilder = makeBuilder()
         if let style = selectedFightStyle {
             characterBuilder.setFightStyle(style)
         }
