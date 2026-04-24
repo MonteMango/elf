@@ -19,8 +19,13 @@ public final class MainMenuViewModel {
 
     // MARK: - State
 
-    /// Whether a saved game exists. Safe to call — bootstrap completes before any VM is constructed.
-    public var hasSavedGame: Bool { gameRepository.hasAnySave() }
+    /// Cached save-presence flag. Populated by `refreshSavedGameState()` from
+    /// `.task` — never read from disk inside view body, and never in `init()`
+    /// (VM init runs on every `MainMenuScreen` re-init because
+    /// `State(initialValue: MainMenuViewModel())` eagerly evaluates the RHS
+    /// each time the parent's body re-runs, even though SwiftUI keeps only
+    /// the first instance).
+    public private(set) var hasSavedGame: Bool = false
 
     /// Whether the load operation is in progress.
     public var isLoading: Bool = false
@@ -37,6 +42,12 @@ public final class MainMenuViewModel {
     public init() {}
 
     // MARK: - Actions
+
+    /// Re-reads the save slot from disk. Call on menu appear and after actions
+    /// that can change whether a save exists.
+    public func refreshSavedGameState() {
+        hasSavedGame = gameRepository.hasAnySave()
+    }
 
     /// Loads saved game from the default slot.
     public func loadGame() async {

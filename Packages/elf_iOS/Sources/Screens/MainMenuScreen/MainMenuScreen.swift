@@ -49,6 +49,7 @@ struct MainMenuScreen: View {
             }
             .buttonStyle(.elfPrimary)
         }
+        .task { viewModel.refreshSavedGameState() }
         .onChange(of: viewModel.loadedGame) { _, newGame in
             if let game = newGame {
                 coordinator.startGame(game, playTime: viewModel.loadedPlayTime)
