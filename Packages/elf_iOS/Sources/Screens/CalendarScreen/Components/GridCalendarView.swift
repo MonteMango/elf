@@ -78,9 +78,9 @@ struct GridCalendarView: View {
 #if DEBUG
 #Preview {
     GridCalendarView(
-        calendar: PreviewMockData.createMockCalendar(),
+        calendar: PreviewGame.createMockCalendar(),
         currentDayNumber: 25,
-        daysPerIteration: PreviewMockData.daysPerIteration
+        daysPerIteration: PreviewGame.daysPerIteration
     )
     .background(Color.white)
 }

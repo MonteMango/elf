@@ -97,7 +97,7 @@ struct InventoryView: View {
 #if DEBUG
 #Preview {
     InventoryView(
-        viewModel: PreviewMockData.createMockInventoryViewModel()
+        viewModel: PreviewGame.createMockInventoryViewModel()
     )
 }
 #endif

@@ -69,7 +69,7 @@ struct CalendarScreen: View {
 #if DEBUG
 #Preview {
     CalendarScreen(
-        calendar: PreviewMockData.createMockCalendar(),
+        calendar: PreviewGame.createMockCalendar(),
         currentDayNumber: 25
     )
 }

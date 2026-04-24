@@ -1,8 +1,8 @@
 //
-//  PreviewMockData.swift
+//  PreviewGame.swift
 //  elf_iOS
 //
-//  Created by Vitalii Lytvynov on 04.12.25.
+//  Created by Vitalii Lytvynov
 //
 
 import elf_Kit
@@ -10,7 +10,7 @@ import Foundation
 
 #if DEBUG
 
-enum PreviewMockData {
+enum PreviewGame {
 
     // MARK: - Default Weapon
 
@@ -172,21 +172,6 @@ enum PreviewMockData {
     static func createMockInventoryViewModel() -> InventoryViewModel {
         InventoryViewModel(gameService: createMockGameService())
     }
-}
-
-// MARK: - Preview No-Op Implementations
-
-private struct NoOpGameSaveStorage: GameSaveStorage {
-    func save(_ game: Game, slotId: String, playTime: TimeInterval) async throws {}
-    func load(slotId: String) async throws -> Game { fatalError("Not used in previews") }
-    func hasAnySave() -> Bool { false }
-    func getPlayTime(slotId: String) async -> TimeInterval { 0 }
-}
-
-private struct NoOpItemsRepository: ItemsRepository {
-    func getHeroItem(_ id: UUID) -> Item? { nil }
-    func getItems(for type: HeroItemType) -> [Item] { [] }
-    func armorSlot(for itemId: UUID) -> ArmorSlot? { nil }
 }
 
 #endif

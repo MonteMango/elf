@@ -25,7 +25,7 @@ public struct HeroItems: Decodable, Sendable {
     public let necklaces: [JewelryItem]
     public let earrings: [JewelryItem]
 
-    static let empty = HeroItems(
+    public static let empty = HeroItems(
         version: "1.0-empty",
         helmets: [], gloves: [], shoes: [],
         upperBodies: [], bottomBodies: [], robes: [],

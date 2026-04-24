@@ -49,7 +49,7 @@ struct LineCalendarView: View {
 #if DEBUG
 #Preview {
     LineCalendarView(
-        calendar: PreviewMockData.createMockCalendar(),
+        calendar: PreviewGame.createMockCalendar(),
         currentDayNumber: 25
     )
     .frame(height: 150)

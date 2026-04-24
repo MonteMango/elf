@@ -18,4 +18,10 @@ private enum ItemsRepositoryKey: DependencyKey {
     static var liveValue: any ItemsRepository {
         fatalError("ItemsRepository must be registered via prepareDependencies at app bootstrap (see ElfApp.swift). It is sourced from async-loaded GameDataRepository.")
     }
+
+    #if DEBUG
+    static var previewValue: any ItemsRepository {
+        ElfItemsRepository(heroItems: .empty)
+    }
+    #endif
 }

@@ -95,7 +95,7 @@ struct HuntScreen: View {
             .task {
                 await DependencyBootstrap.run()
                 let c = AppCoordinator()
-                c.initializePreviewSession(game: PreviewMockData.createMockGame())
+                c.initializePreviewSession(game: PreviewGame.createMockGame())
                 coordinator = c
             }
     }
