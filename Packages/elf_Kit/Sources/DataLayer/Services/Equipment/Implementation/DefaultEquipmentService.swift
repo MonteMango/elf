@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 03.01.26.
 //
 
+import Dependencies
 import Foundation
 
 /// Default implementation of `EquipmentService`.
@@ -17,13 +18,13 @@ public final class DefaultEquipmentService: EquipmentService {
     // MARK: - Dependencies
 
     private let gameService: any GameStateService
-    private let itemsRepository: any ItemsRepository
+
+    @Dependency(\.itemsRepository) private var itemsRepository
 
     // MARK: - Initialization
 
-    public init(gameService: any GameStateService, itemsRepository: any ItemsRepository) {
+    public init(gameService: any GameStateService) {
         self.gameService = gameService
-        self.itemsRepository = itemsRepository
     }
 
     // MARK: - Weapon

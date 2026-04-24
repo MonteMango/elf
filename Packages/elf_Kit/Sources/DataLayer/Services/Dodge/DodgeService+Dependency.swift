@@ -15,7 +15,5 @@ extension DependencyValues {
 }
 
 private enum DodgeServiceKey: DependencyKey {
-    static var liveValue: any DodgeService {
-        ElfDodgeService(distributionStrategy: ElfDodgeDistributionStrategy())
-    }
+    static var liveValue: any DodgeService { ElfDodgeService() }
 }

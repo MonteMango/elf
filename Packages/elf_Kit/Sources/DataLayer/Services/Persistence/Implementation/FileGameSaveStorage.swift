@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 04.12.25.
 //
 
+import Dependencies
 import Foundation
 
 // MARK: - Debug Logging
@@ -34,26 +35,18 @@ public actor FileGameSaveStorage: GameSaveStorage {
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     private let appVersion: String
-    private let itemsRepository: ItemsRepository
-    private let progressionService: ProgressionService
-    private let inventoryService: InventoryService
+    @Dependency(\.itemsRepository) private var itemsRepository
+    @Dependency(\.progressionService) private var progressionService
+    @Dependency(\.inventoryService) private var inventoryService
 
     /// In-memory cache of slot info for fast access
     private var slotsCache: [SaveSlotInfo]?
 
     // MARK: - Initialization
 
-    public init(
-        itemsRepository: ItemsRepository,
-        progressionService: ProgressionService,
-        inventoryService: InventoryService,
-        appVersion: String = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
-    ) {
-        self.itemsRepository = itemsRepository
-        self.progressionService = progressionService
-        self.inventoryService = inventoryService
+    public init() {
         self.fileManager = FileManager.default
-        self.appVersion = appVersion
+        self.appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
 
         // Setup encoder
         let encoder = JSONEncoder()

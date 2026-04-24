@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 02.12.25.
 //
 
+import Dependencies
 import Foundation
 import Observation
 
@@ -53,20 +54,16 @@ public final class DefaultGameService: GameService {
 
     // MARK: - Dependencies
 
-    @ObservationIgnored private let gameRepository: GameSaveStorage
-    @ObservationIgnored private let inventoryService: InventoryService
-    @ObservationIgnored private let craftService: CraftService
-    @ObservationIgnored private let debugGameLogger: DebugGameLogger
+    @ObservationIgnored @Dependency(\.gameRepository) private var gameRepository
+    @ObservationIgnored @Dependency(\.inventoryService) private var inventoryService
+    @ObservationIgnored @Dependency(\.craftService) private var craftService
+    @ObservationIgnored @Dependency(\.debugGameLogger) private var debugGameLogger
     @ObservationIgnored private let slotId: String
 
     // MARK: - Initialization
 
     public init(
         game: Game,
-        gameRepository: GameSaveStorage,
-        inventoryService: InventoryService,
-        craftService: CraftService,
-        debugGameLogger: DebugGameLogger,
         slotId: String = SaveSlotInfo.defaultSlotId,
         playTime: TimeInterval = 0
     ) {
@@ -78,10 +75,6 @@ public final class DefaultGameService: GameService {
         self.playerHouseIndex = game.playerHouseIndex
         self.playerMemberIndex = game.playerMemberIndex
         self.player = PlayerStore(from: game.houses[game.playerHouseIndex].members[game.playerMemberIndex])
-        self.gameRepository = gameRepository
-        self.inventoryService = inventoryService
-        self.craftService = craftService
-        self.debugGameLogger = debugGameLogger
         self.slotId = slotId
         self.playTime = playTime
     }

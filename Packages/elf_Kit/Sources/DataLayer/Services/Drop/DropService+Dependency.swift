@@ -15,8 +15,5 @@ extension DependencyValues {
 }
 
 private enum DropServiceKey: DependencyKey {
-    static var liveValue: any DropService {
-        @Dependency(\.materialRepository) var materialRepository
-        return DefaultDropService(materialRepository: materialRepository)
-    }
+    static var liveValue: any DropService { DefaultDropService() }
 }

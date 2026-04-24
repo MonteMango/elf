@@ -15,8 +15,5 @@ extension DependencyValues {
 }
 
 private enum AttributeServiceKey: DependencyKey {
-    static var liveValue: any AttributeService {
-        @Dependency(\.itemsRepository) var itemsRepository
-        return ElfAttributeService(itemsRepository: itemsRepository)
-    }
+    static var liveValue: any AttributeService { ElfAttributeService() }
 }

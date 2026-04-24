@@ -95,12 +95,8 @@ public final class InventoryViewModel {
     // MARK: - Initialization
 
     public init(gameService: any GameService) {
-        @Dependency(\.itemsRepository) var itemsRepository
         self.gameService = gameService
-        self.equipmentService = DefaultEquipmentService(
-            gameService: gameService,
-            itemsRepository: itemsRepository
-        )
+        self.equipmentService = DefaultEquipmentService(gameService: gameService)
     }
 
     // MARK: - Actions

@@ -15,8 +15,5 @@ extension DependencyValues {
 }
 
 private enum HuntServiceKey: DependencyKey {
-    static var liveValue: any HuntService {
-        @Dependency(\.itemsRepository) var itemsRepository
-        return ElfHuntService(itemsRepository: itemsRepository)
-    }
+    static var liveValue: any HuntService { ElfHuntService() }
 }

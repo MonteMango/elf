@@ -15,14 +15,5 @@ extension DependencyValues {
 }
 
 private enum BattleResultCalculatorKey: DependencyKey {
-    static var liveValue: any BattleResultCalculator {
-        @Dependency(\.huntService) var huntService
-        @Dependency(\.dropService) var dropService
-        @Dependency(\.progressionService) var progressionService
-        return DefaultBattleResultCalculator(
-            huntService: huntService,
-            dropService: dropService,
-            progressionService: progressionService
-        )
-    }
+    static var liveValue: any BattleResultCalculator { DefaultBattleResultCalculator() }
 }

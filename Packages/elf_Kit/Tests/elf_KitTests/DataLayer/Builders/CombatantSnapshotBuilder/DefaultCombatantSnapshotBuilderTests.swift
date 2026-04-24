@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 09.12.25.
 //
 
+import Dependencies
 import XCTest
 @testable import elf_Kit
 
@@ -55,21 +56,26 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
 
     // MARK: - Setup
 
-    override func setUp() {
-        super.setUp()
-        mockItemsRepository = MockItemsRepository()
-        mockArmorService = MockArmorService()
-        builder = DefaultCombatantSnapshotBuilder(
-            itemsRepository: mockItemsRepository,
-            armorService: mockArmorService
-        )
-    }
+    /// Wrap every test in `withDependencies` so the `builder`'s @Dependency property
+    /// wrappers resolve to the per-test mocks. Mocks are created here (before
+    /// `super.invokeTest()`) because `setUp` would otherwise run after the
+    /// `withDependencies` block opens and leave the closure reading `nil`.
+    override func invokeTest() {
+        let mockItems = MockItemsRepository()
+        let mockArmor = MockArmorService()
+        self.mockItemsRepository = mockItems
+        self.mockArmorService = mockArmor
 
-    override func tearDown() {
-        mockItemsRepository = nil
-        mockArmorService = nil
-        builder = nil
-        super.tearDown()
+        withDependencies {
+            $0.itemsRepository = mockItems
+            $0.armorService = mockArmor
+        } operation: {
+            self.builder = DefaultCombatantSnapshotBuilder()
+            super.invokeTest()
+            self.builder = nil
+            self.mockItemsRepository = nil
+            self.mockArmorService = nil
+        }
     }
 
     // MARK: - Monster Snapshot Tests

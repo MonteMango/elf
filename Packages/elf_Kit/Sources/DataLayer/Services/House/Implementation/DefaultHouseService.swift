@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 03.12.25.
 //
 
+import Dependencies
 import Foundation
 
 /// Default implementation of HouseService
@@ -12,7 +13,7 @@ public final class DefaultHouseService: HouseService {
 
     // MARK: - Dependencies
 
-    private let elfInfoFactory: ElfInfoFactory
+    @Dependency(\.elfInfoFactory) private var elfInfoFactory
 
     // MARK: - Properties
 
@@ -29,9 +30,7 @@ public final class DefaultHouseService: HouseService {
 
     // MARK: - Initialization
 
-    public init(elfInfoFactory: ElfInfoFactory) {
-        self.elfInfoFactory = elfInfoFactory
-    }
+    public init() {}
 
     // MARK: - HouseService
 

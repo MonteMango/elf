@@ -5,24 +5,19 @@
 //  Created by Vitalii Lytvynov on 08.12.25.
 //
 
+import Dependencies
 import Foundation
 
 public final class ElfCombatRoundExecutor: CombatRoundExecutor {
 
     // MARK: - Dependencies
 
-    private let snapshotCombatCalculator: SnapshotCombatCalculator
-    private let damageService: DamageService
+    @Dependency(\.snapshotCombatCalculator) private var snapshotCombatCalculator
+    @Dependency(\.damageService) private var damageService
 
     // MARK: - Initialization
 
-    public init(
-        snapshotCombatCalculator: SnapshotCombatCalculator,
-        damageService: DamageService
-    ) {
-        self.snapshotCombatCalculator = snapshotCombatCalculator
-        self.damageService = damageService
-    }
+    public init() {}
 
     // MARK: - CombatRoundExecutor
 

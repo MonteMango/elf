@@ -15,7 +15,5 @@ extension DependencyValues {
 }
 
 private enum CritServiceKey: DependencyKey {
-    static var liveValue: any CritService {
-        ElfCritService(distributionStrategy: ElfCritDistributionStrategy())
-    }
+    static var liveValue: any CritService { ElfCritService() }
 }

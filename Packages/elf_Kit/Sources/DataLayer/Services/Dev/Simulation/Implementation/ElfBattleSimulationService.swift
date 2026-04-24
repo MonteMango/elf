@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 21.11.25.
 //
 
+import Dependencies
 import Foundation
 
 /// Default implementation of BattleSimulationService
@@ -12,24 +13,14 @@ public final class ElfBattleSimulationService: BattleSimulationService {
 
     // MARK: - Dependencies
 
-    private let botAI: BotAIService
-    private let snapshotCombatCalculator: SnapshotCombatCalculator
-    private let damageService: DamageService
-    private let statisticsParser: BattleStatisticsParser
+    @Dependency(\.botAI) private var botAI
+    @Dependency(\.snapshotCombatCalculator) private var snapshotCombatCalculator
+    @Dependency(\.damageService) private var damageService
+    @Dependency(\.statisticsParser) private var statisticsParser
 
     // MARK: - Initialization
 
-    public init(
-        botAI: BotAIService,
-        snapshotCombatCalculator: SnapshotCombatCalculator,
-        damageService: DamageService,
-        statisticsParser: BattleStatisticsParser
-    ) {
-        self.botAI = botAI
-        self.snapshotCombatCalculator = snapshotCombatCalculator
-        self.damageService = damageService
-        self.statisticsParser = statisticsParser
-    }
+    public init() {}
 
     // MARK: - BattleSimulationService
 

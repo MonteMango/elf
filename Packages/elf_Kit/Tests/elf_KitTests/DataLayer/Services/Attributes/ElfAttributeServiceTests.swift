@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 10.07.25.
 //
 
+import Dependencies
 import XCTest
 import Combine
 @testable import elf_Kit
@@ -16,7 +17,7 @@ import Combine
 /// - **Dodge**: HP=80, Agility=4*lvl, Instinct=1*lvl, Strength=1*lvl
 /// - **Def**: HP=80+2*lvl, Instinct=2*lvl, Strength=2*lvl
 final class ElfAttributeServiceTests: XCTestCase {
-    
+
     // MARK: - Фейковые зависимости
 
     final class FakeItemsRepository: ItemsRepository {
@@ -51,21 +52,21 @@ final class ElfAttributeServiceTests: XCTestCase {
 
         func armorSlot(for itemId: UUID) -> ArmorSlot? { nil }
     }
-    
+
     final class FixedRandomizer: AttributeRandomizer, @unchecked Sendable {
         private var queue: [String]
         private var index = 0
-        
+
         init(queue: [String]) {
             self.queue = queue
         }
-        
+
         func nextAttribute() -> String {
             defer { index += 1 }
             return queue[index % queue.count]
         }
     }
-    
+
     struct TestItem: Item {
         let id: UUID
         let title: String
@@ -78,12 +79,16 @@ final class ElfAttributeServiceTests: XCTestCase {
         let hitPoints: Int16?
         let manaPoints: Int16?
     }
-    
+
     // MARK: - Тесты
-    
+
     func testFightStyleCritAttributesLevel10() async {
-        let service = ElfAttributeService(itemsRepository: FakeItemsRepository())
-        let result = service.getAllFightStyleAttributes(for: .crit, at: 10)
+        let result = withDependencies {
+            $0.itemsRepository = FakeItemsRepository()
+        } operation: {
+            let service = ElfAttributeService()
+            return service.getAllFightStyleAttributes(for: .crit, at: 10)
+        }
 
         XCTAssertEqual(result.hitPoints, 80)
         XCTAssertEqual(result.manaPoints, 20)
@@ -94,8 +99,12 @@ final class ElfAttributeServiceTests: XCTestCase {
     }
 
     func testFightStyleDodgeAttributesLevel10() async {
-        let service = ElfAttributeService(itemsRepository: FakeItemsRepository())
-        let result = service.getAllFightStyleAttributes(for: .dodge, at: 10)
+        let result = withDependencies {
+            $0.itemsRepository = FakeItemsRepository()
+        } operation: {
+            let service = ElfAttributeService()
+            return service.getAllFightStyleAttributes(for: .dodge, at: 10)
+        }
 
         XCTAssertEqual(result.hitPoints, 80)
         XCTAssertEqual(result.manaPoints, 20)
@@ -106,8 +115,12 @@ final class ElfAttributeServiceTests: XCTestCase {
     }
 
     func testFightStyleDefAttributesLevel10() async {
-        let service = ElfAttributeService(itemsRepository: FakeItemsRepository())
-        let result = service.getAllFightStyleAttributes(for: .def, at: 10)
+        let result = withDependencies {
+            $0.itemsRepository = FakeItemsRepository()
+        } operation: {
+            let service = ElfAttributeService()
+            return service.getAllFightStyleAttributes(for: .def, at: 10)
+        }
 
         XCTAssertEqual(result.hitPoints, 100) // 80 + 2*10
         XCTAssertEqual(result.manaPoints, 20)
@@ -118,10 +131,13 @@ final class ElfAttributeServiceTests: XCTestCase {
     }
 
     func testRandomLevelAttributesAreDeterministic() async {
-        let randomizer = FixedRandomizer(queue: ["hitPoints", "manaPoints", "agility", "strength"])
-        let service = ElfAttributeService(itemsRepository: FakeItemsRepository(), randomizer: randomizer)
-
-        let result = service.getRandomLevelAttributes()
+        let result = withDependencies {
+            $0.itemsRepository = FakeItemsRepository()
+            $0.attributeRandomizer = FixedRandomizer(queue: ["hitPoints", "manaPoints", "agility", "strength"])
+        } operation: {
+            let service = ElfAttributeService()
+            return service.getRandomLevelAttributes()
+        }
 
         // 4 attributes assigned: hitPoints(+3), manaPoints(+3), agility(+1), strength(+1)
         XCTAssertEqual(result.hitPoints, 3)
@@ -133,10 +149,13 @@ final class ElfAttributeServiceTests: XCTestCase {
     }
 
     func testAllRandomLevelAttributesSumsCorrectly() async {
-        let randomizer = FixedRandomizer(queue: ["agility", "strength", "power", "instinct"])
-        let service = ElfAttributeService(itemsRepository: FakeItemsRepository(), randomizer: randomizer)
-
-        let result = service.getAllRandomLevelAttributes(for: 2)
+        let result = withDependencies {
+            $0.itemsRepository = FakeItemsRepository()
+            $0.attributeRandomizer = FixedRandomizer(queue: ["agility", "strength", "power", "instinct"])
+        } operation: {
+            let service = ElfAttributeService()
+            return service.getAllRandomLevelAttributes(for: 2)
+        }
 
         // Due to parallel execution with TaskGroup, we can't guarantee exact distribution
         // But we can verify total points assigned: 2 levels * 4 points = 8 points total
@@ -149,10 +168,13 @@ final class ElfAttributeServiceTests: XCTestCase {
     }
 
     func testAllRandomAttributesSumsWithWrongAttributeCorrectly() async {
-        let randomizer = FixedRandomizer(queue: ["endurance"])
-        let service = ElfAttributeService(itemsRepository: FakeItemsRepository(), randomizer: randomizer)
-
-        let result = service.getAllRandomLevelAttributes(for: 1)
+        let result = withDependencies {
+            $0.itemsRepository = FakeItemsRepository()
+            $0.attributeRandomizer = FixedRandomizer(queue: ["endurance"])
+        } operation: {
+            let service = ElfAttributeService()
+            return service.getAllRandomLevelAttributes(for: 1)
+        }
 
         XCTAssertEqual(result.agility, 0)
         XCTAssertEqual(result.strength, 0)
@@ -177,8 +199,12 @@ final class ElfAttributeServiceTests: XCTestCase {
         let repo = FakeItemsRepository()
         repo.items = [id1: item1, id2: item2]
 
-        let service = ElfAttributeService(itemsRepository: repo)
-        let result = service.getAllItemsAttributes(for: [id1, id2])
+        let result = withDependencies {
+            $0.itemsRepository = repo
+        } operation: {
+            let service = ElfAttributeService()
+            return service.getAllItemsAttributes(for: [id1, id2])
+        }
 
         XCTAssertEqual(result.strength, 1)
         XCTAssertEqual(result.power, 2)

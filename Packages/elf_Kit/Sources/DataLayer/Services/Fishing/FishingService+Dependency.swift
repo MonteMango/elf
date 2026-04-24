@@ -15,12 +15,5 @@ extension DependencyValues {
 }
 
 private enum FishingServiceKey: DependencyKey {
-    static var liveValue: any FishingService {
-        @Dependency(\.gatheringEngine) var gatheringEngine
-        @Dependency(\.skillProgressCalculator) var skillProgressCalculator
-        return DefaultFishingService(
-            gatheringEngine: gatheringEngine,
-            skillProgressCalculator: skillProgressCalculator
-        )
-    }
+    static var liveValue: any FishingService { DefaultFishingService() }
 }

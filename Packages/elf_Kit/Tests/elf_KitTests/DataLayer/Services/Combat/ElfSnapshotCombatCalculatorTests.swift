@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 02.12.25.
 //
 
+import Dependencies
 import XCTest
 @testable import elf_Kit
 
@@ -124,12 +125,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
     private var mockLogger: MockDebugLogger!
 
     private func makeCalculator() -> ElfSnapshotCombatCalculator {
-        return ElfSnapshotCombatCalculator(
-            damageService: mockDamageService,
-            dodgeService: mockDodgeService,
-            critService: mockCritService,
-            debugLogger: mockLogger
-        )
+        ElfSnapshotCombatCalculator()
     }
 
     private func makeSnapshot(
@@ -161,20 +157,32 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         )
     }
 
-    override func setUp() {
-        super.setUp()
-        mockDamageService = MockDamageService()
-        mockDodgeService = MockDodgeService()
-        mockCritService = MockCritService()
-        mockLogger = MockDebugLogger()
-    }
+    /// Wrap every test in `withDependencies` so the calculator's @Dependency property
+    /// wrappers resolve to per-test mocks. Mocks are created here (before
+    /// `super.invokeTest()`) because `setUp` would otherwise run after the
+    /// `withDependencies` block opens and leave the closure reading `nil`.
+    override func invokeTest() {
+        let damage = MockDamageService()
+        let dodge = MockDodgeService()
+        let crit = MockCritService()
+        let logger = MockDebugLogger()
+        self.mockDamageService = damage
+        self.mockDodgeService = dodge
+        self.mockCritService = crit
+        self.mockLogger = logger
 
-    override func tearDown() {
-        mockDamageService = nil
-        mockDodgeService = nil
-        mockCritService = nil
-        mockLogger = nil
-        super.tearDown()
+        withDependencies {
+            $0.damageService = damage
+            $0.dodgeService = dodge
+            $0.critService = crit
+            $0.debugBattleLogger = logger
+        } operation: {
+            super.invokeTest()
+            self.mockDamageService = nil
+            self.mockDodgeService = nil
+            self.mockCritService = nil
+            self.mockLogger = nil
+        }
     }
 
     // MARK: - Case 1: Attack on Defended Point (Block Check)

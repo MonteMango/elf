@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 10.07.25.
 //
 
+import Dependencies
 import XCTest
 @testable import elf_Kit
 
@@ -76,17 +77,20 @@ final class ElfDamageServiceTests: XCTestCase {
         let distribution = DamageDistribution(values: [5, 6, 7], weights: [1, 1, 1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
 
-        // When: Run multiple times
-        for _ in 0..<50 {
-            let damage = service.getRandomStrengthDamage(10)
+        withDependencies {
+            $0.itemsRepository = repository
+            $0.strengthDamageDistributionStrategy = strategy
+        } operation: {
+            let service = ElfDamageService()
 
-            // Then
-            XCTAssertTrue((5...7).contains(damage), "Damage \(damage) should be in range 5-7")
+            // When: Run multiple times
+            for _ in 0..<50 {
+                let damage = service.getRandomStrengthDamage(10)
+
+                // Then
+                XCTAssertTrue((5...7).contains(damage), "Damage \(damage) should be in range 5-7")
+            }
         }
     }
 
@@ -95,13 +99,16 @@ final class ElfDamageServiceTests: XCTestCase {
         let distribution = DamageDistribution(values: [], weights: [])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
 
-        // When
-        let damage = service.getRandomStrengthDamage(10)
+        let damage = withDependencies {
+            $0.itemsRepository = repository
+            $0.strengthDamageDistributionStrategy = strategy
+        } operation: {
+            let service = ElfDamageService()
+
+            // When
+            return service.getRandomStrengthDamage(10)
+        }
 
         // Then
         XCTAssertEqual(damage, 0)
@@ -118,13 +125,15 @@ final class ElfDamageServiceTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[weaponId] = weapon
 
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
+        let result = withDependencies {
+            $0.itemsRepository = repository
+            $0.strengthDamageDistributionStrategy = strategy
+        } operation: {
+            let service = ElfDamageService()
 
-        // When
-        let result = service.getWeaponDamage(weaponId: weaponId)
+            // When
+            return service.getWeaponDamage(weaponId: weaponId)
+        }
 
         // Then
         XCTAssertEqual(result?.minDmg, 10)
@@ -136,13 +145,16 @@ final class ElfDamageServiceTests: XCTestCase {
         let distribution = DamageDistribution(values: [1], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
 
-        // When
-        let result = service.getWeaponDamage(weaponId: nil)
+        let result = withDependencies {
+            $0.itemsRepository = repository
+            $0.strengthDamageDistributionStrategy = strategy
+        } operation: {
+            let service = ElfDamageService()
+
+            // When
+            return service.getWeaponDamage(weaponId: nil)
+        }
 
         // Then
         XCTAssertEqual(result?.minDmg, 0)
@@ -154,13 +166,16 @@ final class ElfDamageServiceTests: XCTestCase {
         let distribution = DamageDistribution(values: [1], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
 
-        // When
-        let result = service.getWeaponDamage(weaponId: UUID())
+        let result = withDependencies {
+            $0.itemsRepository = repository
+            $0.strengthDamageDistributionStrategy = strategy
+        } operation: {
+            let service = ElfDamageService()
+
+            // When
+            return service.getWeaponDamage(weaponId: UUID())
+        }
 
         // Then
         XCTAssertEqual(result?.minDmg, 0)
@@ -174,18 +189,21 @@ final class ElfDamageServiceTests: XCTestCase {
         let distribution = DamageDistribution(values: [1], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
 
         // Weapon=10, Strength=5, Armor=3 -> 12
         let pointStatus: [BodyPart: PointStatus] = [
             .head: .hit(weaponDamage: 10, strengthDamage: 5, defenderArmor: 3)
         ]
 
-        // When
-        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = withDependencies {
+            $0.itemsRepository = repository
+            $0.strengthDamageDistributionStrategy = strategy
+        } operation: {
+            let service = ElfDamageService()
+
+            // When
+            return service.calculateTotalDamage(from: pointStatus)
+        }
 
         // Then
         XCTAssertEqual(totalDamage, 12)
@@ -196,18 +214,21 @@ final class ElfDamageServiceTests: XCTestCase {
         let distribution = DamageDistribution(values: [1], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
 
         // Weapon=5, Strength=3, Armor=20 -> max(0, 5+3-20) = 0
         let pointStatus: [BodyPart: PointStatus] = [
             .head: .hit(weaponDamage: 5, strengthDamage: 3, defenderArmor: 20)
         ]
 
-        // When
-        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = withDependencies {
+            $0.itemsRepository = repository
+            $0.strengthDamageDistributionStrategy = strategy
+        } operation: {
+            let service = ElfDamageService()
+
+            // When
+            return service.calculateTotalDamage(from: pointStatus)
+        }
 
         // Then
         XCTAssertEqual(totalDamage, 0)
@@ -218,18 +239,21 @@ final class ElfDamageServiceTests: XCTestCase {
         let distribution = DamageDistribution(values: [1], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
 
         // Base=10+5=15, Multiplier=2.0 -> 30, Armor=5 -> 25
         let pointStatus: [BodyPart: PointStatus] = [
             .body: .critHit(weaponDamage: 10, strengthDamage: 5, defenderArmor: 5, multiplier: 2.0)
         ]
 
-        // When
-        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = withDependencies {
+            $0.itemsRepository = repository
+            $0.strengthDamageDistributionStrategy = strategy
+        } operation: {
+            let service = ElfDamageService()
+
+            // When
+            return service.calculateTotalDamage(from: pointStatus)
+        }
 
         // Then
         XCTAssertEqual(totalDamage, 25)
@@ -240,17 +264,20 @@ final class ElfDamageServiceTests: XCTestCase {
         let distribution = DamageDistribution(values: [1], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
 
         let pointStatus: [BodyPart: PointStatus] = [
             .head: .blocked(wasCrit: false)
         ]
 
-        // When
-        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = withDependencies {
+            $0.itemsRepository = repository
+            $0.strengthDamageDistributionStrategy = strategy
+        } operation: {
+            let service = ElfDamageService()
+
+            // When
+            return service.calculateTotalDamage(from: pointStatus)
+        }
 
         // Then
         XCTAssertEqual(totalDamage, 0)
@@ -261,17 +288,20 @@ final class ElfDamageServiceTests: XCTestCase {
         let distribution = DamageDistribution(values: [1], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
 
         let pointStatus: [BodyPart: PointStatus] = [
             .body: .dodged(wasCrit: true)
         ]
 
-        // When
-        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = withDependencies {
+            $0.itemsRepository = repository
+            $0.strengthDamageDistributionStrategy = strategy
+        } operation: {
+            let service = ElfDamageService()
+
+            // When
+            return service.calculateTotalDamage(from: pointStatus)
+        }
 
         // Then
         XCTAssertEqual(totalDamage, 0)
@@ -282,10 +312,6 @@ final class ElfDamageServiceTests: XCTestCase {
         let distribution = DamageDistribution(values: [1], weights: [1])
         let strategy = FakeStrategy(distributionToReturn: distribution)
         let repository = FakeItemsRepository()
-        let service = ElfDamageService(
-            itemsRepository: repository,
-            distributionStrategy: strategy
-        )
 
         // Head: 10+5-3=12, Body: 20+10-5=25, Legs: blocked=0
         let pointStatus: [BodyPart: PointStatus] = [
@@ -294,8 +320,15 @@ final class ElfDamageServiceTests: XCTestCase {
             .legs: .blocked(wasCrit: false)
         ]
 
-        // When
-        let totalDamage = service.calculateTotalDamage(from: pointStatus)
+        let totalDamage = withDependencies {
+            $0.itemsRepository = repository
+            $0.strengthDamageDistributionStrategy = strategy
+        } operation: {
+            let service = ElfDamageService()
+
+            // When
+            return service.calculateTotalDamage(from: pointStatus)
+        }
 
         // Then
         XCTAssertEqual(totalDamage, 37)

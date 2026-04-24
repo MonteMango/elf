@@ -165,13 +165,7 @@ enum PreviewMockData {
 
     @MainActor
     static func createMockGameService() -> DefaultGameService {
-        DefaultGameService(
-            game: createMockGame(),
-            gameRepository: NoOpGameSaveStorage(),
-            inventoryService: ElfInventoryService(),
-            craftService: DefaultCraftService(),
-            debugGameLogger: ConsoleDebugGameLogger(categories: [])
-        )
+        DefaultGameService(game: createMockGame())
     }
 
     @MainActor

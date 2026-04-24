@@ -15,12 +15,5 @@ extension DependencyValues {
 }
 
 private enum ForagingServiceKey: DependencyKey {
-    static var liveValue: any ForagingService {
-        @Dependency(\.gatheringEngine) var gatheringEngine
-        @Dependency(\.skillProgressCalculator) var skillProgressCalculator
-        return DefaultForagingService(
-            gatheringEngine: gatheringEngine,
-            skillProgressCalculator: skillProgressCalculator
-        )
-    }
+    static var liveValue: any ForagingService { DefaultForagingService() }
 }

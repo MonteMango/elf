@@ -5,26 +5,17 @@
 //  Created by Vitalii Lytvynov on 07.12.24.
 //
 
+import Dependencies
 import Foundation
 
 public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
 
-    private let damageService: DamageService
-    private let dodgeService: DodgeService
-    private let critService: CritService
-    private let debugLogger: DebugBattleLogger
+    @Dependency(\.damageService) private var damageService
+    @Dependency(\.dodgeService) private var dodgeService
+    @Dependency(\.critService) private var critService
+    @Dependency(\.debugBattleLogger) private var debugLogger
 
-    public init(
-        damageService: DamageService,
-        dodgeService: DodgeService,
-        critService: CritService,
-        debugLogger: DebugBattleLogger
-    ) {
-        self.damageService = damageService
-        self.dodgeService = dodgeService
-        self.critService = critService
-        self.debugLogger = debugLogger
-    }
+    public init() {}
 
     public func calculatePointStatus(
         attackingPoints: Set<BodyPart>,

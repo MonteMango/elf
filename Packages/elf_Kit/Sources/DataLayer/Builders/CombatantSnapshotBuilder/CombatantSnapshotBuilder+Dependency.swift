@@ -15,12 +15,5 @@ extension DependencyValues {
 }
 
 private enum CombatantSnapshotBuilderKey: DependencyKey {
-    static var liveValue: any CombatantSnapshotBuilder {
-        @Dependency(\.itemsRepository) var itemsRepository
-        @Dependency(\.armorService) var armorService
-        return DefaultCombatantSnapshotBuilder(
-            itemsRepository: itemsRepository,
-            armorService: armorService
-        )
-    }
+    static var liveValue: any CombatantSnapshotBuilder { DefaultCombatantSnapshotBuilder() }
 }

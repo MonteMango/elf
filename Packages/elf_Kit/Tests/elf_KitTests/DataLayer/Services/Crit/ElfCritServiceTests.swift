@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 02.12.25.
 //
 
+import Dependencies
 import XCTest
 @testable import elf_Kit
 
@@ -16,11 +17,21 @@ import XCTest
 /// **Stage 3**: Select damage multiplier from agility-adjusted distribution
 final class ElfCritServiceTests: XCTestCase {
 
+    /// Wire the real stateless strategy + distribution so every test can exercise
+    /// `ElfCritService` without each one spelling out `withDependencies`.
+    override func invokeTest() {
+        withDependencies {
+            $0.critDistributionStrategy = ElfCritDistributionStrategy()
+            $0.critMultiplierDistribution = CritMultiplierDistribution()
+        } operation: {
+            super.invokeTest()
+        }
+    }
+
     // MARK: - Test Helpers
 
     private func makeService() -> ElfCritService {
-        let strategy = ElfCritDistributionStrategy()
-        return ElfCritService(distributionStrategy: strategy)
+        ElfCritService()
     }
 
     // MARK: - Stage 1: Distribution Selection Tests

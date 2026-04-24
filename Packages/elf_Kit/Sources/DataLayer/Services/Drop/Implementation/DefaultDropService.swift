@@ -5,15 +5,14 @@
 //  Created by Vitalii Lytvynov on 11.12.25.
 //
 
+import Dependencies
 import Foundation
 
 public final class DefaultDropService: DropService {
 
-    private let materialRepository: any Repository<Material>
+    @Dependency(\.materialRepository) private var materialRepository
 
-    public init(materialRepository: any Repository<Material>) {
-        self.materialRepository = materialRepository
-    }
+    public init() {}
 
     // MARK: - DropService
 

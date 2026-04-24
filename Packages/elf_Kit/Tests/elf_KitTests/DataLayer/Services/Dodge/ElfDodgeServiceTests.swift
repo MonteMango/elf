@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 18.11.25.
 //
 
+import Dependencies
 import XCTest
 @testable import elf_Kit
 
@@ -16,11 +17,14 @@ import XCTest
 /// - peakPosition = 1.0: Peak at maximum (favors higher chances)
 final class ElfDodgeServiceTests: XCTestCase {
 
-    // MARK: - Test Helpers
-
-    private func makeService() -> ElfDodgeService {
-        let strategy = ElfDodgeDistributionStrategy()
-        return ElfDodgeService(distributionStrategy: strategy)
+    /// Wire the real stateless distribution strategy so every test can exercise
+    /// `ElfDodgeService` without each one spelling out `withDependencies`.
+    override func invokeTest() {
+        withDependencies {
+            $0.dodgeDistributionStrategy = ElfDodgeDistributionStrategy()
+        } operation: {
+            super.invokeTest()
+        }
     }
 
     // MARK: - Distribution Strategy Tests
@@ -162,7 +166,7 @@ final class ElfDodgeServiceTests: XCTestCase {
 
     func testStage2_NegativeChance_AlwaysFails() async {
         // Given
-        let service = makeService()
+        let service = ElfDodgeService()
 
         // When: Simulate many rolls with negative chance
         var failures = 0
@@ -180,7 +184,7 @@ final class ElfDodgeServiceTests: XCTestCase {
 
     func testStage2_100PlusChance_AlwaysSucceeds() async {
         // Given
-        let service = makeService()
+        let service = ElfDodgeService()
 
         // When
         let result = service.calculateDodge(agility: 110, instinct: 5) // min = 105, max = 100 (capped)
@@ -193,7 +197,7 @@ final class ElfDodgeServiceTests: XCTestCase {
 
     func testStage2_100Chance_AlwaysSucceeds() async {
         // Given
-        let service = makeService()
+        let service = ElfDodgeService()
 
         // When
         let result = service.calculateDodge(agility: 100, instinct: 0)
@@ -207,7 +211,7 @@ final class ElfDodgeServiceTests: XCTestCase {
 
     func testFullCalculation_VerifyResultStructure() async {
         // Given
-        let service = makeService()
+        let service = ElfDodgeService()
 
         // When
         let result = service.calculateDodge(agility: 22, instinct: 10)
@@ -227,7 +231,7 @@ final class ElfDodgeServiceTests: XCTestCase {
 
     func testDeterministicBehavior_SameInputDifferentOutputs() async {
         // Given
-        let service = makeService()
+        let service = ElfDodgeService()
 
         // When: Run same calculation multiple times
         var results: [DodgeCalculationResult] = []
@@ -250,7 +254,7 @@ final class ElfDodgeServiceTests: XCTestCase {
 
     func testStatistical_TriangularDistribution_MinimumHasHighestProbability() async {
         // Given
-        let service = makeService()
+        let service = ElfDodgeService()
         let iterations = 5000
 
         // When: Count selections for each value
@@ -273,7 +277,7 @@ final class ElfDodgeServiceTests: XCTestCase {
 
     func testStatistical_TriangularDistribution_HigherWeightForLowerValues() async {
         // Given
-        let service = makeService()
+        let service = ElfDodgeService()
         let iterations = 5000
 
         // When: Count selections for each value in range
@@ -294,7 +298,7 @@ final class ElfDodgeServiceTests: XCTestCase {
 
     func testEdgeCase_AgilityEquals1_InstinctEquals100() async {
         // Given
-        let service = makeService()
+        let service = ElfDodgeService()
 
         // When
         let result = service.calculateDodge(agility: 1, instinct: 100)
@@ -307,7 +311,7 @@ final class ElfDodgeServiceTests: XCTestCase {
 
     func testEdgeCase_BothEqual100() async {
         // Given
-        let service = makeService()
+        let service = ElfDodgeService()
 
         // When
         let result = service.calculateDodge(agility: 100, instinct: 100)

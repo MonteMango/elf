@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Dependencies
 import XCTest
 @testable import elf_Kit
 
@@ -109,8 +110,12 @@ final class ElfArmorServiceTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[id] = item
 
-        let service = ElfArmorService(itemsRepository: repository)
-        let result = await service.getAllItemsArmor(for: [id])
+        let result = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            let service = ElfArmorService()
+            return service.getAllItemsArmor(for: [id])
+        }
 
         XCTAssertEqual(result[.head], 2)
         XCTAssertEqual(result[.body], 0)
@@ -143,8 +148,12 @@ final class ElfArmorServiceTests: XCTestCase {
         repository.items[id1] = item1
         repository.items[id2] = item2
 
-        let service = ElfArmorService(itemsRepository: repository)
-        let result = await service.getAllItemsArmor(for: [id1, id2])
+        let result = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            let service = ElfArmorService()
+            return service.getAllItemsArmor(for: [id1, id2])
+        }
 
         XCTAssertEqual(result[.head], 4)
         XCTAssertEqual(result[.body], 3)
@@ -174,8 +183,12 @@ final class ElfArmorServiceTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[id] = item
 
-        let service = ElfArmorService(itemsRepository: repository)
-        let result = await service.getAllItemsArmor(for: [id])
+        let result = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            let service = ElfArmorService()
+            return service.getAllItemsArmor(for: [id])
+        }
 
         XCTAssertEqual(result.values.reduce(Int16(0), +), 0)
     }
@@ -184,8 +197,13 @@ final class ElfArmorServiceTests: XCTestCase {
         let id = UUID() // не добавлен в items
 
         let repository = FakeItemsRepository()
-        let service = ElfArmorService(itemsRepository: repository)
-        let result = await service.getAllItemsArmor(for: [id])
+
+        let result = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            let service = ElfArmorService()
+            return service.getAllItemsArmor(for: [id])
+        }
 
         XCTAssertEqual(result.values.reduce(Int16(0), +), 0)
     }

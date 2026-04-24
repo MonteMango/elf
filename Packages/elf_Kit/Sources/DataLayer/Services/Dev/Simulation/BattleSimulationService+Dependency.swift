@@ -15,16 +15,5 @@ extension DependencyValues {
 }
 
 private enum BattleSimulationServiceKey: DependencyKey {
-    static var liveValue: any BattleSimulationService {
-        @Dependency(\.botAI) var botAI
-        @Dependency(\.snapshotCombatCalculator) var snapshotCombatCalculator
-        @Dependency(\.damageService) var damageService
-        @Dependency(\.statisticsParser) var statisticsParser
-        return ElfBattleSimulationService(
-            botAI: botAI,
-            snapshotCombatCalculator: snapshotCombatCalculator,
-            damageService: damageService,
-            statisticsParser: statisticsParser
-        )
-    }
+    static var liveValue: any BattleSimulationService { ElfBattleSimulationService() }
 }

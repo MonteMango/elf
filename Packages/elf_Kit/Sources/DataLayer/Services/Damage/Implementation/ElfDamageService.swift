@@ -5,20 +5,15 @@
 //  Created by Vitalii Lytvynov on 04.05.25.
 //
 
+import Dependencies
 import Foundation
 
 public final class ElfDamageService: DamageService {
 
-    private let distributionStrategy: StrengthDamageDistributionStrategy
-    private let itemsRepository: ItemsRepository
+    @Dependency(\.itemsRepository) private var itemsRepository
+    @Dependency(\.strengthDamageDistributionStrategy) private var distributionStrategy
 
-    public init(
-        itemsRepository: ItemsRepository,
-        distributionStrategy: StrengthDamageDistributionStrategy
-    ) {
-        self.itemsRepository = itemsRepository
-        self.distributionStrategy = distributionStrategy
-    }
+    public init() {}
 
     public func getWeaponDamage(weaponId: UUID?) -> (minDmg: Int16, maxDmg: Int16)? {
         // No weapon equipped

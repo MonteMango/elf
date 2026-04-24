@@ -15,8 +15,5 @@ extension DependencyValues {
 }
 
 private enum HouseServiceKey: DependencyKey {
-    static var liveValue: any HouseService {
-        @Dependency(\.elfInfoFactory) var elfInfoFactory
-        return DefaultHouseService(elfInfoFactory: elfInfoFactory)
-    }
+    static var liveValue: any HouseService { DefaultHouseService() }
 }

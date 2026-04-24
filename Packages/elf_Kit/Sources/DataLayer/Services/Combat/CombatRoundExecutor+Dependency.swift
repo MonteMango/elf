@@ -15,12 +15,5 @@ extension DependencyValues {
 }
 
 private enum CombatRoundExecutorKey: DependencyKey {
-    static var liveValue: any CombatRoundExecutor {
-        @Dependency(\.snapshotCombatCalculator) var snapshotCombatCalculator
-        @Dependency(\.damageService) var damageService
-        return ElfCombatRoundExecutor(
-            snapshotCombatCalculator: snapshotCombatCalculator,
-            damageService: damageService
-        )
-    }
+    static var liveValue: any CombatRoundExecutor { ElfCombatRoundExecutor() }
 }

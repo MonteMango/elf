@@ -5,17 +5,15 @@
 //  Created by Vitalii Lytvynov on 09.12.25.
 //
 
+import Dependencies
 import Foundation
 
 public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 
-    private let itemsRepository: ItemsRepository
-    private let armorService: ArmorService
+    @Dependency(\.itemsRepository) private var itemsRepository
+    @Dependency(\.armorService) private var armorService
 
-    public init(itemsRepository: ItemsRepository, armorService: ArmorService) {
-        self.itemsRepository = itemsRepository
-        self.armorService = armorService
-    }
+    public init() {}
 
     // MARK: - CombatantSnapshotBuilder
 

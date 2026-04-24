@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 16.04.26.
 //
 
+import Dependencies
 import XCTest
 @testable import elf_Kit
 
@@ -14,6 +15,18 @@ import XCTest
 /// the former `modifyInventory` closure escape hatch used by `CraftViewModel`.
 @MainActor
 final class DefaultGameService_CraftTests: XCTestCase {
+
+    /// `DefaultGameService` pulls craft/inventory services via `@Dependency`.
+    /// Wire the real stateless implementations so every test exercises the actual
+    /// craft transaction without each one spelling out `withDependencies`.
+    override func invokeTest() {
+        withDependencies {
+            $0.craftService = DefaultCraftService()
+            $0.inventoryService = ElfInventoryService()
+        } operation: {
+            super.invokeTest()
+        }
+    }
 
     // MARK: - Fakes
 
@@ -87,13 +100,7 @@ final class DefaultGameService_CraftTests: XCTestCase {
     }
 
     private func makeService(inventory: ElfInventory = ElfInventory()) -> DefaultGameService {
-        DefaultGameService(
-            game: makeGame(playerInventory: inventory),
-            gameRepository: NoOpStorage(),
-            inventoryService: ElfInventoryService(),
-            craftService: DefaultCraftService(),
-            debugGameLogger: ConsoleDebugGameLogger(categories: [])
-        )
+        DefaultGameService(game: makeGame(playerInventory: inventory))
     }
 
     private func makeRecipe(

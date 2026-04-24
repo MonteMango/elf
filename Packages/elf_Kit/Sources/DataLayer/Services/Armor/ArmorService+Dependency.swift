@@ -15,8 +15,5 @@ extension DependencyValues {
 }
 
 private enum ArmorServiceKey: DependencyKey {
-    static var liveValue: any ArmorService {
-        @Dependency(\.itemsRepository) var itemsRepository
-        return ElfArmorService(itemsRepository: itemsRepository)
-    }
+    static var liveValue: any ArmorService { ElfArmorService() }
 }

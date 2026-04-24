@@ -5,17 +5,15 @@
 //  Created by Vitalii Lytvynov on 01.11.24.
 //
 
+import Dependencies
 import Foundation
 
 public final class ElfAttributeService: AttributeService {
 
-    private let itemsRepository: ItemsRepository
-    private let randomizer: AttributeRandomizer
+    @Dependency(\.itemsRepository) private var itemsRepository
+    @Dependency(\.attributeRandomizer) private var randomizer
 
-    public init(itemsRepository: ItemsRepository, randomizer: AttributeRandomizer = ElfAttributeRandomizer()) {
-        self.itemsRepository = itemsRepository
-        self.randomizer = randomizer
-    }
+    public init() {}
 
     public func getAllFightStyleAttributes(for fightStyle: FightStyle, at level: Int16) -> HeroAttributes {
         switch fightStyle {

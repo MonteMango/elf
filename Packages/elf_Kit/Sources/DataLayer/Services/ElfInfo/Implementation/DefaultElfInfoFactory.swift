@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 03.12.25.
 //
 
+import Dependencies
 import Foundation
 
 /// Default implementation of ElfInfoFactory
@@ -12,9 +13,9 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
 
     // MARK: - Dependencies
 
-    private let attributeService: AttributeService
-    private let itemsRepository: ItemsRepository
-    private let inventoryService: InventoryService
+    @Dependency(\.attributeService) private var attributeService
+    @Dependency(\.itemsRepository) private var itemsRepository
+    @Dependency(\.inventoryService) private var inventoryService
 
     // MARK: - Constants
 
@@ -34,15 +35,7 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
 
     // MARK: - Initialization
 
-    public init(
-        attributeService: AttributeService,
-        itemsRepository: ItemsRepository,
-        inventoryService: InventoryService
-    ) {
-        self.attributeService = attributeService
-        self.itemsRepository = itemsRepository
-        self.inventoryService = inventoryService
-    }
+    public init() {}
 
     // MARK: - Private Helpers
 

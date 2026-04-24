@@ -5,15 +5,14 @@
 //  Created by Vitalii Lytvynov on 14.11.25.
 //
 
+import Dependencies
 import Foundation
 
 public final class ElfWeaponValidator: WeaponValidator {
 
-    private let itemsRepository: ItemsRepository
+    @Dependency(\.itemsRepository) private var itemsRepository
 
-    public init(itemsRepository: ItemsRepository) {
-        self.itemsRepository = itemsRepository
-    }
+    public init() {}
 
     public func validateAndResolve(
         selecting itemId: UUID?,

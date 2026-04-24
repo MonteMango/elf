@@ -15,11 +15,5 @@ extension DependencyValues {
 }
 
 private enum DamageServiceKey: DependencyKey {
-    static var liveValue: any DamageService {
-        @Dependency(\.itemsRepository) var itemsRepository
-        return ElfDamageService(
-            itemsRepository: itemsRepository,
-            distributionStrategy: ElfStrengthDamageDistributionStrategy()
-        )
-    }
+    static var liveValue: any DamageService { ElfDamageService() }
 }

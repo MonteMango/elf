@@ -5,23 +5,20 @@
 //  Created by Vitalii Lytvynov on 12.12.25.
 //
 
+import Dependencies
 import Foundation
 
 public final class DefaultBattleResultCalculator: BattleResultCalculator {
 
     // MARK: - Dependencies
 
-    private let huntService: HuntService
-    private let dropService: DropService
-    private let progressionService: ProgressionService
+    @Dependency(\.huntService) private var huntService
+    @Dependency(\.dropService) private var dropService
+    @Dependency(\.progressionService) private var progressionService
 
     // MARK: - Initialization
 
-    public init(huntService: HuntService, dropService: DropService, progressionService: ProgressionService) {
-        self.huntService = huntService
-        self.dropService = dropService
-        self.progressionService = progressionService
-    }
+    public init() {}
 
     // MARK: - BattleResultCalculator
 

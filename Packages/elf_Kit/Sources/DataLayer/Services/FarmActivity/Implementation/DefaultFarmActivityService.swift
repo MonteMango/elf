@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov
 //
 
+import Dependencies
 import Foundation
 
 /// Default implementation of FarmActivityService
@@ -17,33 +18,17 @@ public final class DefaultFarmActivityService: FarmActivityService {
 
     // MARK: - Dependencies
 
-    private let fishingService: any FishingService
-    private let foragingService: any ForagingService
-    private let miningService: any MiningService
-    private let fishRepository: any Repository<Fish>
-    private let herbRepository: any Repository<Herb>
-    private let oreRepository: any Repository<Ore>
-    private let progressionService: any ProgressionService
+    @Dependency(\.fishingService) private var fishingService
+    @Dependency(\.foragingService) private var foragingService
+    @Dependency(\.miningService) private var miningService
+    @Dependency(\.fishRepository) private var fishRepository
+    @Dependency(\.herbRepository) private var herbRepository
+    @Dependency(\.oreRepository) private var oreRepository
+    @Dependency(\.progressionService) private var progressionService
 
     // MARK: - Initialization
 
-    public init(
-        fishingService: any FishingService,
-        foragingService: any ForagingService,
-        miningService: any MiningService,
-        fishRepository: any Repository<Fish>,
-        herbRepository: any Repository<Herb>,
-        oreRepository: any Repository<Ore>,
-        progressionService: any ProgressionService
-    ) {
-        self.fishingService = fishingService
-        self.foragingService = foragingService
-        self.miningService = miningService
-        self.fishRepository = fishRepository
-        self.herbRepository = herbRepository
-        self.oreRepository = oreRepository
-        self.progressionService = progressionService
-    }
+    public init() {}
 
     // MARK: - FarmActivityService
 

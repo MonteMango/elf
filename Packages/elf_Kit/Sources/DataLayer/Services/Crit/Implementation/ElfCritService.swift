@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 19.11.25.
 //
 
+import Dependencies
 import Foundation
 
 /// Default implementation of crit calculation service
@@ -15,15 +16,12 @@ import Foundation
 /// 3. **Stage 3**: Select damage multiplier from agility-adjusted distribution
 public final class ElfCritService: CritService {
 
-    private let distributionStrategy: CritDistributionStrategy
-    private let multiplierDistribution: CritMultiplierDistribution
+    @Dependency(\.critDistributionStrategy) private var distributionStrategy
+    @Dependency(\.critMultiplierDistribution) private var multiplierDistribution
 
     // MARK: - Initialization
 
-    public init(distributionStrategy: CritDistributionStrategy) {
-        self.distributionStrategy = distributionStrategy
-        self.multiplierDistribution = CritMultiplierDistribution()
-    }
+    public init() {}
 
     // MARK: - CritService
 

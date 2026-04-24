@@ -15,8 +15,5 @@ extension DependencyValues {
 }
 
 private enum WeaponValidatorKey: DependencyKey {
-    static var liveValue: any WeaponValidator {
-        @Dependency(\.itemsRepository) var itemsRepository
-        return ElfWeaponValidator(itemsRepository: itemsRepository)
-    }
+    static var liveValue: any WeaponValidator { ElfWeaponValidator() }
 }

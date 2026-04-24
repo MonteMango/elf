@@ -15,14 +15,5 @@ extension DependencyValues {
 }
 
 private enum ElfInfoFactoryKey: DependencyKey {
-    static var liveValue: any ElfInfoFactory {
-        @Dependency(\.attributeService) var attributeService
-        @Dependency(\.itemsRepository) var itemsRepository
-        @Dependency(\.inventoryService) var inventoryService
-        return DefaultElfInfoFactory(
-            attributeService: attributeService,
-            itemsRepository: itemsRepository,
-            inventoryService: inventoryService
-        )
-    }
+    static var liveValue: any ElfInfoFactory { DefaultElfInfoFactory() }
 }

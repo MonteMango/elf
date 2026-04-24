@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Dependencies
 import XCTest
 @testable import elf_Kit
 
@@ -100,7 +101,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[weaponId] = weapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: weaponId,
             .shields: nil
@@ -125,7 +130,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[shieldId] = shield
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: shieldId
@@ -148,7 +157,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let repository = FakeItemsRepository()
         // Don't add item to repository
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: nil
@@ -184,7 +197,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[twoHandedId] = twoHandedWeapon
         repository.items[shieldId] = shield
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: shieldId
@@ -222,7 +239,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[twoHandedId] = twoHandedWeapon
         repository.items[secondaryId] = secondaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: secondaryId
@@ -252,7 +273,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[twoHandedId] = twoHandedWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: nil
@@ -282,7 +307,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[twoHandedId] = twoHandedWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [:]
 
         // when
@@ -317,7 +346,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[firstTwoHandedId] = firstTwoHanded
         repository.items[secondTwoHandedId] = secondTwoHanded
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: firstTwoHandedId,
             .shields: nil
@@ -355,7 +388,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[primaryId] = primaryWeapon
         repository.items[twoHandedId] = twoHandedWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: primaryId,
             .shields: nil
@@ -391,7 +428,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[primaryId] = primaryWeapon
         repository.items[shieldId] = shield
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: shieldId
@@ -429,7 +470,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[primaryId] = primaryWeapon
         repository.items[secondaryId] = secondaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: secondaryId
@@ -459,7 +504,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[primaryId] = primaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: nil
@@ -489,7 +538,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[primaryId] = primaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [:]
 
         // when
@@ -524,7 +577,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[firstPrimaryId] = firstPrimary
         repository.items[secondPrimaryId] = secondPrimary
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: firstPrimaryId,
             .shields: nil
@@ -562,7 +619,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[twoHandedId] = twoHandedWeapon
         repository.items[primaryId] = primaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: twoHandedId,
             .shields: nil
@@ -600,7 +661,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[secondaryId] = secondaryWeapon
         repository.items[primaryId] = primaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: secondaryId,
             .shields: nil
@@ -636,7 +701,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[secondaryId] = secondaryWeapon
         repository.items[shieldId] = shield
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: shieldId
@@ -674,7 +743,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[firstSecondaryId] = firstSecondary
         repository.items[secondSecondaryId] = secondSecondary
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: secondSecondaryId
@@ -704,7 +777,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[secondaryId] = secondaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: nil
@@ -734,7 +811,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[secondaryId] = secondaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [:]
 
         // when
@@ -769,7 +850,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[primaryId] = primaryWeapon
         repository.items[secondaryId] = secondaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: primaryId,
             .shields: nil
@@ -807,7 +892,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[twoHandedId] = twoHandedWeapon
         repository.items[secondaryId] = secondaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: twoHandedId,
             .shields: nil
@@ -843,7 +932,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[primaryId] = primaryWeapon
         repository.items[shieldId] = shield
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: primaryId,
             .shields: nil
@@ -877,7 +970,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[secondaryId] = secondaryWeapon
         repository.items[shieldId] = shield
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: secondaryId,
             .shields: nil
@@ -911,7 +1008,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[twoHandedId] = twoHandedWeapon
         repository.items[shieldId] = shield
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: twoHandedId,
             .shields: nil
@@ -937,7 +1038,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[shieldId] = shield
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: nil
@@ -967,7 +1072,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[firstShieldId] = firstShield
         repository.items[secondShieldId] = secondShield
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: firstShieldId
@@ -1001,7 +1110,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[secondaryId] = secondaryWeapon
         repository.items[shieldId] = shield
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: secondaryId
@@ -1041,7 +1154,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[weaponSecondaryId] = weaponSecondary
         repository.items[shieldSecondaryId] = shieldSecondary
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: weaponSecondaryId,
             .shields: nil
@@ -1079,7 +1196,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[primaryId] = primaryWeapon
         repository.items[secondaryId] = secondaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: primaryId,
             .shields: nil
@@ -1117,7 +1238,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[twoHandedId] = twoHandedWeapon
         repository.items[secondaryId] = secondaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: twoHandedId,
             .shields: nil
@@ -1147,7 +1272,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[secondaryId] = secondaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: nil
@@ -1177,7 +1306,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[primaryId] = primaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: nil
@@ -1207,7 +1340,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let repository = FakeItemsRepository()
         repository.items[twoHandedId] = twoHandedWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: nil
@@ -1241,7 +1378,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         repository.items[shieldId] = shield
         repository.items[secondaryId] = secondaryWeapon
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: shieldId
@@ -1267,7 +1408,11 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let repository = FakeItemsRepository()
         // Not adding item to repository for this pass-through test
 
-        let validator = ElfWeaponValidator(itemsRepository: repository)
+        let validator = withDependencies {
+            $0.itemsRepository = repository
+        } operation: {
+            ElfWeaponValidator()
+        }
         let currentItems: [HeroItemType: UUID?] = [
             .weapons: nil,
             .shields: nil

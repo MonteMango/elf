@@ -5,15 +5,14 @@
 //  Created by Vitalii Lytvynov on 07.12.24.
 //
 
+import Dependencies
 import Foundation
 
 public final class ElfHuntService: HuntService {
 
-    private let itemsRepository: ItemsRepository
+    @Dependency(\.itemsRepository) private var itemsRepository
 
-    public init(itemsRepository: ItemsRepository) {
-        self.itemsRepository = itemsRepository
-    }
+    public init() {}
 
     // MARK: - HuntService
 

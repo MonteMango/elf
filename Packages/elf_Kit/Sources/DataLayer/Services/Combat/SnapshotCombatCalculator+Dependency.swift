@@ -15,16 +15,5 @@ extension DependencyValues {
 }
 
 private enum SnapshotCombatCalculatorKey: DependencyKey {
-    static var liveValue: any SnapshotCombatCalculator {
-        @Dependency(\.damageService) var damageService
-        @Dependency(\.dodgeService) var dodgeService
-        @Dependency(\.critService) var critService
-        @Dependency(\.debugBattleLogger) var debugBattleLogger
-        return ElfSnapshotCombatCalculator(
-            damageService: damageService,
-            dodgeService: dodgeService,
-            critService: critService,
-            debugLogger: debugBattleLogger
-        )
-    }
+    static var liveValue: any SnapshotCombatCalculator { ElfSnapshotCombatCalculator() }
 }

@@ -15,14 +15,5 @@ extension DependencyValues {
 }
 
 private enum GameRepositoryKey: DependencyKey {
-    static var liveValue: any GameSaveStorage {
-        @Dependency(\.itemsRepository) var itemsRepository
-        @Dependency(\.progressionService) var progressionService
-        @Dependency(\.inventoryService) var inventoryService
-        return FileGameSaveStorage(
-            itemsRepository: itemsRepository,
-            progressionService: progressionService,
-            inventoryService: inventoryService
-        )
-    }
+    static var liveValue: any GameSaveStorage { FileGameSaveStorage() }
 }

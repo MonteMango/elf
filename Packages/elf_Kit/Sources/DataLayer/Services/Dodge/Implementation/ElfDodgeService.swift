@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 18.11.25.
 //
 
+import Dependencies
 import Foundation
 
 /// Default implementation of dodge calculation service
@@ -14,13 +15,11 @@ import Foundation
 /// 2. **Stage 2**: Roll to check dodge success (with auto-fail/success edge cases)
 public final class ElfDodgeService: DodgeService {
 
-    private let distributionStrategy: DodgeDistributionStrategy
+    @Dependency(\.dodgeDistributionStrategy) private var distributionStrategy
 
     // MARK: - Initialization
 
-    public init(distributionStrategy: DodgeDistributionStrategy) {
-        self.distributionStrategy = distributionStrategy
-    }
+    public init() {}
 
     // MARK: - DodgeService
 

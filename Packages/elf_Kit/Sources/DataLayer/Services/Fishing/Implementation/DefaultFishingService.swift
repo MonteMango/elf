@@ -5,24 +5,19 @@
 //  Created by Vitalii Lytvynov
 //
 
+import Dependencies
 import Foundation
 
 public final class DefaultFishingService: FishingService {
 
     // MARK: - Dependencies
 
-    private let gatheringEngine: any GatheringEngine
-    private let skillProgressCalculator: any SkillProgressCalculator
+    @Dependency(\.gatheringEngine) private var gatheringEngine
+    @Dependency(\.skillProgressCalculator) private var skillProgressCalculator
 
     // MARK: - Initialization
 
-    public init(
-        gatheringEngine: any GatheringEngine,
-        skillProgressCalculator: any SkillProgressCalculator
-    ) {
-        self.gatheringEngine = gatheringEngine
-        self.skillProgressCalculator = skillProgressCalculator
-    }
+    public init() {}
 
     // MARK: - FishingService
 

@@ -5,15 +5,14 @@
 //  Created by Vitalii Lytvynov on 04.05.25.
 //
 
+import Dependencies
 import Foundation
 
 public final class ElfArmorService: ArmorService {
 
-    private let itemsRepository: ItemsRepository
+    @Dependency(\.itemsRepository) private var itemsRepository
 
-    public init(itemsRepository: ItemsRepository) {
-        self.itemsRepository = itemsRepository
-    }
+    public init() {}
 
     public func getAllItemsArmor(for itemIds: [UUID]) -> [BodyPart: Int16] {
         var armorPoints: [BodyPart: Int16] = [

@@ -5,30 +5,21 @@
 //  Created by Vitalii Lytvynov on 08.12.25.
 //
 
+import Dependencies
 import Foundation
 
 public final class ElfGameInitializationService: GameInitializationService {
 
     // MARK: - Dependencies
 
-    private let houseService: HouseService
-    private let elfInfoFactory: ElfInfoFactory
-    private let calendarService: CalendarService
-    private let gameRepository: GameSaveStorage
+    @Dependency(\.houseService) private var houseService
+    @Dependency(\.elfInfoFactory) private var elfInfoFactory
+    @Dependency(\.calendarService) private var calendarService
+    @Dependency(\.gameRepository) private var gameRepository
 
     // MARK: - Initialization
 
-    public init(
-        houseService: HouseService,
-        elfInfoFactory: ElfInfoFactory,
-        calendarService: CalendarService,
-        gameRepository: GameSaveStorage
-    ) {
-        self.houseService = houseService
-        self.elfInfoFactory = elfInfoFactory
-        self.calendarService = calendarService
-        self.gameRepository = gameRepository
-    }
+    public init() {}
 
     // MARK: - GameInitializationService
 
