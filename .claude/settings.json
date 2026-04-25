@@ -1,20 +1,30 @@
 {
   "enabledPlugins": {
-    "swiftui-expert@swiftui-expert-skill": true,
-    "swift-concurrency@swift-concurrency-agent-skill": true
+    "swift-concurrency@swift-concurrency-agent-skill": true,
+    "swift-testing-expert@swift-testing-agent-skill": true,
+    "swiftui-expert@swiftui-expert-skill": true
   },
   "extraKnownMarketplaces": {
-    "swiftui-expert-skill": {
-      "source": {
-        "source": "github",
-        "repo": "AvdLee/SwiftUI-Agent-Skill"
-      }
-    },
     "swift-concurrency-agent-skill": {
       "source": {
         "source": "github",
         "repo": "AvdLee/Swift-Concurrency-Agent-Skill"
-      }
+      },
+      "autoUpdate": true
+    },
+    "swift-testing-agent-skill": {
+      "source": {
+        "source": "github",
+        "repo": "AvdLee/Swift-Testing-Agent-Skill"
+      },
+      "autoUpdate": true
+    },
+    "swiftui-expert-skill": {
+      "source": {
+        "source": "github",
+        "repo": "AvdLee/SwiftUI-Agent-Skill"
+      },
+      "autoUpdate": true
     }
   }
 }
