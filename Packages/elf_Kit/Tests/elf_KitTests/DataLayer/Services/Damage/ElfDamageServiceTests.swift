@@ -64,7 +64,7 @@ final class ElfDamageServiceTests: XCTestCase {
             "tier": 1,
             "minimumAttackPoint": \(minDamage),
             "maximumAttackPoint": \(maxDamage),
-            "handUse": "primary"
+            "handUse": "oneHand"
         }
         """
         return try! JSONDecoder().decode(WeaponItem.self, from: Data(json.utf8))

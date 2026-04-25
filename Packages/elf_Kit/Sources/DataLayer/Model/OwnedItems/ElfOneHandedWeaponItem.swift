@@ -8,9 +8,9 @@
 import Foundation
 
 /// Wrapper around `ElfWeaponItem` with a compile-time guarantee that the underlying
-/// weapon's `handUse` is `.primary` or `.secondary`. Used by `WeaponConfiguration`
-/// cases that represent single-hand weapon slots, making invalid combinations
-/// (e.g. a two-handed weapon inside dual-wield) unrepresentable.
+/// weapon's `handUse` is `.oneHand`. Used by `WeaponConfiguration` cases that represent
+/// single-hand weapon slots, making invalid combinations (e.g. a two-handed weapon
+/// inside dual-wield) unrepresentable.
 public struct ElfOneHandedWeaponItem: Sendable, Hashable {
 
     public let weapon: ElfWeaponItem
@@ -21,7 +21,7 @@ public struct ElfOneHandedWeaponItem: Sendable, Hashable {
     public init?(weapon: ElfWeaponItem) {
         guard let weaponItem = weapon.item as? WeaponItem else { return nil }
         switch weaponItem.handUse {
-        case .primary, .secondary:
+        case .oneHand:
             self.weapon = weapon
         case .both:
             return nil

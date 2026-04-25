@@ -49,7 +49,7 @@ final class ElfItemsRepositoryTests: XCTestCase {
                           "tier": 4,
                           "minimumAttackPoint": 3,
                           "maximumAttackPoint": 5,
-                          "handUse": "secondary"
+                          "handUse": "oneHand"
                         }
                       ],
                       "shields": [],
@@ -117,7 +117,7 @@ final class ElfItemsRepositoryTests: XCTestCase {
               "tier": 4,
               "minimumAttackPoint": 3,
               "maximumAttackPoint": 5,
-              "handUse": "secondary"
+              "handUse": "oneHand"
             }
           ],
           "shields": [],

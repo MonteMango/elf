@@ -65,8 +65,7 @@ extension InventoryViewModel {
 
         let handUseString: String
         switch weaponItem.handUse {
-        case .primary: handUseString = "one hand"
-        case .secondary: handUseString = "one hand (off-hand)"
+        case .oneHand: handUseString = "one hand"
         case .both: handUseString = "two hands"
         }
 

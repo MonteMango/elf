@@ -75,12 +75,13 @@ public final class GameDayViewModel {
         }
     }
 
-    /// Dev shortcut: ensure the player's inventory contains every weapon and armor piece defined in the game.
-    /// One-handed weapons (handUse `.primary` / `.secondary`) top up to two copies; two-handed (`.both`)
-    /// and each armor slot top up to one. Copies already present (matched by base item id) are preserved.
+    /// Dev shortcut: ensure the player's inventory contains every weapon, shield and armor piece defined in the game.
+    /// One-handed weapons (handUse `.oneHand`) top up to two copies; two-handed (`.both`),
+    /// each shield and each armor slot top up to one. Copies already present (matched by base item id) are preserved.
     private func fillEquipmentInventory() {
         var toAdd: [Item] = []
         toAdd.append(contentsOf: missingWeapons())
+        toAdd.append(contentsOf: missingShields())
         toAdd.append(contentsOf: missingArmor())
         gameService.addItemsToPlayerInventory(toAdd)
     }
@@ -99,6 +100,14 @@ public final class GameDayViewModel {
             }
         }
         return toAdd
+    }
+
+    private func missingShields() -> [Item] {
+        // `getItems(for: .shields)` also returns one-handed weapons (off-hand candidates),
+        // so filter to actual shields to avoid duplicating weapon top-ups.
+        let allShields = itemsRepository.getItems(for: .shields).compactMap { $0 as? ShieldItem }
+        let existingItemIds = Set(gameService.player.inventory.shields.map { $0.item.id })
+        return allShields.filter { !existingItemIds.contains($0.id) }
     }
 
     private func missingArmor() -> [Item] {

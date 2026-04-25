@@ -6,7 +6,6 @@
 //
 
 public enum WeaponHandUse: String, Decodable, Sendable {
-    case primary
-    case secondary
+    case oneHand
     case both
 }

@@ -47,7 +47,7 @@ final class DefaultGameService_CraftTests: XCTestCase {
             "tier": 1,
             "minimumAttackPoint": 5,
             "maximumAttackPoint": 10,
-            "handUse": "primary"
+            "handUse": "oneHand"
         }
         """
         // swiftlint:disable:next force_try
@@ -57,7 +57,7 @@ final class DefaultGameService_CraftTests: XCTestCase {
     private func makeElf(inventory: ElfInventory = ElfInventory()) -> ElfInfo {
         let attrs = HeroAttributes(hitPoints: 80, manaPoints: 20, agility: 1, strength: 1, power: 1, instinct: 1)
         let weapon = ElfWeaponItem(weaponItem: makeWeaponItem())
-        // The fixture weapon has `handUse: "primary"` so it must be wrapped as a one-handed weapon
+        // The fixture weapon has `handUse: "oneHand"` so it must be wrapped as a one-handed weapon
         // (the old code mistakenly put it in `.twoHanded`, which the type system now forbids).
         guard let oneHanded = ElfOneHandedWeaponItem(weapon: weapon) else {
             fatalError("Test fixture weapon must be one-handed")

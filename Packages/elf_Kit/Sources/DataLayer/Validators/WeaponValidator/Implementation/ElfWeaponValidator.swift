@@ -63,17 +63,11 @@ public final class ElfWeaponValidator: WeaponValidator {
 
     // MARK: - Private Methods
 
-    /// Handles weapon selection and resolves conflicts with currently equipped items
-    ///
-    /// This method validates weapon hand usage and automatically resolves conflicts:
-    /// - **Two-handed weapons** (`.both`): Clears the shields slot since both hands are required
-    /// - **Primary weapons** (`.primary`): Compatible with shields, but clears secondary weapons from shields slot
-    /// - **Secondary weapons** (`.secondary`): Compatible with both shields and other secondary weapons (dual-wield)
-    ///
-    /// - Parameters:
-    ///   - item: The weapon item being equipped
-    ///   - currentItems: Current equipment state
-    /// - Returns: Updated equipment dictionary with resolved conflicts
+    /// Handles weapon selection in the weapons slot.
+    /// After the `.primary`/`.secondary` merge the only cross-slot rule left is:
+    /// a two-handed weapon occupies both hands and forces the shields slot empty.
+    /// One-handed weapons coexist freely with anything in `.shields` (shield or
+    /// another one-handed weapon for dual-wield).
     private func handleWeaponSelection(
         item: Item,
         currentItems: [HeroItemType: UUID?]
@@ -85,48 +79,18 @@ public final class ElfWeaponValidator: WeaponValidator {
             return currentItems
         }
 
-        // Set the weapon in weapons slot
         updatedItems[.weapons] = weapon.id
 
-        // Check handUse and resolve conflicts
-        switch weapon.handUse {
-        case .both:
-            // Two-handed weapon: clear shields slot
+        if weapon.handUse == .both {
             updatedItems[.shields] = nil
-
-        case .primary:
-            // Primary weapon: check shields slot
-            if let shieldsItemId = currentItems[.shields],
-               let shieldsItemId = shieldsItemId,
-               let shieldsItem = itemsRepository.getHeroItem(shieldsItemId) {
-
-                // If shields slot has a secondary weapon, clear it
-                // Primary weapons are not compatible with secondary weapons
-                if let shieldsWeapon = shieldsItem as? WeaponItem,
-                   shieldsWeapon.handUse == .secondary {
-                    updatedItems[.shields] = nil
-                }
-                // Shield is OK with primary weapon, keep it
-            }
-
-        case .secondary:
-            // Secondary weapon: compatible with both shields and other secondary weapons
-            // No changes needed to shields slot
-            break
         }
 
         return updatedItems
     }
 
-    /// Handles item selection in the shields slot (right hand)
-    ///
-    /// The shields slot can contain either a shield or a secondary weapon for dual-wielding.
-    /// This method delegates to the appropriate handler based on item type.
-    ///
-    /// - Parameters:
-    ///   - item: The item being equipped in shields slot (ShieldItem or WeaponItem)
-    ///   - currentItems: Current equipment state
-    /// - Returns: Updated equipment dictionary with resolved conflicts
+    /// Handles item selection in the shields slot (off-hand).
+    /// The slot accepts either a shield or a one-handed weapon (for dual-wielding) and
+    /// delegates to the appropriate handler.
     private func handleShieldSlotSelection(
         item: Item,
         currentItems: [HeroItemType: UUID?]
@@ -134,14 +98,14 @@ public final class ElfWeaponValidator: WeaponValidator {
 
         let updatedItems = currentItems
 
-        // Shields slot can contain: shield OR secondary weapon
+        // Shields slot can contain: shield OR one-handed weapon
         if let shield = item as? ShieldItem {
             return await handleShieldSelection(
                 shield: shield,
                 currentItems: updatedItems
             )
         } else if let weapon = item as? WeaponItem {
-            return await handleSecondaryWeaponInShieldSlot(
+            return await handleWeaponInShieldSlot(
                 weapon: weapon,
                 currentItems: updatedItems
             )
@@ -150,17 +114,8 @@ public final class ElfWeaponValidator: WeaponValidator {
         return currentItems
     }
 
-    /// Handles shield equipment and validates compatibility with currently equipped weapons
-    ///
-    /// Shields are incompatible with two-handed weapons. This method automatically:
-    /// - Clears the weapons slot if a two-handed weapon is equipped
-    /// - Allows shields with primary weapons (one hand + shield)
-    /// - Allows shields with secondary weapons (one hand + shield)
-    ///
-    /// - Parameters:
-    ///   - shield: The shield item being equipped
-    ///   - currentItems: Current equipment state
-    /// - Returns: Updated equipment dictionary with resolved conflicts
+    /// Handles shield equipment. Shields are incompatible with two-handed weapons —
+    /// the only conflict that survived the `WeaponHandUse` merge.
     private func handleShieldSelection(
         shield: ShieldItem,
         currentItems: [HeroItemType: UUID?]
@@ -168,68 +123,42 @@ public final class ElfWeaponValidator: WeaponValidator {
 
         var updatedItems = currentItems
 
-        // Set shield in shields slot
         updatedItems[.shields] = shield.id
 
-        // Check weapon compatibility
         if let weaponId = currentItems[.weapons],
            let weaponId = weaponId,
-           let weapon = itemsRepository.getHeroItem(weaponId) as? WeaponItem {
-
-            // Two-handed weapons are not compatible with shields
-            if weapon.handUse == .both {
-                updatedItems[.weapons] = nil
-            }
-            // Primary and secondary weapons are OK with shields
+           let weapon = itemsRepository.getHeroItem(weaponId) as? WeaponItem,
+           weapon.handUse == .both {
+            updatedItems[.weapons] = nil
         }
 
         return updatedItems
     }
 
-    /// Handles secondary weapon placement in shields slot for dual-wielding
-    ///
-    /// This method enforces dual-wielding rules:
-    /// - **Only secondary weapons** can be placed in shields slot for dual-wielding
-    /// - **Primary or two-handed weapons**: If user tries to place them in shields slot, both slots are cleared
-    ///   (this prevents invalid state and signals the user must select proper weapon type)
-    /// - **Dual-wield validation**: When a secondary weapon is placed in shields slot, checks main weapon:
-    ///   - If main weapon is primary or two-handed → clears main weapon (incompatible with dual-wield)
-    ///   - If main weapon is also secondary → allows dual-wield configuration
-    ///
-    /// - Parameters:
-    ///   - weapon: The weapon being placed in shields slot
-    ///   - currentItems: Current equipment state
-    /// - Returns: Updated equipment dictionary with resolved conflicts
-    /// - Note: Clearing both slots when non-secondary weapon is selected prevents confusion and ensures valid state
-    private func handleSecondaryWeaponInShieldSlot(
+    /// Handles a weapon being placed into the shields slot for dual-wielding.
+    /// After the merge any one-handed weapon is eligible. A two-handed weapon in this
+    /// slot is structurally invalid (the items repository excludes them from the shields
+    /// tab), so it is treated as an error and both slots are cleared.
+    private func handleWeaponInShieldSlot(
         weapon: WeaponItem,
         currentItems: [HeroItemType: UUID?]
     ) async -> [HeroItemType: UUID?] {
 
         var updatedItems = currentItems
 
-        // Only secondary weapons can be in shields slot (for dual wielding)
-        guard weapon.handUse == .secondary else {
-            // Primary or both weapons clear everything
+        guard weapon.handUse == .oneHand else {
             updatedItems[.weapons] = nil
             updatedItems[.shields] = nil
             return updatedItems
         }
 
-        // Set secondary weapon in shields slot
         updatedItems[.shields] = weapon.id
 
-        // Check weapons slot
         if let weaponId = currentItems[.weapons],
            let weaponId = weaponId,
-           let mainWeapon = itemsRepository.getHeroItem(weaponId) as? WeaponItem {
-
-            // Dual wielding only works with secondary weapons
-            // If main weapon is primary or both, clear weapons slot
-            if mainWeapon.handUse != .secondary {
-                updatedItems[.weapons] = nil
-            }
-            // Secondary + secondary = dual wield, OK
+           let mainWeapon = itemsRepository.getHeroItem(weaponId) as? WeaponItem,
+           mainWeapon.handUse == .both {
+            updatedItems[.weapons] = nil
         }
 
         return updatedItems

@@ -16,13 +16,13 @@ public struct ElfTwoHandedWeaponItem: Sendable, Hashable {
 
     public var id: UUID { weapon.id }
 
-    /// Fails when the weapon cannot be resolved to `WeaponItem`, or when its `handUse` is not `.both`.
+    /// Fails when the weapon cannot be resolved to `WeaponItem`, or when its `handUse` is `.oneHand`.
     public init?(weapon: ElfWeaponItem) {
         guard let weaponItem = weapon.item as? WeaponItem else { return nil }
         switch weaponItem.handUse {
         case .both:
             self.weapon = weapon
-        case .primary, .secondary:
+        case .oneHand:
             return nil
         }
     }

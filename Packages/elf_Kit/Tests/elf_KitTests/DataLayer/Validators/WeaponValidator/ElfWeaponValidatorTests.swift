@@ -96,7 +96,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
     func testUnequipWeaponClearsSlot() async throws {
         // given
         let weaponId = UUID()
-        let weapon = try makeWeaponItem(id: weaponId, title: "Sword", handUse: .primary)
+        let weapon = try makeWeaponItem(id: weaponId, title: "Sword", handUse: .oneHand)
 
         let repository = FakeItemsRepository()
         repository.items[weaponId] = weapon
@@ -232,7 +232,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Dagger",
-            handUse: .secondary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()
@@ -376,7 +376,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let primaryWeapon = try makeWeaponItem(
             id: primaryId,
             title: "Sword",
-            handUse: .primary
+            handUse: .oneHand
         )
         let twoHandedWeapon = try makeWeaponItem(
             id: twoHandedId,
@@ -420,7 +420,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let primaryWeapon = try makeWeaponItem(
             id: primaryId,
             title: "Sword",
-            handUse: .primary
+            handUse: .oneHand
         )
         let shield = try makeShieldItem(id: shieldId, title: "Shield")
 
@@ -450,55 +450,13 @@ final class ElfWeaponValidatorTests: XCTestCase {
         XCTAssertEqual(result[.shields] ?? nil, shieldId, "Shield should be kept with primary weapon")
     }
 
-    func testPrimaryWeaponClearsSecondaryInShields() async throws {
-        // given
-        let primaryId = UUID()
-        let secondaryId = UUID()
-
-        let primaryWeapon = try makeWeaponItem(
-            id: primaryId,
-            title: "Mace",
-            handUse: .primary
-        )
-        let secondaryWeapon = try makeWeaponItem(
-            id: secondaryId,
-            title: "Dagger",
-            handUse: .secondary
-        )
-
-        let repository = FakeItemsRepository()
-        repository.items[primaryId] = primaryWeapon
-        repository.items[secondaryId] = secondaryWeapon
-
-        let validator = withDependencies {
-            $0.itemsRepository = repository
-        } operation: {
-            ElfWeaponValidator()
-        }
-        let currentItems: [HeroItemType: UUID?] = [
-            .weapons: nil,
-            .shields: secondaryId
-        ]
-
-        // when
-        let result = await validator.validateAndResolve(
-            selecting: primaryId,
-            for: .weapons,
-            currentItems: currentItems
-        )
-
-        // then
-        XCTAssertEqual(result[.weapons] ?? nil, primaryId, "Primary weapon should be equipped")
-        XCTAssertNil(result[.shields] ?? nil, "Secondary weapon in shields should be cleared")
-    }
-
     func testPrimaryWeaponWithEmptyShields() async throws {
         // given
         let primaryId = UUID()
         let primaryWeapon = try makeWeaponItem(
             id: primaryId,
             title: "Axe",
-            handUse: .primary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()
@@ -532,7 +490,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let primaryWeapon = try makeWeaponItem(
             id: primaryId,
             title: "Club",
-            handUse: .primary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()
@@ -565,12 +523,12 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let firstPrimary = try makeWeaponItem(
             id: firstPrimaryId,
             title: "Sword",
-            handUse: .primary
+            handUse: .oneHand
         )
         let secondPrimary = try makeWeaponItem(
             id: secondPrimaryId,
             title: "Axe",
-            handUse: .primary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()
@@ -612,7 +570,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let primaryWeapon = try makeWeaponItem(
             id: primaryId,
             title: "Sword",
-            handUse: .primary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()
@@ -649,12 +607,12 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Dagger",
-            handUse: .secondary
+            handUse: .oneHand
         )
         let primaryWeapon = try makeWeaponItem(
             id: primaryId,
             title: "Sword",
-            handUse: .primary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()
@@ -693,7 +651,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Dagger",
-            handUse: .secondary
+            handUse: .oneHand
         )
         let shield = try makeShieldItem(id: shieldId, title: "Shield")
 
@@ -731,12 +689,12 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let firstSecondary = try makeWeaponItem(
             id: firstSecondaryId,
             title: "Dagger 1",
-            handUse: .secondary
+            handUse: .oneHand
         )
         let secondSecondary = try makeWeaponItem(
             id: secondSecondaryId,
             title: "Dagger 2",
-            handUse: .secondary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()
@@ -771,7 +729,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Short Sword",
-            handUse: .secondary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()
@@ -805,7 +763,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Knife",
-            handUse: .secondary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()
@@ -838,12 +796,12 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let primaryWeapon = try makeWeaponItem(
             id: primaryId,
             title: "Sword",
-            handUse: .primary
+            handUse: .oneHand
         )
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Dagger",
-            handUse: .secondary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()
@@ -885,7 +843,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Dagger",
-            handUse: .secondary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()
@@ -924,7 +882,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let primaryWeapon = try makeWeaponItem(
             id: primaryId,
             title: "Sword",
-            handUse: .primary
+            handUse: .oneHand
         )
         let shield = try makeShieldItem(id: shieldId, title: "Shield")
 
@@ -962,7 +920,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Dagger",
-            handUse: .secondary
+            handUse: .oneHand
         )
         let shield = try makeShieldItem(id: shieldId, title: "Shield")
 
@@ -1102,7 +1060,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Dagger",
-            handUse: .secondary
+            handUse: .oneHand
         )
         let shield = try makeShieldItem(id: shieldId, title: "Shield")
 
@@ -1142,12 +1100,12 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let weaponSecondary = try makeWeaponItem(
             id: weaponSecondaryId,
             title: "Dagger 1",
-            handUse: .secondary
+            handUse: .oneHand
         )
         let shieldSecondary = try makeWeaponItem(
             id: shieldSecondaryId,
             title: "Dagger 2",
-            handUse: .secondary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()
@@ -1176,48 +1134,6 @@ final class ElfWeaponValidatorTests: XCTestCase {
         XCTAssertEqual(result[.shields] ?? nil, shieldSecondaryId, "Second secondary weapon should be equipped for dual-wield")
     }
 
-    func testSecondaryInShieldsClearsPrimaryWeapon() async throws {
-        // given
-        let primaryId = UUID()
-        let secondaryId = UUID()
-
-        let primaryWeapon = try makeWeaponItem(
-            id: primaryId,
-            title: "Sword",
-            handUse: .primary
-        )
-        let secondaryWeapon = try makeWeaponItem(
-            id: secondaryId,
-            title: "Dagger",
-            handUse: .secondary
-        )
-
-        let repository = FakeItemsRepository()
-        repository.items[primaryId] = primaryWeapon
-        repository.items[secondaryId] = secondaryWeapon
-
-        let validator = withDependencies {
-            $0.itemsRepository = repository
-        } operation: {
-            ElfWeaponValidator()
-        }
-        let currentItems: [HeroItemType: UUID?] = [
-            .weapons: primaryId,
-            .shields: nil
-        ]
-
-        // when
-        let result = await validator.validateAndResolve(
-            selecting: secondaryId,
-            for: .shields,
-            currentItems: currentItems
-        )
-
-        // then
-        XCTAssertNil(result[.weapons] ?? nil, "Primary weapon should be cleared for dual-wield")
-        XCTAssertEqual(result[.shields] ?? nil, secondaryId, "Secondary weapon should be equipped in shields slot")
-    }
-
     func testSecondaryInShieldsClearsTwoHandedWeapon() async throws {
         // given
         let twoHandedId = UUID()
@@ -1231,7 +1147,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Dagger",
-            handUse: .secondary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()
@@ -1266,7 +1182,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Dagger",
-            handUse: .secondary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()
@@ -1292,40 +1208,6 @@ final class ElfWeaponValidatorTests: XCTestCase {
         // then
         XCTAssertNil(result[.weapons] ?? nil, "Weapons slot should remain empty")
         XCTAssertEqual(result[.shields] ?? nil, secondaryId, "Secondary weapon should be equipped in shields slot")
-    }
-
-    func testPrimaryInShieldsClearsBothSlots() async throws {
-        // given
-        let primaryId = UUID()
-        let primaryWeapon = try makeWeaponItem(
-            id: primaryId,
-            title: "Sword",
-            handUse: .primary
-        )
-
-        let repository = FakeItemsRepository()
-        repository.items[primaryId] = primaryWeapon
-
-        let validator = withDependencies {
-            $0.itemsRepository = repository
-        } operation: {
-            ElfWeaponValidator()
-        }
-        let currentItems: [HeroItemType: UUID?] = [
-            .weapons: nil,
-            .shields: nil
-        ]
-
-        // when
-        let result = await validator.validateAndResolve(
-            selecting: primaryId,
-            for: .shields,
-            currentItems: currentItems
-        )
-
-        // then
-        XCTAssertNil(result[.weapons] ?? nil, "Weapons slot should be cleared (invalid state)")
-        XCTAssertNil(result[.shields] ?? nil, "Shields slot should be cleared (primary weapon cannot go there)")
     }
 
     func testTwoHandedInShieldsClearsBothSlots() async throws {
@@ -1371,7 +1253,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Dagger",
-            handUse: .secondary
+            handUse: .oneHand
         )
 
         let repository = FakeItemsRepository()

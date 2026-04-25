@@ -153,8 +153,7 @@ public final class CraftViewModel {
         switch item {
         case let weapon as WeaponItem:
             let handUse: String = switch weapon.handUse {
-            case .primary: "one hand"
-            case .secondary: "one hand"
+            case .oneHand: "one hand"
             case .both: "two hands"
             }
             return "Attack: \(weapon.minimumAttackPoint)-\(weapon.maximumAttackPoint), \(handUse)"

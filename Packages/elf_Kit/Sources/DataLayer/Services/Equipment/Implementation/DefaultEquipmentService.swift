@@ -39,36 +39,42 @@ public final class DefaultEquipmentService: EquipmentService {
         switch weaponItem.handUse {
         case .both:
             guard let twoHanded = ElfTwoHandedWeaponItem(weapon: weapon) else { return }
-            // Two-handed weapon occupies both hands: drops shield and any off-hand weapon.
             equipped.weapons = .twoHanded(weapon: twoHanded)
 
-        case .primary:
+        case .oneHand:
             guard let oneHanded = ElfOneHandedWeaponItem(weapon: weapon) else { return }
             switch currentConfig {
+            case .oneHanded(let existingPrimary):
+                // Player already has a one-hander: equipping another one-hander auto-promotes
+                // the configuration to dual-wield with the new weapon in the off-hand slot.
+                equipped.weapons = .dualWield(primary: existingPrimary, secondary: oneHanded)
             case .oneHandedWithShield(_, let shield):
                 equipped.weapons = .oneHandedWithShield(weapon: oneHanded, shield: shield)
             case .dualWield(_, let secondary):
-                // Replace primary; keep existing secondary so the dual-wield invariant is preserved.
                 equipped.weapons = .dualWield(primary: oneHanded, secondary: secondary)
-            case .oneHanded, .twoHanded:
-                // Two-handed is auto-unequipped: its single slot is replaced by the new one-hander.
-                equipped.weapons = .oneHanded(weapon: oneHanded)
-            }
-
-        case .secondary:
-            guard let oneHanded = ElfOneHandedWeaponItem(weapon: weapon) else { return }
-            switch currentConfig {
-            case .oneHanded(let primary), .dualWield(let primary, _):
-                equipped.weapons = .dualWield(primary: primary, secondary: oneHanded)
-            case .oneHandedWithShield(let primary, _):
-                // Shield is auto-unequipped to make room for the off-hand weapon.
-                equipped.weapons = .dualWield(primary: primary, secondary: oneHanded)
             case .twoHanded:
-                // Two-handed is auto-unequipped. The new off-hand weapon becomes the sole weapon;
-                // `ElfOneHandedWeaponItem` accepts both `.primary` and `.secondary` handUse values,
-                // so the game rule "at least one weapon equipped" is preserved.
                 equipped.weapons = .oneHanded(weapon: oneHanded)
             }
+        }
+        gameService.player.equipped = equipped
+    }
+
+    public func equipOffhandWeapon(id: UUID) {
+        guard let weapon = gameService.player.inventory.weapons.first(where: { $0.id == id }),
+              let weaponItem = weapon.item as? WeaponItem,
+              weaponItem.handUse == .oneHand,
+              let oneHanded = ElfOneHandedWeaponItem(weapon: weapon) else { return }
+
+        var equipped = gameService.player.equipped
+        switch equipped.weapons {
+        case .oneHanded(let primary), .dualWield(let primary, _):
+            equipped.weapons = .dualWield(primary: primary, secondary: oneHanded)
+        case .oneHandedWithShield(let primary, _):
+            equipped.weapons = .dualWield(primary: primary, secondary: oneHanded)
+        case .twoHanded:
+            // Two-handed is auto-unequipped. There is no main-hand to pair with, so the new
+            // weapon becomes the sole one-hander — preserves "at least one weapon equipped".
+            equipped.weapons = .oneHanded(weapon: oneHanded)
         }
         gameService.player.equipped = equipped
     }

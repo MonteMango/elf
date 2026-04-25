@@ -148,7 +148,7 @@
             "tier": 4,
             "minimumAttackPoint": 7,
             "maximumAttackPoint": 8,
-            "handUse": "primary"
+            "handUse": "both"
         },
         {
             "id": "b59d8295-f948-46b6-8ff7-13342be9a9b6",
@@ -156,7 +156,7 @@
             "tier": 4,
             "minimumAttackPoint": 3,
             "maximumAttackPoint": 5,
-            "handUse": "secondary"
+            "handUse": "oneHand"
         },
         {
             "id": "f7a90d1e-7c6f-43d1-8f0f-413b8c6a4280",
@@ -180,7 +180,7 @@
             "minimumAttackPoint": 8,
             "maximumAttackPoint": 9,
             "agility": 1,
-            "handUse": "primary",
+            "handUse": "oneHand",
             "weaponSpecialAbility": {
                 "type": "passThroughBlock",
                 "probability": 0.05
@@ -200,7 +200,7 @@
             "tier": 3,
             "minimumAttackPoint": 8,
             "maximumAttackPoint": 10,
-            "handUse": "primary"
+            "handUse": "oneHand"
         },
         {
             "id": "ba01059d-f04d-4d1d-8170-57ab9ec2a958",
@@ -208,7 +208,7 @@
             "tier": 3,
             "minimumAttackPoint": 5,
             "maximumAttackPoint": 6,
-            "handUse": "secondary"
+            "handUse": "oneHand"
         }
     ],
     "shields": [

@@ -71,7 +71,7 @@ public final class ElfItemsRepository: ItemsRepository {
         case .weapons:
             return heroItems.weapons
         case .shields:
-            return heroItems.shields + heroItems.weapons.filter { $0.handUse == .secondary }
+            return heroItems.shields + heroItems.weapons.filter { $0.handUse == .oneHand }
         case .ring:
             return heroItems.rings
         case .necklace:

@@ -449,11 +449,14 @@ func perform(_ action: Action) {
 3. **Sum Types for Mutually Exclusive States**
    ```swift
    enum WeaponConfiguration {
-       case oneHanded(weapon: ElfWeaponItem)
-       case twoHanded(weapon: ElfWeaponItem)
-       case dualWield(primary: ElfWeaponItem, secondary: ElfWeaponItem)
+       case oneHanded(weapon: ElfOneHandedWeaponItem)
+       case oneHandedWithShield(weapon: ElfOneHandedWeaponItem, shield: ElfShieldItem)
+       case twoHanded(weapon: ElfTwoHandedWeaponItem)
+       case dualWield(primary: ElfOneHandedWeaponItem, secondary: ElfOneHandedWeaponItem)
    }
    ```
+   The `ElfOneHandedWeaponItem` / `ElfTwoHandedWeaponItem` wrappers carry their hand-use
+   invariant in the type, so a two-hander cannot accidentally appear in a dual-wield slot.
 
 4. **NonEmptyArray for Required Collections**
    ```swift
