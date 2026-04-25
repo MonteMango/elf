@@ -135,51 +135,53 @@ class GameViewModel {
 
 ## ViewModels with Existential Types
 
-ViewModels use `any Protocol` (existential types) for dependencies. This is simpler than generics and works safely with `@Observable`.
+ViewModels use `any Protocol` (existential types) for the session-scoped state passed through `init`. Stateless services come from `@Dependency` and don't appear in the init signature. Existentials are simpler than generics and safe with `@Observable`.
 
 ```swift
-@Observable
-@MainActor
-public final class HuntViewModel {
-    private let gameService: any GameService
-    private let monsterRepository: any MonsterRepository
+import Dependencies
 
-    public init(
-        gameService: any GameService,
-        monsterRepository: any MonsterRepository
-    ) {
+@MainActor
+@Observable
+public final class HuntViewModel {
+
+    private let gameService: any GameService
+
+    @ObservationIgnored
+    @Dependency(\.monsterRepository) private var monsterRepository
+
+    @ObservationIgnored
+    @Dependency(\.progressionService) private var progressionService
+
+    public init(gameService: any GameService) {
         self.gameService = gameService
-        self.monsterRepository = monsterRepository
     }
 }
 ```
 
 ### Factory Methods
 
+Session-bound ViewModels are constructed by `GameSessionModel`. Because `gameService` is non-optional on the session, no runtime guard is needed.
+
 ```swift
-// In ElfAppDependencyContainer.swift
-@MainActor
+// In Packages/elf_Kit/Sources/UILayer/GameSession/GameSessionModel.swift
 public func makeHuntViewModel() -> HuntViewModel {
-    guard let gameService = activeGameService else {
-        fatalError("No active game session.")
-    }
-    return HuntViewModel(
-        gameService: gameService,
-        monsterRepository: self.monsterRepository,
-        // ...
-    )
+    HuntViewModel(gameService: gameService)
 }
 ```
 
-### Usage in ScreenContent
+### Usage in Screen
 
 ```swift
-@State private var viewModel: HuntViewModel
+struct HuntScreen: View {
+    @State private var viewModel: HuntViewModel
 
-init(viewModel: HuntViewModel) {
-    self._viewModel = State(initialValue: viewModel)
+    init(session: GameSessionModel) {
+        self._viewModel = State(initialValue: session.makeHuntViewModel())
+    }
 }
 ```
+
+> See `dependency-injection.md` for the full DI story (declaring deps, both injection styles, app bootstrap, tests, previews).
 
 ## AsyncImage
 

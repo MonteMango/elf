@@ -56,8 +56,9 @@ App supports **landscape orientation only**.
 
 | Task | Read first |
 |------|------------|
-| Adding new screen | `project-architecture.md` — Screen/ScreenContent pattern, DI |
+| Adding new screen | `project-architecture.md` — Screen Pattern; `dependency-injection.md` |
 | Creating ViewModel or Service | `project-architecture.md` — Business Logic Rules |
+| Adding a service / dependency / using @Dependency | `dependency-injection.md` |
 | Writing SwiftUI views | `swiftui-patterns.md` — @Observable, .task{}, @Bindable |
 | Saving/loading game data | `persistence-patterns.md` — ID-Reference pattern, migrations |
 | Creating new types/models | `type-driven-design.md` — Make impossible states unrepresentable |

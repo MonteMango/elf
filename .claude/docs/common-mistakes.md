@@ -28,26 +28,56 @@
 
 ## Architecture Mistakes
 
-### Screen without ScreenContent
+### Passing services through ViewModel init
 ```swift
-// ❌ Everything in one file
-struct MyScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
-    @State private var viewModel: MyViewModel // DI and UI mixed
-}
+// ❌ Every dep through init — leaks DI plumbing into every call site
+public init(
+    gameService: any GameService,
+    damageService: any DamageService,
+    progressionService: any ProgressionService,
+    monsterRepository: any MonsterRepository
+) { ... }
 
-// ✅ Separate into two files
-// MyScreen.swift — DI only
-struct MyScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
-    var body: some View {
-        MyScreenContent(viewModel: container.makeMyViewModel())
+// ✅ Only session-scoped state through init; stateless services via @Dependency
+@MainActor
+@Observable
+public final class HuntViewModel {
+    private let gameService: any GameService
+
+    @ObservationIgnored
+    @Dependency(\.monsterRepository) private var monsterRepository
+
+    @ObservationIgnored
+    @Dependency(\.progressionService) private var progressionService
+
+    public init(gameService: any GameService) {
+        self.gameService = gameService
     }
 }
+```
 
-// MyScreenContent.swift — UI implementation
-struct MyScreenContent: View {
-    @State private var viewModel: MyViewModel
+### `@unchecked Sendable` on a final class with `@Dependency`
+```swift
+// ❌ The @Dependency property wrapper is not Sendable, so you reach for @unchecked
+public final class ElfFooService: FooService, @unchecked Sendable {
+    @Dependency(\.barService) private var barService
+}
+
+// ✅ Typed-wrapper pattern — Sendable for free
+public final class ElfFooService: FooService {
+    private let _barService = Dependency(\.barService)
+    private var barService: any BarService { _barService.wrappedValue }
+}
+```
+
+### Bypassing `GameSessionModel` for session-bound VMs
+```swift
+// ❌ Building a session VM yourself in a Screen (forces force-unwrap on optional session)
+let vm = HuntViewModel(gameService: coordinator.sessionModel!.gameService)
+
+// ✅ Always go through the factory; SessionRouteView already unwraps the optional
+init(session: GameSessionModel) {
+    self._viewModel = State(initialValue: session.makeHuntViewModel())
 }
 ```
 
@@ -61,8 +91,11 @@ class MyViewModel {
 }
 
 // ✅ ViewModel uses services
+@MainActor
+@Observable
 class MyViewModel {
-    private let damageService: DamageService
+    @ObservationIgnored
+    @Dependency(\.damageService) private var damageService
 
     func calculateDamage() -> Int {
         damageService.calculate(...)
@@ -77,9 +110,14 @@ class Service {
     static let shared = Service()
 }
 
-// ✅ Dependency Injection via container
-@Environment(ElfAppDependencyContainer.self) private var container
-let vm = container.makeViewModel()
+// ✅ Dependency Injection via swift-dependencies
+@ObservationIgnored
+@Dependency(\.someService) private var someService
+
+// Or, for session-bound state, via GameSessionModel factories
+init(session: GameSessionModel) {
+    self._viewModel = State(initialValue: session.makeXxxViewModel())
+}
 ```
 
 ---

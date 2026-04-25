@@ -5,7 +5,8 @@ Review the current git changes for code quality.
    - iOS best practices
    - SwiftUI patterns (iOS 17+): @Observable, NavigationStack, .task {}
    - Memory leaks and retain cycles (check for [weak self])
-   - Architecture: Screen/ScreenContent pattern, ViewModel usage
+   - Architecture: single-file Screen pattern, ViewModel uses @Dependency / GameSessionModel factories
+   - Sendable: no @unchecked Sendable; if a final class needs @Dependency, use the typed-wrapper pattern
    - Concurrency: @MainActor on ViewModels
    - No force unwraps
 

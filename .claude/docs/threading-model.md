@@ -327,23 +327,16 @@ rationale.
 
 ### `@Observable` class property reads register tracking — even in helper methods
 
-If a view calls `container.makeXxxViewModel()` and that method reads
-`container.activeGameService`, SwiftUI treats `activeGameService` as a **dependency of the
-calling view's `body`**. When it later changes (including to `nil`), `body` re-runs.
-
-This is what caused the `GameDayScreen` crash on close: `endGameSession()` set
-`activeGameService = nil`, which invalidated the still-mounted `GameDayScreen.body`, which
-called `makeGameDayViewModel()`, which fatalError'd on the `nil` session.
+A read of an `@Observable` property inside a helper called from a view's `body` registers
+that property as a body-tracked dependency. When it later changes (including to `nil`),
+`body` re-runs synchronously — and any `nil`-unsafe code path the helper hits will trip.
 
 **Guidance:**
-- When a screen's body depends on optional observable state going `nil` during unmount, guard the body:
-  ```swift
-  var body: some View {
-      if gameContainer.activeGameService != nil {
-          MyScreenContent(...)
-      }
-  }
-  ```
+- If a screen's `body` reads optional observable state that can go `nil` during unmount,
+  guard the body so the screen tolerates the transient `nil`. The canonical implementation
+  of this pattern in this codebase is `SessionRouteView` — it unwraps
+  `coordinator.sessionModel: GameSessionModel?` before constructing the session-bound
+  screen, so screens themselves never see a nil session.
 - `Task.yield()` alone is **not enough** to guarantee the view has unmounted before you
   nil out an observable. The mutation itself re-triggers the observing body synchronously.
 - Prefer cleanup ordering where the observable goes nil *after* the view is gone from the
@@ -351,15 +344,17 @@ called `makeGameDayViewModel()`, which fatalError'd on the `nil` session.
 
 ### `@ObservationIgnored` for dependencies
 
-Services stored on an `@Observable` class must use `@ObservationIgnored`:
+Services stored on an `@Observable` class must use `@ObservationIgnored`. This applies to
+both raw stored properties and `@Dependency` fields injected via swift-dependencies — see
+`dependency-injection.md` for the canonical patterns.
 
 ```swift
 @MainActor
 @Observable
 public final class DefaultGameService: GameService {
-    public var player: PlayerStore  // tracked
-    @ObservationIgnored private let gameRepository: GameSaveStorage  // not tracked
-    @ObservationIgnored private let craftService: CraftService       // not tracked
+    public var player: PlayerStore                                      // tracked
+    @ObservationIgnored @Dependency(\.gameRepository) private var gameRepository  // not tracked
+    @ObservationIgnored @Dependency(\.craftService)   private var craftService    // not tracked
 }
 ```
 

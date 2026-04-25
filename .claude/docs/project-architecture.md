@@ -3,7 +3,7 @@
 ## MVVM Architecture
 
 ```
-View (Screen/ScreenContent)
+View (Screen)
     ↓ @State var viewModel
 ViewModel (@Observable)
     ↓ uses
@@ -147,87 +147,88 @@ VStack(spacing: ElfSpacing.component)
 
 ---
 
-## Screen Pattern: *Screen + *ScreenContent
+## Dependency Injection
 
-Each screen consists of two files:
+The project uses **swift-dependencies** (Point-Free). Each service has a sibling `{Service}+Dependency.swift` file declaring a key on `DependencyValues`. ViewModels and services resolve them via `@Dependency` (or the typed-wrapper variant — see below). App-startup roots are registered once in `DependencyBootstrap.run()`.
 
-### *Screen.swift — DI container
 ```swift
-internal struct BattleFightScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
+import Dependencies
 
-    let battle: Battle
-
-    internal var body: some View {
-        BattleFightScreenContent(
-            viewModel: container.makeBattleFightViewModel(battle: battle)
-        )
+extension DependencyValues {
+    public var damageService: any DamageService {
+        get { self[DamageServiceKey.self] }
+        set { self[DamageServiceKey.self] = newValue }
     }
+}
+
+private enum DamageServiceKey: DependencyKey {
+    static var liveValue: any DamageService { ElfDamageService() }
 }
 ```
 
-### *ScreenContent.swift — UI implementation
-```swift
-internal struct BattleFightScreenContent: View {
-    @Environment(AppRouter.self) private var router
-    @State private var viewModel: BattleFightViewModel
+Two injection styles, picked by host isolation:
+- **`@Dependency` property wrapper** for `@MainActor` and actor-isolated classes (in `@Observable` classes mark with `@ObservationIgnored`).
+- **Typed-wrapper Dependency** (`let _foo = Dependency(\.foo); var foo: any Foo { _foo.wrappedValue }`) for plain `Sendable` `final class` services — keeps the class `Sendable` without `@unchecked`.
 
-    internal init(viewModel: BattleFightViewModel) {
-        self._viewModel = State(initialValue: viewModel)
-    }
+Session-scoped ViewModel factories live on `GameSessionModel` (`Packages/elf_Kit/Sources/UILayer/GameSession/GameSessionModel.swift`), which holds the non-optional `gameService` and exposes `make*ViewModel()` for every session-bound feature. Optionality lives one level up on `AppCoordinator.sessionModel` and is unwrapped by `SessionRouteView` before reaching a screen.
 
-    internal var body: some View {
-        // UI implementation
-    }
-}
-```
-
-### Why two files?
-1. **Screen** — only DI injection via `container.make*ViewModel()`
-2. **ScreenContent** — full UI implementation with `@State` for ViewModel
+> **Full reference** — declaring deps, `liveValue`/`testValue`/`previewValue` rules, both injection styles, app bootstrap, tests, previews, and pitfalls — see `dependency-injection.md`.
 
 ---
 
-## Dependency Injection
+## Screen Pattern: Single-file Screen
 
-### ElfAppDependencyContainer
+Each screen is one file at `Packages/elf_iOS/Sources/Screens/{Name}Screen/{Name}Screen.swift`. The ViewModel is created in `init` and stored as `@State`. Three init shapes exist:
 
-**Path:** `Packages/elf_iOS/Sources/DependencyInjection/ElfAppDependencyContainer.swift`
+### Session-bound (most game screens)
 
 ```swift
-@Observable
-public final class ElfAppDependencyContainer {
+struct HuntScreen: View {
+    @Environment(AppRouter.self) private var router
+    @State private var viewModel: HuntViewModel
+    private let dayStateViewModel: GameDayStateViewModel
 
-    // Long-lived dependencies (singletons)
-    public let itemsRepository: ItemsRepository
-    public let attributeService: AttributeService
-
-    // Game session state
-    public private(set) var activeGameService: GameService?
-
-    public init() {
-        // Initialize dependencies
+    init(session: GameSessionModel) {
+        self._viewModel = State(initialValue: session.makeHuntViewModel())
+        self.dayStateViewModel = session.dayState
     }
 
-    // Factory methods for ViewModel
-    @MainActor
-    public func makeBattleFightViewModel(battle: Battle) -> BattleFightViewModel {
-        return BattleFightViewModel(
-            battle: battle,
-            botAI: self.botAI,
-            // ... other dependencies
-        )
+    var body: some View { /* UI */ }
+}
+```
+
+Routes wire these via `SessionRouteView` (see Navigation section).
+
+### App-scoped (pre-session — main menu, character creation)
+
+```swift
+struct MainMenuScreen: View {
+    @State private var viewModel: MainMenuViewModel
+
+    init() {
+        self._viewModel = State(initialValue: MainMenuViewModel())
     }
 }
 ```
 
-### Usage in View
-```swift
-@Environment(ElfAppDependencyContainer.self) private var container
+The VM resolves all its deps via `@Dependency`. No `GameSessionModel`, no `SessionRouteView`.
 
-// Create ViewModel via factory method
-let vm = container.makeGameDayViewModel(game: game)
+### Optional session (battle screens reachable from a dev path)
+
+```swift
+internal struct BattleFightScreen: View {
+    @State private var viewModel: BattleFightViewModel
+
+    internal init(battle: Battle, session: GameSessionModel?) {
+        self._viewModel = State(initialValue: BattleFightViewModel(
+            battle: battle,
+            gameService: session?.gameService
+        ))
+    }
+}
 ```
+
+Wired through `BattleFightRouteView` instead of `SessionRouteView`.
 
 ---
 
@@ -235,40 +236,61 @@ let vm = container.makeGameDayViewModel(game: game)
 
 **Path:** `Packages/elf_Kit/Sources/UILayer/{Feature}/{Feature}ViewModel.swift`
 
+> **Rule:** Dependencies are **never** passed through `init` except for session-scoped state (`gameService`) or screen-scoped state (`battle`, `activity`). All stateless services come from `@Dependency`.
+
+### Session-bound VM
+
 ```swift
+import Dependencies
+
 @MainActor
 @Observable
 public final class HuntViewModel {
 
-    // Dependencies (injected via init)
-    private let gameService: GameService
-    private let monsterRepository: MonsterRepository
+    private let gameService: any GameService
 
-    // Computed properties (derived data)
-    public var currentActionPoints: Int {
-        gameService.game.gameState.currentActionPoints
-    }
+    @ObservationIgnored
+    @Dependency(\.monsterRepository) private var monsterRepository
+
+    @ObservationIgnored
+    @Dependency(\.snapshotBuilder) private var snapshotBuilder
+
+    @ObservationIgnored
+    @Dependency(\.progressionService) private var progressionService
 
     public var canHunt: Bool {
-        currentActionPoints >= huntCost
+        gameService.actionPoints.current >= huntCost && !isHunting
     }
 
-    public init(
-        gameService: GameService,
-        monsterRepository: MonsterRepository
-    ) {
+    public init(gameService: any GameService) {
         self.gameService = gameService
-        self.monsterRepository = monsterRepository
     }
 
-    // Actions (called from View)
-    public func startHunt() async -> Battle? {
-        guard canHunt else { return nil }
-        gameService.spendActionPoints(huntCost)
-        // ...
+    public func startHunt() -> Battle? { /* ... */ }
+}
+```
+
+### App-scoped VM
+
+```swift
+@MainActor
+@Observable
+public final class MainMenuViewModel {
+
+    @ObservationIgnored
+    @Dependency(\.gameRepository) private var gameRepository
+
+    public private(set) var hasSavedGame: Bool = false
+
+    public init() {}
+
+    public func refreshSavedGameState() {
+        hasSavedGame = gameRepository.hasAnySave()
     }
 }
 ```
+
+`@ObservationIgnored` is mandatory on every `@Dependency` field in an `@Observable` class — see `threading-model.md` § "@ObservationIgnored for dependencies".
 
 ---
 
@@ -359,57 +381,68 @@ router.presentModal(.battleResult(result))
 
 ## Adding a New Screen
 
-1. **Create ViewModel** in `elf_Kit/Sources/UILayer/{ScreenName}/`
-```swift
-@Observable
-@MainActor
-public final class NewScreenViewModel {
-    private let someService: SomeService
+Default recipe assumes a session-bound screen. For variants (no session, optional session) see notes at the bottom.
 
-    public init(someService: SomeService) {
-        self.someService = someService
+1. **Create the ViewModel** at `Packages/elf_Kit/Sources/UILayer/{Name}/{Name}ViewModel.swift`. Use `@MainActor @Observable`. The only init parameter is `gameService` (session state); stateless services come from `@Dependency`.
+```swift
+import Dependencies
+
+@MainActor
+@Observable
+public final class NewScreenViewModel {
+
+    private let gameService: any GameService
+
+    @ObservationIgnored
+    @Dependency(\.someService) private var someService
+
+    public init(gameService: any GameService) {
+        self.gameService = gameService
     }
 }
 ```
 
-2. **Create Screen** in `elf_iOS/Sources/Screens/{ScreenName}/`
+2. **Add a factory** to `GameSessionModel` (`Packages/elf_Kit/Sources/UILayer/GameSession/GameSessionModel.swift`):
 ```swift
-// NewScreen.swift
-internal struct NewScreen: View {
-    @Environment(ElfAppDependencyContainer.self) private var container
-
-    internal var body: some View {
-        NewScreenContent(viewModel: container.makeNewScreenViewModel())
-    }
+public func makeNewScreenViewModel() -> NewScreenViewModel {
+    NewScreenViewModel(gameService: gameService)
 }
+```
 
-// NewScreenContent.swift
-internal struct NewScreenContent: View {
+3. **Create the Screen** at `Packages/elf_iOS/Sources/Screens/{Name}Screen/{Name}Screen.swift`:
+```swift
+import elf_Kit
+import elf_SwiftUI
+import SwiftUI
+
+struct NewScreen: View {
     @Environment(AppRouter.self) private var router
     @State private var viewModel: NewScreenViewModel
 
-    internal init(viewModel: NewScreenViewModel) {
-        self._viewModel = State(initialValue: viewModel)
+    init(session: GameSessionModel) {
+        self._viewModel = State(initialValue: session.makeNewScreenViewModel())
     }
 
-    internal var body: some View {
+    var body: some View {
         // UI
     }
 }
 ```
 
-3. **Add factory method** to `ElfAppDependencyContainer`
-```swift
-@MainActor
-public func makeNewScreenViewModel() -> NewScreenViewModel {
-    return NewScreenViewModel(someService: self.someService)
-}
-```
-
-4. **Add Route** to `AppRoute.swift`
+4. **Add the route** in `AppRoute.swift` and wire it through `SessionRouteView`:
 ```swift
 case newScreen
+// in AppRoute.view():
+case .newScreen:
+    SessionRouteView { NewScreen(session: $0) }
 ```
+
+5. **Add a `#Preview`** that bootstraps DI and a preview session (canonical: `HuntScreen.swift`).
+
+### Variants
+
+- **Not session-bound** (e.g., main menu): no-arg `init()`, build the VM directly (`MainMenuViewModel()`); skip step 2 and the `SessionRouteView` wrapper.
+- **Optional session** (e.g., battle screens reachable from a dev flow): take `init(thing:, session: GameSessionModel?)`; wire via a dedicated route adapter (see `BattleFightRouteView`).
 
 ---
 
@@ -418,18 +451,29 @@ case newScreen
 ```
 Packages/elf_iOS/Sources/
 ├── Screens/
-│   ├── {ScreenName}/
+│   ├── {ScreenName}Screen/
 │   │   ├── {ScreenName}Screen.swift
-│   │   ├── {ScreenName}ScreenContent.swift
 │   │   └── Components/
 ├── DependencyInjection/
-│   └── ElfAppDependencyContainer.swift
+│   └── DependencyBootstrap.swift
+├── Coordinator/
+│   └── AppCoordinator.swift
 └── Navigation/
     ├── AppRouter.swift
     ├── AppRoute.swift
-    └── ModalRoute.swift
+    ├── ModalRoute.swift
+    └── SessionRouteView.swift
 
 Packages/elf_Kit/Sources/UILayer/
+├── GameSession/
+│   └── GameSessionModel.swift
 └── {Feature}/
-    └── {Feature}ViewModel.swift
+    ├── {Feature}ViewModel.swift
+    └── {Feature}DisplayModels.swift
+
+Packages/elf_Kit/Sources/DataLayer/.../{Service}/
+├── {Service}.swift                 # protocol
+├── Implementation/
+│   └── Default{Service}.swift
+└── {Service}+Dependency.swift      # DependencyKey + DependencyValues extension
 ```
