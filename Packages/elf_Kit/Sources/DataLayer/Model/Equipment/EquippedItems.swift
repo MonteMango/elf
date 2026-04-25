@@ -59,6 +59,27 @@ public struct EquippedItems: Sendable, Equatable {
         self.earrings = earrings
     }
 
+    // MARK: - Derived
+
+    /// Sum of attribute bonuses from every equipped item across all slots.
+    public var attributes: HeroAttributes {
+        let items: [Item?] = [
+            weapons.weapon.item,
+            weapons.shield?.item,
+            weapons.secondaryWeapon?.item,
+            helmet?.item,
+            gloves?.item,
+            shoes?.item,
+            upperBody?.item,
+            bottomBody?.item,
+            shirt?.item,
+            ring?.item,
+            necklace?.item,
+            earrings?.item
+        ]
+        return items.compactMap { $0?.heroAttributes }.reduce(.zero, +)
+    }
+
     // MARK: - Equatable
 
     public static func == (lhs: EquippedItems, rhs: EquippedItems) -> Bool {

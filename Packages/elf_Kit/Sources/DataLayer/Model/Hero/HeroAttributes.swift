@@ -52,3 +52,32 @@ public struct HeroAttributes: Sendable, Hashable, Equatable, Codable {
     // MARK: - Arithmetic
 
 }
+
+// MARK: - AdditiveArithmetic
+
+extension HeroAttributes: AdditiveArithmetic {
+
+    public static var zero: HeroAttributes { HeroAttributes() }
+
+    public static func + (lhs: HeroAttributes, rhs: HeroAttributes) -> HeroAttributes {
+        HeroAttributes(
+            hitPoints: lhs.hitPoints + rhs.hitPoints,
+            manaPoints: lhs.manaPoints + rhs.manaPoints,
+            agility: lhs.agility + rhs.agility,
+            strength: lhs.strength + rhs.strength,
+            power: lhs.power + rhs.power,
+            instinct: lhs.instinct + rhs.instinct
+        )
+    }
+
+    public static func - (lhs: HeroAttributes, rhs: HeroAttributes) -> HeroAttributes {
+        HeroAttributes(
+            hitPoints: lhs.hitPoints - rhs.hitPoints,
+            manaPoints: lhs.manaPoints - rhs.manaPoints,
+            agility: lhs.agility - rhs.agility,
+            strength: lhs.strength - rhs.strength,
+            power: lhs.power - rhs.power,
+            instinct: lhs.instinct - rhs.instinct
+        )
+    }
+}

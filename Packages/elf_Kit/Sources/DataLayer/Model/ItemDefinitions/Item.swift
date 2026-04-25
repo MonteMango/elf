@@ -22,3 +22,18 @@ public protocol Item: Decodable, Sendable {
     var hitPoints: Int16? { get }
     var manaPoints: Int16? { get }
 }
+
+// MARK: - Attribute Bonuses
+
+extension Item {
+    var heroAttributes: HeroAttributes {
+        HeroAttributes(
+            hitPoints: Attribute(hitPoints ?? 0),
+            manaPoints: Attribute(manaPoints ?? 0),
+            agility: Attribute(agility ?? 0),
+            strength: Attribute(strength ?? 0),
+            power: Attribute(power ?? 0),
+            instinct: Attribute(instinct ?? 0)
+        )
+    }
+}

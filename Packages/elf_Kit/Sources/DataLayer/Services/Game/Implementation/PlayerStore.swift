@@ -59,14 +59,7 @@ public final class PlayerStore {
     // MARK: - Derived
 
     public var totalAttributes: HeroAttributes {
-        HeroAttributes(
-            hitPoints: fightStyleAttributes.hitPoints + randomLevelAttributes.hitPoints,
-            manaPoints: fightStyleAttributes.manaPoints + randomLevelAttributes.manaPoints,
-            agility: fightStyleAttributes.agility + randomLevelAttributes.agility,
-            strength: fightStyleAttributes.strength + randomLevelAttributes.strength,
-            power: fightStyleAttributes.power + randomLevelAttributes.power,
-            instinct: fightStyleAttributes.instinct + randomLevelAttributes.instinct
-        )
+        fightStyleAttributes + randomLevelAttributes + equipped.attributes
     }
 
     public var maxHP: Int16 { totalAttributes.hitPoints.value }

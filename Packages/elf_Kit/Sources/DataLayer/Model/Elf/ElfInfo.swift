@@ -56,14 +56,7 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
     // MARK: - Computed Properties
 
     public var totalAttributes: HeroAttributes {
-        HeroAttributes(
-            hitPoints: fightStyleAttributes.hitPoints + randomLevelAttributes.hitPoints,
-            manaPoints: fightStyleAttributes.manaPoints + randomLevelAttributes.manaPoints,
-            agility: fightStyleAttributes.agility + randomLevelAttributes.agility,
-            strength: fightStyleAttributes.strength + randomLevelAttributes.strength,
-            power: fightStyleAttributes.power + randomLevelAttributes.power,
-            instinct: fightStyleAttributes.instinct + randomLevelAttributes.instinct
-        )
+        fightStyleAttributes + randomLevelAttributes + equipped.attributes
     }
 
     public var maxHP: Int16 {
