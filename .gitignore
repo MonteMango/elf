@@ -299,3 +299,8 @@ CLAUDE.local.md
 # Periphery dead code detection config
 .periphery.yml
 scripts/
+
+# Instruments traces — local profiling artifacts, too large for git.
+# Analysis notes live in *.md files in the same folder and ARE tracked.
+traces/**/*.trace
+traces/**/.DS_Store
