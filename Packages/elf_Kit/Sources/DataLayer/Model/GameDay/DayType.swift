@@ -30,4 +30,15 @@ public enum DayType: Int, CaseIterable, Sendable, Codable {
     public var displaySymbol: String? {
         self == .unknown ? "?" : nil
     }
+
+    /// Actions available to the player on this day type.
+    public var availableActions: [ActionType] {
+        switch self {
+        case .normal:       [.farm, .hunt, .craft, .quests]
+        case .dungeon:      [.dungeon]
+        case .randomEvent,
+             .houseWar,
+             .unknown:      []
+        }
+    }
 }

@@ -14,6 +14,7 @@ import SwiftUI
 /// `GameDayStateViewModel` and delegates the back / calendar actions to the
 /// hosting screen.
 struct GameDayHeader: View {
+    @Environment(AppRouter.self) private var router
     let viewModel: GameDayStateViewModel
     let onBack: () -> Void
     let onCalendarTap: () -> Void
@@ -28,7 +29,14 @@ struct GameDayHeader: View {
             isLastDay: viewModel.isLastDay,
             currentDay: viewModel.currentDay.calendarDayData,
             upcomingDays: viewModel.upcomingDays.map(\.calendarDayData),
-            onNextDay: { Task { await viewModel.advanceToNextDay() } },
+            onNextDay: {
+                Task {
+                    await viewModel.advanceToNextDay()
+                    if viewModel.currentDay.dayType != .normal {
+                        router.popToGameDay()
+                    }
+                }
+            },
             onBack: onBack,
             onCalendarTap: onCalendarTap
         )

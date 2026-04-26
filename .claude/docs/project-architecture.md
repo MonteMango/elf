@@ -342,19 +342,21 @@ public enum ViewMode: Int, CaseIterable, Sendable {
 ### AppRouter
 ```swift
 @Observable
-public final class AppRouter {
-    public var navigationPath = NavigationPath()
-    public var presentedModal: ModalRoute?
+@MainActor
+final class AppRouter {
+    var navigationPath = NavigationPath()
+    var presentedModal: ModalRoute?
 
-    public func navigate(to route: AppRoute) {
-        navigationPath.append(route)
-    }
-
-    public func presentModal(_ modal: ModalRoute) {
-        presentedModal = modal
-    }
+    func navigate(to route: AppRoute, removingPrevious count: Int = 0)
+    func pop()
+    func popToRoot()
+    func popToGameDay()       // pops everything above GameDayScreen
+    func presentModal(_ modal: ModalRoute)
+    func dismissModal()
 }
 ```
+
+`popToGameDay()` assumes `.gameSession` always sits at the bottom of `navigationPath` (root is `MainMenuScreen`, outside the path). Used by `GameDayHeader` to auto-return from sub-screens (Hunt/Farm/Quest/…) when `advanceToNextDay()` lands on a non-`.normal` `DayType`.
 
 ### AppRoute (enum-based routing)
 ```swift

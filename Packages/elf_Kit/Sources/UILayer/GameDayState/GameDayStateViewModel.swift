@@ -38,4 +38,8 @@ public final class GameDayStateViewModel {
         gameService.advanceToNextDay()
         try? await gameService.saveGame()
     }
+
+    public func spendActionPoints(_ amount: Int) {
+        gameService.spendActionPoints(amount)
+    }
 }

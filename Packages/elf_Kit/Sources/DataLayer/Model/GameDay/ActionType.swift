@@ -13,4 +13,5 @@ public enum ActionType: String, CaseIterable, Sendable {
     case hunt = "Hunt"
     case craft = "Craft"
     case quests = "Quests"
+    case dungeon = "Dungeon"
 }

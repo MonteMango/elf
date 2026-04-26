@@ -38,6 +38,14 @@ final class AppRouter {
         navigationPath.removeLast(navigationPath.count)
     }
 
+    /// Pops every screen above the session's GameDayScreen.
+    /// Assumes `.gameSession` is always at the bottom of `navigationPath`
+    /// (MainMenuScreen is the NavigationStack root, outside the path).
+    func popToGameDay() {
+        let removeCount = max(navigationPath.count - 1, 0)
+        navigationPath.removeLast(removeCount)
+    }
+
     /// Navigates to a new route while removing specified number of previous routes from the stack
     /// - Parameters:
     ///   - route: The destination route

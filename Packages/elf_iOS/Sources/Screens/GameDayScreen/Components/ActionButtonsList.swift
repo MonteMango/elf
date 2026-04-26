@@ -10,6 +10,7 @@ import elf_SwiftUI
 import SwiftUI
 
 struct ActionButtonsList: View {
+    let actions: [ActionType]
     let onAction: (ActionType) -> Void
 
     var body: some View {
@@ -17,7 +18,7 @@ struct ActionButtonsList: View {
         let _ = Self._printChanges()
         #endif
         VStack(spacing: ElfSpacing.button) {
-            ForEach(ActionType.allCases, id: \.self) { action in
+            ForEach(actions, id: \.self) { action in
                 actionButton(for: action)
             }
         }
@@ -35,7 +36,7 @@ struct ActionButtonsList: View {
 }
 
 #Preview {
-    ActionButtonsList(onAction: { _ in })
+    ActionButtonsList(actions: ActionType.allCases, onAction: { _ in })
         .padding()
         .background(Color.black)
         .preferredColorScheme(.dark)

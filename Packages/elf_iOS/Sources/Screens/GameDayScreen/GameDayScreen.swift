@@ -111,18 +111,23 @@ internal struct GameDayScreen: View {
                 onNextDay: { Task { await dayStateViewModel.advanceToNextDay() } }
             )
 
-            ActionButtonsList(onAction: { action in
-                switch action {
-                case .hunt:
-                    router.navigate(to: .hunt)
-                case .farm:
-                    router.navigate(to: .farm)
-                case .craft:
-                    router.navigate(to: .craft)
-                case .quests:
-                    router.navigate(to: .questList)
+            ActionButtonsList(
+                actions: dayStateViewModel.currentDay.dayType.availableActions,
+                onAction: { action in
+                    switch action {
+                    case .hunt:
+                        router.navigate(to: .hunt)
+                    case .farm:
+                        router.navigate(to: .farm)
+                    case .craft:
+                        router.navigate(to: .craft)
+                    case .quests:
+                        router.navigate(to: .questList)
+                    case .dungeon:
+                        break
+                    }
                 }
-            })
+            )
 
             Spacer()
         }
@@ -160,6 +165,13 @@ internal struct GameDayScreen: View {
             }
 
             SideMenuButtons(onMenuTapped: viewModel.onSideMenuTapped)
+
+            #if DEBUG
+            Button("Spend AP") {
+                dayStateViewModel.spendActionPoints(20)
+            }
+            .buttonStyle(.elfPrimary)
+            #endif
 
             Spacer()
         }
