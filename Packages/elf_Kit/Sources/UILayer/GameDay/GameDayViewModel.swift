@@ -26,6 +26,16 @@ public final class GameDayViewModel {
     @ObservationIgnored
     @Dependency(\.itemsRepository) private var itemsRepository
 
+    @ObservationIgnored
+    @Dependency(\.snapshotBuilder) private var snapshotBuilder
+
+    @ObservationIgnored
+    @Dependency(\.monsterRepository) private var monsterRepository
+
+    // MARK: - Constants
+
+    public let dungeonCost: Int = 100
+
     // MARK: - Local UI State
 
     public var activeBuffs: [String] = []
@@ -158,6 +168,58 @@ public final class GameDayViewModel {
     /// Saves game and prepares for exit
     public func exitGame() async {
         try? await gameService.saveGame()
+    }
+
+    /// Assembles a 5v5 dungeon battle: hero + 4 random allies vs 5 wolves (level 1).
+    /// Spends `dungeonCost` AP on success; returns nil if AP is insufficient or content is missing.
+    public func startDungeonBattle() -> Battle? {
+        guard gameService.actionPoints.current >= dungeonCost else { return nil }
+
+        let wolves = monsterRepository.getMonsters(world: .upper, level: 1)
+            .filter { $0.title == "Wolf" }
+        guard let wolfTemplate = wolves.first else { return nil }
+        let wolfSnapshots: [CombatantSnapshot] = (0..<5).map { _ in
+            snapshotBuilder.buildSnapshot(from: wolfTemplate)
+        }
+
+        let player = gameService.player.snapshot()
+        let playerSelected: [HeroItemType: UUID?] =
+            equipmentQueryService.equippedBaseItemIds(from: player.equipped).mapValues { $0 }
+        guard let heroSnapshot = snapshotBuilder.buildSnapshot(
+            name: player.name,
+            imageName: player.imageName,
+            level: progressionService.calculateLevel(currentExp: player.currentExp),
+            fightStyleAttributes: player.fightStyleAttributes,
+            randomLevelAttributes: player.randomLevelAttributes,
+            selectedItems: playerSelected
+        ) else { return nil }
+
+        let house = gameService.houses[gameService.playerHouseIndex]
+        let allies = house.members
+            .enumerated()
+            .filter { $0.offset != gameService.playerMemberIndex }
+            .map(\.element)
+            .shuffled()
+            .prefix(4)
+        let allySnapshots: [CombatantSnapshot] = allies.compactMap { ally in
+            let selected: [HeroItemType: UUID?] =
+                equipmentQueryService.equippedBaseItemIds(from: ally.equipped).mapValues { $0 }
+            return snapshotBuilder.buildSnapshot(
+                name: ally.name,
+                imageName: ally.imageName,
+                level: progressionService.calculateLevel(currentExp: ally.currentExp),
+                fightStyleAttributes: ally.fightStyleAttributes,
+                randomLevelAttributes: ally.randomLevelAttributes,
+                selectedItems: selected
+            )
+        }
+
+        gameService.spendActionPoints(dungeonCost)
+
+        return Battle(
+            leftTeam: [heroSnapshot] + allySnapshots,
+            rightTeam: wolfSnapshots
+        )
     }
 
     /// Called when a pocket slot is tapped
