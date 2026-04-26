@@ -4,6 +4,28 @@
     "swift-testing-expert@swift-testing-agent-skill": true,
     "swiftui-expert@swiftui-expert-skill": true
   },
+  "skillOverrides": {
+    "resume-tailor": "off",
+    "creative-portfolio-resume": "off",
+    "academic-cv-builder": "off",
+    "resume-formatter": "off",
+    "portfolio-case-study-writer": "off",
+    "career-changer-translator": "off",
+    "linkedin-profile-optimizer": "off",
+    "resume-quantifier": "off",
+    "salary-negotiation-prep": "off",
+    "job-description-analyzer": "off",
+    "interview-prep-generator": "off",
+    "tech-resume-optimizer": "off",
+    "offer-comparison-analyzer": "off",
+    "resume-bullet-writer": "off",
+    "cover-letter-generator": "off",
+    "resume-section-builder": "off",
+    "resume-ats-optimizer": "off",
+    "executive-resume-writer": "off",
+    "reference-list-builder": "off",
+    "resume-version-manager": "off"
+  },
   "extraKnownMarketplaces": {
     "swift-concurrency-agent-skill": {
       "source": {
