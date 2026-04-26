@@ -7,6 +7,7 @@
 
 import Dependencies
 import Foundation
+import UIKit
 
 @MainActor
 @Observable
@@ -46,8 +47,13 @@ public final class GameDayViewModel {
     public var xpProgress: Double {
         progressionService.expProgress(currentExp: gameService.player.currentExp)
     }
-    public var equippedItems: [HeroItemType: UUID] {
-        equipmentQueryService.equippedBaseItemIds(from: gameService.player.equipped)
+    public var equippedItems: [HeroItemType: HeroEquippedSlot] {
+        let baseIds = equipmentQueryService.equippedBaseItemIds(from: gameService.player.equipped)
+        return baseIds.mapValues { uuid in
+            let candidateName = uuid.uuidString.lowercased()
+            let resolvedName = UIImage(named: candidateName) != nil ? candidateName : nil
+            return HeroEquippedSlot(id: uuid, imageName: resolvedName)
+        }
     }
 
     // MARK: - Initialization

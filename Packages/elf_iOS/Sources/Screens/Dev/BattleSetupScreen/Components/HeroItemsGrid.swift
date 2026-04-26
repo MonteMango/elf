@@ -6,8 +6,8 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
-import UIKit
 
 // MARK: - HeroItemsGrid
 
@@ -118,22 +118,7 @@ struct HeroItemsGrid: View {
 
     @ViewBuilder
     private func itemImage(uuid: UUID, size: CGFloat) -> some View {
-        let imageName = uuid.uuidString.lowercased()
-
-        if UIImage(named: imageName) != nil {
-            // Real item image exists
-            Image(imageName)
-                .resizable()
-                .scaledToFit()
-                .frame(width: size, height: size)
-        } else {
-            // Fallback placeholder for missing image
-            Image(systemName: "photo.fill")
-                .resizable()
-                .scaledToFit()
-                .frame(width: size, height: size)
-                .foregroundStyle(.gray.opacity(0.5))
-        }
+        ItemIconImage(uuid: uuid, size: size)
     }
 
     private func handleItemTap(_ itemType: HeroItemType) {

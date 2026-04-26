@@ -55,6 +55,14 @@ public enum ElfColors {
         public static let card = Color(white: 0.96)
     }
 
+    // MARK: - Image Colors
+
+    /// Semantic colors used as placeholders / backings for image content.
+    public enum Image {
+        /// Backing fill behind a hero / character image while it renders.
+        public static let placeholder = Color.gray
+    }
+
     // Legacy background colors (for backwards compatibility)
     public static let backgroundPrimary = Color.white
     public static let backgroundSecondary = Color(white: 0.85)

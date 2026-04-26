@@ -87,6 +87,8 @@ public enum ElfSizing {
         public static let heroImageHeight: CGFloat = 180
         public static let equipmentSlotSize: CGFloat = 40
         public static let equipmentIconSize: CGFloat = 30
+        public static let jewelrySlotSize: CGFloat = 30
+        public static let jewelryIconSize: CGFloat = 22
         public static let calendarDaySize: CGFloat = 50
         public static let pocketSize: CGFloat = 35
         public static let buffSize: CGFloat = 30

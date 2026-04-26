@@ -178,20 +178,7 @@ struct HeroDisplayView: View {
 
     @ViewBuilder
     private func itemImage(id: UUID, size: CGFloat) -> some View {
-        let imageName = id.uuidString.lowercased()
-
-        if UIImage(named: imageName) != nil {
-            Image(imageName)
-                .resizable()
-                .scaledToFit()
-                .frame(width: size, height: size)
-        } else {
-            Image(systemName: "photo.fill")
-                .resizable()
-                .scaledToFit()
-                .frame(width: size * 0.6, height: size * 0.6)
-                .foregroundStyle(.gray.opacity(0.5))
-        }
+        ItemIconImage(uuid: id, size: size, placeholderScale: 0.6)
     }
 
     @ViewBuilder
