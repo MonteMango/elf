@@ -25,23 +25,36 @@ public struct ItemIconImage: View {
     let imageName: String?
     let size: CGFloat
     let placeholderScale: CGFloat
+    let opacity: Double
 
     // MARK: - Init
 
-    public init(imageName: String?, size: CGFloat, placeholderScale: CGFloat = 1.0) {
+    public init(
+        imageName: String?,
+        size: CGFloat,
+        placeholderScale: CGFloat = 1.0,
+        opacity: Double = 1.0
+    ) {
         self.imageName = imageName
         self.size = size
         self.placeholderScale = placeholderScale
+        self.opacity = opacity
     }
 
     /// Convenience initializer that resolves the asset name from a UUID by the
     /// `uuid.uuidString.lowercased()` convention and probes the asset catalog.
     /// Falls back to `nil` (placeholder) when no matching asset exists.
-    public init(uuid: UUID, size: CGFloat, placeholderScale: CGFloat = 1.0) {
+    public init(
+        uuid: UUID,
+        size: CGFloat,
+        placeholderScale: CGFloat = 1.0,
+        opacity: Double = 1.0
+    ) {
         let candidate = uuid.uuidString.lowercased()
         self.imageName = UIImage(named: candidate) != nil ? candidate : nil
         self.size = size
         self.placeholderScale = placeholderScale
+        self.opacity = opacity
     }
 
     // MARK: - Body
@@ -52,6 +65,7 @@ public struct ItemIconImage: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: size, height: size)
+                .opacity(opacity)
         } else {
             Image(systemName: "photo.fill")
                 .resizable()

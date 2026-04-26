@@ -95,10 +95,14 @@ struct HeroSection: View {
 
     @ViewBuilder
     private func slotButton(for itemType: HeroItemType) -> some View {
+        let slot = equippedItems[itemType]
+        // Mirrored slots are a visual reflection of an item that lives in
+        // another slot; route the tap to the source slot type.
+        let tapTarget = slot?.mirroredFrom ?? itemType
         EquipmentSlotButton(
             itemType: itemType,
-            slot: equippedItems[itemType],
-            onTap: { onEquipmentSlotTapped(itemType) }
+            slot: slot,
+            onTap: { onEquipmentSlotTapped(tapTarget) }
         )
     }
 }
@@ -127,15 +131,31 @@ private struct EquipmentSlotButton: View {
                 }
                 .overlay {
                     if let slot {
-                        ItemIconImage(imageName: slot.imageName, size: iconSize)
+                        ItemIconImage(
+                            imageName: slot.imageName,
+                            size: iconSize,
+                            opacity: slot.isMirror ? ElfOpacity.GameDay.mirroredSlot : 1.0
+                        )
                     }
                 }
                 .contentShape(Rectangle())
         }
-        .accessibilityLabel("\(itemType.accessibilityLabel) slot")
-        .accessibilityHint(slot == nil
-            ? "Empty. Double tap to choose an item."
-            : "Equipped. Double tap to change.")
+        .accessibilityLabel(accessibilityLabel(for: slot))
+        .accessibilityHint(accessibilityHint(for: slot))
+    }
+
+    private func accessibilityLabel(for slot: HeroEquippedSlot?) -> String {
+        guard let mirroredFrom = slot?.mirroredFrom else {
+            return "\(itemType.accessibilityLabel) slot"
+        }
+        return "\(itemType.accessibilityLabel) slot, mirroring \(mirroredFrom.accessibilityLabel)"
+    }
+
+    private func accessibilityHint(for slot: HeroEquippedSlot?) -> String {
+        guard let slot else { return "Empty. Double tap to choose an item." }
+        return slot.isMirror
+            ? "Double tap to change the source item."
+            : "Equipped. Double tap to change."
     }
 }
 
@@ -163,6 +183,22 @@ private struct EquipmentSlotButton: View {
             .necklace: HeroEquippedSlot(id: UUID(), imageName: nil),
             .upperBody: HeroEquippedSlot(id: UUID(), imageName: nil),
             .shields: HeroEquippedSlot(id: UUID(), imageName: nil)
+        ],
+        currentHP: 100,
+        currentMP: 50,
+        reputation: 256,
+        onEquipmentSlotTapped: { _ in },
+        onPocketTapped: { _ in }
+    )
+}
+
+#Preview("Two-Handed Weapon") {
+    let weaponId = UUID()
+    return HeroSection(
+        imageName: "Yuuki Asuna",
+        equippedItems: [
+            .weapons: HeroEquippedSlot(id: weaponId, imageName: nil),
+            .shields: HeroEquippedSlot(id: weaponId, imageName: nil, mirroredFrom: .weapons)
         ],
         currentHP: 100,
         currentMP: 50,

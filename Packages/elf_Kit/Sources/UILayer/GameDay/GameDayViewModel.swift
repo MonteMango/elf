@@ -49,11 +49,24 @@ public final class GameDayViewModel {
     }
     public var equippedItems: [HeroItemType: HeroEquippedSlot] {
         let baseIds = equipmentQueryService.equippedBaseItemIds(from: gameService.player.equipped)
-        return baseIds.mapValues { uuid in
+        var result: [HeroItemType: HeroEquippedSlot] = baseIds.mapValues { uuid in
             let candidateName = uuid.uuidString.lowercased()
             let resolvedName = UIImage(named: candidateName) != nil ? candidateName : nil
             return HeroEquippedSlot(id: uuid, imageName: resolvedName)
         }
+
+        // Two-handed weapons occupy both hands but live in a single enum case,
+        // so the off-hand slot is empty. Mirror the weapon icon there so the
+        // user can see at a glance why the shield slot is unavailable.
+        if case .twoHanded = gameService.player.equipped.weapons,
+           let weaponSlot = result[.weapons] {
+            result[.shields] = HeroEquippedSlot(
+                id: weaponSlot.id,
+                imageName: weaponSlot.imageName,
+                mirroredFrom: .weapons
+            )
+        }
+        return result
     }
 
     // MARK: - Initialization
