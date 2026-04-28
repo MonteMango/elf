@@ -49,7 +49,7 @@ internal struct ElfApp: App {
             for: .normal
         )
     }
-    
+
     // MARK: RocketSim
 
     private func loadRocketSimConnect() {
