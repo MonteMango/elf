@@ -37,14 +37,4 @@ public struct BattleRound: Sendable, Identifiable, Hashable {
         self.waitingLeftIds = waitingLeftIds
         self.waitingRightIds = waitingRightIds
     }
-
-    /// The active duel pair that the player controls (first pair)
-    public var activePair: DuelPair? {
-        duelPairs.first
-    }
-
-    /// All non-active duel pairs
-    public var otherPairs: [DuelPair] {
-        Array(duelPairs.dropFirst())
-    }
 }

@@ -67,6 +67,7 @@ App supports **landscape orientation only**.
 | Using colors, fonts, spacing | `project-architecture.md` — Design System section |
 | Unsure about something | `common-mistakes.md` — check anti-patterns first! |
 | Game mechanics questions | `game-design.md` — Combat, Activities, Attributes |
+| Driving the iOS Simulator with RocketSim | `rocketsim-usage.md` — landscape→portrait coord transform |
 
 **Quick reference:**
 - All docs: `.claude/docs/`

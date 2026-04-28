@@ -1,9 +1,4 @@
 {
-  "enabledPlugins": {
-    "swift-concurrency@swift-concurrency-agent-skill": true,
-    "swift-testing-expert@swift-testing-agent-skill": true,
-    "swiftui-expert@swiftui-expert-skill": true
-  },
   "skillOverrides": {
     "resume-tailor": "off",
     "creative-portfolio-resume": "off",
@@ -25,6 +20,12 @@
     "executive-resume-writer": "off",
     "reference-list-builder": "off",
     "resume-version-manager": "off"
+  },
+  "enabledPlugins": {
+    "swift-concurrency@swift-concurrency-agent-skill": true,
+    "swift-testing-expert@swift-testing-agent-skill": true,
+    "swiftui-expert@swiftui-expert-skill": true,
+    "rocketsim@rocketsim-agent-skill": true
   },
   "extraKnownMarketplaces": {
     "swift-concurrency-agent-skill": {

@@ -215,6 +215,64 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         print("\n========================================\n")
     }
 
+    public func logRoundState(
+        roundNumber: Int,
+        leftTeam: [CombatantSnapshot],
+        rightTeam: [CombatantSnapshot],
+        playerCombatantId: UUID?,
+        battleRound: BattleRound?
+    ) {
+        guard categories.contains(.roundState) else { return }
+
+        let allies = leftTeam
+            .map { snapshot in
+                let heroMark = snapshot.id == playerCombatantId ? " ← HERO" : ""
+                return "  - \(snapshot.name) [id=\(snapshot.id.uuidString.prefix(8))] HP \(snapshot.currentHP)/\(snapshot.maxHP)\(heroMark)"
+            }
+            .joined(separator: "\n")
+        let enemies = rightTeam
+            .map { snapshot in
+                "  - \(snapshot.name) [id=\(snapshot.id.uuidString.prefix(8))] HP \(snapshot.currentHP)/\(snapshot.maxHP)"
+            }
+            .joined(separator: "\n")
+
+        let pairs: String
+        if let round = battleRound {
+            pairs = round.duelPairs.enumerated().map { idx, pair in
+                let leftName = leftTeam.first(where: { $0.id == pair.leftCombatantId })?.name ?? "?"
+                let rightName = rightTeam.first(where: { $0.id == pair.rightCombatantId })?.name ?? "?"
+                let heroMark = (pair.leftCombatantId == playerCombatantId) ? " ★" : ""
+                return "  [\(idx)] \(leftName) vs \(rightName)\(heroMark)"
+            }.joined(separator: "\n")
+        } else {
+            pairs = "  (none)"
+        }
+        let waitingLeft = (battleRound?.waitingLeftIds ?? [])
+            .compactMap { id in leftTeam.first(where: { $0.id == id })?.name }
+            .joined(separator: ", ")
+        let waitingRight = (battleRound?.waitingRightIds ?? [])
+            .compactMap { id in rightTeam.first(where: { $0.id == id })?.name }
+            .joined(separator: ", ")
+
+        let heroPair = battleRound?.duelPairs.first(where: { $0.leftCombatantId == playerCombatantId })
+        let heroAlive = playerCombatantId.flatMap { id in leftTeam.first(where: { $0.id == id })?.isAlive } ?? false
+        let heroWaiting = heroAlive && battleRound != nil && heroPair == nil
+
+        print("""
+        ==================== Round \(roundNumber) ====================
+        ALLIES (\(leftTeam.filter { $0.isAlive }.count) alive / \(leftTeam.count) total):
+        \(allies)
+        ENEMIES (\(rightTeam.filter { $0.isAlive }.count) alive / \(rightTeam.count) total):
+        \(enemies)
+        PAIRS:
+        \(pairs)
+        WAITING left: [\(waitingLeft)]
+        WAITING right: [\(waitingRight)]
+        heroDuelPair=\(heroPair == nil ? "nil" : "set")  isHeroAlive=\(heroAlive)  isHeroWaiting=\(heroWaiting)
+        =====================================================
+        """)
+    }
+
     // MARK: - Private Helpers
 
     private func logCombatantStats(_ snapshot: CombatantSnapshot) {

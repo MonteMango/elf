@@ -17,27 +17,21 @@ public final class RandomDuelPairingService: DuelPairingService {
         rightTeam: [CombatantSnapshot],
         roundNumber: Int
     ) -> BattleRound {
-        // Filter alive combatants
         let aliveLeft = leftTeam.filter { $0.isAlive }
         let aliveRight = rightTeam.filter { $0.isAlive }
 
-        // Shuffle both teams for random pairing
         let shuffledLeft = aliveLeft.shuffled()
         let shuffledRight = aliveRight.shuffled()
-
-        // Create pairs until one team runs out
-        var duelPairs: [DuelPair] = []
         let pairCount = min(shuffledLeft.count, shuffledRight.count)
 
+        var duelPairs: [DuelPair] = []
         for index in 0..<pairCount {
-            let pair = DuelPair(
+            duelPairs.append(DuelPair(
                 leftCombatantId: shuffledLeft[index].id,
                 rightCombatantId: shuffledRight[index].id
-            )
-            duelPairs.append(pair)
+            ))
         }
 
-        // Determine waiting combatants
         let waitingLeftIds: [UUID]
         let waitingRightIds: [UUID]
 

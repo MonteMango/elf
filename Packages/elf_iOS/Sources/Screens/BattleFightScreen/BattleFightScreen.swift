@@ -38,149 +38,186 @@ internal struct BattleFightScreen: View {
         #if DEBUG
         let _ = Self._printChanges()
         #endif
-        ZStack {
-            Color.white.ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                // Top bar: Player title, Round number with Close button, Bot title
-                HStack(alignment: .firstTextBaseline, spacing: 0) {
-                    Text("[\(viewModel.playerSnapshot.level)] \(viewModel.playerSnapshot.name)")
-                        .font(ElfFonts.Component.statLabel)
-                        .foregroundStyle(.black)
-                    Spacer()
+        VStack(spacing: 0) {
+            // Top bar: Player title, Round number with Close button, Bot title
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
+                Text("[\(viewModel.playerSnapshot.level)] \(viewModel.playerSnapshot.name)")
+                    .font(ElfFonts.Component.statLabel)
+                    .foregroundStyle(.black)
+                Spacer()
+                HStack(spacing: 12) {
                     Text("Round \(viewModel.currentRoundNumber)")
                         .font(ElfFonts.Component.roundNumber)
                         .foregroundStyle(.black)
-                        .overlay(alignment: .trailing) {
-                            elf_SwiftUI.CloseButton {
-                                showLeaveConfirmation = true
-                            }
-                            .alignmentGuide(.trailing) { d in d[.leading] - 12 }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 16)
-                    Spacer()
-                    Text("[\(viewModel.botSnapshot.level)] \(viewModel.botSnapshot.name)")
+                    elf_SwiftUI.CloseButton {
+                        showLeaveConfirmation = true
+                    }
+                }
+                .padding(.top, 16)
+                Spacer()
+                if let displayed = viewModel.displayedBotSnapshot {
+                    Text("[\(displayed.level)] \(displayed.name)")
                         .font(ElfFonts.Component.statLabel)
                         .foregroundStyle(.black)
-                }
-
-                Spacer()
-
-                // Main horizontal layout
-                HStack(alignment: .top, spacing: 0) {
-                    // Player Hero
-                    VStack {
-                        HeroDisplayView(
-                            snapshot: viewModel.playerSnapshot,
-                            currentHP: viewModel.playerCurrentHP,
-                            maxHP: viewModel.playerMaxHP,
-                            roundResults: viewModel.playerLastRoundResults
-                        )
-                        Spacer()
-                    }
-
-                    Spacer()
-                        .frame(width: 15)
-
-                    VStack {
-                        Spacer()
-
-                        // Defense selector
-                        BodyPointSelector(
-                            mode: .defense,
-                            selectedPoints: viewModel.playerDefensePoints,
-                            maxPoints: viewModel.playerSnapshot.defensePoints,
-                            onToggle: { bodyPart in
-                                viewModel.togglePlayerDefensePoint(bodyPart)
-                            }
-                        )
-                    }
-
-                    Spacer()
-                        .frame(width: 5)
-
-                    // Duel Pairs with Separator
-                    if let battleRound = viewModel.currentBattleRound {
-                        DuelPairsColumnView(
-                            battleRound: battleRound,
-                            leftTeam: viewModel.leftTeam,
-                            rightTeam: viewModel.rightTeam
-                        )
-                    } else {
-                        // Fallback: just separator if no round data
-                        Rectangle()
-                            .fill(ElfColors.Background.overlayLight)
-                            .frame(width: 2)
-                    }
-
-                    Spacer()
-                        .frame(width: 5)
-
-                    VStack {
-                        Spacer()
-
-                        // Attack selector
-                        BodyPointSelector(
-                            mode: .attack,
-                            selectedPoints: viewModel.playerAttackPoints,
-                            maxPoints: viewModel.playerSnapshot.attackPoints,
-                            onToggle: { bodyPart in
-                                viewModel.togglePlayerAttackPoint(bodyPart)
-                            }
-                        )
-                    }
-
-                    Spacer()
-                        .frame(width: 15)
-
-                    VStack {
-                        // Bot Hero
-                        HeroDisplayView(
-                            snapshot: viewModel.botSnapshot,
-                            currentHP: viewModel.botCurrentHP,
-                            maxHP: viewModel.botMaxHP,
-                            roundResults: viewModel.botLastRoundResults
-                        )
-                        Spacer()
-                    }
-                }
-
-                Spacer()
-
-                // Auto/Fight button
-                if hasNoSelection {
-                    // AUTO button - when nothing is selected
-                    Button(action: {
-                        viewModel.autoFillPoints()
-                    }) {
-                        Text("AUTO")
-                            .font(ElfFonts.Component.actionButton)
-                            .foregroundStyle(ElfColors.Button.primary)
-                            .frame(width: 120)
-                            .frame(height: 54)
-                            .background(Color.white, in: RoundedRectangle(cornerRadius: 27))
-                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                    }
-                } else {
-                    // FIGHT button - when any selection made
-                    Button(action: {
-                        Task { @MainActor in
-                            await viewModel.executeFightRound()
-                        }
-                    }) {
-                        Text("FIGHT")
-                            .font(ElfFonts.Component.actionButton)
-                            .foregroundStyle(.white)
-                            .frame(width: 120)
-                            .frame(height: 54)
-                            .background(ElfColors.Button.primary, in: RoundedRectangle(cornerRadius: 27))
-                    }
-                    .disabled(!hasFullSelection || viewModel.isExecutingRound)
-                    .opacity(hasFullSelection && !viewModel.isExecutingRound ? 1.0 : 0.5)
+                        .opacity(viewModel.isHeroWaiting ? 0 : 1)
                 }
             }
+
+            Spacer()
+
+            // Main horizontal layout
+            HStack(alignment: .top, spacing: 0) {
+                // Player Hero
+                VStack {
+                    HeroDisplayView(
+                        snapshot: viewModel.playerSnapshot,
+                        currentHP: viewModel.playerCurrentHP,
+                        maxHP: viewModel.playerMaxHP,
+                        roundResults: viewModel.playerLastRoundResults
+                    )
+                    Spacer()
+                }
+
+                Spacer()
+                    .frame(width: 15)
+
+                VStack {
+                    Spacer()
+
+                    // Defense selector
+                    BodyPointSelector(
+                        mode: .defense,
+                        selectedPoints: viewModel.playerDefensePoints,
+                        maxPoints: viewModel.playerSnapshot.defensePoints,
+                        onToggle: { bodyPart in
+                            viewModel.togglePlayerDefensePoint(bodyPart)
+                        }
+                    )
+                }
+                .disabled(!viewModel.isHeroAlive || viewModel.isHeroWaiting)
+
+                Spacer()
+                    .frame(width: 5)
+
+                // Duel Pairs with Separator
+                if let battleRound = viewModel.currentBattleRound {
+                    DuelPairsColumnView(
+                        battleRound: battleRound,
+                        leftTeam: viewModel.leftTeam,
+                        rightTeam: viewModel.rightTeam,
+                        playerCombatantId: viewModel.playerCombatantId
+                    )
+                } else {
+                    // Fallback: just separator if no round data
+                    Rectangle()
+                        .fill(ElfColors.Background.overlayLight)
+                        .frame(width: 2)
+                }
+
+                Spacer()
+                    .frame(width: 5)
+
+                VStack {
+                    Spacer()
+
+                    // Attack selector
+                    BodyPointSelector(
+                        mode: .attack,
+                        selectedPoints: viewModel.playerAttackPoints,
+                        maxPoints: viewModel.playerSnapshot.attackPoints,
+                        onToggle: { bodyPart in
+                            viewModel.togglePlayerAttackPoint(bodyPart)
+                        }
+                    )
+                }
+                .disabled(!viewModel.isHeroAlive || viewModel.isHeroWaiting)
+
+                Spacer()
+                    .frame(width: 15)
+
+                VStack {
+                    if let displayed = viewModel.displayedBotSnapshot {
+                        HeroDisplayView(
+                            snapshot: displayed,
+                            currentHP: viewModel.botSnapshot?.currentHP ?? displayed.currentHP,
+                            maxHP: displayed.maxHP,
+                            roundResults: viewModel.botLastRoundResults
+                        )
+                        .opacity(viewModel.isHeroWaiting ? 0 : 1)
+                        .allowsHitTesting(!viewModel.isHeroWaiting)
+                    }
+                    Spacer()
+                }
+            }
+
+            Spacer()
+
+            // Auto/Fight/Watch button
+            if !viewModel.isHeroAlive {
+                // WATCH button — hero is dead, surviving allies finish the battle
+                Button(action: {
+                    Task { @MainActor in
+                        await viewModel.executeWatchUntilEnd()
+                    }
+                }) {
+                    Text("WATCH")
+                        .font(ElfFonts.Component.actionButton)
+                        .foregroundStyle(.white)
+                        .frame(width: 120)
+                        .frame(height: 54)
+                        .background(ElfColors.Button.primary, in: RoundedRectangle(cornerRadius: 27))
+                }
+                .disabled(viewModel.isExecutingRound)
+                .opacity(viewModel.isExecutingRound ? 0.5 : 1.0)
+            } else if viewModel.isHeroWaiting {
+                // WAIT button — hero alive but has no opponent this round
+                Button(action: {
+                    Task { @MainActor in
+                        await viewModel.executeFightRound()
+                    }
+                }) {
+                    Text("WAIT")
+                        .font(ElfFonts.Component.actionButton)
+                        .foregroundStyle(.white)
+                        .frame(width: 120)
+                        .frame(height: 54)
+                        .background(ElfColors.Button.primary, in: RoundedRectangle(cornerRadius: 27))
+                }
+                .disabled(viewModel.isExecutingRound)
+                .opacity(viewModel.isExecutingRound ? 0.5 : 1.0)
+            } else if hasNoSelection {
+                // AUTO button - when nothing is selected
+                Button(action: {
+                    viewModel.autoFillPoints()
+                }) {
+                    Text("AUTO")
+                        .font(ElfFonts.Component.actionButton)
+                        .foregroundStyle(ElfColors.Button.primary)
+                        .frame(width: 120)
+                        .frame(height: 54)
+                        .background(Color.white, in: RoundedRectangle(cornerRadius: 27))
+                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                }
+            } else {
+                // FIGHT button - when any selection made
+                Button(action: {
+                    Task { @MainActor in
+                        await viewModel.executeFightRound()
+                    }
+                }) {
+                    Text("FIGHT")
+                        .font(ElfFonts.Component.actionButton)
+                        .foregroundStyle(.white)
+                        .frame(width: 120)
+                        .frame(height: 54)
+                        .background(ElfColors.Button.primary, in: RoundedRectangle(cornerRadius: 27))
+                }
+                .disabled(!hasFullSelection || viewModel.isExecutingRound)
+                .opacity(hasFullSelection && !viewModel.isExecutingRound ? 1.0 : 0.5)
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.white, ignoresSafeAreaEdges: .all)
         .onAppear { viewModel.loadInitialData() }
         .onChange(of: viewModel.battleResult) { _, result in
             if let result = result {

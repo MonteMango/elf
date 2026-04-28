@@ -41,4 +41,9 @@ public enum DebugBattleLogCategory: Sendable {
 
     /// Log round end results with HP changes and status summary
     case roundEnd
+
+    /// Log a snapshot of the round state: alive counts, per-combatant HP,
+    /// duel pairs, waiting lists, and hero flags. Useful for diagnosing
+    /// pairing / waiting transitions in N×M battles.
+    case roundState
 }

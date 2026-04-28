@@ -48,43 +48,75 @@ public final class BattleFightViewModel {
     /// Battle result for UI display (set when battle ends)
     public private(set) var battleResult: ManualBattleResult?
 
+    // MARK: - Teams (mutable: currentHP changes per round)
+
+    public private(set) var leftTeam: [CombatantSnapshot]
+    public private(set) var rightTeam: [CombatantSnapshot]
+
+    /// Identity of the player-controlled combatant in `leftTeam`. By convention the hero
+    /// is `leftTeam[0]`; nil for dev/auto flows that don't have a player.
+    public let playerCombatantId: UUID?
+
     // MARK: - Round State
 
-    /// Round logs accumulated during the battle
+    /// Round logs accumulated during the battle (hero pair only)
     public private(set) var roundLog: [ManualBattleRoundLog] = []
 
-    public var currentRoundNumber: Int {
-        return roundLog.count + 1
-    }
+    /// Current round number, advanced once per FIGHT regardless of hero participation.
+    public private(set) var currentRoundNumber: Int = 1
 
     /// Current battle round with duel pairs (owned by ViewModel, not Battle)
     public private(set) var currentBattleRound: BattleRound?
 
-    // MARK: - Player State (Left Team - First Combatant)
+    // MARK: - Player / Bot view-state (driven by active duel pair)
 
     public var playerSnapshot: CombatantSnapshot {
-        return battle.leftTeam[0]
+        if let id = playerCombatantId,
+           let snapshot = leftTeam.first(where: { $0.id == id }) {
+            return snapshot
+        }
+        return leftTeam[0]
     }
 
-    public var playerCurrentHP: Int
-    public var playerMaxHP: Int
+    /// The duel pair containing the hero in the current round, if any.
+    public var heroDuelPair: DuelPair? {
+        guard let id = playerCombatantId else { return nil }
+        return currentBattleRound?.duelPairs.first(where: { $0.leftCombatantId == id })
+    }
+
+    public var botSnapshot: CombatantSnapshot? {
+        guard let opponentId = heroDuelPair?.rightCombatantId,
+              let snapshot = rightTeam.first(where: { $0.id == opponentId })
+        else { return nil }
+        return snapshot
+    }
+
+    public var playerCurrentHP: Int { playerSnapshot.currentHP }
+    public var playerMaxHP: Int { playerSnapshot.maxHP }
+    public var botCurrentHP: Int? { botSnapshot?.currentHP }
+    public var botMaxHP: Int? { botSnapshot?.maxHP }
+
+    public var isHeroAlive: Bool { playerSnapshot.isAlive }
+
+    /// Hero is alive but has no opponent in the current round (landed in `waitingLeftIds`).
+    public var isHeroWaiting: Bool {
+        guard isHeroAlive, currentBattleRound != nil else { return false }
+        return heroDuelPair == nil
+    }
+
+    /// Last opponent shown next to the hero — kept around for stable UI geometry while the
+    /// hero is waiting (no real opponent) or dead. Updated whenever a new real opponent
+    /// appears; never reset to nil after the first round.
+    public private(set) var displayedBotSnapshot: CombatantSnapshot?
 
     public var playerAttackPoints: Set<BodyPart> = []
     public var playerDefensePoints: Set<BodyPart> = []
 
-    // MARK: - Bot State (Right Team - First Combatant)
-
-    public var botSnapshot: CombatantSnapshot {
-        return battle.rightTeam[0]
-    }
-
-    public var botCurrentHP: Int
-    public var botMaxHP: Int
-
+    /// Last bot selections shown for the hero pair (kept for parity with prior UI/logging).
     public var botAttackPoints: Set<BodyPart> = []
     public var botDefensePoints: Set<BodyPart> = []
 
-    // MARK: - Round Results
+    // MARK: - Round Results (hero pair only, surfaced in HeroDisplayView)
 
     public var playerLastRoundResults: [BodyPart: PointStatus] = [:]
     public var botLastRoundResults: [BodyPart: PointStatus] = [:]
@@ -92,17 +124,14 @@ public final class BattleFightViewModel {
     // MARK: - Initialization
 
     public init(battle: Battle, gameService: (any GameService)? = nil) {
+        precondition(!battle.leftTeam.isEmpty, "Battle.leftTeam must be non-empty")
+        precondition(!battle.rightTeam.isEmpty, "Battle.rightTeam must be non-empty")
         self.battle = battle
         self.gameService = gameService
-
-        // Initialize HP values from snapshots
-        let player = battle.leftTeam[0]
-        self.playerMaxHP = player.maxHP
-        self.playerCurrentHP = player.currentHP
-
-        let bot = battle.rightTeam[0]
-        self.botMaxHP = bot.maxHP
-        self.botCurrentHP = bot.currentHP
+        self.leftTeam = battle.leftTeam
+        self.rightTeam = battle.rightTeam
+        self.playerCombatantId = battle.leftTeam.first?.id
+        self.displayedBotSnapshot = battle.rightTeam.first
     }
 
     // MARK: - Data Loading
@@ -118,13 +147,9 @@ public final class BattleFightViewModel {
         let maxAttackPoints = playerSnapshot.attackPoints
 
         if playerAttackPoints.contains(bodyPart) {
-            // Deselect
             playerAttackPoints.remove(bodyPart)
-        } else {
-            // Select if not at limit
-            if playerAttackPoints.count < maxAttackPoints {
-                playerAttackPoints.insert(bodyPart)
-            }
+        } else if playerAttackPoints.count < maxAttackPoints {
+            playerAttackPoints.insert(bodyPart)
         }
     }
 
@@ -132,13 +157,9 @@ public final class BattleFightViewModel {
         let maxDefensePoints = playerSnapshot.defensePoints
 
         if playerDefensePoints.contains(bodyPart) {
-            // Deselect
             playerDefensePoints.remove(bodyPart)
-        } else {
-            // Select if not at limit
-            if playerDefensePoints.count < maxDefensePoints {
-                playerDefensePoints.insert(bodyPart)
-            }
+        } else if playerDefensePoints.count < maxDefensePoints {
+            playerDefensePoints.insert(bodyPart)
         }
     }
 
@@ -151,78 +172,151 @@ public final class BattleFightViewModel {
 
     public func executeFightRound() async {
         guard !isExecutingRound else { return }
-        guard playerAttackPoints.count == playerSnapshot.attackPoints else { return }
-        guard playerDefensePoints.count == playerSnapshot.defensePoints else { return }
+        guard let round = currentBattleRound else { return }
+
+        let heroIsPaired = heroDuelPair != nil
+        if heroIsPaired {
+            guard playerAttackPoints.count == playerSnapshot.attackPoints else { return }
+            guard playerDefensePoints.count == playerSnapshot.defensePoints else { return }
+        }
 
         isExecutingRound = true
         defer { isExecutingRound = false }
 
-        // Generate bot selections using BotAI service
-        botAttackPoints = botAI.selectAttackPoints(count: botSnapshot.attackPoints)
-        botDefensePoints = botAI.selectDefensePoints(count: botSnapshot.defensePoints)
+        for pair in round.duelPairs {
+            guard
+                let leftIdx = leftTeam.firstIndex(where: { $0.id == pair.leftCombatantId }),
+                let rightIdx = rightTeam.firstIndex(where: { $0.id == pair.rightCombatantId })
+            else { continue }
 
-        // Log round start
-        debugLogger.logRoundStart(
-            roundNumber: currentRoundNumber,
-            playerSnapshot: playerSnapshot,
-            botSnapshot: botSnapshot,
-            playerAttack: Array(playerAttackPoints),
-            playerDefense: Array(playerDefensePoints),
-            botAttack: Array(botAttackPoints),
-            botDefense: Array(botDefensePoints)
-        )
+            let left = leftTeam[leftIdx]
+            let right = rightTeam[rightIdx]
+            let isHeroPair = (left.id == playerCombatantId)
 
-        let roundResult = combatRoundExecutor.executeRound(
-            playerSnapshot: playerSnapshot,
-            botSnapshot: botSnapshot,
-            playerAttackPoints: playerAttackPoints,
-            playerDefensePoints: playerDefensePoints,
-            botAttackPoints: botAttackPoints,
-            botDefensePoints: botDefensePoints
-        )
+            let leftAttack: Set<BodyPart>
+            let leftDefense: Set<BodyPart>
+            if isHeroPair {
+                leftAttack = playerAttackPoints
+                leftDefense = playerDefensePoints
+            } else {
+                leftAttack = botAI.selectAttackPoints(count: left.attackPoints)
+                leftDefense = botAI.selectDefensePoints(count: left.defensePoints)
+            }
+            let rightAttack = botAI.selectAttackPoints(count: right.attackPoints)
+            let rightDefense = botAI.selectDefensePoints(count: right.defensePoints)
 
-        // Store results
-        playerLastRoundResults = roundResult.playerResults
-        botLastRoundResults = roundResult.botResults
+            let result = combatRoundExecutor.executeRound(
+                playerSnapshot: left,
+                botSnapshot: right,
+                playerAttackPoints: leftAttack,
+                playerDefensePoints: leftDefense,
+                botAttackPoints: rightAttack,
+                botDefensePoints: rightDefense
+            )
 
-        // Store old HP values for debug logging
-        let playerOldHP = playerCurrentHP
-        let botOldHP = botCurrentHP
+            let leftOldHP = left.currentHP
+            let rightOldHP = right.currentHP
+            leftTeam[leftIdx].currentHP = max(0, leftOldHP - result.playerDamageTaken)
+            rightTeam[rightIdx].currentHP = max(0, rightOldHP - result.botDamageTaken)
 
-        // Update HP
-        playerCurrentHP = max(0, playerCurrentHP - roundResult.playerDamageTaken)
-        botCurrentHP = max(0, botCurrentHP - roundResult.botDamageTaken)
+            if isHeroPair {
+                playerLastRoundResults = result.playerResults
+                botLastRoundResults = result.botResults
+                botAttackPoints = rightAttack
+                botDefensePoints = rightDefense
 
-        let roundLog = battleLogger.createRoundLog(
-            roundNumber: currentRoundNumber,
-            playerSnapshot: playerSnapshot,
-            botSnapshot: botSnapshot,
-            playerActions: (attack: playerAttackPoints, defense: playerDefensePoints),
-            botActions: (attack: botAttackPoints, defense: botDefensePoints),
-            playerResults: roundResult.playerResults,
-            botResults: roundResult.botResults
-        )
-        self.roundLog.append(roundLog)
+                debugLogger.logRoundStart(
+                    roundNumber: currentRoundNumber,
+                    playerSnapshot: left,
+                    botSnapshot: right,
+                    playerAttack: Array(leftAttack),
+                    playerDefense: Array(leftDefense),
+                    botAttack: Array(rightAttack),
+                    botDefense: Array(rightDefense)
+                )
+                let log = battleLogger.createRoundLog(
+                    roundNumber: currentRoundNumber,
+                    playerSnapshot: left,
+                    botSnapshot: right,
+                    playerActions: (attack: leftAttack, defense: leftDefense),
+                    botActions: (attack: rightAttack, defense: rightDefense),
+                    playerResults: result.playerResults,
+                    botResults: result.botResults
+                )
+                roundLog.append(log)
+                debugLogger.logRoundEnd(
+                    roundNumber: currentRoundNumber,
+                    playerOldHP: leftOldHP,
+                    playerNewHP: leftTeam[leftIdx].currentHP,
+                    botOldHP: rightOldHP,
+                    botNewHP: rightTeam[rightIdx].currentHP,
+                    playerResults: result.playerResults,
+                    botResults: result.botResults
+                )
+            }
+        }
 
-        debugLogger.logRoundEnd(
-            roundNumber: currentRoundNumber,
-            playerOldHP: playerOldHP,
-            playerNewHP: playerCurrentHP,
-            botOldHP: botOldHP,
-            botNewHP: botCurrentHP,
-            playerResults: roundResult.playerResults,
-            botResults: roundResult.botResults
-        )
-
-        // Clear selections for next round
         playerAttackPoints.removeAll()
         playerDefensePoints.removeAll()
-        botAttackPoints.removeAll()
-        botDefensePoints.removeAll()
 
-        // Check if battle ended
-        if playerCurrentHP <= 0 || botCurrentHP <= 0 {
+        let leftAlive = leftTeam.contains(where: { $0.isAlive })
+        let rightAlive = rightTeam.contains(where: { $0.isAlive })
+
+        if !leftAlive || !rightAlive {
             battleEnded = true
+        } else {
+            currentRoundNumber += 1
+            generateNewRoundPairings()
+        }
+    }
+
+    /// Spectator flow: hero is dead, surviving allies fight to completion automatically.
+    public func executeWatchUntilEnd() async {
+        guard !isHeroAlive, !battleEnded, !isExecutingRound else { return }
+        while !battleEnded {
+            await runAutoRound()
+        }
+    }
+
+    private func runAutoRound() async {
+        guard let round = currentBattleRound else { return }
+        isExecutingRound = true
+        defer { isExecutingRound = false }
+
+        for pair in round.duelPairs {
+            guard
+                let leftIdx = leftTeam.firstIndex(where: { $0.id == pair.leftCombatantId }),
+                let rightIdx = rightTeam.firstIndex(where: { $0.id == pair.rightCombatantId })
+            else { continue }
+
+            let left = leftTeam[leftIdx]
+            let right = rightTeam[rightIdx]
+            let leftAttack = botAI.selectAttackPoints(count: left.attackPoints)
+            let leftDefense = botAI.selectDefensePoints(count: left.defensePoints)
+            let rightAttack = botAI.selectAttackPoints(count: right.attackPoints)
+            let rightDefense = botAI.selectDefensePoints(count: right.defensePoints)
+
+            let result = combatRoundExecutor.executeRound(
+                playerSnapshot: left,
+                botSnapshot: right,
+                playerAttackPoints: leftAttack,
+                playerDefensePoints: leftDefense,
+                botAttackPoints: rightAttack,
+                botDefensePoints: rightDefense
+            )
+
+            leftTeam[leftIdx].currentHP = max(0, left.currentHP - result.playerDamageTaken)
+            rightTeam[rightIdx].currentHP = max(0, right.currentHP - result.botDamageTaken)
+        }
+
+        let leftAlive = leftTeam.contains(where: { $0.isAlive })
+        let rightAlive = rightTeam.contains(where: { $0.isAlive })
+
+        if !leftAlive || !rightAlive {
+            battleEnded = true
+        } else {
+            currentRoundNumber += 1
+            generateNewRoundPairings()
         }
     }
 
@@ -251,17 +345,14 @@ public final class BattleFightViewModel {
     private func applyBattleRewards(result: ManualBattleResult, monster: Monster?) async {
         guard let gameService = gameService else { return }
 
-        // Add XP (sync — main-actor mutation)
         if result.experienceGained > 0 {
             gameService.addPlayerExperience(result.experienceGained)
         }
 
-        // Add drops to inventory (sync)
         if let huntRewards = result.huntRewards {
             gameService.addDropsToPlayerInventory(rewards: huntRewards)
         }
 
-        // Save game (async — file I/O on background actor)
         do {
             try await gameService.saveGame()
         } catch {
@@ -274,17 +365,17 @@ public final class BattleFightViewModel {
     // MARK: - Private Helpers
 
     private func determineBattleOutcome() -> BattleOutcome {
-        if playerCurrentHP > 0 && botCurrentHP <= 0 {
-            return .victory
-        } else if playerCurrentHP <= 0 && botCurrentHP > 0 {
-            return .defeat
-        } else {
-            return .draw
+        let leftAlive = leftTeam.contains(where: { $0.isAlive })
+        let rightAlive = rightTeam.contains(where: { $0.isAlive })
+        switch (leftAlive, rightAlive) {
+        case (true, false): return .victory
+        case (false, true): return .defeat
+        default:            return .draw
         }
     }
 
     private func getMonsterFromBot() -> Monster? {
-        guard let botSnapshot = battle.rightTeam.first,
+        guard let botSnapshot = rightTeam.first,
               botSnapshot.combatantType == .monster else {
             return nil
         }
@@ -296,19 +387,19 @@ public final class BattleFightViewModel {
     /// Generates new random pairings for the current round
     public func generateNewRoundPairings() {
         currentBattleRound = duelPairingService.createRandomPairs(
-            leftTeam: battle.leftTeam,
-            rightTeam: battle.rightTeam,
+            leftTeam: leftTeam,
+            rightTeam: rightTeam,
             roundNumber: currentRoundNumber
         )
-    }
-
-    /// Returns the left team combatants
-    public var leftTeam: [CombatantSnapshot] {
-        battle.leftTeam
-    }
-
-    /// Returns the right team combatants
-    public var rightTeam: [CombatantSnapshot] {
-        battle.rightTeam
+        if let bot = botSnapshot {
+            displayedBotSnapshot = bot
+        }
+        debugLogger.logRoundState(
+            roundNumber: currentRoundNumber,
+            leftTeam: leftTeam,
+            rightTeam: rightTeam,
+            playerCombatantId: playerCombatantId,
+            battleRound: currentBattleRound
+        )
     }
 }

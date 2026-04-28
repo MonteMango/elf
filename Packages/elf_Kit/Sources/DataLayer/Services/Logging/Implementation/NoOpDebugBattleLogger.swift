@@ -59,4 +59,12 @@ public struct NoOpDebugBattleLogger: DebugBattleLogger {
         playerResults: [BodyPart: PointStatus],
         botResults: [BodyPart: PointStatus]
     ) {}
+
+    public func logRoundState(
+        roundNumber: Int,
+        leftTeam: [CombatantSnapshot],
+        rightTeam: [CombatantSnapshot],
+        playerCombatantId: UUID?,
+        battleRound: BattleRound?
+    ) {}
 }

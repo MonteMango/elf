@@ -109,4 +109,22 @@ public protocol DebugBattleLogger: Sendable {
         playerResults: [BodyPart: PointStatus],
         botResults: [BodyPart: PointStatus]
     )
+
+    /// Logs a snapshot of the current round: alive counts, per-combatant HP,
+    /// duel pairs, waiting lists, and hero flags. Triggered after the pairing
+    /// service produces a new `BattleRound`. Gated by `.roundState` category.
+    ///
+    /// - Parameters:
+    ///   - roundNumber: Current round number
+    ///   - leftTeam: Full left-team snapshots (alive + dead) with current HP
+    ///   - rightTeam: Full right-team snapshots (alive + dead) with current HP
+    ///   - playerCombatantId: Identity of the player-controlled combatant, if any
+    ///   - battleRound: Pairing/waiting state for the round, if available
+    func logRoundState(
+        roundNumber: Int,
+        leftTeam: [CombatantSnapshot],
+        rightTeam: [CombatantSnapshot],
+        playerCombatantId: UUID?,
+        battleRound: BattleRound?
+    )
 }

@@ -304,3 +304,9 @@ scripts/
 # Analysis notes live in *.md files in the same folder and ARE tracked.
 traces/**/*.trace
 traces/**/.DS_Store
+
+# Profiler artifacts (raw `sample(1)` dumps are large; audit.md beside them is tracked)
+traces/**/sample.txt
+
+# Claude Code runtime artifacts
+.claude/scheduled_tasks.lock
