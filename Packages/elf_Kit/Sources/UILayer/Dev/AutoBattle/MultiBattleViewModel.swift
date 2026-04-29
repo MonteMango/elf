@@ -98,7 +98,7 @@ public final class MultiBattleViewModel {
             let batchResults = await withTaskGroup(of: BattleResult.self) { group in
                 for _ in 0..<battlesInBatch {
                     group.addTask {
-                        simService.runSingleBattle(currentBattle)
+                        await simService.runSingleBattle(currentBattle)
                     }
                 }
 
@@ -138,9 +138,9 @@ public final class MultiBattleViewModel {
 
         for battleResult in allResults {
             switch battleResult.winner {
-            case .bot1:
+            case .left:
                 bot1Wins += 1
-            case .bot2:
+            case .right:
                 bot2Wins += 1
             case .draw:
                 draws += 1

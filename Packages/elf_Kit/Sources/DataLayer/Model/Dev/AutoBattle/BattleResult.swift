@@ -25,12 +25,25 @@ public struct BattleResult: Sendable, Identifiable {
 
     // MARK: - Result
 
-    /// Who won the battle (bot1, bot2, or draw if both HP <= 0)
-    /// Note: In Battle model, playerHero = bot1, botHero = bot2
+    /// Which side won the battle. Mirrors `Battle.leftTeam` / `rightTeam`.
+    /// Used only by dev-simulation flows (`AutoBattleViewModel`,
+    /// `ElfBattleSimulationService`); production manual-battle results use
+    /// the player-perspective `BattleOutcome` directly.
     public enum Winner: Sendable, Equatable {
-        case bot1
-        case bot2
+        case left
+        case right
         case draw
+
+        /// Maps from the team-perspective `BattleOutcome`. Used by AutoBattle
+        /// and ElfBattleSimulationService to derive the 1v1 winner from
+        /// `detectBattleOutcome`'s output.
+        public init(from outcome: BattleOutcome) {
+            switch outcome {
+            case .victory: self = .left
+            case .defeat:  self = .right
+            case .draw:    self = .draw
+            }
+        }
     }
 
     public let winner: Winner

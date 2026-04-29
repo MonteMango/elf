@@ -8,42 +8,38 @@
 import Dependencies
 import Foundation
 
-/// Default implementation of BattleSimulationService
+/// Default implementation of BattleSimulationService.
+/// Wraps a 1v1 battle in a synthetic `BattleRound` and delegates per-round
+/// mechanics to `BattleRoundRunner`. Accumulates statistics from each
+/// round's `PairResult` (called twice — once per attacker direction).
 public final class ElfBattleSimulationService: BattleSimulationService {
 
     // MARK: - Dependencies (snapshotted at init)
 
-    private let botAI: any BotAIService
-    private let snapshotCombatCalculator: any SnapshotCombatCalculator
-    private let damageService: any DamageService
+    private let battleRoundRunner: any BattleRoundRunner
     private let statisticsParser: any BattleStatisticsParser
 
     // MARK: - Initialization
 
     public init() {
-        @Dependency(\.botAI) var botAI
-        @Dependency(\.snapshotCombatCalculator) var snapshotCombatCalculator
-        @Dependency(\.damageService) var damageService
+        @Dependency(\.battleRoundRunner) var battleRoundRunner
         @Dependency(\.statisticsParser) var statisticsParser
-        self.botAI = botAI
-        self.snapshotCombatCalculator = snapshotCombatCalculator
-        self.damageService = damageService
+        self.battleRoundRunner = battleRoundRunner
         self.statisticsParser = statisticsParser
     }
 
     // MARK: - BattleSimulationService
 
-    public func runSingleBattle(_ battle: Battle) -> BattleResult {
+    public func runSingleBattle(_ battle: Battle) async -> BattleResult {
         guard let bot1Snapshot = battle.leftTeam.first else {
             fatalError("Battle must have bot1 in left team")
         }
-
         guard let bot2Snapshot = battle.rightTeam.first else {
             fatalError("Battle must have bot2 in right team")
         }
 
-        var bot1HP = bot1Snapshot.maxHP
-        var bot2HP = bot2Snapshot.maxHP
+        var leftTeam: [CombatantSnapshot] = [bot1Snapshot]
+        var rightTeam: [CombatantSnapshot] = [bot2Snapshot]
         var currentRound = 1
         var roundHistory: [AutoBattleRoundResult] = []
 
@@ -68,41 +64,34 @@ public final class ElfBattleSimulationService: BattleSimulationService {
         var bot2StrengthDamagePerRound: [Int: Int] = [:]
 
         // Battle loop
-        while bot1HP > 0 && bot2HP > 0 {
-            let roundStartBot1HP = bot1HP
-            let roundStartBot2HP = bot2HP
-
-            let bot1Attack = botAI.selectAttackPoints(count: bot1Snapshot.attackPoints)
-            let bot1Defense = botAI.selectDefensePoints(count: bot1Snapshot.defensePoints)
-
-            let bot2Attack = botAI.selectAttackPoints(count: bot2Snapshot.attackPoints)
-            let bot2Defense = botAI.selectDefensePoints(count: bot2Snapshot.defensePoints)
-
-            let bot1Results = snapshotCombatCalculator.calculatePointStatus(
-                attackingPoints: bot2Attack,
-                defendingPoints: bot1Defense,
-                attacker: bot2Snapshot,
-                defender: bot1Snapshot
+        while leftTeam[0].isAlive && rightTeam[0].isAlive {
+            let synthRound = BattleRound(
+                roundNumber: currentRound,
+                duelPairs: [DuelPair(
+                    leftCombatantId: leftTeam[0].id,
+                    rightCombatantId: rightTeam[0].id
+                )]
             )
-
-            let bot2Results = snapshotCombatCalculator.calculatePointStatus(
-                attackingPoints: bot1Attack,
-                defendingPoints: bot2Defense,
-                attacker: bot1Snapshot,
-                defender: bot2Snapshot
+            let outcome = await battleRoundRunner.runRound(
+                leftTeam: leftTeam,
+                rightTeam: rightTeam,
+                round: synthRound,
+                heroSelection: nil
             )
+            leftTeam = outcome.updatedLeftTeam
+            rightTeam = outcome.updatedRightTeam
 
-            let bot1DamageTaken = damageService.calculateTotalDamage(from: bot1Results)
-            let bot2DamageTaken = damageService.calculateTotalDamage(from: bot2Results)
+            guard let pair = outcome.pairResults.first else { break }
 
-            bot1HP = max(0, bot1HP - bot1DamageTaken)
-            bot2HP = max(0, bot2HP - bot2DamageTaken)
+            let bot1DamageTaken = pair.leftOldHP - pair.leftNewHP
+            let bot2DamageTaken = pair.rightOldHP - pair.rightNewHP
 
+            // Bot2 as attacker, bot1 as defender (damage taken by bot1).
             var bot2StrengthDamageThisRound = 0
             statisticsParser.parseStatistics(
-                attackingPoints: bot2Attack,
-                defendingPoints: bot1Defense,
-                results: bot1Results,
+                attackingPoints: pair.rightAttack,
+                defendingPoints: pair.leftDefense,
+                results: pair.result.playerResults,
                 attackerCritAttempts: &bot2CritAttempts,
                 attackerCritSuccesses: &bot2CritSuccesses,
                 attackerCritMultipliers: &bot2CritMultipliers,
@@ -113,11 +102,12 @@ public final class ElfBattleSimulationService: BattleSimulationService {
                 attackerStrengthDamage: &bot2StrengthDamageThisRound
             )
 
+            // Bot1 as attacker, bot2 as defender (damage taken by bot2).
             var bot1StrengthDamageThisRound = 0
             statisticsParser.parseStatistics(
-                attackingPoints: bot1Attack,
-                defendingPoints: bot2Defense,
-                results: bot2Results,
+                attackingPoints: pair.leftAttack,
+                defendingPoints: pair.rightDefense,
+                results: pair.result.botResults,
                 attackerCritAttempts: &bot1CritAttempts,
                 attackerCritSuccesses: &bot1CritSuccesses,
                 attackerCritMultipliers: &bot1CritMultipliers,
@@ -133,40 +123,34 @@ public final class ElfBattleSimulationService: BattleSimulationService {
             bot1StrengthDamagePerRound[currentRound] = bot1StrengthDamageThisRound
             bot2StrengthDamagePerRound[currentRound] = bot2StrengthDamageThisRound
 
-            // Create round result
             let roundResult = AutoBattleRoundResult(
                 roundNumber: currentRound,
-                bot1AttackPoints: Array(bot1Attack),
-                bot1DefensePoints: Array(bot1Defense),
-                bot1StartHP: roundStartBot1HP,
-                bot1EndHP: bot1HP,
+                bot1AttackPoints: Array(pair.leftAttack),
+                bot1DefensePoints: Array(pair.leftDefense),
+                bot1StartHP: pair.leftOldHP,
+                bot1EndHP: pair.leftNewHP,
                 bot1DamageTaken: bot1DamageTaken,
                 bot1DamageDealt: bot2DamageTaken,
-                bot1Results: bot1Results,
-                bot2AttackPoints: Array(bot2Attack),
-                bot2DefensePoints: Array(bot2Defense),
-                bot2StartHP: roundStartBot2HP,
-                bot2EndHP: bot2HP,
+                bot1Results: pair.result.playerResults,
+                bot2AttackPoints: Array(pair.rightAttack),
+                bot2DefensePoints: Array(pair.rightDefense),
+                bot2StartHP: pair.rightOldHP,
+                bot2EndHP: pair.rightNewHP,
                 bot2DamageTaken: bot2DamageTaken,
                 bot2DamageDealt: bot1DamageTaken,
-                bot2Results: bot2Results
+                bot2Results: pair.result.botResults
             )
-
             roundHistory.append(roundResult)
             currentRound += 1
         }
 
-        // Determine winner - DRAW if both HP <= 0
-        let winner: BattleResult.Winner
-        if bot1HP <= 0 && bot2HP <= 0 {
-            winner = .draw
-        } else if bot1HP > 0 {
-            winner = .bot1
-        } else {
-            winner = .bot2
-        }
+        // Determine winner via shared outcome detector. `?? .draw` only fires
+        // if the loop exited with both alive (impossible given `while` guard).
+        let outcome = detectBattleOutcome(left: leftTeam, right: rightTeam) ?? .draw
+        let winner = BattleResult.Winner(from: outcome)
+        let bot1HP = leftTeam[0].currentHP
+        let bot2HP = rightTeam[0].currentHP
 
-        // Build statistics
         let statistics = BattleStatistics(
             bot1CritAttempts: bot1CritAttempts,
             bot1CritSuccesses: bot1CritSuccesses,
