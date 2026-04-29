@@ -87,16 +87,16 @@ internal struct AutoBattleResultScreen: View {
 
     private func winnerSection(_ result: BattleResult) -> some View {
         VStack(spacing: 12) {
-            Text(result.winner == .bot1 ? "Bot1 Wins!" : "Bot2 Wins!")
+            Text(result.winner == .left ? "Bot1 Wins!" : "Bot2 Wins!")
                 .font(.largeTitle)
                 .bold()
-                .foregroundStyle(result.winner == .bot1 ? .green : .red)
+                .foregroundStyle(result.winner == .left ? .green : .red)
 
             HStack(spacing: 40) {
                 botHPView(
                     name: "Bot1",
                     hp: result.bot1FinalHP,
-                    isWinner: result.winner == .bot1
+                    isWinner: result.winner == .left
                 )
 
                 Text("vs")
@@ -106,7 +106,7 @@ internal struct AutoBattleResultScreen: View {
                 botHPView(
                     name: "Bot2",
                     hp: result.bot2FinalHP,
-                    isWinner: result.winner == .bot2
+                    isWinner: result.winner == .right
                 )
             }
 
