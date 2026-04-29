@@ -12,25 +12,15 @@ import Foundation
 @Observable
 public final class QuestViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
     private let questId: QuestID
     private let gameService: any GameService
-
-    @ObservationIgnored
-    @Dependency(\.questRepository) private var questRepository
-
-    @ObservationIgnored
-    @Dependency(\.materialRepository) private var materialRepository
-
-    @ObservationIgnored
-    @Dependency(\.oreRepository) private var oreRepository
-
-    @ObservationIgnored
-    @Dependency(\.herbRepository) private var herbRepository
-
-    @ObservationIgnored
-    @Dependency(\.monsterRepository) private var monsterRepository
+    private let questRepository: any QuestRepository
+    private let materialRepository: any Repository<Material>
+    private let oreRepository: any Repository<Ore>
+    private let herbRepository: any Repository<Herb>
+    private let monsterRepository: any MonsterRepository
 
     // MARK: - Display Data (derived reactively from repositories)
 
@@ -53,6 +43,17 @@ public final class QuestViewModel {
     // MARK: - Initialization
 
     public init(questId: QuestID, gameService: any GameService) {
+        @Dependency(\.questRepository) var questRepository
+        @Dependency(\.materialRepository) var materialRepository
+        @Dependency(\.oreRepository) var oreRepository
+        @Dependency(\.herbRepository) var herbRepository
+        @Dependency(\.monsterRepository) var monsterRepository
+        self.questRepository = questRepository
+        self.materialRepository = materialRepository
+        self.oreRepository = oreRepository
+        self.herbRepository = herbRepository
+        self.monsterRepository = monsterRepository
+
         self.questId = questId
         self.gameService = gameService
     }

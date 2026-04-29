@@ -10,13 +10,15 @@ import Foundation
 
 public final class ElfDamageService: DamageService {
 
-    private let _itemsRepository = Dependency(\.itemsRepository)
-    private var itemsRepository: any ItemsRepository { _itemsRepository.wrappedValue }
+    private let itemsRepository: any ItemsRepository
+    private let distributionStrategy: any StrengthDamageDistributionStrategy
 
-    private let _distributionStrategy = Dependency(\.strengthDamageDistributionStrategy)
-    private var distributionStrategy: any StrengthDamageDistributionStrategy { _distributionStrategy.wrappedValue }
-
-    public init() {}
+    public init() {
+        @Dependency(\.itemsRepository) var itemsRepository
+        @Dependency(\.strengthDamageDistributionStrategy) var distributionStrategy
+        self.itemsRepository = itemsRepository
+        self.distributionStrategy = distributionStrategy
+    }
 
     public func getWeaponDamage(weaponId: UUID?) -> (minDmg: Int16, maxDmg: Int16)? {
         // No weapon equipped

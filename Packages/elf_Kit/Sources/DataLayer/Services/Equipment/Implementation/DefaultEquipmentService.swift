@@ -15,15 +15,17 @@ import Foundation
 @MainActor
 public final class DefaultEquipmentService: EquipmentService {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
     private let gameService: any GameStateService
-
-    @Dependency(\.itemsRepository) private var itemsRepository
+    private let itemsRepository: any ItemsRepository
 
     // MARK: - Initialization
 
     public init(gameService: any GameStateService) {
+        @Dependency(\.itemsRepository) var itemsRepository
+        self.itemsRepository = itemsRepository
+
         self.gameService = gameService
     }
 

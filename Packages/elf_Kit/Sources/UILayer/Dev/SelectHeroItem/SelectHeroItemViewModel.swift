@@ -12,10 +12,9 @@ import Foundation
 @Observable
 public final class SelectHeroItemViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    @ObservationIgnored
-    @Dependency(\.itemsRepository) private var itemsRepository
+    private let itemsRepository: any ItemsRepository
 
     // MARK: - Input
 
@@ -30,6 +29,9 @@ public final class SelectHeroItemViewModel {
     // MARK: - Initialization
 
     public init(heroType: HeroType, heroItemType: HeroItemType, currentItemId: UUID?) {
+        @Dependency(\.itemsRepository) var itemsRepository
+        self.itemsRepository = itemsRepository
+
         self.heroItemType = heroItemType
         self.selectedItemId = currentItemId
 

@@ -12,25 +12,15 @@ import Foundation
 @Observable
 public final class InventoryViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
     let gameService: any GameService
     let equipmentService: any EquipmentService
-
-    @ObservationIgnored
-    @Dependency(\.materialRepository) var materialRepository
-
-    @ObservationIgnored
-    @Dependency(\.fishRepository) var fishRepository
-
-    @ObservationIgnored
-    @Dependency(\.herbRepository) var herbRepository
-
-    @ObservationIgnored
-    @Dependency(\.oreRepository) var oreRepository
-
-    @ObservationIgnored
-    @Dependency(\.equipmentQueryService) var equipmentQueryService
+    let materialRepository: any Repository<Material>
+    let fishRepository: any Repository<Fish>
+    let herbRepository: any Repository<Herb>
+    let oreRepository: any Repository<Ore>
+    let equipmentQueryService: any EquipmentQueryService
 
     // MARK: - State
 
@@ -95,6 +85,17 @@ public final class InventoryViewModel {
     // MARK: - Initialization
 
     public init(gameService: any GameService) {
+        @Dependency(\.materialRepository) var materialRepository
+        @Dependency(\.fishRepository) var fishRepository
+        @Dependency(\.herbRepository) var herbRepository
+        @Dependency(\.oreRepository) var oreRepository
+        @Dependency(\.equipmentQueryService) var equipmentQueryService
+        self.materialRepository = materialRepository
+        self.fishRepository = fishRepository
+        self.herbRepository = herbRepository
+        self.oreRepository = oreRepository
+        self.equipmentQueryService = equipmentQueryService
+
         self.gameService = gameService
         self.equipmentService = DefaultEquipmentService(gameService: gameService)
     }

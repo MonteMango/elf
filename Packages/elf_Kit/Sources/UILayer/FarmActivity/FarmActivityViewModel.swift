@@ -12,24 +12,14 @@ import Foundation
 @Observable
 public final class FarmActivityViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
     private let gameService: any GameService
-
-    @ObservationIgnored
-    @Dependency(\.farmActivityService) private var farmActivityService
-
-    @ObservationIgnored
-    @Dependency(\.monsterRepository) private var monsterRepository
-
-    @ObservationIgnored
-    @Dependency(\.snapshotBuilder) private var snapshotBuilder
-
-    @ObservationIgnored
-    @Dependency(\.progressionService) private var progressionService
-
-    @ObservationIgnored
-    @Dependency(\.equipmentQueryService) private var equipmentQueryService
+    private let farmActivityService: any FarmActivityService
+    private let monsterRepository: any MonsterRepository
+    private let snapshotBuilder: any CombatantSnapshotBuilder
+    private let progressionService: any ProgressionService
+    private let equipmentQueryService: any EquipmentQueryService
 
     // MARK: - Activity
 
@@ -99,6 +89,17 @@ public final class FarmActivityViewModel {
     // MARK: - Initialization
 
     public init(activity: FarmActivity, gameService: any GameService) {
+        @Dependency(\.farmActivityService) var farmActivityService
+        @Dependency(\.monsterRepository) var monsterRepository
+        @Dependency(\.snapshotBuilder) var snapshotBuilder
+        @Dependency(\.progressionService) var progressionService
+        @Dependency(\.equipmentQueryService) var equipmentQueryService
+        self.farmActivityService = farmActivityService
+        self.monsterRepository = monsterRepository
+        self.snapshotBuilder = snapshotBuilder
+        self.progressionService = progressionService
+        self.equipmentQueryService = equipmentQueryService
+
         self.activity = activity
         self.gameService = gameService
     }

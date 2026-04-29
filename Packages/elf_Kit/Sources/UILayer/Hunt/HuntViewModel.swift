@@ -12,27 +12,15 @@ import Foundation
 @Observable
 public final class HuntViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
     private let gameService: any GameService
-
-    @ObservationIgnored
-    @Dependency(\.monsterRepository) private var monsterRepository
-
-    @ObservationIgnored
-    @Dependency(\.materialRepository) private var materialRepository
-
-    @ObservationIgnored
-    @Dependency(\.itemsRepository) private var itemsRepository
-
-    @ObservationIgnored
-    @Dependency(\.snapshotBuilder) private var snapshotBuilder
-
-    @ObservationIgnored
-    @Dependency(\.progressionService) private var progressionService
-
-    @ObservationIgnored
-    @Dependency(\.equipmentQueryService) private var equipmentQueryService
+    private let monsterRepository: any MonsterRepository
+    private let materialRepository: any Repository<Material>
+    private let itemsRepository: any ItemsRepository
+    private let snapshotBuilder: any CombatantSnapshotBuilder
+    private let progressionService: any ProgressionService
+    private let equipmentQueryService: any EquipmentQueryService
 
     // MARK: - Constants / Local UI state
 
@@ -60,6 +48,19 @@ public final class HuntViewModel {
     // MARK: - Initialization
 
     public init(gameService: any GameService) {
+        @Dependency(\.monsterRepository) var monsterRepository
+        @Dependency(\.materialRepository) var materialRepository
+        @Dependency(\.itemsRepository) var itemsRepository
+        @Dependency(\.snapshotBuilder) var snapshotBuilder
+        @Dependency(\.progressionService) var progressionService
+        @Dependency(\.equipmentQueryService) var equipmentQueryService
+        self.monsterRepository = monsterRepository
+        self.materialRepository = materialRepository
+        self.itemsRepository = itemsRepository
+        self.snapshotBuilder = snapshotBuilder
+        self.progressionService = progressionService
+        self.equipmentQueryService = equipmentQueryService
+
         self.gameService = gameService
     }
 

@@ -10,19 +10,21 @@ import Foundation
 
 public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
 
-    private let _damageService = Dependency(\.damageService)
-    private var damageService: any DamageService { _damageService.wrappedValue }
+    private let damageService: any DamageService
+    private let dodgeService: any DodgeService
+    private let critService: any CritService
+    private let debugLogger: any DebugBattleLogger
 
-    private let _dodgeService = Dependency(\.dodgeService)
-    private var dodgeService: any DodgeService { _dodgeService.wrappedValue }
-
-    private let _critService = Dependency(\.critService)
-    private var critService: any CritService { _critService.wrappedValue }
-
-    private let _debugLogger = Dependency(\.debugBattleLogger)
-    private var debugLogger: any DebugBattleLogger { _debugLogger.wrappedValue }
-
-    public init() {}
+    public init() {
+        @Dependency(\.damageService) var damageService
+        @Dependency(\.dodgeService) var dodgeService
+        @Dependency(\.critService) var critService
+        @Dependency(\.debugBattleLogger) var debugLogger
+        self.damageService = damageService
+        self.dodgeService = dodgeService
+        self.critService = critService
+        self.debugLogger = debugLogger
+    }
 
     public func calculatePointStatus(
         attackingPoints: Set<BodyPart>,

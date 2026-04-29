@@ -11,23 +11,25 @@ import Foundation
 /// Default implementation of BattleSimulationService
 public final class ElfBattleSimulationService: BattleSimulationService {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    private let _botAI = Dependency(\.botAI)
-    private var botAI: any BotAIService { _botAI.wrappedValue }
-
-    private let _snapshotCombatCalculator = Dependency(\.snapshotCombatCalculator)
-    private var snapshotCombatCalculator: any SnapshotCombatCalculator { _snapshotCombatCalculator.wrappedValue }
-
-    private let _damageService = Dependency(\.damageService)
-    private var damageService: any DamageService { _damageService.wrappedValue }
-
-    private let _statisticsParser = Dependency(\.statisticsParser)
-    private var statisticsParser: any BattleStatisticsParser { _statisticsParser.wrappedValue }
+    private let botAI: any BotAIService
+    private let snapshotCombatCalculator: any SnapshotCombatCalculator
+    private let damageService: any DamageService
+    private let statisticsParser: any BattleStatisticsParser
 
     // MARK: - Initialization
 
-    public init() {}
+    public init() {
+        @Dependency(\.botAI) var botAI
+        @Dependency(\.snapshotCombatCalculator) var snapshotCombatCalculator
+        @Dependency(\.damageService) var damageService
+        @Dependency(\.statisticsParser) var statisticsParser
+        self.botAI = botAI
+        self.snapshotCombatCalculator = snapshotCombatCalculator
+        self.damageService = damageService
+        self.statisticsParser = statisticsParser
+    }
 
     // MARK: - BattleSimulationService
 

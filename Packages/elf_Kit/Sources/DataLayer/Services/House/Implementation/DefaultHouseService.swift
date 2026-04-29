@@ -11,10 +11,9 @@ import Foundation
 /// Default implementation of HouseService
 public final class DefaultHouseService: HouseService {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    private let _elfInfoFactory = Dependency(\.elfInfoFactory)
-    private var elfInfoFactory: any ElfInfoFactory { _elfInfoFactory.wrappedValue }
+    private let elfInfoFactory: any ElfInfoFactory
 
     // MARK: - Properties
 
@@ -31,7 +30,10 @@ public final class DefaultHouseService: HouseService {
 
     // MARK: - Initialization
 
-    public init() {}
+    public init() {
+        @Dependency(\.elfInfoFactory) var elfInfoFactory
+        self.elfInfoFactory = elfInfoFactory
+    }
 
     // MARK: - HouseService
 

@@ -10,10 +10,12 @@ import Foundation
 
 public final class ElfHuntService: HuntService {
 
-    private let _itemsRepository = Dependency(\.itemsRepository)
-    private var itemsRepository: any ItemsRepository { _itemsRepository.wrappedValue }
+    private let itemsRepository: any ItemsRepository
 
-    public init() {}
+    public init() {
+        @Dependency(\.itemsRepository) var itemsRepository
+        self.itemsRepository = itemsRepository
+    }
 
     // MARK: - HuntService
 

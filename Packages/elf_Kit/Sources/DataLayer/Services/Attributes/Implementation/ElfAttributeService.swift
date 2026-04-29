@@ -10,13 +10,15 @@ import Foundation
 
 public final class ElfAttributeService: AttributeService {
 
-    private let _itemsRepository = Dependency(\.itemsRepository)
-    private var itemsRepository: any ItemsRepository { _itemsRepository.wrappedValue }
+    private let itemsRepository: any ItemsRepository
+    private let randomizer: any AttributeRandomizer
 
-    private let _randomizer = Dependency(\.attributeRandomizer)
-    private var randomizer: any AttributeRandomizer { _randomizer.wrappedValue }
-
-    public init() {}
+    public init() {
+        @Dependency(\.itemsRepository) var itemsRepository
+        @Dependency(\.attributeRandomizer) var randomizer
+        self.itemsRepository = itemsRepository
+        self.randomizer = randomizer
+    }
 
     public func getAllFightStyleAttributes(for fightStyle: FightStyle, at level: Int16) -> HeroAttributes {
         switch fightStyle {

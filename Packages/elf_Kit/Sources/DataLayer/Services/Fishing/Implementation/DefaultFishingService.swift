@@ -10,17 +10,19 @@ import Foundation
 
 public final class DefaultFishingService: FishingService {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    private let _gatheringEngine = Dependency(\.gatheringEngine)
-    private var gatheringEngine: any GatheringEngine { _gatheringEngine.wrappedValue }
-
-    private let _skillProgressCalculator = Dependency(\.skillProgressCalculator)
-    private var skillProgressCalculator: any SkillProgressCalculator { _skillProgressCalculator.wrappedValue }
+    private let gatheringEngine: any GatheringEngine
+    private let skillProgressCalculator: any SkillProgressCalculator
 
     // MARK: - Initialization
 
-    public init() {}
+    public init() {
+        @Dependency(\.gatheringEngine) var gatheringEngine
+        @Dependency(\.skillProgressCalculator) var skillProgressCalculator
+        self.gatheringEngine = gatheringEngine
+        self.skillProgressCalculator = skillProgressCalculator
+    }
 
     // MARK: - FishingService
 

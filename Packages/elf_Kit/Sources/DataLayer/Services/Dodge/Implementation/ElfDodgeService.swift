@@ -15,12 +15,14 @@ import Foundation
 /// 2. **Stage 2**: Roll to check dodge success (with auto-fail/success edge cases)
 public final class ElfDodgeService: DodgeService {
 
-    private let _distributionStrategy = Dependency(\.dodgeDistributionStrategy)
-    private var distributionStrategy: any DodgeDistributionStrategy { _distributionStrategy.wrappedValue }
+    private let distributionStrategy: any DodgeDistributionStrategy
 
     // MARK: - Initialization
 
-    public init() {}
+    public init() {
+        @Dependency(\.dodgeDistributionStrategy) var distributionStrategy
+        self.distributionStrategy = distributionStrategy
+    }
 
     // MARK: - DodgeService
 

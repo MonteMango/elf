@@ -17,14 +17,17 @@ extension DependencyValues {
 
 private enum GameRepositoryKey: DependencyKey {
     static var liveValue: any GameSaveStorage { FileGameSaveStorage() }
+    static var testValue: any GameSaveStorage { NoOpGameSaveStorage() }
 
     #if DEBUG
-    static var previewValue: any GameSaveStorage { PreviewGameSaveStorage() }
+    static var previewValue: any GameSaveStorage { NoOpGameSaveStorage() }
     #endif
 }
 
-#if DEBUG
-private struct PreviewGameSaveStorage: GameSaveStorage {
+/// NoOp storage used as `testValue` (always) and `previewValue` (debug). Used by
+/// snapshot-in-init types that resolve `gameRepository` even in code paths that
+/// never persist.
+private struct NoOpGameSaveStorage: GameSaveStorage {
     func save(_ game: Game, slotId: String, playTime: TimeInterval) async throws {}
     func load(slotId: String) async throws -> Game {
         throw CocoaError(.fileReadNoSuchFile)
@@ -32,4 +35,3 @@ private struct PreviewGameSaveStorage: GameSaveStorage {
     func hasAnySave() -> Bool { false }
     func getPlayTime(slotId: String) async -> TimeInterval { 0 }
 }
-#endif

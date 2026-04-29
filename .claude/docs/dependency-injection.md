@@ -1,6 +1,6 @@
 # Dependency Injection
 
-The project uses [swift-dependencies](https://github.com/pointfreeco/swift-dependencies) from Point-Free. Each service has a `*+Dependency.swift` file co-located with its protocol that declares the key. Services and ViewModels resolve dependencies via `@Dependency` (one of two patterns, see below). App-startup roots are registered once via `prepareDependencies` in `DependencyBootstrap`. Session-scoped ViewModels are constructed through factories on `GameSessionModel`.
+The project uses [swift-dependencies](https://github.com/pointfreeco/swift-dependencies) from Point-Free. Each service has a `*+Dependency.swift` file co-located with its protocol that declares the key. Services and ViewModels **snapshot all dependencies once in `init`** into plain `private let` properties (canonical pattern; see below). App-startup roots are registered once via `prepareDependencies` in `DependencyBootstrap`. Session-scoped ViewModels are constructed through factories on `GameSessionModel`.
 
 ---
 
@@ -60,18 +60,14 @@ private enum ItemsRepositoryKey: DependencyKey {
 | Slot | When to provide |
 |------|-----------------|
 | `liveValue` | Always. Real implementation, or `fatalError` for async-loaded roots. |
-| `testValue` | When tests should default to a NoOp/stub (e.g., loggers) instead of forcing per-test overrides. |
+| `testValue` | **Provide whenever the dep can land on a snapshot-in-init code path that tests don't override.** Required for cold-path deps that are resolved at construction but not exercised by every test. Default to `liveValue` if the live impl is pure; otherwise a NoOp (e.g., file/network stubs). |
 | `previewValue` | Wrap in `#if DEBUG`. Used by SwiftUI previews. Provide for any dep whose `liveValue` is expensive, async, or `fatalError`. |
 
 ---
 
-## Two injection styles
+## Canonical pattern: snapshot at init
 
-The bare `@Dependency` property wrapper from the library is **not `Sendable`**. The right pattern depends on the host class's isolation.
-
-### Style A — `@Dependency` property wrapper
-
-For `@MainActor` types and actor-isolated types. Inside `@Observable` classes, `@ObservationIgnored` is required so dependency reads don't register as body-tracked properties.
+Resolve every `@Dependency` **once** inside `init` and store it as a plain `private let`. This is the only pattern in the codebase. It works uniformly for `@MainActor @Observable` ViewModels, plain `Sendable final class` services, and `actor`s — there is no isolation-specific variant.
 
 ```swift
 @MainActor
@@ -79,47 +75,52 @@ For `@MainActor` types and actor-isolated types. Inside `@Observable` classes, `
 public final class HuntViewModel {
 
     private let gameService: any GameService
-
-    @ObservationIgnored
-    @Dependency(\.monsterRepository) private var monsterRepository
-
-    @ObservationIgnored
-    @Dependency(\.snapshotBuilder) private var snapshotBuilder
-
-    @ObservationIgnored
-    @Dependency(\.progressionService) private var progressionService
+    private let monsterRepository: any MonsterRepository
+    private let snapshotBuilder: any CombatantSnapshotBuilder
+    private let progressionService: any ProgressionService
 
     public init(gameService: any GameService) {
+        @Dependency(\.monsterRepository) var monsterRepository
+        @Dependency(\.snapshotBuilder) var snapshotBuilder
+        @Dependency(\.progressionService) var progressionService
+        self.monsterRepository = monsterRepository
+        self.snapshotBuilder = snapshotBuilder
+        self.progressionService = progressionService
+
         self.gameService = gameService
     }
 }
 ```
 
-### Style B — typed-wrapper Dependency
-
-For plain `Sendable` `final class` services (most things in `DataLayer/Services/`). Lets the class be `Sendable` without `@unchecked`:
+For services:
 
 ```swift
 public final class DefaultBattleResultCalculator: BattleResultCalculator {
 
-    private let _huntService = Dependency(\.huntService)
-    private var huntService: any HuntService { _huntService.wrappedValue }
+    private let huntService: any HuntService
+    private let dropService: any DropService
+    private let progressionService: any ProgressionService
 
-    private let _dropService = Dependency(\.dropService)
-    private var dropService: any DropService { _dropService.wrappedValue }
-
-    private let _progressionService = Dependency(\.progressionService)
-    private var progressionService: any ProgressionService { _progressionService.wrappedValue }
-
-    public init() {}
+    public init() {
+        @Dependency(\.huntService) var huntService
+        @Dependency(\.dropService) var dropService
+        @Dependency(\.progressionService) var progressionService
+        self.huntService = huntService
+        self.dropService = dropService
+        self.progressionService = progressionService
+    }
 }
 ```
 
-**Why both forms exist.** The `@Dependency` property wrapper (`Style A`) is not `Sendable`, so storing it on a non-actor `final class` would force `@unchecked Sendable`. `Dependency` itself (the value type — `Style B`) **is** `Sendable`, so `let _foo = Dependency(\.foo)` keeps the class `Sendable` cleanly. The computed `var foo: any Foo { _foo.wrappedValue }` resolves lazily through TaskLocal with the same override semantics as the property wrapper.
+**Why this and not the property wrapper.** Each access to `@Dependency(\.foo) var foo` resolves through a TaskLocal lookup plus a `withIssueContext` source-location capture. Cheap once, expensive in per-pair / per-frame loops (see `traces/dungeon.simulator.before.1/audit.md`, Finding #2). Snapshotting collapses every later access to a single stored-property load.
 
-**Rule of thumb:**
-- `@MainActor` / actor host → Style A.
-- Plain `final class: Sendable` host → Style B.
+**Why no Sendable boilerplate.** A `private let foo: any FooService` where the protocol declares `: Sendable` makes the host class auto-derive `Sendable` (when other stored properties are also Sendable). No `@unchecked`, no typed-wrapper indirection. The previous `private let _foo = Dependency(\.foo); private var foo: any Foo { _foo.wrappedValue }` form existed only to keep `final class` services Sendable while still resolving lazily — that need disappears with snapshotting.
+
+**Why no `@ObservationIgnored`.** The `@Observable` macro tracks `var` properties only; immutable `let` storage is invisible to it. The annotation is unnecessary on snapshotted deps.
+
+**Greedy resolution invariant.** Resolution happens at `init` time, not at first access. Two consequences:
+1. **Tests must construct the SUT _inside_ the `withDependencies` override block** (the project already does this everywhere).
+2. **Cold-path deps need a `testValue`.** A test that constructs a service and only exercises a subset of its methods will still cause `init` to resolve every declared dep. Any key without `testValue` will trip swift-dependencies' "no test implementation" assertion. Add `static var testValue: any Foo { liveValue }` for pure deps, or a NoOp stub for deps with side-effects (file I/O, network).
 
 ---
 
@@ -268,10 +269,11 @@ For non-session screens, drop the `sessionModel` check and the `initializePrevie
 
 See `common-mistakes.md` for full examples. Highlights:
 
-- Don't pass services through `init` — use `@Dependency`. The only init parameters are session-scoped state (`gameService: any GameService`) or screen-scoped state (`battle: Battle`, `activity: FarmActivity`).
-- Don't use `@unchecked Sendable` to silence Swift 6 errors on a class with `@Dependency` — switch to the typed-wrapper pattern.
+- Don't pass services through `init` parameters — resolve them via `@Dependency(\.foo) var foo` inside `init` and snapshot to `self.foo`. The only init parameters are session-scoped state (`gameService: any GameService`) or screen-scoped state (`battle: Battle`, `activity: FarmActivity`).
+- Don't use `@unchecked Sendable` on a class with `@Dependency` — snapshot to `private let`s instead. The host class auto-derives `Sendable` from its stored Sendable properties.
 - Don't bypass `GameSessionModel` for session-bound VMs (`HuntViewModel(gameService: coordinator.sessionModel!.gameService)` ⛔). Always go through `session.makeXxxViewModel()`.
-- In `@Observable` classes, every `@Dependency` must be `@ObservationIgnored`, otherwise reads register tracking and cause spurious body re-runs.
+- Don't store `@Dependency(\.foo) var foo` as a class-level property — that's the old per-access pattern, removed in favor of snapshot-at-init.
+- In tests, **always construct the SUT inside `withDependencies { ... } operation: { ... }`**. Greedy resolution at `init` means any override applied after construction is ignored. If a key trips "no test implementation", add `testValue` to it (default to `liveValue` for pure deps, NoOp stub for deps with side-effects).
 
 ---
 

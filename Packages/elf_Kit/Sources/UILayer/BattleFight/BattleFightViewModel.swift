@@ -12,28 +12,15 @@ import Foundation
 @Observable
 public final class BattleFightViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    @ObservationIgnored
-    @Dependency(\.botAI) private var botAI
-
-    @ObservationIgnored
-    @Dependency(\.combatRoundExecutor) private var combatRoundExecutor
-
-    @ObservationIgnored
-    @Dependency(\.battleLogger) private var battleLogger
-
-    @ObservationIgnored
-    @Dependency(\.debugBattleLogger) private var debugLogger
-
-    @ObservationIgnored
-    @Dependency(\.duelPairingService) private var duelPairingService
-
-    @ObservationIgnored
-    @Dependency(\.monsterRepository) private var monsterRepository
-
-    @ObservationIgnored
-    @Dependency(\.battleResultCalculator) private var battleResultCalculator
+    private let botAI: any BotAIService
+    private let combatRoundExecutor: any CombatRoundExecutor
+    private let battleLogger: any BattleLogger
+    private let debugLogger: any DebugBattleLogger
+    private let duelPairingService: any DuelPairingService
+    private let monsterRepository: any MonsterRepository
+    private let battleResultCalculator: any BattleResultCalculator
 
     // Optional session context (nil for non-hunt battles like dev BattleSetup flow)
     private let gameService: (any GameService)?
@@ -126,6 +113,22 @@ public final class BattleFightViewModel {
     public init(battle: Battle, gameService: (any GameService)? = nil) {
         precondition(!battle.leftTeam.isEmpty, "Battle.leftTeam must be non-empty")
         precondition(!battle.rightTeam.isEmpty, "Battle.rightTeam must be non-empty")
+
+        @Dependency(\.botAI) var botAI
+        @Dependency(\.combatRoundExecutor) var combatRoundExecutor
+        @Dependency(\.battleLogger) var battleLogger
+        @Dependency(\.debugBattleLogger) var debugLogger
+        @Dependency(\.duelPairingService) var duelPairingService
+        @Dependency(\.monsterRepository) var monsterRepository
+        @Dependency(\.battleResultCalculator) var battleResultCalculator
+        self.botAI = botAI
+        self.combatRoundExecutor = combatRoundExecutor
+        self.battleLogger = battleLogger
+        self.debugLogger = debugLogger
+        self.duelPairingService = duelPairingService
+        self.monsterRepository = monsterRepository
+        self.battleResultCalculator = battleResultCalculator
+
         self.battle = battle
         self.gameService = gameService
         self.leftTeam = battle.leftTeam

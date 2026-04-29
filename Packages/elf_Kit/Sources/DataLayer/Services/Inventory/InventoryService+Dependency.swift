@@ -16,4 +16,5 @@ extension DependencyValues {
 
 private enum InventoryServiceKey: DependencyKey {
     static var liveValue: any InventoryService { ElfInventoryService() }
+    static var testValue: any InventoryService { liveValue }
 }

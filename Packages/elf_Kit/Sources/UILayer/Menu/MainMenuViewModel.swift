@@ -12,10 +12,9 @@ import Foundation
 @Observable
 public final class MainMenuViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    @ObservationIgnored
-    @Dependency(\.gameRepository) private var gameRepository
+    private let gameRepository: any GameSaveStorage
 
     // MARK: - State
 
@@ -39,7 +38,10 @@ public final class MainMenuViewModel {
     /// Play time from loaded save.
     public private(set) var loadedPlayTime: TimeInterval = 0
 
-    public init() {}
+    public init() {
+        @Dependency(\.gameRepository) var gameRepository
+        self.gameRepository = gameRepository
+    }
 
     // MARK: - Actions
 

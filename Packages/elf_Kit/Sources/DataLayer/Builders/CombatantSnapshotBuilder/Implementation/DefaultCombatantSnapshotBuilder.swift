@@ -10,13 +10,15 @@ import Foundation
 
 public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 
-    private let _itemsRepository = Dependency(\.itemsRepository)
-    private var itemsRepository: any ItemsRepository { _itemsRepository.wrappedValue }
+    private let itemsRepository: any ItemsRepository
+    private let armorService: any ArmorService
 
-    private let _armorService = Dependency(\.armorService)
-    private var armorService: any ArmorService { _armorService.wrappedValue }
-
-    public init() {}
+    public init() {
+        @Dependency(\.itemsRepository) var itemsRepository
+        @Dependency(\.armorService) var armorService
+        self.itemsRepository = itemsRepository
+        self.armorService = armorService
+    }
 
     // MARK: - CombatantSnapshotBuilder
 

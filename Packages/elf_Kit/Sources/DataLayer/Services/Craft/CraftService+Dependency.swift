@@ -16,4 +16,5 @@ extension DependencyValues {
 
 private enum CraftServiceKey: DependencyKey {
     static var liveValue: any CraftService { DefaultCraftService() }
+    static var testValue: any CraftService { liveValue }
 }

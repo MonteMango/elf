@@ -12,27 +12,17 @@ import Foundation
 @Observable
 public final class CharacterCreationViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    @ObservationIgnored
-    @Dependency(\.attributeService) private var attributeService
-
-    @ObservationIgnored
-    @Dependency(\.characterNameValidator) private var nameValidator
-
-    @ObservationIgnored
-    @Dependency(\.fightStyleDescriptionService) private var fightStyleDescriptionService
-
-    @ObservationIgnored
-    @Dependency(\.characterNameSuggestionService) private var nameSuggestionService
-
-    @ObservationIgnored
-    @Dependency(\.gameInitializationService) private var gameInitializationService
+    private let attributeService: any AttributeService
+    private let nameValidator: any CharacterNameValidator
+    private let fightStyleDescriptionService: any FightStyleDescriptionService
+    private let nameSuggestionService: any CharacterNameSuggestionService
+    private let gameInitializationService: any GameInitializationService
 
     /// Stateful per-VM builder — we inject a factory (not the builder itself)
     /// so each VM owns its own accumulation of appearance/name/fight-style,
     /// while tests can still substitute the builder via `withDependencies`.
-    @ObservationIgnored
     private let characterBuilder: any CharacterBuilder
 
     // MARK: - Stage State
@@ -120,8 +110,19 @@ public final class CharacterCreationViewModel {
     // MARK: - Initialization
 
     public init() {
+        @Dependency(\.attributeService) var attributeService
+        @Dependency(\.characterNameValidator) var nameValidator
+        @Dependency(\.fightStyleDescriptionService) var fightStyleDescriptionService
+        @Dependency(\.characterNameSuggestionService) var nameSuggestionService
+        @Dependency(\.gameInitializationService) var gameInitializationService
         @Dependency(\.characterBuilderFactory) var makeBuilder
+        self.attributeService = attributeService
+        self.nameValidator = nameValidator
+        self.fightStyleDescriptionService = fightStyleDescriptionService
+        self.nameSuggestionService = nameSuggestionService
+        self.gameInitializationService = gameInitializationService
         self.characterBuilder = makeBuilder()
+
         if let style = selectedFightStyle {
             characterBuilder.setFightStyle(style)
         }

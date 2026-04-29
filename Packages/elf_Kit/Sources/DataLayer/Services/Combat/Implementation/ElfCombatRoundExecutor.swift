@@ -10,17 +10,19 @@ import Foundation
 
 public final class ElfCombatRoundExecutor: CombatRoundExecutor {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    private let _snapshotCombatCalculator = Dependency(\.snapshotCombatCalculator)
-    private var snapshotCombatCalculator: any SnapshotCombatCalculator { _snapshotCombatCalculator.wrappedValue }
-
-    private let _damageService = Dependency(\.damageService)
-    private var damageService: any DamageService { _damageService.wrappedValue }
+    private let snapshotCombatCalculator: any SnapshotCombatCalculator
+    private let damageService: any DamageService
 
     // MARK: - Initialization
 
-    public init() {}
+    public init() {
+        @Dependency(\.snapshotCombatCalculator) var snapshotCombatCalculator
+        @Dependency(\.damageService) var damageService
+        self.snapshotCombatCalculator = snapshotCombatCalculator
+        self.damageService = damageService
+    }
 
     // MARK: - CombatRoundExecutor
 

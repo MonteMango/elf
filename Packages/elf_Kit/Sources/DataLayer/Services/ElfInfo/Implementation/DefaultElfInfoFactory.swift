@@ -11,16 +11,11 @@ import Foundation
 /// Default implementation of ElfInfoFactory
 public final class DefaultElfInfoFactory: ElfInfoFactory {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    private let _attributeService = Dependency(\.attributeService)
-    private var attributeService: any AttributeService { _attributeService.wrappedValue }
-
-    private let _itemsRepository = Dependency(\.itemsRepository)
-    private var itemsRepository: any ItemsRepository { _itemsRepository.wrappedValue }
-
-    private let _inventoryService = Dependency(\.inventoryService)
-    private var inventoryService: any InventoryService { _inventoryService.wrappedValue }
+    private let attributeService: any AttributeService
+    private let itemsRepository: any ItemsRepository
+    private let inventoryService: any InventoryService
 
     // MARK: - Constants
 
@@ -40,7 +35,14 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
 
     // MARK: - Initialization
 
-    public init() {}
+    public init() {
+        @Dependency(\.attributeService) var attributeService
+        @Dependency(\.itemsRepository) var itemsRepository
+        @Dependency(\.inventoryService) var inventoryService
+        self.attributeService = attributeService
+        self.itemsRepository = itemsRepository
+        self.inventoryService = inventoryService
+    }
 
     // MARK: - Private Helpers
 

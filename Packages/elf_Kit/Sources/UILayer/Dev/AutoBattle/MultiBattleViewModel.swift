@@ -13,15 +13,11 @@ import Observation
 @Observable
 public final class MultiBattleViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
     private let battle: Battle
-
-    @ObservationIgnored
-    @Dependency(\.battleSimulationService) private var battleSimulationService
-
-    @ObservationIgnored
-    @Dependency(\.statisticsAggregator) private var statisticsAggregator
+    private let battleSimulationService: any BattleSimulationService
+    private let statisticsAggregator: any BattleStatisticsAggregator
 
     // MARK: - Configuration
 
@@ -56,6 +52,11 @@ public final class MultiBattleViewModel {
     // MARK: - Initialization
 
     public init(battle: Battle, totalBattles: Int = 1000, batchSize: Int = 25) {
+        @Dependency(\.battleSimulationService) var battleSimulationService
+        @Dependency(\.statisticsAggregator) var statisticsAggregator
+        self.battleSimulationService = battleSimulationService
+        self.statisticsAggregator = statisticsAggregator
+
         self.battle = battle
         self.totalBattles = totalBattles
         self.batchSize = batchSize

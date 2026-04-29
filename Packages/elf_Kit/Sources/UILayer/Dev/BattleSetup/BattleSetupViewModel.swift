@@ -12,28 +12,15 @@ import Foundation
 @Observable
 public final class BattleSetupViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    @ObservationIgnored
-    @Dependency(\.itemsRepository) private var itemsRepository
-
-    @ObservationIgnored
-    @Dependency(\.attributeService) private var attributeService
-
-    @ObservationIgnored
-    @Dependency(\.armorService) private var armorService
-
-    @ObservationIgnored
-    @Dependency(\.damageService) private var damageService
-
-    @ObservationIgnored
-    @Dependency(\.weaponValidator) private var weaponValidator
-
-    @ObservationIgnored
-    @Dependency(\.snapshotBuilder) private var snapshotBuilder
-
-    @ObservationIgnored
-    @Dependency(\.monsterRepository) private var monsterRepository
+    private let itemsRepository: any ItemsRepository
+    private let attributeService: any AttributeService
+    private let armorService: any ArmorService
+    private let damageService: any DamageService
+    private let weaponValidator: any WeaponValidator
+    private let snapshotBuilder: any CombatantSnapshotBuilder
+    private let monsterRepository: any MonsterRepository
 
     // MARK: - State
 
@@ -141,6 +128,21 @@ public final class BattleSetupViewModel {
     // MARK: - Initialization
 
     public init() {
+        @Dependency(\.itemsRepository) var itemsRepository
+        @Dependency(\.attributeService) var attributeService
+        @Dependency(\.armorService) var armorService
+        @Dependency(\.damageService) var damageService
+        @Dependency(\.weaponValidator) var weaponValidator
+        @Dependency(\.snapshotBuilder) var snapshotBuilder
+        @Dependency(\.monsterRepository) var monsterRepository
+        self.itemsRepository = itemsRepository
+        self.attributeService = attributeService
+        self.armorService = armorService
+        self.damageService = damageService
+        self.weaponValidator = weaponValidator
+        self.snapshotBuilder = snapshotBuilder
+        self.monsterRepository = monsterRepository
+
         Task { await loadAllMonsters() }
     }
 

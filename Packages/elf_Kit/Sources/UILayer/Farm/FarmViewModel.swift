@@ -12,12 +12,10 @@ import Foundation
 @Observable
 public final class FarmViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
     private let gameService: any GameService
-
-    @ObservationIgnored
-    @Dependency(\.progressionService) private var progressionService
+    private let progressionService: any ProgressionService
 
     // MARK: - Farming Skills (computed reactively)
 
@@ -43,6 +41,9 @@ public final class FarmViewModel {
     // MARK: - Initialization
 
     public init(gameService: any GameService) {
+        @Dependency(\.progressionService) var progressionService
+        self.progressionService = progressionService
+
         self.gameService = gameService
     }
 }

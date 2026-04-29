@@ -10,10 +10,12 @@ import Foundation
 
 public final class ElfArmorService: ArmorService {
 
-    private let _itemsRepository = Dependency(\.itemsRepository)
-    private var itemsRepository: any ItemsRepository { _itemsRepository.wrappedValue }
+    private let itemsRepository: any ItemsRepository
 
-    public init() {}
+    public init() {
+        @Dependency(\.itemsRepository) var itemsRepository
+        self.itemsRepository = itemsRepository
+    }
 
     public func getAllItemsArmor(for itemIds: [UUID]) -> [BodyPart: Int16] {
         var armorPoints: [BodyPart: Int16] = [

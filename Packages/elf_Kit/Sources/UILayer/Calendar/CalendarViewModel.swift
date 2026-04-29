@@ -34,10 +34,9 @@ public final class CalendarViewModel {
         }
     }
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    @ObservationIgnored
-    @Dependency(\.calendarService) private var calendarService
+    private let calendarService: any CalendarService
 
     // MARK: - State
 
@@ -53,6 +52,9 @@ public final class CalendarViewModel {
     // MARK: - Initialization
 
     public init(calendar: [GameDay], currentDayNumber: Int) {
+        @Dependency(\.calendarService) var calendarService
+        self.calendarService = calendarService
+
         self.calendar = calendar
         self.currentDayNumber = currentDayNumber
     }

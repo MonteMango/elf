@@ -52,13 +52,13 @@ public final class DefaultGameService: GameService {
         return Array(calendar[nextIndex..<endIndex])
     }
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    @ObservationIgnored @Dependency(\.gameRepository) private var gameRepository
-    @ObservationIgnored @Dependency(\.inventoryService) private var inventoryService
-    @ObservationIgnored @Dependency(\.craftService) private var craftService
-    @ObservationIgnored @Dependency(\.debugGameLogger) private var debugGameLogger
-    @ObservationIgnored private let slotId: String
+    private let gameRepository: any GameSaveStorage
+    private let inventoryService: any InventoryService
+    private let craftService: any CraftService
+    private let debugGameLogger: any DebugGameLogger
+    private let slotId: String
 
     // MARK: - Initialization
 
@@ -67,6 +67,15 @@ public final class DefaultGameService: GameService {
         slotId: String = SaveSlotInfo.defaultSlotId,
         playTime: TimeInterval = 0
     ) {
+        @Dependency(\.gameRepository) var gameRepository
+        @Dependency(\.inventoryService) var inventoryService
+        @Dependency(\.craftService) var craftService
+        @Dependency(\.debugGameLogger) var debugGameLogger
+        self.gameRepository = gameRepository
+        self.inventoryService = inventoryService
+        self.craftService = craftService
+        self.debugGameLogger = debugGameLogger
+
         self.gameId = game.id
         self.actionPoints = game.gameState.actionPoints
         self.currentDay = game.gameState.currentDay

@@ -12,24 +12,14 @@ import Foundation
 @Observable
 public final class CraftViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
     private let gameService: any GameService
-
-    @ObservationIgnored
-    @Dependency(\.recipeRepository) private var recipeRepository
-
-    @ObservationIgnored
-    @Dependency(\.itemsRepository) private var itemsRepository
-
-    @ObservationIgnored
-    @Dependency(\.materialRepository) private var materialRepository
-
-    @ObservationIgnored
-    @Dependency(\.oreRepository) private var oreRepository
-
-    @ObservationIgnored
-    @Dependency(\.craftService) private var craftService
+    private let recipeRepository: any RecipeRepository
+    private let itemsRepository: any ItemsRepository
+    private let materialRepository: any Repository<Material>
+    private let oreRepository: any Repository<Ore>
+    private let craftService: any CraftService
 
     // MARK: - Local UI State
 
@@ -63,6 +53,17 @@ public final class CraftViewModel {
     // MARK: - Initialization
 
     public init(gameService: any GameService) {
+        @Dependency(\.recipeRepository) var recipeRepository
+        @Dependency(\.itemsRepository) var itemsRepository
+        @Dependency(\.materialRepository) var materialRepository
+        @Dependency(\.oreRepository) var oreRepository
+        @Dependency(\.craftService) var craftService
+        self.recipeRepository = recipeRepository
+        self.itemsRepository = itemsRepository
+        self.materialRepository = materialRepository
+        self.oreRepository = oreRepository
+        self.craftService = craftService
+
         self.gameService = gameService
     }
 

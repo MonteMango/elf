@@ -35,9 +35,9 @@ public actor FileGameSaveStorage: GameSaveStorage {
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     private let appVersion: String
-    @Dependency(\.itemsRepository) private var itemsRepository
-    @Dependency(\.progressionService) private var progressionService
-    @Dependency(\.inventoryService) private var inventoryService
+    private let itemsRepository: any ItemsRepository
+    private let progressionService: any ProgressionService
+    private let inventoryService: any InventoryService
 
     /// In-memory cache of slot info for fast access
     private var slotsCache: [SaveSlotInfo]?
@@ -45,6 +45,13 @@ public actor FileGameSaveStorage: GameSaveStorage {
     // MARK: - Initialization
 
     public init() {
+        @Dependency(\.itemsRepository) var itemsRepository
+        @Dependency(\.progressionService) var progressionService
+        @Dependency(\.inventoryService) var inventoryService
+        self.itemsRepository = itemsRepository
+        self.progressionService = progressionService
+        self.inventoryService = inventoryService
+
         self.fileManager = FileManager.default
         self.appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
 

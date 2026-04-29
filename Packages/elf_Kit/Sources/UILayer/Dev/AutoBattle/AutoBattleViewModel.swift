@@ -13,21 +13,13 @@ import Observation
 @Observable
 public final class AutoBattleViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
     private let battle: Battle
-
-    @ObservationIgnored
-    @Dependency(\.botAI) private var botAI
-
-    @ObservationIgnored
-    @Dependency(\.snapshotCombatCalculator) private var snapshotCombatCalculator
-
-    @ObservationIgnored
-    @Dependency(\.damageService) private var damageService
-
-    @ObservationIgnored
-    @Dependency(\.statisticsParser) private var statisticsParser
+    private let botAI: any BotAIService
+    private let snapshotCombatCalculator: any SnapshotCombatCalculator
+    private let damageService: any DamageService
+    private let statisticsParser: any BattleStatisticsParser
 
     // MARK: - State
 
@@ -43,6 +35,15 @@ public final class AutoBattleViewModel {
     // MARK: - Initialization
 
     public init(battle: Battle) {
+        @Dependency(\.botAI) var botAI
+        @Dependency(\.snapshotCombatCalculator) var snapshotCombatCalculator
+        @Dependency(\.damageService) var damageService
+        @Dependency(\.statisticsParser) var statisticsParser
+        self.botAI = botAI
+        self.snapshotCombatCalculator = snapshotCombatCalculator
+        self.damageService = damageService
+        self.statisticsParser = statisticsParser
+
         self.battle = battle
     }
 

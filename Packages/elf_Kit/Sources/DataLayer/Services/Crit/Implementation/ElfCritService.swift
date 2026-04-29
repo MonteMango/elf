@@ -16,15 +16,17 @@ import Foundation
 /// 3. **Stage 3**: Select damage multiplier from agility-adjusted distribution
 public final class ElfCritService: CritService {
 
-    private let _distributionStrategy = Dependency(\.critDistributionStrategy)
-    private var distributionStrategy: any CritDistributionStrategy { _distributionStrategy.wrappedValue }
-
-    private let _multiplierDistribution = Dependency(\.critMultiplierDistribution)
-    private var multiplierDistribution: CritMultiplierDistribution { _multiplierDistribution.wrappedValue }
+    private let distributionStrategy: any CritDistributionStrategy
+    private let multiplierDistribution: CritMultiplierDistribution
 
     // MARK: - Initialization
 
-    public init() {}
+    public init() {
+        @Dependency(\.critDistributionStrategy) var distributionStrategy
+        @Dependency(\.critMultiplierDistribution) var multiplierDistribution
+        self.distributionStrategy = distributionStrategy
+        self.multiplierDistribution = multiplierDistribution
+    }
 
     // MARK: - CritService
 

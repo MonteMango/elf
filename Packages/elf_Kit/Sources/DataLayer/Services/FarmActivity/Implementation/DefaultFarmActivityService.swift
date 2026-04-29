@@ -16,32 +16,34 @@ public final class DefaultFarmActivityService: FarmActivityService {
 
     private let farmExpPerLevel = 50
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    private let _fishingService = Dependency(\.fishingService)
-    private var fishingService: any FishingService { _fishingService.wrappedValue }
-
-    private let _foragingService = Dependency(\.foragingService)
-    private var foragingService: any ForagingService { _foragingService.wrappedValue }
-
-    private let _miningService = Dependency(\.miningService)
-    private var miningService: any MiningService { _miningService.wrappedValue }
-
-    private let _fishRepository = Dependency(\.fishRepository)
-    private var fishRepository: any Repository<Fish> { _fishRepository.wrappedValue }
-
-    private let _herbRepository = Dependency(\.herbRepository)
-    private var herbRepository: any Repository<Herb> { _herbRepository.wrappedValue }
-
-    private let _oreRepository = Dependency(\.oreRepository)
-    private var oreRepository: any Repository<Ore> { _oreRepository.wrappedValue }
-
-    private let _progressionService = Dependency(\.progressionService)
-    private var progressionService: any ProgressionService { _progressionService.wrappedValue }
+    private let fishingService: any FishingService
+    private let foragingService: any ForagingService
+    private let miningService: any MiningService
+    private let fishRepository: any Repository<Fish>
+    private let herbRepository: any Repository<Herb>
+    private let oreRepository: any Repository<Ore>
+    private let progressionService: any ProgressionService
 
     // MARK: - Initialization
 
-    public init() {}
+    public init() {
+        @Dependency(\.fishingService) var fishingService
+        @Dependency(\.foragingService) var foragingService
+        @Dependency(\.miningService) var miningService
+        @Dependency(\.fishRepository) var fishRepository
+        @Dependency(\.herbRepository) var herbRepository
+        @Dependency(\.oreRepository) var oreRepository
+        @Dependency(\.progressionService) var progressionService
+        self.fishingService = fishingService
+        self.foragingService = foragingService
+        self.miningService = miningService
+        self.fishRepository = fishRepository
+        self.herbRepository = herbRepository
+        self.oreRepository = oreRepository
+        self.progressionService = progressionService
+    }
 
     // MARK: - FarmActivityService
 

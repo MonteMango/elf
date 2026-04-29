@@ -13,24 +13,14 @@ import UIKit
 @Observable
 public final class GameDayViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
     private let gameService: any GameService
-
-    @ObservationIgnored
-    @Dependency(\.progressionService) private var progressionService
-
-    @ObservationIgnored
-    @Dependency(\.equipmentQueryService) private var equipmentQueryService
-
-    @ObservationIgnored
-    @Dependency(\.itemsRepository) private var itemsRepository
-
-    @ObservationIgnored
-    @Dependency(\.snapshotBuilder) private var snapshotBuilder
-
-    @ObservationIgnored
-    @Dependency(\.monsterRepository) private var monsterRepository
+    private let progressionService: any ProgressionService
+    private let equipmentQueryService: any EquipmentQueryService
+    private let itemsRepository: any ItemsRepository
+    private let snapshotBuilder: any CombatantSnapshotBuilder
+    private let monsterRepository: any MonsterRepository
 
     // MARK: - Constants
 
@@ -82,6 +72,17 @@ public final class GameDayViewModel {
     // MARK: - Initialization
 
     public init(gameService: any GameService) {
+        @Dependency(\.progressionService) var progressionService
+        @Dependency(\.equipmentQueryService) var equipmentQueryService
+        @Dependency(\.itemsRepository) var itemsRepository
+        @Dependency(\.snapshotBuilder) var snapshotBuilder
+        @Dependency(\.monsterRepository) var monsterRepository
+        self.progressionService = progressionService
+        self.equipmentQueryService = equipmentQueryService
+        self.itemsRepository = itemsRepository
+        self.snapshotBuilder = snapshotBuilder
+        self.monsterRepository = monsterRepository
+
         self.gameService = gameService
     }
 

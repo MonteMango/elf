@@ -12,15 +12,11 @@ import Foundation
 @Observable
 public final class QuestListViewModel {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
     private let gameService: any GameService
-
-    @ObservationIgnored
-    @Dependency(\.questRepository) private var questRepository
-
-    @ObservationIgnored
-    @Dependency(\.materialRepository) private var materialRepository
+    private let questRepository: any QuestRepository
+    private let materialRepository: any Repository<Material>
 
     // MARK: - Display Data (derived reactively from repositories)
 
@@ -42,6 +38,11 @@ public final class QuestListViewModel {
     // MARK: - Initialization
 
     public init(gameService: any GameService) {
+        @Dependency(\.questRepository) var questRepository
+        @Dependency(\.materialRepository) var materialRepository
+        self.questRepository = questRepository
+        self.materialRepository = materialRepository
+
         self.gameService = gameService
     }
 

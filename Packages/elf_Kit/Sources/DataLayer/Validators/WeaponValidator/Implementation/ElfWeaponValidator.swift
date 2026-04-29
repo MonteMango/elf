@@ -10,10 +10,12 @@ import Foundation
 
 public final class ElfWeaponValidator: WeaponValidator {
 
-    private let _itemsRepository = Dependency(\.itemsRepository)
-    private var itemsRepository: any ItemsRepository { _itemsRepository.wrappedValue }
+    private let itemsRepository: any ItemsRepository
 
-    public init() {}
+    public init() {
+        @Dependency(\.itemsRepository) var itemsRepository
+        self.itemsRepository = itemsRepository
+    }
 
     public func validateAndResolve(
         selecting itemId: UUID?,

@@ -10,20 +10,22 @@ import Foundation
 
 public final class DefaultBattleResultCalculator: BattleResultCalculator {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    private let _huntService = Dependency(\.huntService)
-    private var huntService: any HuntService { _huntService.wrappedValue }
-
-    private let _dropService = Dependency(\.dropService)
-    private var dropService: any DropService { _dropService.wrappedValue }
-
-    private let _progressionService = Dependency(\.progressionService)
-    private var progressionService: any ProgressionService { _progressionService.wrappedValue }
+    private let huntService: any HuntService
+    private let dropService: any DropService
+    private let progressionService: any ProgressionService
 
     // MARK: - Initialization
 
-    public init() {}
+    public init() {
+        @Dependency(\.huntService) var huntService
+        @Dependency(\.dropService) var dropService
+        @Dependency(\.progressionService) var progressionService
+        self.huntService = huntService
+        self.dropService = dropService
+        self.progressionService = progressionService
+    }
 
     // MARK: - BattleResultCalculator
 

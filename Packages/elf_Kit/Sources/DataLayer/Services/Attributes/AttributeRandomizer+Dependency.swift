@@ -16,4 +16,5 @@ extension DependencyValues {
 
 private enum AttributeRandomizerKey: DependencyKey {
     static var liveValue: any AttributeRandomizer { ElfAttributeRandomizer() }
+    static var testValue: any AttributeRandomizer { liveValue }
 }

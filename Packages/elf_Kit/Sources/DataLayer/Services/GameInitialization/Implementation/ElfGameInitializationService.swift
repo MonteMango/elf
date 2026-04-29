@@ -10,23 +10,25 @@ import Foundation
 
 public final class ElfGameInitializationService: GameInitializationService {
 
-    // MARK: - Dependencies
+    // MARK: - Dependencies (snapshotted at init)
 
-    private let _houseService = Dependency(\.houseService)
-    private var houseService: any HouseService { _houseService.wrappedValue }
-
-    private let _elfInfoFactory = Dependency(\.elfInfoFactory)
-    private var elfInfoFactory: any ElfInfoFactory { _elfInfoFactory.wrappedValue }
-
-    private let _calendarService = Dependency(\.calendarService)
-    private var calendarService: any CalendarService { _calendarService.wrappedValue }
-
-    private let _gameRepository = Dependency(\.gameRepository)
-    private var gameRepository: any GameSaveStorage { _gameRepository.wrappedValue }
+    private let houseService: any HouseService
+    private let elfInfoFactory: any ElfInfoFactory
+    private let calendarService: any CalendarService
+    private let gameRepository: any GameSaveStorage
 
     // MARK: - Initialization
 
-    public init() {}
+    public init() {
+        @Dependency(\.houseService) var houseService
+        @Dependency(\.elfInfoFactory) var elfInfoFactory
+        @Dependency(\.calendarService) var calendarService
+        @Dependency(\.gameRepository) var gameRepository
+        self.houseService = houseService
+        self.elfInfoFactory = elfInfoFactory
+        self.calendarService = calendarService
+        self.gameRepository = gameRepository
+    }
 
     // MARK: - GameInitializationService
 
