@@ -15,7 +15,7 @@ import SwiftUI
 /// the session is deferred to this small adapter view.
 struct SessionRouteView<Content: View>: View {
     @Environment(AppCoordinator.self) private var coordinator
-    let content: (GameSessionModel) -> Content
+    @ViewBuilder let content: (GameSessionModel) -> Content
 
     var body: some View {
         if let session = coordinator.sessionModel {
