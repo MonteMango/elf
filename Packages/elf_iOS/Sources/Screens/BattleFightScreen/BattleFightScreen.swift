@@ -73,6 +73,8 @@ internal struct BattleFightScreen: View {
                         snapshot: viewModel.playerSnapshot,
                         currentHP: viewModel.playerCurrentHP,
                         maxHP: viewModel.playerMaxHP,
+                        currentEP: viewModel.playerSnapshot.currentEP,
+                        maxEP: viewModel.playerSnapshot.maxEP,
                         roundResults: viewModel.playerLastRoundResults
                     )
                     Spacer()
@@ -141,6 +143,8 @@ internal struct BattleFightScreen: View {
                             snapshot: displayed,
                             currentHP: viewModel.botSnapshot?.currentHP ?? displayed.currentHP,
                             maxHP: displayed.maxHP,
+                            currentEP: viewModel.botSnapshot?.currentEP ?? displayed.currentEP,
+                            maxEP: displayed.maxEP,
                             roundResults: viewModel.botLastRoundResults
                         )
                         .opacity(viewModel.isHeroWaiting ? 0 : 1)

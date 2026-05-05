@@ -92,6 +92,7 @@ public enum ElfColors {
         public static let mp = Color.blue
         public static let xp = Color.blue
         public static let ap = Color.yellow
+        public static let ep = Attributes.endurance
         public static let levelUpGlow = Color.yellow
     }
 

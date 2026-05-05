@@ -40,6 +40,14 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
     /// Maximum hit points
     public let maxHP: Int
 
+    // MARK: - Endurance Points
+
+    /// Current endurance points (mutable during battle, spent on blocks)
+    public var currentEP: Int
+
+    /// Maximum endurance points
+    public let maxEP: Int
+
     // MARK: - Attributes
 
     /// Strength attribute - affects damage dealt
@@ -127,6 +135,8 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
         level: Int = 1,
         currentHP: Int,
         maxHP: Int,
+        currentEP: Int = 2500,
+        maxEP: Int = 2500,
         strength: Int,
         agility: Int,
         power: Int,
@@ -158,6 +168,8 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
         self.level = level
         self.currentHP = currentHP
         self.maxHP = maxHP
+        self.currentEP = currentEP
+        self.maxEP = maxEP
         self.strength = strength
         self.agility = agility
         self.power = power

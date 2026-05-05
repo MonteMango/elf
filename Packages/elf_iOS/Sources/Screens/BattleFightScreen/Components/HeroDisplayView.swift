@@ -19,6 +19,8 @@ struct HeroDisplayView: View {
     let snapshot: CombatantSnapshot
     let currentHP: Int
     let maxHP: Int
+    let currentEP: Int
+    let maxEP: Int
     let roundResults: [BodyPart: PointStatus]
 
     // MARK: - Body
@@ -28,8 +30,10 @@ struct HeroDisplayView: View {
         let _ = Self._printChanges()
         #endif
         VStack(spacing: 10) {
-            // HP Bar
-            hpBar
+            VStack(spacing: 2) {
+                hpBar
+                epBar
+            }
 
             // Hero Image with overlays
             ZStack {
@@ -61,11 +65,11 @@ struct HeroDisplayView: View {
     private var hpBar: some View {
         ZStack(alignment: .leading) {
             // Background
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: ElfSizing.BattleFight.hpBarHeight / 2)
                 .fill(ElfColors.ProgressBar.background)
 
             // Fill
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: ElfSizing.BattleFight.hpBarHeight / 2)
                 .fill(ElfColors.ProgressBar.hp)
                 .scaleEffect(x: hpPercentage, y: 1, anchor: .leading)
 
@@ -77,6 +81,24 @@ struct HeroDisplayView: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: ElfSizing.BattleFight.hpBarHeight)
+    }
+
+    private var epBar: some View {
+        ZStack(alignment: .leading) {
+            RoundedRectangle(cornerRadius: ElfSizing.BattleFight.epBarHeight / 2)
+                .fill(ElfColors.ProgressBar.background)
+
+            RoundedRectangle(cornerRadius: ElfSizing.BattleFight.epBarHeight / 2)
+                .fill(ElfColors.ProgressBar.ep)
+                .scaleEffect(x: epPercentage, y: 1, anchor: .leading)
+
+            Text("\(currentEP)/\(maxEP)")
+                .font(ElfFonts.Component.statLabel)
+                .foregroundStyle(ElfColors.Text.primaryLight)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: ElfSizing.BattleFight.epBarHeight)
     }
 
     @ViewBuilder
@@ -269,7 +291,12 @@ struct HeroDisplayView: View {
 
     private var hpPercentage: CGFloat {
         guard maxHP > 0 else { return 0 }
-        return CGFloat(currentHP) / CGFloat(maxHP)
+        return min(max(0, CGFloat(currentHP) / CGFloat(maxHP)), 1)
+    }
+
+    private var epPercentage: CGFloat {
+        guard maxEP > 0 else { return 0 }
+        return min(max(0, CGFloat(currentEP) / CGFloat(maxEP)), 1)
     }
 }
 
@@ -325,6 +352,8 @@ struct HeroDisplayView: View {
             snapshot: monsterSnapshot,
             currentHP: 120,
             maxHP: 150,
+            currentEP: 1800,
+            maxEP: 2500,
             roundResults: [
                 .head: .blocked(wasCrit: false),
                 .body: .hit(weaponDamage: 8, strengthDamage: 5, defenderArmor: 3),
@@ -339,6 +368,8 @@ struct HeroDisplayView: View {
             snapshot: elfSnapshot,
             currentHP: 180,
             maxHP: 225,
+            currentEP: 2500,
+            maxEP: 2500,
             roundResults: [
                 .head: .hit(weaponDamage: 4, strengthDamage: 3, defenderArmor: 2),
                 .body: .blocked(wasCrit: false),

@@ -128,6 +128,8 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
             level: level,
             currentHP: totalHP.intValue,
             maxHP: totalHP.intValue,
+            currentEP: 2500,
+            maxEP: 2500,
             strength: totalStrength.intValue,
             agility: totalAgility.intValue,
             power: totalPower.intValue,
@@ -171,6 +173,8 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
             level: 1,  // Monsters don't have levels, default to 1
             currentHP: monster.hitPoints,
             maxHP: monster.hitPoints,
+            currentEP: 2500,
+            maxEP: 2500,
             strength: monster.strength,
             agility: monster.agility,
             power: monster.power,

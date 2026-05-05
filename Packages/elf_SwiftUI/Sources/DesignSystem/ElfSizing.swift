@@ -124,6 +124,7 @@ public enum ElfSizing {
 
     public enum BattleFight {
         public static let hpBarHeight: CGFloat = 24
+        public static let epBarHeight: CGFloat = 14
         public static let checkboxSize: CGFloat = 45
         public static let separatorHeight: CGFloat = 1
         public static let teamImageSize: CGFloat = 20
