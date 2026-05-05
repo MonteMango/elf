@@ -149,6 +149,7 @@ public enum ElfColors {
         public static let agility = Color(red: 0.078, green: 0.722, blue: 0.651)    // #14B8A6 Teal
         public static let power = Color(red: 0.863, green: 0.149, blue: 0.149)      // #DC2626 Crimson
         public static let instinct = Color(red: 0.388, green: 0.400, blue: 0.945)   // #6366F1 Indigo
+        public static let endurance = Color(red: 0.961, green: 0.620, blue: 0.043)  // #F59E0B Orange
     }
 
     // MARK: - Calendar Day Types

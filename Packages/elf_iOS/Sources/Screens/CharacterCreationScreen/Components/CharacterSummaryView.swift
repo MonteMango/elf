@@ -127,6 +127,7 @@ struct CharacterSummaryView: View {
                 attributeRow("Agility", base: attrs.agility.value, bonus: randomAttributes?.agility.value)
                 attributeRow("Power", base: attrs.power.value, bonus: randomAttributes?.power.value)
                 attributeRow("Instinct", base: attrs.instinct.value, bonus: randomAttributes?.instinct.value)
+                attributeRow("Endurance", base: attrs.endurance.value, bonus: randomAttributes?.endurance.value)
 
                 Spacer().frame(height: 8)
 
@@ -172,7 +173,8 @@ struct CharacterSummaryView: View {
             agility: 4,
             strength: 1,
             power: 0,
-            instinct: 1
+            instinct: 1,
+            endurance: 0
         ),
         randomAttributes: nil,
         isCharacterReady: false,
@@ -192,7 +194,8 @@ struct CharacterSummaryView: View {
             agility: 4,
             strength: 1,
             power: 0,
-            instinct: 1
+            instinct: 1,
+            endurance: 0
         ),
         randomAttributes: HeroAttributes(
             hitPoints: 0,
@@ -200,7 +203,8 @@ struct CharacterSummaryView: View {
             agility: 2,
             strength: 1,
             power: 1,
-            instinct: 0
+            instinct: 0,
+            endurance: 0
         ),
         isCharacterReady: true,
         assignedHouse: nil,

@@ -67,6 +67,7 @@ internal struct ItemCell: View {
         var agility: Int16?
         var power: Int16?
         var instinct: Int16?
+        var endurance: Int16?
         var hitPoints: Int16?
         var manaPoints: Int16?
     }
@@ -94,6 +95,7 @@ internal struct ItemCell: View {
         var agility: Int16?
         var power: Int16?
         var instinct: Int16?
+        var endurance: Int16?
         var hitPoints: Int16?
         var manaPoints: Int16?
     }

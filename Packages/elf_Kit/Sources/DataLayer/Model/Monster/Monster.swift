@@ -28,6 +28,7 @@ public struct Monster: Codable, Sendable, Identifiable, Hashable {
     public let agility: Int
     public let power: Int
     public let intuition: Int
+    public let endurance: Int
 
     // Armor per body part
     public let partsProtection: PartsProtection
@@ -50,6 +51,7 @@ public struct Monster: Codable, Sendable, Identifiable, Hashable {
         agility: Int,
         power: Int,
         intuition: Int,
+        endurance: Int,
         partsProtection: PartsProtection,
         drops: MonsterDrops
     ) {
@@ -67,6 +69,7 @@ public struct Monster: Codable, Sendable, Identifiable, Hashable {
         self.agility = agility
         self.power = power
         self.intuition = intuition
+        self.endurance = endurance
         self.partsProtection = partsProtection
         self.drops = drops
     }

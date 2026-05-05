@@ -29,17 +29,19 @@ public final class ElfAttributeService: AttributeService {
                 agility: 0,
                 strength: Attribute(1 * level),
                 power: Attribute(4 * level),
-                instinct: Attribute(1 * level)
+                instinct: Attribute(1 * level),
+                endurance: 0
             )
 
         case .def:
             return HeroAttributes(
-                hitPoints: Attribute(80 + (2 * level)),
+                hitPoints: 80,
                 manaPoints: 20,
                 agility: 0,
-                strength: Attribute(2 * level),
+                strength: Attribute(1 * level),
                 power: 0,
-                instinct: Attribute(2 * level)
+                instinct: Attribute(2 * level),
+                endurance: Attribute(3 * level)
             )
 
         case .dodge:
@@ -49,7 +51,8 @@ public final class ElfAttributeService: AttributeService {
                 agility: Attribute(4 * level),
                 strength: Attribute(1 * level),
                 power: 0,
-                instinct: Attribute(1 * level)
+                instinct: Attribute(1 * level),
+                endurance: 0
             )
         }
     }
@@ -74,6 +77,8 @@ public final class ElfAttributeService: AttributeService {
                 attributes.power += 1
             case "instinct":
                 attributes.instinct += 1
+            case "endurance":
+                attributes.endurance += 1
             default:
                 break
             }
@@ -95,6 +100,7 @@ public final class ElfAttributeService: AttributeService {
             totalAttributes.strength += attributes.strength
             totalAttributes.power += attributes.power
             totalAttributes.instinct += attributes.instinct
+            totalAttributes.endurance += attributes.endurance
         }
         return totalAttributes
     }
@@ -122,6 +128,9 @@ public final class ElfAttributeService: AttributeService {
         }
         if let instinct = item.instinct {
             updatedAttributes.instinct += instinct
+        }
+        if let endurance = item.endurance {
+            updatedAttributes.endurance += endurance
         }
         if let hitPoints = item.hitPoints {
             updatedAttributes.hitPoints += hitPoints

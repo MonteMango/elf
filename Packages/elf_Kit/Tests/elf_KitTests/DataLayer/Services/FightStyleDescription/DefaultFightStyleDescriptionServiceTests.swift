@@ -146,7 +146,7 @@ final class DefaultFightStyleDescriptionServiceTests: XCTestCase {
         )
     }
 
-    func testGetAttributeBonusDescription_Def_MentionsStrength() async {
+    func testGetAttributeBonusDescription_Def_MentionsEndurance() async {
         // Given
         let service = makeService()
 
@@ -155,8 +155,8 @@ final class DefaultFightStyleDescriptionServiceTests: XCTestCase {
 
         // Then
         XCTAssertTrue(
-            bonus.contains("Strength"),
-            "Def style should mention Strength bonus"
+            bonus.contains("Endurance"),
+            "Def style should mention Endurance bonus"
         )
     }
 

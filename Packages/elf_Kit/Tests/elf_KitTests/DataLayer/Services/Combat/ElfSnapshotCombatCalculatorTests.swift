@@ -139,6 +139,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
             agility: agility,
             power: power,
             intuition: intuition,
+            endurance: 0,
             attackPoints: 1,
             defensePoints: 2,
             minimumAttack: minimumAttack,

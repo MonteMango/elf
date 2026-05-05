@@ -70,6 +70,16 @@ struct AttributesPanel: View {
                 )
             )
 
+            attributeRow(
+                title: "Endurance",
+                value: attributes?.endurance.value ?? 0,
+                breakdown: (
+                    fightStyleAttrs?.endurance.value ?? 0,
+                    levelAttrs?.endurance.value ?? 0,
+                    itemsAttrs?.endurance.value ?? 0
+                )
+            )
+
             // Group 2: Attack attributes
             // Att 1 - Right hand
             HStack(spacing: 8) {
@@ -163,7 +173,8 @@ struct AttributesPanel_Previews: PreviewProvider {
             agility: 33,
             strength: 43,
             power: 18,
-            instinct: 24
+            instinct: 24,
+            endurance: 12
         )
 
         let mockFightStyle = HeroAttributes(
@@ -172,7 +183,8 @@ struct AttributesPanel_Previews: PreviewProvider {
             agility: 5,
             strength: 8,
             power: 3,
-            instinct: 4
+            instinct: 4,
+            endurance: 3
         )
 
         let mockLevel = HeroAttributes(
@@ -181,7 +193,8 @@ struct AttributesPanel_Previews: PreviewProvider {
             agility: 15,
             strength: 20,
             power: 10,
-            instinct: 12
+            instinct: 12,
+            endurance: 6
         )
 
         let mockItems = HeroAttributes(
@@ -190,7 +203,8 @@ struct AttributesPanel_Previews: PreviewProvider {
             agility: 13,
             strength: 15,
             power: 5,
-            instinct: 8
+            instinct: 8,
+            endurance: 3
         )
 
         Group {

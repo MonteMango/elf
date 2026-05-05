@@ -37,7 +37,8 @@ public final class HeroConfigurationState {
             agility: fightStyle.agility + level.agility + items.agility,
             strength: fightStyle.strength + level.strength + items.strength,
             power: fightStyle.power + level.power + items.power,
-            instinct: fightStyle.instinct + level.instinct + items.instinct
+            instinct: fightStyle.instinct + level.instinct + items.instinct,
+            endurance: fightStyle.endurance + level.endurance + items.endurance
         )
     }
 

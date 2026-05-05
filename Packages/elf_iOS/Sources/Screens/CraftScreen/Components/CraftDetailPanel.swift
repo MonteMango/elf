@@ -94,6 +94,7 @@ struct CraftDetailPanel: View {
             if attrs.agility > 0 { attributeRow("Agility", value: attrs.agility) }
             if attrs.power > 0 { attributeRow("Power", value: attrs.power) }
             if attrs.instinct > 0 { attributeRow("Instinct", value: attrs.instinct) }
+            if attrs.endurance > 0 { attributeRow("Endurance", value: attrs.endurance) }
             if attrs.hitPoints > 0 { attributeRow("HP", value: attrs.hitPoints) }
             if attrs.manaPoints > 0 { attributeRow("MP", value: attrs.manaPoints) }
         }

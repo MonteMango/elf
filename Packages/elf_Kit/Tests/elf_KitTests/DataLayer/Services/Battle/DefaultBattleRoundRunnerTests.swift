@@ -91,6 +91,7 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
             agility: 10,
             power: 10,
             intuition: 10,
+            endurance: 0,
             attackPoints: attackPoints,
             defensePoints: defensePoints,
             minimumAttack: 1,

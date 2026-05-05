@@ -115,6 +115,7 @@ public struct CraftItemAttributes: Equatable, Sendable {
     public let agility: Int
     public let power: Int
     public let instinct: Int
+    public let endurance: Int
     public let hitPoints: Int
     public let manaPoints: Int
 
@@ -123,6 +124,7 @@ public struct CraftItemAttributes: Equatable, Sendable {
         agility: Int = 0,
         power: Int = 0,
         instinct: Int = 0,
+        endurance: Int = 0,
         hitPoints: Int = 0,
         manaPoints: Int = 0
     ) {
@@ -130,6 +132,7 @@ public struct CraftItemAttributes: Equatable, Sendable {
         self.agility = agility
         self.power = power
         self.instinct = instinct
+        self.endurance = endurance
         self.hitPoints = hitPoints
         self.manaPoints = manaPoints
     }

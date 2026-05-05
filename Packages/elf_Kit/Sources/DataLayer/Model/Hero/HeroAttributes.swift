@@ -18,6 +18,7 @@ public struct HeroAttributes: Sendable, Hashable, Equatable, Codable {
     public var strength: Attribute
     public var power: Attribute
     public var instinct: Attribute
+    public var endurance: Attribute
 
     // MARK: - Initialization
 
@@ -29,6 +30,7 @@ public struct HeroAttributes: Sendable, Hashable, Equatable, Codable {
         self.strength = .zero
         self.power = .zero
         self.instinct = .zero
+        self.endurance = .zero
     }
 
     /// Creates attributes with Attribute values.
@@ -39,7 +41,8 @@ public struct HeroAttributes: Sendable, Hashable, Equatable, Codable {
         agility: Attribute,
         strength: Attribute,
         power: Attribute,
-        instinct: Attribute
+        instinct: Attribute,
+        endurance: Attribute
     ) {
         self.hitPoints = hitPoints
         self.manaPoints = manaPoints
@@ -47,6 +50,7 @@ public struct HeroAttributes: Sendable, Hashable, Equatable, Codable {
         self.strength = strength
         self.power = power
         self.instinct = instinct
+        self.endurance = endurance
     }
 
     // MARK: - Arithmetic
@@ -66,7 +70,8 @@ extension HeroAttributes: AdditiveArithmetic {
             agility: lhs.agility + rhs.agility,
             strength: lhs.strength + rhs.strength,
             power: lhs.power + rhs.power,
-            instinct: lhs.instinct + rhs.instinct
+            instinct: lhs.instinct + rhs.instinct,
+            endurance: lhs.endurance + rhs.endurance
         )
     }
 
@@ -77,7 +82,8 @@ extension HeroAttributes: AdditiveArithmetic {
             agility: lhs.agility - rhs.agility,
             strength: lhs.strength - rhs.strength,
             power: lhs.power - rhs.power,
-            instinct: lhs.instinct - rhs.instinct
+            instinct: lhs.instinct - rhs.instinct,
+            endurance: lhs.endurance - rhs.endurance
         )
     }
 }

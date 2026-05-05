@@ -18,18 +18,19 @@ final class ElfArmorServiceTests: XCTestCase {
         let id: UUID
         let title: String
         let tier: Int16
-        
+
         let isUnique: Bool?
         let strength: Int16?
         let agility: Int16?
         let power: Int16?
         let instinct: Int16?
+        let endurance: Int16?
         let hitPoints: Int16?
         let manaPoints: Int16?
 
         let physicalDefensePoint: Int16
         let protectParts: [BodyPart]
-        
+
         init(
             id: UUID = UUID(),
             title: String,
@@ -41,6 +42,7 @@ final class ElfArmorServiceTests: XCTestCase {
             agility: Int16? = nil,
             power: Int16? = nil,
             instinct: Int16? = nil,
+            endurance: Int16? = nil,
             hitPoints: Int16? = nil,
             manaPoints: Int16? = nil
         ) {
@@ -55,6 +57,7 @@ final class ElfArmorServiceTests: XCTestCase {
             self.agility = agility
             self.power = power
             self.instinct = instinct
+            self.endurance = endurance
             self.hitPoints = hitPoints
             self.manaPoints = manaPoints
         }
@@ -173,6 +176,7 @@ final class ElfArmorServiceTests: XCTestCase {
             var agility: Int16? = nil
             var power: Int16? = nil
             var instinct: Int16? = nil
+            var endurance: Int16? = nil
             var hitPoints: Int16? = nil
             var manaPoints: Int16? = nil
         }

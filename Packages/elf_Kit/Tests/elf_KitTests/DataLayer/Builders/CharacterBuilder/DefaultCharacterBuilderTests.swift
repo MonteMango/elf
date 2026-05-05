@@ -30,7 +30,8 @@ final class DefaultCharacterBuilderTests: XCTestCase {
             agility: 10,
             strength: 10,
             power: 10,
-            instinct: 10
+            instinct: 10,
+            endurance: 10
         )
     }
 
@@ -346,7 +347,8 @@ final class DefaultCharacterBuilderTests: XCTestCase {
             agility: 15,
             strength: 20,
             power: 25,
-            instinct: 10
+            instinct: 10,
+            endurance: 5
         )
         let randomAttrs = HeroAttributes(
             hitPoints: 10,
@@ -354,7 +356,8 @@ final class DefaultCharacterBuilderTests: XCTestCase {
             agility: 2,
             strength: 3,
             power: 1,
-            instinct: 4
+            instinct: 4,
+            endurance: 1
         )
 
         // When

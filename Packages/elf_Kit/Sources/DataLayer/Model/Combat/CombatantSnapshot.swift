@@ -54,6 +54,9 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
     /// Intuition attribute - reduces enemy dodge/crit chance
     public let intuition: Int
 
+    /// Endurance attribute - reserved for the EP/block-cost system (not yet read by combat math)
+    public let endurance: Int
+
     // MARK: - Combat Points
 
     /// Number of attack points per round
@@ -128,6 +131,7 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
         agility: Int,
         power: Int,
         intuition: Int,
+        endurance: Int,
         attackPoints: Int,
         defensePoints: Int,
         minimumAttack: Int,
@@ -158,6 +162,7 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
         self.agility = agility
         self.power = power
         self.intuition = intuition
+        self.endurance = endurance
         self.attackPoints = attackPoints
         self.defensePoints = defensePoints
         self.minimumAttack = minimumAttack

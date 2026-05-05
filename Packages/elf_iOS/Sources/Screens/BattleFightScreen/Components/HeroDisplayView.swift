@@ -50,7 +50,8 @@ struct HeroDisplayView: View {
                 strength: snapshot.strength,
                 agility: snapshot.agility,
                 power: snapshot.power,
-                instinct: snapshot.intuition
+                instinct: snapshot.intuition,
+                endurance: snapshot.endurance
             )
         }
     }
@@ -286,6 +287,7 @@ struct HeroDisplayView: View {
         agility: 10,
         power: 12,
         intuition: 8,
+        endurance: 0,
         attackPoints: 1,
         defensePoints: 2,
         minimumAttack: 5,
@@ -304,6 +306,7 @@ struct HeroDisplayView: View {
         agility: 12,
         power: 14,
         intuition: 10,
+        endurance: 0,
         attackPoints: 2,
         defensePoints: 3,
         minimumAttack: 8,

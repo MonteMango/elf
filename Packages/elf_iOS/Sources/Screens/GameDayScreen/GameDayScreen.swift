@@ -93,7 +93,8 @@ internal struct GameDayScreen: View {
                 strength: viewModel.player.totalAttributes.strength.intValue,
                 agility: viewModel.player.totalAttributes.agility.intValue,
                 power: viewModel.player.totalAttributes.power.intValue,
-                instinct: viewModel.player.totalAttributes.instinct.intValue
+                instinct: viewModel.player.totalAttributes.instinct.intValue,
+                endurance: viewModel.player.totalAttributes.endurance.intValue
             )
         }
     }

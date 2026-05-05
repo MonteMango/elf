@@ -97,6 +97,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             agility: 12,
             power: 8,
             intuition: 10,
+            endurance: 0,
             partsProtection: PartsProtection(head: 2, left: 1, center: 3, right: 1, legs: 2),
             drops: MonsterDrops(weapons: [], armor: [], materials: [])
         )
@@ -138,6 +139,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             agility: 10,
             power: 10,
             intuition: 10,
+            endurance: 0,
             partsProtection: PartsProtection(head: 5, left: 3, center: 10, right: 3, legs: 7),
             drops: MonsterDrops(weapons: [], armor: [], materials: [])
         )
@@ -170,6 +172,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             agility: 10,
             power: 10,
             intuition: 10,
+            endurance: 0,
             partsProtection: PartsProtection(head: 0, left: 0, center: 0, right: 0, legs: 0),
             drops: MonsterDrops(weapons: [], armor: [], materials: [])
         )
@@ -211,6 +214,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             agility: 10,
             power: 10,
             intuition: 10,
+            endurance: 0,
             partsProtection: PartsProtection(head: 0, left: 0, center: 0, right: 0, legs: 0),
             drops: MonsterDrops(weapons: [], armor: [], materials: [])
         )
@@ -232,7 +236,8 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             agility: 10,
             strength: 15,
             power: 12,
-            instinct: 8
+            instinct: 8,
+            endurance: 0
         )
         let randomLevelAttributes = HeroAttributes(
             hitPoints: 20,
@@ -240,7 +245,8 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             agility: 2,
             strength: 3,
             power: 2,
-            instinct: 1
+            instinct: 1,
+            endurance: 0
         )
 
         // When
@@ -269,7 +275,8 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             agility: 10,
             strength: 15,
             power: 12,
-            instinct: 8
+            instinct: 8,
+            endurance: 4
         )
         let randomLevelAttributes = HeroAttributes(
             hitPoints: 20,
@@ -277,7 +284,8 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             agility: 5,
             strength: 5,
             power: 3,
-            instinct: 2
+            instinct: 2,
+            endurance: 2
         )
 
         // When
@@ -298,12 +306,13 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
         XCTAssertEqual(snapshot?.agility, 15)    // 10 + 5
         XCTAssertEqual(snapshot?.power, 15)      // 12 + 3
         XCTAssertEqual(snapshot?.intuition, 10)  // 8 + 2 (instinct)
+        XCTAssertEqual(snapshot?.endurance, 6)   // 4 + 2
     }
 
     func testBuildSnapshot_FromElfConfig_NoWeapons_HasDefaultAttackDefensePoints() async {
         // Given
         let attributes = HeroAttributes(
-            hitPoints: 100, manaPoints: 0, agility: 0, strength: 0, power: 0, instinct: 0
+            hitPoints: 100, manaPoints: 0, agility: 0, strength: 0, power: 0, instinct: 0, endurance: 0
         )
 
         // When
@@ -325,7 +334,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
     func testBuildSnapshot_FromElfConfig_UsesArmorFromService() async {
         // Given
         let attributes = HeroAttributes(
-            hitPoints: 100, manaPoints: 0, agility: 0, strength: 0, power: 0, instinct: 0
+            hitPoints: 100, manaPoints: 0, agility: 0, strength: 0, power: 0, instinct: 0, endurance: 0
         )
         mockArmorService.armorToReturn = [
             .head: 5,

@@ -122,6 +122,7 @@ public final class CraftViewModel {
             agility: Int(item?.agility ?? 0),
             power: Int(item?.power ?? 0),
             instinct: Int(item?.instinct ?? 0),
+            endurance: Int(item?.endurance ?? 0),
             hitPoints: Int(item?.hitPoints ?? 0),
             manaPoints: Int(item?.manaPoints ?? 0)
         )

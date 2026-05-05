@@ -15,14 +15,16 @@ public struct AttributesCompactView: View {
     let agility: Int
     let power: Int
     let instinct: Int
+    let endurance: Int
 
     // MARK: - Init
 
-    public init(strength: Int, agility: Int, power: Int, instinct: Int) {
+    public init(strength: Int, agility: Int, power: Int, instinct: Int, endurance: Int) {
         self.strength = strength
         self.agility = agility
         self.power = power
         self.instinct = instinct
+        self.endurance = endurance
     }
 
     // MARK: - Body
@@ -36,6 +38,7 @@ public struct AttributesCompactView: View {
             IconValueLabel(icon: "figure.run", value: agility, color: ElfColors.Attributes.agility)
             IconValueLabel(icon: "bolt.fill", value: power, color: ElfColors.Attributes.power)
             IconValueLabel(icon: "eye.fill", value: instinct, color: ElfColors.Attributes.instinct)
+            IconValueLabel(icon: "shield.lefthalf.filled", value: endurance, color: ElfColors.Attributes.endurance)
         }
     }
 }
@@ -45,7 +48,8 @@ public struct AttributesCompactView: View {
         strength: 10,
         agility: 12,
         power: 8,
-        instinct: 15
+        instinct: 15,
+        endurance: 6
     )
     .padding()
     .background(Color.white)

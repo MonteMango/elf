@@ -63,6 +63,7 @@ public struct WeaponAttributes: Equatable, Sendable {
     public let agility: Int
     public let power: Int
     public let instinct: Int
+    public let endurance: Int
     public let hitPoints: Int
     public let enchantLevel: Int?
 
@@ -75,6 +76,7 @@ public struct WeaponAttributes: Equatable, Sendable {
         agility: Int = 0,
         power: Int = 0,
         instinct: Int = 0,
+        endurance: Int = 0,
         hitPoints: Int = 0,
         enchantLevel: Int? = nil
     ) {
@@ -86,6 +88,7 @@ public struct WeaponAttributes: Equatable, Sendable {
         self.agility = agility
         self.power = power
         self.instinct = instinct
+        self.endurance = endurance
         self.hitPoints = hitPoints
         self.enchantLevel = enchantLevel
     }
@@ -100,6 +103,7 @@ public struct ArmorAttributes: Equatable, Sendable {
     public let agility: Int
     public let power: Int
     public let instinct: Int
+    public let endurance: Int
     public let hitPoints: Int
 
     public init(
@@ -109,6 +113,7 @@ public struct ArmorAttributes: Equatable, Sendable {
         agility: Int = 0,
         power: Int = 0,
         instinct: Int = 0,
+        endurance: Int = 0,
         hitPoints: Int = 0
     ) {
         self.defense = defense
@@ -117,6 +122,7 @@ public struct ArmorAttributes: Equatable, Sendable {
         self.agility = agility
         self.power = power
         self.instinct = instinct
+        self.endurance = endurance
         self.hitPoints = hitPoints
     }
 }
@@ -128,6 +134,7 @@ public struct ShieldAttributes: Equatable, Sendable {
     public let blockPoints: Int
     public let strength: Int
     public let agility: Int
+    public let endurance: Int
     public let hitPoints: Int
 
     public init(
@@ -135,12 +142,14 @@ public struct ShieldAttributes: Equatable, Sendable {
         blockPoints: Int = 1,
         strength: Int = 0,
         agility: Int = 0,
+        endurance: Int = 0,
         hitPoints: Int = 0
     ) {
         self.defense = defense
         self.blockPoints = blockPoints
         self.strength = strength
         self.agility = agility
+        self.endurance = endurance
         self.hitPoints = hitPoints
     }
 }
@@ -153,6 +162,7 @@ public struct JewelryAttributes: Equatable, Sendable {
     public let agility: Int
     public let power: Int
     public let instinct: Int
+    public let endurance: Int
     public let hitPoints: Int
     public let manaPoints: Int
 
@@ -162,6 +172,7 @@ public struct JewelryAttributes: Equatable, Sendable {
         agility: Int = 0,
         power: Int = 0,
         instinct: Int = 0,
+        endurance: Int = 0,
         hitPoints: Int = 0,
         manaPoints: Int = 0
     ) {
@@ -170,6 +181,7 @@ public struct JewelryAttributes: Equatable, Sendable {
         self.agility = agility
         self.power = power
         self.instinct = instinct
+        self.endurance = endurance
         self.hitPoints = hitPoints
         self.manaPoints = manaPoints
     }

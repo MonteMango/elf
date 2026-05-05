@@ -13,9 +13,9 @@ import Combine
 /// Tests for ElfAttributeService
 ///
 /// Fight style formulas:
-/// - **Crit**: HP=80, Instinct=1*lvl, Power=4*lvl, Strength=1*lvl
-/// - **Dodge**: HP=80, Agility=4*lvl, Instinct=1*lvl, Strength=1*lvl
-/// - **Def**: HP=80+2*lvl, Instinct=2*lvl, Strength=2*lvl
+/// - **Crit**: HP=80, Instinct=1*lvl, Power=4*lvl, Strength=1*lvl, Endurance=0
+/// - **Dodge**: HP=80, Agility=4*lvl, Instinct=1*lvl, Strength=1*lvl, Endurance=0
+/// - **Def**: HP=80, Instinct=2*lvl, Strength=1*lvl, Endurance=3*lvl
 final class ElfAttributeServiceTests: XCTestCase {
 
     // MARK: - Фейковые зависимости
@@ -76,6 +76,7 @@ final class ElfAttributeServiceTests: XCTestCase {
         let agility: Int16?
         let power: Int16?
         let instinct: Int16?
+        let endurance: Int16?
         let hitPoints: Int16?
         let manaPoints: Int16?
     }
@@ -96,6 +97,7 @@ final class ElfAttributeServiceTests: XCTestCase {
         XCTAssertEqual(result.power, 40)      // 4 * level
         XCTAssertEqual(result.agility, 0)
         XCTAssertEqual(result.strength, 10)   // 1 * level
+        XCTAssertEqual(result.endurance, 0)
     }
 
     func testFightStyleDodgeAttributesLevel10() async {
@@ -112,6 +114,7 @@ final class ElfAttributeServiceTests: XCTestCase {
         XCTAssertEqual(result.power, 0)
         XCTAssertEqual(result.agility, 40)    // 4 * level
         XCTAssertEqual(result.strength, 10)   // 1 * level
+        XCTAssertEqual(result.endurance, 0)
     }
 
     func testFightStyleDefAttributesLevel10() async {
@@ -122,44 +125,45 @@ final class ElfAttributeServiceTests: XCTestCase {
             return service.getAllFightStyleAttributes(for: .def, at: 10)
         }
 
-        XCTAssertEqual(result.hitPoints, 100) // 80 + 2*10
+        XCTAssertEqual(result.hitPoints, 80)
         XCTAssertEqual(result.manaPoints, 20)
         XCTAssertEqual(result.instinct, 20)   // 2 * level
         XCTAssertEqual(result.power, 0)
         XCTAssertEqual(result.agility, 0)
-        XCTAssertEqual(result.strength, 20)   // 2 * level
+        XCTAssertEqual(result.strength, 10)   // 1 * level
+        XCTAssertEqual(result.endurance, 30)  // 3 * level
     }
 
     func testRandomLevelAttributesAreDeterministic() async {
         let result = withDependencies {
             $0.itemsRepository = FakeItemsRepository()
-            $0.attributeRandomizer = FixedRandomizer(queue: ["hitPoints", "manaPoints", "agility", "strength"])
+            $0.attributeRandomizer = FixedRandomizer(queue: ["agility", "strength", "endurance", "power"])
         } operation: {
             let service = ElfAttributeService()
             return service.getRandomLevelAttributes()
         }
 
-        // 4 attributes assigned: hitPoints(+3), manaPoints(+3), agility(+1), strength(+1)
-        XCTAssertEqual(result.hitPoints, 3)
-        XCTAssertEqual(result.manaPoints, 3)
+        // 4 attributes assigned: agility(+1), strength(+1), endurance(+1), power(+1)
+        XCTAssertEqual(result.hitPoints, 0)
+        XCTAssertEqual(result.manaPoints, 0)
         XCTAssertEqual(result.agility, 1)
         XCTAssertEqual(result.strength, 1)
-        XCTAssertEqual(result.power, 0)
+        XCTAssertEqual(result.power, 1)
         XCTAssertEqual(result.instinct, 0)
+        XCTAssertEqual(result.endurance, 1)
     }
 
     func testAllRandomLevelAttributesSumsCorrectly() async {
         let result = withDependencies {
             $0.itemsRepository = FakeItemsRepository()
-            $0.attributeRandomizer = FixedRandomizer(queue: ["agility", "strength", "power", "instinct"])
+            $0.attributeRandomizer = FixedRandomizer(queue: ["agility", "strength", "power", "instinct", "endurance"])
         } operation: {
             let service = ElfAttributeService()
             return service.getAllRandomLevelAttributes(for: 2)
         }
 
-        // Due to parallel execution with TaskGroup, we can't guarantee exact distribution
-        // But we can verify total points assigned: 2 levels * 4 points = 8 points total
-        let totalPoints = result.agility + result.strength + result.power + result.instinct
+        // 2 levels * 4 points each = 8 total points assigned across the five stats
+        let totalPoints = result.agility + result.strength + result.power + result.instinct + result.endurance
         XCTAssertEqual(totalPoints, 8, "Total points should be 8 (2 levels * 4 points per level)")
 
         // Verify no HP/MP were assigned (queue doesn't contain hitPoints/manaPoints)
@@ -170,7 +174,7 @@ final class ElfAttributeServiceTests: XCTestCase {
     func testAllRandomAttributesSumsWithWrongAttributeCorrectly() async {
         let result = withDependencies {
             $0.itemsRepository = FakeItemsRepository()
-            $0.attributeRandomizer = FixedRandomizer(queue: ["endurance"])
+            $0.attributeRandomizer = FixedRandomizer(queue: ["unknown"])
         } operation: {
             let service = ElfAttributeService()
             return service.getAllRandomLevelAttributes(for: 1)
@@ -180,6 +184,7 @@ final class ElfAttributeServiceTests: XCTestCase {
         XCTAssertEqual(result.strength, 0)
         XCTAssertEqual(result.power, 0)
         XCTAssertEqual(result.instinct, 0)
+        XCTAssertEqual(result.endurance, 0)
         XCTAssertEqual(result.hitPoints, 0)
         XCTAssertEqual(result.manaPoints, 0)
     }
@@ -190,11 +195,11 @@ final class ElfAttributeServiceTests: XCTestCase {
 
         let item1 = TestItem(id: id1, title: "Ring", tier: 1, isUnique: nil,
                              strength: 1, agility: nil, power: 2,
-                             instinct: 1, hitPoints: 10, manaPoints: nil)
+                             instinct: 1, endurance: 2, hitPoints: 10, manaPoints: nil)
 
         let item2 = TestItem(id: id2, title: "Amulet", tier: 1, isUnique: nil,
                              strength: nil, agility: 3, power: nil,
-                             instinct: 4, hitPoints: nil, manaPoints: 5)
+                             instinct: 4, endurance: nil, hitPoints: nil, manaPoints: 5)
 
         let repo = FakeItemsRepository()
         repo.items = [id1: item1, id2: item2]
@@ -210,6 +215,7 @@ final class ElfAttributeServiceTests: XCTestCase {
         XCTAssertEqual(result.power, 2)
         XCTAssertEqual(result.agility, 3)
         XCTAssertEqual(result.instinct, 5)
+        XCTAssertEqual(result.endurance, 2)
         XCTAssertEqual(result.hitPoints, 10)
         XCTAssertEqual(result.manaPoints, 5)
     }

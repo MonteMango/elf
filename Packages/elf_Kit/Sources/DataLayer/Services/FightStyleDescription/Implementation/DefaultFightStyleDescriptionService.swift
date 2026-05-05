@@ -30,7 +30,7 @@ public struct DefaultFightStyleDescriptionService: FightStyleDescriptionService 
         case .crit:
             return "Power +4, Instinct +1, Strength +1"
         case .def:
-            return "Strength +2, Instinct +2, HP + 2"
+            return "Endurance +3, Instinct +2, Strength +1"
         }
     }
 }

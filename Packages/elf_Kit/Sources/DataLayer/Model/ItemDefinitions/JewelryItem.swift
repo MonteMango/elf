@@ -17,6 +17,7 @@ public final class JewelryItem: Item {
     public let agility: Int16?
     public let power: Int16?
     public let instinct: Int16?
+    public let endurance: Int16?
 
     public let hitPoints: Int16?
     public let manaPoints: Int16?

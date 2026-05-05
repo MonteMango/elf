@@ -42,6 +42,7 @@ public struct ItemAttributesFormatter: Sendable {
             to: &lines,
             strength: attributes.strength, agility: attributes.agility,
             power: attributes.power, instinct: attributes.instinct,
+            endurance: attributes.endurance,
             hitPoints: attributes.hitPoints
         )
         if let enchant = attributes.enchantLevel, enchant > 0 {
@@ -61,6 +62,7 @@ public struct ItemAttributesFormatter: Sendable {
             to: &lines,
             strength: attributes.strength, agility: attributes.agility,
             power: attributes.power, instinct: attributes.instinct,
+            endurance: attributes.endurance,
             hitPoints: attributes.hitPoints
         )
         return lines
@@ -74,6 +76,7 @@ public struct ItemAttributesFormatter: Sendable {
         appendAttributes(
             to: &lines,
             strength: attributes.strength, agility: attributes.agility,
+            endurance: attributes.endurance,
             hitPoints: attributes.hitPoints
         )
         return lines
@@ -87,6 +90,7 @@ public struct ItemAttributesFormatter: Sendable {
             to: &lines,
             strength: attributes.strength, agility: attributes.agility,
             power: attributes.power, instinct: attributes.instinct,
+            endurance: attributes.endurance,
             hitPoints: attributes.hitPoints, manaPoints: attributes.manaPoints
         )
         return lines
@@ -96,12 +100,14 @@ public struct ItemAttributesFormatter: Sendable {
         to lines: inout [String],
         strength: Int = 0, agility: Int = 0,
         power: Int = 0, instinct: Int = 0,
+        endurance: Int = 0,
         hitPoints: Int = 0, manaPoints: Int = 0
     ) {
         if strength > 0 { lines.append("Strength: \(strength)") }
         if agility > 0 { lines.append("Agility: \(agility)") }
         if power > 0 { lines.append("Power: \(power)") }
         if instinct > 0 { lines.append("Instinct: \(instinct)") }
+        if endurance > 0 { lines.append("Endurance: \(endurance)") }
         if hitPoints > 0 { lines.append("HP: \(hitPoints)") }
         if manaPoints > 0 { lines.append("MP: \(manaPoints)") }
     }

@@ -29,7 +29,8 @@ public struct PlayerCharacter: Sendable, Identifiable {
             agility: fightStyleAttributes.agility + randomLevelAttributes.agility,
             strength: fightStyleAttributes.strength + randomLevelAttributes.strength,
             power: fightStyleAttributes.power + randomLevelAttributes.power,
-            instinct: fightStyleAttributes.instinct + randomLevelAttributes.instinct
+            instinct: fightStyleAttributes.instinct + randomLevelAttributes.instinct,
+            endurance: fightStyleAttributes.endurance + randomLevelAttributes.endurance
         )
     }
 

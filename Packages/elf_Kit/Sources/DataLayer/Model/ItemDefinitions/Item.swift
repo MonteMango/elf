@@ -18,6 +18,7 @@ public protocol Item: Decodable, Sendable {
     var agility: Int16? { get }
     var power: Int16? { get }
     var instinct: Int16? { get }
+    var endurance: Int16? { get }
 
     var hitPoints: Int16? { get }
     var manaPoints: Int16? { get }
@@ -33,7 +34,8 @@ extension Item {
             agility: Attribute(agility ?? 0),
             strength: Attribute(strength ?? 0),
             power: Attribute(power ?? 0),
-            instinct: Attribute(instinct ?? 0)
+            instinct: Attribute(instinct ?? 0),
+            endurance: Attribute(endurance ?? 0)
         )
     }
 }

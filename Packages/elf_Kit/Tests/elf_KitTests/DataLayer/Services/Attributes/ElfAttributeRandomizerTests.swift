@@ -11,7 +11,7 @@ import XCTest
 final class ElfAttributeRandomizerTests: XCTestCase {
     func testReturnedAttributesAreValid() {
         let randomizer = ElfAttributeRandomizer()
-        let allowedAttributes: Set<String> = ["hitPoints", "manaPoints", "agility", "strength", "power", "instinct"]
+        let allowedAttributes: Set<String> = ["agility", "strength", "power", "instinct", "endurance"]
 
         for _ in 0..<100 {
             let attr = randomizer.nextAttribute()
@@ -30,12 +30,11 @@ final class ElfAttributeRandomizerTests: XCTestCase {
         }
 
         let expectedDistribution: [String: Double] = [
-            "hitPoints": 0.10,
-            "manaPoints": 0.02,
-            "agility": 0.22,
-            "strength": 0.22,
-            "power": 0.22,
-            "instinct": 0.22
+            "agility": 0.20,
+            "strength": 0.20,
+            "power": 0.20,
+            "instinct": 0.20,
+            "endurance": 0.20
         ]
 
         for (attr, expectedRatio) in expectedDistribution {

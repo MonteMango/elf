@@ -83,7 +83,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
     ) -> ElfInfo {
         var inventory = ElfInventory()
         inventory.weapons = inventoryWeapons
-        let attrs = HeroAttributes(hitPoints: 80, manaPoints: 20, agility: 1, strength: 1, power: 1, instinct: 1)
+        let attrs = HeroAttributes(hitPoints: 80, manaPoints: 20, agility: 1, strength: 1, power: 1, instinct: 1, endurance: 0)
         return ElfInfo(
             name: "Tester",
             imageName: "elf_1",

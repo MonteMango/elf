@@ -53,7 +53,8 @@ enum PreviewGame {
                 agility: 4,
                 strength: 1,
                 power: 0,
-                instinct: 1
+                instinct: 1,
+                endurance: 0
             ),
             randomLevelAttributes: HeroAttributes(
                 hitPoints: 3,
@@ -61,7 +62,8 @@ enum PreviewGame {
                 agility: 1,
                 strength: 0,
                 power: 0,
-                instinct: 0
+                instinct: 0,
+                endurance: 0
             ),
             currentHP: 83,
             currentMP: 23,
@@ -81,7 +83,8 @@ enum PreviewGame {
                 agility: 0,
                 strength: 1,
                 power: 4,
-                instinct: 1
+                instinct: 1,
+                endurance: 0
             ),
             randomLevelAttributes: HeroAttributes(
                 hitPoints: 0,
@@ -89,7 +92,8 @@ enum PreviewGame {
                 agility: 1,
                 strength: 1,
                 power: 1,
-                instinct: 1
+                instinct: 1,
+                endurance: 0
             ),
             currentHP: 80,
             currentMP: 20,

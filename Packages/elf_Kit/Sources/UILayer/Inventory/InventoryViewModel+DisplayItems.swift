@@ -85,6 +85,7 @@ extension InventoryViewModel {
                 agility: Int(weaponItem.agility ?? 0),
                 power: Int(weaponItem.power ?? 0),
                 instinct: Int(weaponItem.instinct ?? 0),
+                endurance: Int(weaponItem.endurance ?? 0),
                 hitPoints: Int(weaponItem.hitPoints ?? 0),
                 enchantLevel: weapon.enchantLevel > 0 ? weapon.enchantLevel : nil
             ))
@@ -118,6 +119,7 @@ extension InventoryViewModel {
                 blockPoints: 1,
                 strength: Int(shieldItem.strength ?? 0),
                 agility: Int(shieldItem.agility ?? 0),
+                endurance: Int(shieldItem.endurance ?? 0),
                 hitPoints: Int(shieldItem.hitPoints ?? 0)
             ))
         )
@@ -152,6 +154,7 @@ extension InventoryViewModel {
                 agility: Int(defenseItem.agility ?? 0),
                 power: Int(defenseItem.power ?? 0),
                 instinct: Int(defenseItem.instinct ?? 0),
+                endurance: Int(defenseItem.endurance ?? 0),
                 hitPoints: Int(defenseItem.hitPoints ?? 0)
             ))
         )
@@ -186,6 +189,7 @@ extension InventoryViewModel {
                 agility: Int(robeItem.agility ?? 0),
                 power: Int(robeItem.power ?? 0),
                 instinct: Int(robeItem.instinct ?? 0),
+                endurance: Int(robeItem.endurance ?? 0),
                 hitPoints: Int(robeItem.hitPoints ?? 0)
             ))
         )
@@ -219,6 +223,7 @@ extension InventoryViewModel {
                 agility: Int(jewelryItem.agility ?? 0),
                 power: Int(jewelryItem.power ?? 0),
                 instinct: Int(jewelryItem.instinct ?? 0),
+                endurance: Int(jewelryItem.endurance ?? 0),
                 hitPoints: Int(jewelryItem.hitPoints ?? 0),
                 manaPoints: Int(jewelryItem.manaPoints ?? 0)
             ))

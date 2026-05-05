@@ -18,6 +18,7 @@ public final class ShieldItem: Item, HasPhysicalDefense, Decodable {
     public let agility: Int16?
     public let power: Int16?
     public let instinct: Int16?
+    public let endurance: Int16?
 
     public let hitPoints: Int16?
     public let manaPoints: Int16?
@@ -39,6 +40,7 @@ public final class ShieldItem: Item, HasPhysicalDefense, Decodable {
         agility = try container.decodeIfPresent(Int16.self, forKey: .agility)
         power = try container.decodeIfPresent(Int16.self, forKey: .power)
         instinct = try container.decodeIfPresent(Int16.self, forKey: .instinct)
+        endurance = try container.decodeIfPresent(Int16.self, forKey: .endurance)
 
         hitPoints = try container.decodeIfPresent(Int16.self, forKey: .hitPoints)
         manaPoints = try container.decodeIfPresent(Int16.self, forKey: .manaPoints)
@@ -53,7 +55,7 @@ public final class ShieldItem: Item, HasPhysicalDefense, Decodable {
 
     private enum CodingKeys: String, CodingKey {
         case id, title, tier, isUnique,
-             strength, agility, power, instinct,
+             strength, agility, power, instinct, endurance,
              hitPoints, manaPoints, shieldSpecialAbility,
              physicalDefensePoint, protectParts
     }

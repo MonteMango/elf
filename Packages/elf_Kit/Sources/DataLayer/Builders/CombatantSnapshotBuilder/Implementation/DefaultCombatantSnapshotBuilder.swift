@@ -97,6 +97,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
         let totalAgility = fightStyleAttributes.agility + randomLevelAttributes.agility
         let totalPower = fightStyleAttributes.power + randomLevelAttributes.power
         let totalIntuition = fightStyleAttributes.instinct + randomLevelAttributes.instinct
+        let totalEndurance = fightStyleAttributes.endurance + randomLevelAttributes.endurance
         let totalHP = fightStyleAttributes.hitPoints + randomLevelAttributes.hitPoints
 
         // Get weapon damage range
@@ -131,6 +132,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
             agility: totalAgility.intValue,
             power: totalPower.intValue,
             intuition: totalIntuition.intValue,
+            endurance: totalEndurance.intValue,
             attackPoints: attackPoints,
             defensePoints: defensePoints,
             minimumAttack: minAttack,
@@ -173,6 +175,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
             agility: monster.agility,
             power: monster.power,
             intuition: monster.intuition,
+            endurance: monster.endurance,
             attackPoints: monster.attackPoints,
             defensePoints: monster.defensePoints,
             minimumAttack: monster.minimumAttack,
