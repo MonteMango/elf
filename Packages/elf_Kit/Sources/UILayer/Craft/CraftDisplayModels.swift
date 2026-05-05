@@ -111,6 +111,7 @@ public struct CraftRecipeDetailDisplay: Equatable, Sendable {
 // MARK: - Craft Item Attributes
 
 public struct CraftItemAttributes: Equatable, Sendable {
+    public let epBlockCost: Int
     public let strength: Int
     public let agility: Int
     public let power: Int
@@ -120,6 +121,7 @@ public struct CraftItemAttributes: Equatable, Sendable {
     public let manaPoints: Int
 
     public init(
+        epBlockCost: Int = 0,
         strength: Int = 0,
         agility: Int = 0,
         power: Int = 0,
@@ -128,6 +130,7 @@ public struct CraftItemAttributes: Equatable, Sendable {
         hitPoints: Int = 0,
         manaPoints: Int = 0
     ) {
+        self.epBlockCost = epBlockCost
         self.strength = strength
         self.agility = agility
         self.power = power

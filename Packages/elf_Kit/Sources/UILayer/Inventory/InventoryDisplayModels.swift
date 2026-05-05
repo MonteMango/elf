@@ -59,6 +59,7 @@ public struct WeaponAttributes: Equatable, Sendable {
     public let attackMax: Int
     public let attackPoints: Int
     public let handUse: String
+    public let epBlockCost: Int
     public let strength: Int
     public let agility: Int
     public let power: Int
@@ -72,6 +73,7 @@ public struct WeaponAttributes: Equatable, Sendable {
         attackMax: Int,
         attackPoints: Int,
         handUse: String,
+        epBlockCost: Int = 0,
         strength: Int = 0,
         agility: Int = 0,
         power: Int = 0,
@@ -84,6 +86,7 @@ public struct WeaponAttributes: Equatable, Sendable {
         self.attackMax = attackMax
         self.attackPoints = attackPoints
         self.handUse = handUse
+        self.epBlockCost = epBlockCost
         self.strength = strength
         self.agility = agility
         self.power = power

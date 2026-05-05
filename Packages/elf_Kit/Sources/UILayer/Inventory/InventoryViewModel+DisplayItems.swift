@@ -81,6 +81,7 @@ extension InventoryViewModel {
                 attackMax: Int(weaponItem.maximumAttackPoint),
                 attackPoints: 1,
                 handUse: handUseString,
+                epBlockCost: Int(weaponItem.epBlockCost ?? 0),
                 strength: Int(weaponItem.strength ?? 0),
                 agility: Int(weaponItem.agility ?? 0),
                 power: Int(weaponItem.power ?? 0),

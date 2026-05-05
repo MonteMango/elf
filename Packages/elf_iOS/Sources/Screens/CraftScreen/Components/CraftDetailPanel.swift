@@ -90,6 +90,7 @@ struct CraftDetailPanel: View {
     @ViewBuilder
     private func attributesSection(_ attrs: CraftItemAttributes) -> some View {
         VStack(alignment: .leading, spacing: ElfSpacing.xxs) {
+            if attrs.epBlockCost > 0 { attributeRow("EP block cost", value: attrs.epBlockCost) }
             if attrs.strength > 0 { attributeRow("Strength", value: attrs.strength) }
             if attrs.agility > 0 { attributeRow("Agility", value: attrs.agility) }
             if attrs.power > 0 { attributeRow("Power", value: attrs.power) }

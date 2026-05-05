@@ -118,6 +118,7 @@ public final class CraftViewModel {
         let item = itemsRepository.getHeroItem(recipe.resultItemId)
         let inventory = currentInventory
         let attributes = CraftItemAttributes(
+            epBlockCost: Int((item as? WeaponItem)?.epBlockCost ?? 0),
             strength: Int(item?.strength ?? 0),
             agility: Int(item?.agility ?? 0),
             power: Int(item?.power ?? 0),

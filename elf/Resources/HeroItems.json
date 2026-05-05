@@ -140,6 +140,7 @@
             "tier": 4,
             "minimumAttackPoint": 6,
             "maximumAttackPoint": 9,
+            "epBlockCost": 400,
             "handUse": "both"
         },
         {
@@ -148,6 +149,7 @@
             "tier": 4,
             "minimumAttackPoint": 7,
             "maximumAttackPoint": 8,
+            "epBlockCost": 400,
             "handUse": "both"
         },
         {
@@ -156,6 +158,7 @@
             "tier": 4,
             "minimumAttackPoint": 3,
             "maximumAttackPoint": 5,
+            "epBlockCost": 200,
             "handUse": "oneHand"
         },
         {
@@ -166,6 +169,7 @@
             "minimumAttackPoint": 8,
             "maximumAttackPoint": 10,
             "power": 1,
+            "epBlockCost": 400,
             "handUse": "both",
             "weaponSpecialAbility": {
                 "type": "antiDodge",
@@ -180,6 +184,7 @@
             "minimumAttackPoint": 8,
             "maximumAttackPoint": 9,
             "agility": 1,
+            "epBlockCost": 200,
             "handUse": "oneHand",
             "weaponSpecialAbility": {
                 "type": "passThroughBlock",
@@ -192,6 +197,7 @@
             "tier": 3,
             "minimumAttackPoint": 9,
             "maximumAttackPoint": 12,
+            "epBlockCost": 400,
             "handUse": "both"
         },
         {
@@ -200,6 +206,7 @@
             "tier": 3,
             "minimumAttackPoint": 8,
             "maximumAttackPoint": 10,
+            "epBlockCost": 200,
             "handUse": "oneHand"
         },
         {
@@ -208,6 +215,7 @@
             "tier": 3,
             "minimumAttackPoint": 5,
             "maximumAttackPoint": 6,
+            "epBlockCost": 200,
             "handUse": "oneHand"
         }
     ],

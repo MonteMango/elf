@@ -37,6 +37,9 @@ public struct ItemAttributesFormatter: Sendable {
         lines.append("Attack: \(attributes.attackMin)-\(attributes.attackMax)")
         lines.append("Attack points: \(attributes.attackPoints)")
         lines.append("Hands use: \(attributes.handUse)")
+        if attributes.epBlockCost > 0 {
+            lines.append("EP block cost: \(attributes.epBlockCost)")
+        }
         lines.append("")
         appendAttributes(
             to: &lines,
