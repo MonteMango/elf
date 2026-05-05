@@ -200,16 +200,9 @@ All farm activities (hunting, gathering, mining, fishing) carry risk of monster 
 
 ## Character Attributes
 
-All combat entities (elves, monsters, etc.) have the following stats:
-
-| Attribute | Effect |
-|-----------|--------|
-| **Strength** | Increases damage dealt |
-| **Agility** | Dodge chance; reduces enemy critical damage multiplier |
-| **Power** | Critical hit chance (crits pierce blocks) |
-| **Intuition** | Reduces enemy dodge chance; reduces enemy crit chance |
-| **Health Points (HP)** | Survivability; reaches 0 = defeat |
-| **Mana Points (MP)** | Resource for abilities (future implementation) |
+See **[`attributes.md`](attributes.md)** — single source of truth for the
+attribute roster, fight styles, per-level scaling, the style triangle
+(`def > dodge > crit > def`), and the planned Endurance / EP system.
 
 ---
 
