@@ -30,9 +30,24 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
             let botDefensePoints: Set<BodyPart>
         }
 
-        nonisolated(unsafe) var captures: [Capture] = []
-        nonisolated(unsafe) var damageToPlayer: Int = 0
-        nonisolated(unsafe) var damageToBot: Int = 0
+        private let lock = NSLock()
+        private var _captures: [Capture] = []
+        private var _damageToPlayer: Int = 0
+        private var _damageToBot: Int = 0
+
+        var captures: [Capture] {
+            lock.withLock { _captures }
+        }
+
+        var damageToPlayer: Int {
+            get { lock.withLock { _damageToPlayer } }
+            set { lock.withLock { _damageToPlayer = newValue } }
+        }
+
+        var damageToBot: Int {
+            get { lock.withLock { _damageToBot } }
+            set { lock.withLock { _damageToBot = newValue } }
+        }
 
         func executeRound(
             playerSnapshot: CombatantSnapshot,
@@ -42,30 +57,48 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
             botAttackPoints: Set<BodyPart>,
             botDefensePoints: Set<BodyPart>
         ) -> CombatRoundResult {
-            captures.append(Capture(
-                playerSnapshot: playerSnapshot,
-                botSnapshot: botSnapshot,
-                playerAttackPoints: playerAttackPoints,
-                playerDefensePoints: playerDefensePoints,
-                botAttackPoints: botAttackPoints,
-                botDefensePoints: botDefensePoints
-            ))
-            return CombatRoundResult(
-                playerResults: [:],
-                botResults: [:],
-                playerDamageTaken: damageToPlayer,
-                botDamageTaken: damageToBot
-            )
+            lock.withLock {
+                _captures.append(Capture(
+                    playerSnapshot: playerSnapshot,
+                    botSnapshot: botSnapshot,
+                    playerAttackPoints: playerAttackPoints,
+                    playerDefensePoints: playerDefensePoints,
+                    botAttackPoints: botAttackPoints,
+                    botDefensePoints: botDefensePoints
+                ))
+                return CombatRoundResult(
+                    playerResults: [:],
+                    botResults: [:],
+                    playerDamageTaken: _damageToPlayer,
+                    botDamageTaken: _damageToBot
+                )
+            }
         }
     }
 
     /// Returns fixed attack/defense sets so we can verify which pair received what.
     final class FixedBotAI: BotAIService, @unchecked Sendable {
-        nonisolated(unsafe) var attackChoice: Set<BodyPart> = [.head]
-        nonisolated(unsafe) var defenseChoice: Set<BodyPart> = [.body]
+        private let lock = NSLock()
+        private var _attackChoice: Set<BodyPart> = [.head]
+        private var _defenseChoice: Set<BodyPart> = [.body]
 
-        func selectAttackPoints(count: Int) -> Set<BodyPart> { attackChoice }
-        func selectDefensePoints(count: Int) -> Set<BodyPart> { defenseChoice }
+        var attackChoice: Set<BodyPart> {
+            get { lock.withLock { _attackChoice } }
+            set { lock.withLock { _attackChoice = newValue } }
+        }
+
+        var defenseChoice: Set<BodyPart> {
+            get { lock.withLock { _defenseChoice } }
+            set { lock.withLock { _defenseChoice = newValue } }
+        }
+
+        func selectAttackPoints(count: Int) -> Set<BodyPart> {
+            lock.withLock { _attackChoice }
+        }
+
+        func selectDefensePoints(count: Int) -> Set<BodyPart> {
+            lock.withLock { _defenseChoice }
+        }
     }
 
     // MARK: - Helpers
