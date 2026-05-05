@@ -34,7 +34,7 @@ public enum DayType: Int, CaseIterable, Sendable, Codable {
     /// Actions available to the player on this day type.
     public var availableActions: [ActionType] {
         switch self {
-        case .normal:       [.dungeon]
+        case .normal:       [.farm, .hunt, .quests, .craft]
         case .dungeon:      [.dungeon]
         case .randomEvent,
              .houseWar,
