@@ -296,7 +296,9 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
             print("  ⚔️ Right: \(rightWeapon.item.title)")
         }
 
-        print("  📊 Attack: \(snapshot.minimumAttack)-\(snapshot.maximumAttack)")
+        for (idx, profile) in snapshot.attacks.enumerated() {
+            print("  📊 Strike \(idx + 1): \(profile.minimumAttack)-\(profile.maximumAttack) dmg, \(profile.epBlockCost) EP block cost")
+        }
         print("  🎯 Attack Points: \(snapshot.attackPoints), Defense Points: \(snapshot.defensePoints)")
     }
 
@@ -331,15 +333,16 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
 
     private func formatPointStatus(_ status: PointStatus) -> String {
         switch status {
-        case .blocked:
-            return "🛡️ BLOCKED"
+        case .blocked(_, let epSpent):
+            return "🛡️ BLOCKED (-\(epSpent) EP)"
         case .hit(let weaponDamage, let strengthDamage, let defenderArmor):
             let totalDamage = max(0, weaponDamage + strengthDamage - defenderArmor)
             return "💥 HIT (\(totalDamage) damage: weapon=\(weaponDamage) str=\(strengthDamage) armor=\(defenderArmor))"
-        case .critHit(let weaponDamage, let strengthDamage, let defenderArmor, let multiplier):
+        case .critHit(let weaponDamage, let strengthDamage, let defenderArmor, let multiplier, let epSpent):
             let baseDamage = weaponDamage + strengthDamage - defenderArmor
             let totalDamage = max(0, Int(Double(baseDamage) * multiplier))
-            return "💥💥 CRIT HIT (\(totalDamage) damage: weapon=\(weaponDamage) str=\(strengthDamage) armor=\(defenderArmor) x\(multiplier))"
+            let epSuffix = epSpent > 0 ? " -\(epSpent) EP" : ""
+            return "💥💥 CRIT HIT (\(totalDamage) damage: weapon=\(weaponDamage) str=\(strengthDamage) armor=\(defenderArmor) x\(multiplier)\(epSuffix))"
         case .dodged:
             return "💨 DODGED"
         case .nothing:

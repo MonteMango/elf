@@ -51,11 +51,16 @@ public final class ElfCombatRoundExecutor: CombatRoundExecutor {
         let playerDamageTaken = damageService.calculateTotalDamage(from: playerResults)
         let botDamageTaken = damageService.calculateTotalDamage(from: botResults)
 
+        let playerEPSpent = playerResults.values.reduce(0) { $0 + $1.epSpentValue }
+        let botEPSpent = botResults.values.reduce(0) { $0 + $1.epSpentValue }
+
         return CombatRoundResult(
             playerResults: playerResults,
             botResults: botResults,
             playerDamageTaken: playerDamageTaken,
-            botDamageTaken: botDamageTaken
+            botDamageTaken: botDamageTaken,
+            playerEPSpent: playerEPSpent,
+            botEPSpent: botEPSpent
         )
     }
 }

@@ -308,9 +308,11 @@ longer protect — and (later) start damaging the equipment instead.
 | Base block cost — 2H weapon   | 400 EP                                               |
 | Base block cost — shield      | TBD (lower than 1H, likely ≤ 100 EP)                 |
 | Endurance effect              | Reduces actual EP paid per block (formula TBD).      |
-| Block at 0 EP (MVP)           | Block input is accepted, but **no protection occurs** — incoming attack resolves as if unblocked (dodge/crit rolls run normally). |
+| Insufficient EP (MVP)         | Whenever `currentEP < cost` (including 0), the block input is accepted but **no protection occurs** — incoming attack resolves as if unblocked (dodge/crit rolls run normally). EP is **not** spent because no successful block happened. |
 | Crit pierces block            | Damage applies **and** EP is still spent. Tanks pay twice — this is the crit-vs-def edge of the triangle. |
 | Dodge interaction             | Unchanged. Dodge only runs when the body part is **not** blocked. Choosing to block a part disables that part's dodge roll. |
+| Strike order (dual-wield)     | The **right-hand (primary) weapon** strikes first; **left-hand (secondary)** strikes second. EP is drained in this order — the primary's block check happens before the secondary's. If EP runs out between strikes, the secondary's block fails (resolves as undefended). |
+| Strike → body-part mapping    | Among the body parts the attacker selected to hit, the i-th in enum order `[head, body, leftHand, rightHand, legs]` is hit by the i-th strike. Strike 0 (primary) → top-most attacked body part; strike 1 (secondary) → next. |
 
 ### Endurance → block-cost formula
 

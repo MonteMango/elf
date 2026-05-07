@@ -20,7 +20,6 @@ public final class HuntViewModel {
     private let itemsRepository: any ItemsRepository
     private let snapshotBuilder: any CombatantSnapshotBuilder
     private let progressionService: any ProgressionService
-    private let equipmentQueryService: any EquipmentQueryService
 
     // MARK: - Constants / Local UI state
 
@@ -53,13 +52,11 @@ public final class HuntViewModel {
         @Dependency(\.itemsRepository) var itemsRepository
         @Dependency(\.snapshotBuilder) var snapshotBuilder
         @Dependency(\.progressionService) var progressionService
-        @Dependency(\.equipmentQueryService) var equipmentQueryService
         self.monsterRepository = monsterRepository
         self.materialRepository = materialRepository
         self.itemsRepository = itemsRepository
         self.snapshotBuilder = snapshotBuilder
         self.progressionService = progressionService
-        self.equipmentQueryService = equipmentQueryService
 
         self.gameService = gameService
     }
@@ -79,18 +76,14 @@ public final class HuntViewModel {
         gameService.spendActionPoints(huntCost)
 
         let player = gameService.player.snapshot()
-        let selectedItems: [HeroItemType: UUID?] = equipmentQueryService.equippedBaseItemIds(from: player.equipped).mapValues { $0 }
-
-        guard let playerSnapshot = snapshotBuilder.buildSnapshot(
+        let playerSnapshot = snapshotBuilder.buildSnapshot(
             name: player.name,
             imageName: player.imageName,
             level: progressionService.calculateLevel(currentExp: player.currentExp),
             fightStyleAttributes: player.fightStyleAttributes,
             randomLevelAttributes: player.randomLevelAttributes,
-            selectedItems: selectedItems
-        ) else {
-            return nil
-        }
+            equipped: player.equipped
+        )
 
         let monsterSnapshot = snapshotBuilder.buildSnapshot(from: monster)
 

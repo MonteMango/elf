@@ -14,46 +14,34 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     // MARK: - Test Helpers
 
-    /// Creates a test WeaponItem using JSON decoding
     private func makeWeaponItem(
         id: UUID = UUID(),
         title: String = "Test Weapon",
         tier: Int16 = 1,
         handUse: WeaponHandUse,
         minimumAttackPoint: Int16 = 1,
-        maximumAttackPoint: Int16 = 5
+        maximumAttackPoint: Int16 = 5,
+        epBlockCost: Int16 = 0
     ) throws -> WeaponItem {
-        let json: [String: Any] = [
-            "id": id.uuidString,
-            "title": title,
-            "tier": tier,
-            "minimumAttackPoint": minimumAttackPoint,
-            "maximumAttackPoint": maximumAttackPoint,
-            "handUse": handUse.rawValue
-        ]
-
-        let data = try JSONSerialization.data(withJSONObject: json)
-        let decoder = JSONDecoder()
-        return try decoder.decode(WeaponItem.self, from: data)
+        try TestFixtures.weaponItem(
+            id: id, title: title, tier: tier,
+            handUse: handUse,
+            minimumAttackPoint: minimumAttackPoint,
+            maximumAttackPoint: maximumAttackPoint,
+            epBlockCost: epBlockCost
+        )
     }
 
-    /// Creates a test ShieldItem using JSON decoding
     private func makeShieldItem(
         id: UUID = UUID(),
         title: String = "Test Shield",
         tier: Int16 = 1,
         physicalDefensePoint: Int16 = 10
     ) throws -> ShieldItem {
-        let json: [String: Any] = [
-            "id": id.uuidString,
-            "title": title,
-            "tier": tier,
-            "physicalDefensePoint": physicalDefensePoint
-        ]
-
-        let data = try JSONSerialization.data(withJSONObject: json)
-        let decoder = JSONDecoder()
-        return try decoder.decode(ShieldItem.self, from: data)
+        try TestFixtures.shieldItem(
+            id: id, title: title, tier: tier,
+            physicalDefensePoint: physicalDefensePoint
+        )
     }
 
     // MARK: - Fake Repository

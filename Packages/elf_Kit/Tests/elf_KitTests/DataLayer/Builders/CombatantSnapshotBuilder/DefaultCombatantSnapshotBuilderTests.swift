@@ -12,70 +12,97 @@ import XCTest
 /// Tests for DefaultCombatantSnapshotBuilder
 ///
 /// The builder creates CombatantSnapshot from:
-/// - Elf configuration (name, level, attributes, equipment)
+/// - Elf configuration (name, level, attributes, EquippedItems)
 /// - Monster data
 final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
 
     // MARK: - Mock Services
 
-    final class MockItemsRepository: ItemsRepository, @unchecked Sendable {
-        var itemsToReturn: [UUID: Item] = [:]
-        var heroItems: HeroItems {
-            HeroItems(
-                version: "1.0.0-test",
-                helmets: [],
-                gloves: [],
-                shoes: [],
-                upperBodies: [],
-                bottomBodies: [],
-                robes: [],
-                weapons: [],
-                shields: [],
-                rings: [],
-                necklaces: [],
-                earrings: []
-            )
-        }
-
-        func getItems(for heroItemType: HeroItemType) -> [Item] { [] }
-        func getHeroItem(_ itemId: UUID) -> Item? { itemsToReturn[itemId] }
-        func armorSlot(for itemId: UUID) -> ArmorSlot? { nil }
-    }
-
+    /// Mock that captures the exact set of UUIDs passed in, so tests can pin
+    /// down which slots contribute to armor calculation.
     final class MockArmorService: ArmorService, @unchecked Sendable {
-        var armorToReturn: [BodyPart: Int16] = [:]
+        nonisolated(unsafe) var armorToReturn: [BodyPart: Int16] = [:]
+        nonisolated(unsafe) var lastRequestedIds: [UUID] = []
 
-        func getAllItemsArmor(for itemIds: [UUID]) -> [BodyPart: Int16] { armorToReturn }
+        func getAllItemsArmor(for itemIds: [UUID]) -> [BodyPart: Int16] {
+            lastRequestedIds = itemIds
+            return armorToReturn
+        }
     }
 
     // MARK: - Properties
 
-    private var mockItemsRepository: MockItemsRepository!
     private var mockArmorService: MockArmorService!
     private var builder: DefaultCombatantSnapshotBuilder!
 
     // MARK: - Setup
 
     /// Wrap every test in `withDependencies` so the `builder`'s @Dependency property
-    /// wrappers resolve to the per-test mocks. Mocks are created here (before
-    /// `super.invokeTest()`) because `setUp` would otherwise run after the
-    /// `withDependencies` block opens and leave the closure reading `nil`.
+    /// wrappers resolve to the per-test mocks.
     override func invokeTest() {
-        let mockItems = MockItemsRepository()
         let mockArmor = MockArmorService()
-        self.mockItemsRepository = mockItems
         self.mockArmorService = mockArmor
 
         withDependencies {
-            $0.itemsRepository = mockItems
             $0.armorService = mockArmor
         } operation: {
             self.builder = DefaultCombatantSnapshotBuilder()
             super.invokeTest()
             self.builder = nil
-            self.mockItemsRepository = nil
             self.mockArmorService = nil
         }
+    }
+
+    // MARK: - Item Factory Helpers
+
+    /// Local aliases to `TestFixtures` so the existing call-site spelling
+    /// (`makeWeaponItem(...)`, `makeShieldItem(...)`) keeps working.
+    private func makeWeaponItem(
+        id: UUID = UUID(),
+        title: String = "Test Weapon",
+        tier: Int16 = 1,
+        handUse: WeaponHandUse,
+        minimumAttackPoint: Int16 = 1,
+        maximumAttackPoint: Int16 = 5,
+        epBlockCost: Int16 = 0,
+        strength: Int16? = nil,
+        agility: Int16? = nil,
+        power: Int16? = nil,
+        instinct: Int16? = nil,
+        endurance: Int16? = nil,
+        hitPoints: Int16? = nil
+    ) throws -> WeaponItem {
+        try TestFixtures.weaponItem(
+            id: id, title: title, tier: tier,
+            handUse: handUse,
+            minimumAttackPoint: minimumAttackPoint,
+            maximumAttackPoint: maximumAttackPoint,
+            epBlockCost: epBlockCost,
+            strength: strength, agility: agility, power: power,
+            instinct: instinct, endurance: endurance, hitPoints: hitPoints
+        )
+    }
+
+    private func makeShieldItem(
+        id: UUID = UUID(),
+        title: String = "Test Shield",
+        tier: Int16 = 1,
+        physicalDefensePoint: Int16 = 10
+    ) throws -> ShieldItem {
+        try TestFixtures.shieldItem(
+            id: id, title: title, tier: tier,
+            physicalDefensePoint: physicalDefensePoint
+        )
+    }
+
+    /// Wraps a `WeaponItem` as the type-safe one-handed configuration. Throws
+    /// if the underlying weapon is not actually one-handed.
+    private func makeOneHandedConfig(_ item: WeaponItem) throws -> WeaponConfiguration {
+        let elfWeapon = ElfWeaponItem(weaponItem: item)
+        guard let oneHanded = ElfOneHandedWeaponItem(weapon: elfWeapon) else {
+            throw NSError(domain: "Test", code: 0, userInfo: [NSLocalizedDescriptionKey: "Weapon is not one-handed"])
+        }
+        return .oneHanded(weapon: oneHanded)
     }
 
     // MARK: - Monster Snapshot Tests
@@ -87,9 +114,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             title: "Goblin",
             imageName: "monster_goblin",
             expReward: [ChanceAmount(amount: 10, chance: 1.0)],
-            minimumAttack: 5,
-            maximumAttack: 10,
-            attackPoints: 1,
+            rightAttack: AttackProfile(minimumAttack: 5, maximumAttack: 10, epBlockCost: 300),
             defensePoints: 2,
             hitPoints: 100,
             manaPoints: 0,
@@ -118,8 +143,10 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
         XCTAssertEqual(snapshot.intuition, 10)
         XCTAssertEqual(snapshot.attackPoints, 1)
         XCTAssertEqual(snapshot.defensePoints, 2)
-        XCTAssertEqual(snapshot.minimumAttack, 5)
-        XCTAssertEqual(snapshot.maximumAttack, 10)
+        XCTAssertEqual(snapshot.attacks.count, 1)
+        XCTAssertEqual(snapshot.attacks[0].minimumAttack, 5)
+        XCTAssertEqual(snapshot.attacks[0].maximumAttack, 10)
+        XCTAssertEqual(snapshot.attacks[0].epBlockCost, 300)
     }
 
     func testBuildSnapshot_FromMonster_MapsArmorCorrectly() {
@@ -129,9 +156,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             title: "Test",
             imageName: "",
             expReward: [],
-            minimumAttack: 0,
-            maximumAttack: 0,
-            attackPoints: 1,
+            rightAttack: AttackProfile(minimumAttack: 0, maximumAttack: 0, epBlockCost: 300),
             defensePoints: 2,
             hitPoints: 50,
             manaPoints: 0,
@@ -162,9 +187,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             title: "Test",
             imageName: "",
             expReward: [],
-            minimumAttack: 0,
-            maximumAttack: 0,
-            attackPoints: 1,
+            rightAttack: AttackProfile(minimumAttack: 0, maximumAttack: 0, epBlockCost: 300),
             defensePoints: 2,
             hitPoints: 50,
             manaPoints: 0,
@@ -204,9 +227,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             title: "Test",
             imageName: "",
             expReward: [],
-            minimumAttack: 0,
-            maximumAttack: 0,
-            attackPoints: 1,
+            rightAttack: AttackProfile(minimumAttack: 0, maximumAttack: 0, epBlockCost: 300),
             defensePoints: 2,
             hitPoints: 50,
             manaPoints: 0,
@@ -228,114 +249,237 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
 
     // MARK: - Elf Snapshot Tests
 
-    func testBuildSnapshot_FromElfConfig_SetsBasicValues() async {
+    func testBuildSnapshot_FromElfConfig_SetsBasicValues() throws {
         // Given
-        let fightStyleAttributes = HeroAttributes(
-            hitPoints: 100,
-            manaPoints: 50,
-            agility: 10,
-            strength: 15,
-            power: 12,
-            instinct: 8,
-            endurance: 0
+        let weapon = try makeWeaponItem(handUse: .oneHand)
+        let equipped = EquippedItems(weapons: try makeOneHandedConfig(weapon))
+        let fightStyle = HeroAttributes(
+            hitPoints: 100, manaPoints: 50, agility: 10,
+            strength: 15, power: 12, instinct: 8, endurance: 0
         )
-        let randomLevelAttributes = HeroAttributes(
-            hitPoints: 20,
-            manaPoints: 10,
-            agility: 2,
-            strength: 3,
-            power: 2,
-            instinct: 1,
-            endurance: 0
+        let randomLevel = HeroAttributes(
+            hitPoints: 20, manaPoints: 10, agility: 2,
+            strength: 3, power: 2, instinct: 1, endurance: 0
         )
 
         // When
-        let snapshot = await builder.buildSnapshot(
+        let snapshot = builder.buildSnapshot(
             name: "Test Elf",
             imageName: "elf_test",
             level: 5,
-            fightStyleAttributes: fightStyleAttributes,
-            randomLevelAttributes: randomLevelAttributes,
-            selectedItems: [:]
+            fightStyleAttributes: fightStyle,
+            randomLevelAttributes: randomLevel,
+            equipped: equipped
         )
 
         // Then
-        XCTAssertNotNil(snapshot)
-        XCTAssertEqual(snapshot?.name, "Test Elf")
-        XCTAssertEqual(snapshot?.imageName, "elf_test")
-        XCTAssertEqual(snapshot?.combatantType, .elf)
-        XCTAssertEqual(snapshot?.level, 5)
+        XCTAssertEqual(snapshot.name, "Test Elf")
+        XCTAssertEqual(snapshot.imageName, "elf_test")
+        XCTAssertEqual(snapshot.combatantType, .elf)
+        XCTAssertEqual(snapshot.level, 5)
     }
 
-    func testBuildSnapshot_FromElfConfig_AggregatesAttributes() async {
+    func testBuildSnapshot_FromElfConfig_AggregatesAttributesIncludingItems() throws {
         // Given
-        let fightStyleAttributes = HeroAttributes(
-            hitPoints: 100,
-            manaPoints: 50,
-            agility: 10,
-            strength: 15,
-            power: 12,
-            instinct: 8,
-            endurance: 4
+        let weapon = try makeWeaponItem(
+            handUse: .oneHand,
+            strength: 5,    // item bonus that MUST land in the snapshot
+            agility: 1,
+            endurance: 1,
+            hitPoints: 30
         )
-        let randomLevelAttributes = HeroAttributes(
-            hitPoints: 20,
-            manaPoints: 10,
-            agility: 5,
-            strength: 5,
-            power: 3,
-            instinct: 2,
-            endurance: 2
+        let equipped = EquippedItems(weapons: try makeOneHandedConfig(weapon))
+        let fightStyle = HeroAttributes(
+            hitPoints: 100, manaPoints: 50, agility: 10,
+            strength: 15, power: 12, instinct: 8, endurance: 4
+        )
+        let randomLevel = HeroAttributes(
+            hitPoints: 20, manaPoints: 10, agility: 5,
+            strength: 5, power: 3, instinct: 2, endurance: 2
         )
 
         // When
-        let snapshot = await builder.buildSnapshot(
+        let snapshot = builder.buildSnapshot(
             name: "Test",
             imageName: "",
             level: 1,
-            fightStyleAttributes: fightStyleAttributes,
-            randomLevelAttributes: randomLevelAttributes,
-            selectedItems: [:]
+            fightStyleAttributes: fightStyle,
+            randomLevelAttributes: randomLevel,
+            equipped: equipped
         )
 
-        // Then
-        XCTAssertNotNil(snapshot)
-        XCTAssertEqual(snapshot?.currentHP, 120) // 100 + 20
-        XCTAssertEqual(snapshot?.maxHP, 120)
-        XCTAssertEqual(snapshot?.strength, 20)   // 15 + 5
-        XCTAssertEqual(snapshot?.agility, 15)    // 10 + 5
-        XCTAssertEqual(snapshot?.power, 15)      // 12 + 3
-        XCTAssertEqual(snapshot?.intuition, 10)  // 8 + 2 (instinct)
-        XCTAssertEqual(snapshot?.endurance, 6)   // 4 + 2
+        // Then — fightStyle + randomLevel + item bonuses
+        XCTAssertEqual(snapshot.currentHP, 150)  // 100 + 20 + 30
+        XCTAssertEqual(snapshot.maxHP, 150)
+        XCTAssertEqual(snapshot.strength, 25)    // 15 + 5 + 5
+        XCTAssertEqual(snapshot.agility, 16)     // 10 + 5 + 1
+        XCTAssertEqual(snapshot.power, 15)       // 12 + 3 + 0
+        XCTAssertEqual(snapshot.intuition, 10)   // 8 + 2 + 0
+        XCTAssertEqual(snapshot.endurance, 7)    // 4 + 2 + 1
     }
 
-    func testBuildSnapshot_FromElfConfig_NoWeapons_HasDefaultAttackDefensePoints() async {
+    // MARK: - WeaponConfiguration → snapshot
+
+    func testBuildSnapshot_OneHanded_SingleAttackBaseDefense() throws {
         // Given
-        let attributes = HeroAttributes(
-            hitPoints: 100, manaPoints: 0, agility: 0, strength: 0, power: 0, instinct: 0, endurance: 0
+        let weapon = try makeWeaponItem(
+            handUse: .oneHand,
+            minimumAttackPoint: 4, maximumAttackPoint: 8,
+            epBlockCost: 200
         )
+        let equipped = EquippedItems(weapons: try makeOneHandedConfig(weapon))
 
         // When
-        let snapshot = await builder.buildSnapshot(
-            name: "Test",
-            imageName: "",
-            level: 1,
-            fightStyleAttributes: attributes,
-            randomLevelAttributes: HeroAttributes(),
-            selectedItems: [:]
-        )
+        let snapshot = makeElfSnapshot(equipped: equipped)
 
         // Then
-        XCTAssertNotNil(snapshot)
-        XCTAssertEqual(snapshot?.attackPoints, 1)  // Default
-        XCTAssertEqual(snapshot?.defensePoints, 2) // Default (no shield)
+        XCTAssertEqual(snapshot.attackPoints, 1)
+        XCTAssertEqual(snapshot.defensePoints, 2)
+        XCTAssertEqual(snapshot.attacks.count, 1)
+        XCTAssertEqual(snapshot.attacks[0].minimumAttack, 4)
+        XCTAssertEqual(snapshot.attacks[0].maximumAttack, 8)
+        XCTAssertEqual(snapshot.attacks[0].epBlockCost, 200)
+        XCTAssertNotNil(snapshot.rightWeaponItem)
+        XCTAssertNil(snapshot.leftWeaponItem)
+        XCTAssertNil(snapshot.shieldItem)
     }
 
-    func testBuildSnapshot_FromElfConfig_UsesArmorFromService() async {
+    func testBuildSnapshot_OneHandedWithShield_DefensePlusOne() throws {
         // Given
-        let attributes = HeroAttributes(
-            hitPoints: 100, manaPoints: 0, agility: 0, strength: 0, power: 0, instinct: 0, endurance: 0
+        let weapon = try makeWeaponItem(handUse: .oneHand, epBlockCost: 200)
+        let elfWeapon = ElfWeaponItem(weaponItem: weapon)
+        let oneHanded = try XCTUnwrap(ElfOneHandedWeaponItem(weapon: elfWeapon))
+        let shieldBase = try makeShieldItem()
+        let shield = ElfShieldItem(id: shieldBase.id, item: shieldBase)
+        let equipped = EquippedItems(weapons: .oneHandedWithShield(weapon: oneHanded, shield: shield))
+
+        // When
+        let snapshot = makeElfSnapshot(equipped: equipped)
+
+        // Then
+        XCTAssertEqual(snapshot.attackPoints, 1)
+        XCTAssertEqual(snapshot.defensePoints, 3)
+        XCTAssertNotNil(snapshot.rightWeaponItem)
+        XCTAssertNil(snapshot.leftWeaponItem)
+        XCTAssertNotNil(snapshot.shieldItem)
+        XCTAssertEqual(snapshot.attacks.count, 1)
+        XCTAssertEqual(snapshot.attacks[0].epBlockCost, 200, "Shield config must surface the weapon's EP block cost — original bug returned 0")
+    }
+
+    func testBuildSnapshot_TwoHanded_SingleAttackBaseDefense() throws {
+        // Given
+        let weapon = try makeWeaponItem(
+            handUse: .both,
+            minimumAttackPoint: 6, maximumAttackPoint: 12,
+            epBlockCost: 400
         )
+        let elfWeapon = ElfWeaponItem(weaponItem: weapon)
+        let twoHanded = try XCTUnwrap(ElfTwoHandedWeaponItem(weapon: elfWeapon))
+        let equipped = EquippedItems(weapons: .twoHanded(weapon: twoHanded))
+
+        // When
+        let snapshot = makeElfSnapshot(equipped: equipped)
+
+        // Then
+        XCTAssertEqual(snapshot.attackPoints, 1)
+        XCTAssertEqual(snapshot.defensePoints, 2)
+        XCTAssertEqual(snapshot.attacks.count, 1)
+        XCTAssertEqual(snapshot.attacks[0].minimumAttack, 6)
+        XCTAssertEqual(snapshot.attacks[0].maximumAttack, 12)
+        XCTAssertEqual(snapshot.attacks[0].epBlockCost, 400)
+    }
+
+    func testBuildSnapshot_DualWield_TwoAttackPoints_PerStrikeStats() throws {
+        // Given: primary and secondary have different damage and EP costs.
+        let primaryItem = try makeWeaponItem(
+            handUse: .oneHand,
+            minimumAttackPoint: 3, maximumAttackPoint: 7,
+            epBlockCost: 150
+        )
+        let secondaryItem = try makeWeaponItem(
+            handUse: .oneHand,
+            minimumAttackPoint: 1, maximumAttackPoint: 5,
+            epBlockCost: 250
+        )
+
+        let primaryElf = ElfWeaponItem(weaponItem: primaryItem)
+        let secondaryElf = ElfWeaponItem(weaponItem: secondaryItem)
+        let primary = try XCTUnwrap(ElfOneHandedWeaponItem(weapon: primaryElf))
+        let secondary = try XCTUnwrap(ElfOneHandedWeaponItem(weapon: secondaryElf))
+        let equipped = EquippedItems(weapons: .dualWield(primary: primary, secondary: secondary))
+
+        // When
+        let snapshot = makeElfSnapshot(equipped: equipped)
+
+        // Then: two strikes, each carrying its own weapon's stats.
+        XCTAssertEqual(snapshot.attackPoints, 2)
+        XCTAssertEqual(snapshot.defensePoints, 2)
+        XCTAssertEqual(snapshot.attacks.count, 2)
+
+        XCTAssertEqual(snapshot.attacks[0].minimumAttack, 3, "Strike 1 = right weapon damage min")
+        XCTAssertEqual(snapshot.attacks[0].maximumAttack, 7, "Strike 1 = right weapon damage max")
+        XCTAssertEqual(snapshot.attacks[0].epBlockCost, 150, "Strike 1 = right weapon EP cost")
+
+        XCTAssertEqual(snapshot.attacks[1].minimumAttack, 1, "Strike 2 = left weapon damage min")
+        XCTAssertEqual(snapshot.attacks[1].maximumAttack, 5, "Strike 2 = left weapon damage max")
+        XCTAssertEqual(snapshot.attacks[1].epBlockCost, 250, "Strike 2 = left weapon EP cost")
+
+        XCTAssertNotNil(snapshot.rightWeaponItem)
+        XCTAssertNotNil(snapshot.leftWeaponItem)
+        XCTAssertNil(snapshot.shieldItem)
+    }
+
+    // MARK: - Armor IDs set
+
+    func testBuildSnapshot_ArmorService_DoesNotReceivePrimaryWeaponId() throws {
+        // Given: oneHandedWithShield → only shield's id should reach the armor service.
+        let weapon = try makeWeaponItem(handUse: .oneHand)
+        let elfWeapon = ElfWeaponItem(weaponItem: weapon)
+        let oneHanded = try XCTUnwrap(ElfOneHandedWeaponItem(weapon: elfWeapon))
+        let shieldBase = try makeShieldItem()
+        let shield = ElfShieldItem(id: shieldBase.id, item: shieldBase)
+        let equipped = EquippedItems(weapons: .oneHandedWithShield(weapon: oneHanded, shield: shield))
+
+        // When
+        _ = makeElfSnapshot(equipped: equipped)
+
+        // Then
+        XCTAssertFalse(
+            mockArmorService.lastRequestedIds.contains(weapon.id),
+            "Primary weapon must not be sent to armor service"
+        )
+        XCTAssertTrue(
+            mockArmorService.lastRequestedIds.contains(shield.id),
+            "Shield must reach the armor service"
+        )
+    }
+
+    func testBuildSnapshot_ArmorService_ReceivesDualWieldSecondaryWeaponId() throws {
+        // Given: dual-wield secondary occupies the off-hand → its id should reach armor service.
+        let primaryItem = try makeWeaponItem(handUse: .oneHand)
+        let secondaryItem = try makeWeaponItem(handUse: .oneHand)
+        let primary = try XCTUnwrap(ElfOneHandedWeaponItem(weapon: ElfWeaponItem(weaponItem: primaryItem)))
+        let secondary = try XCTUnwrap(ElfOneHandedWeaponItem(weapon: ElfWeaponItem(weaponItem: secondaryItem)))
+        let equipped = EquippedItems(weapons: .dualWield(primary: primary, secondary: secondary))
+
+        // When
+        _ = makeElfSnapshot(equipped: equipped)
+
+        // Then
+        XCTAssertFalse(
+            mockArmorService.lastRequestedIds.contains(primaryItem.id),
+            "Primary (main-hand) weapon must not be sent to armor service"
+        )
+        XCTAssertTrue(
+            mockArmorService.lastRequestedIds.contains(secondaryItem.id),
+            "Off-hand secondary weapon must reach the armor service"
+        )
+    }
+
+    func testBuildSnapshot_FromElfConfig_UsesArmorFromService() throws {
+        // Given
+        let weapon = try makeWeaponItem(handUse: .oneHand)
+        let equipped = EquippedItems(weapons: try makeOneHandedConfig(weapon))
         mockArmorService.armorToReturn = [
             .head: 5,
             .body: 10,
@@ -345,21 +489,30 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
         ]
 
         // When
-        let snapshot = await builder.buildSnapshot(
+        let snapshot = makeElfSnapshot(equipped: equipped)
+
+        // Then
+        XCTAssertEqual(snapshot.armorValues[.head], 5)
+        XCTAssertEqual(snapshot.armorValues[.body], 10)
+        XCTAssertEqual(snapshot.armorValues[.leftHand], 3)
+        XCTAssertEqual(snapshot.armorValues[.rightHand], 3)
+        XCTAssertEqual(snapshot.armorValues[.legs], 7)
+    }
+
+    // MARK: - Helpers
+
+    private func makeElfSnapshot(equipped: EquippedItems) -> CombatantSnapshot {
+        let attributes = HeroAttributes(
+            hitPoints: 100, manaPoints: 0, agility: 0,
+            strength: 0, power: 0, instinct: 0, endurance: 0
+        )
+        return builder.buildSnapshot(
             name: "Test",
             imageName: "",
             level: 1,
             fightStyleAttributes: attributes,
             randomLevelAttributes: HeroAttributes(),
-            selectedItems: [:]
+            equipped: equipped
         )
-
-        // Then
-        XCTAssertNotNil(snapshot)
-        XCTAssertEqual(snapshot?.armorValues[.head], 5)
-        XCTAssertEqual(snapshot?.armorValues[.body], 10)
-        XCTAssertEqual(snapshot?.armorValues[.leftHand], 3)
-        XCTAssertEqual(snapshot?.armorValues[.rightHand], 3)
-        XCTAssertEqual(snapshot?.armorValues[.legs], 7)
     }
 }

@@ -63,42 +63,51 @@ struct HeroDisplayView: View {
     // MARK: - Private Views
 
     private var hpBar: some View {
-        ZStack(alignment: .leading) {
-            // Background
-            RoundedRectangle(cornerRadius: ElfSizing.BattleFight.hpBarHeight / 2)
-                .fill(ElfColors.ProgressBar.background)
+        // GeometryReader gives the fill an explicit width — corner radius
+        // stays correct at low percentages (scaleEffect would distort it).
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: ElfSizing.BattleFight.hpBarHeight / 2)
+                    .fill(ElfColors.ProgressBar.background)
 
-            // Fill
-            RoundedRectangle(cornerRadius: ElfSizing.BattleFight.hpBarHeight / 2)
-                .fill(ElfColors.ProgressBar.hp)
-                .scaleEffect(x: hpPercentage, y: 1, anchor: .leading)
+                RoundedRectangle(cornerRadius: ElfSizing.BattleFight.hpBarHeight / 2)
+                    .fill(ElfColors.ProgressBar.hp)
+                    .frame(width: geometry.size.width * hpPercentage)
 
-            // Text
-            Text("\(currentHP)/\(maxHP)")
-                .font(ElfFonts.Component.statValue)
-                .foregroundStyle(ElfColors.Text.primaryLight)
-                .frame(maxWidth: .infinity, alignment: .center)
+                Text("\(currentHP)/\(maxHP)")
+                    .font(ElfFonts.Component.statValue)
+                    .foregroundStyle(ElfColors.Text.primaryLight)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
         }
         .frame(maxWidth: .infinity)
         .frame(height: ElfSizing.BattleFight.hpBarHeight)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Hit points")
+        .accessibilityValue("\(currentHP) of \(maxHP)")
     }
 
     private var epBar: some View {
-        ZStack(alignment: .leading) {
-            RoundedRectangle(cornerRadius: ElfSizing.BattleFight.epBarHeight / 2)
-                .fill(ElfColors.ProgressBar.background)
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: ElfSizing.BattleFight.epBarHeight / 2)
+                    .fill(ElfColors.ProgressBar.background)
 
-            RoundedRectangle(cornerRadius: ElfSizing.BattleFight.epBarHeight / 2)
-                .fill(ElfColors.ProgressBar.ep)
-                .scaleEffect(x: epPercentage, y: 1, anchor: .leading)
+                RoundedRectangle(cornerRadius: ElfSizing.BattleFight.epBarHeight / 2)
+                    .fill(ElfColors.ProgressBar.ep)
+                    .frame(width: geometry.size.width * epPercentage)
 
-            Text("\(currentEP)/\(maxEP)")
-                .font(ElfFonts.Component.statLabel)
-                .foregroundStyle(ElfColors.Text.primaryLight)
-                .frame(maxWidth: .infinity, alignment: .center)
+                Text("\(currentEP)/\(maxEP)")
+                    .font(ElfFonts.Component.statLabel)
+                    .foregroundStyle(ElfColors.Text.primaryLight)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
         }
         .frame(maxWidth: .infinity)
         .frame(height: ElfSizing.BattleFight.epBarHeight)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Endurance points")
+        .accessibilityValue("\(currentEP) of \(maxEP)")
     }
 
     @ViewBuilder
@@ -174,9 +183,12 @@ struct HeroDisplayView: View {
                     height: ElfSizing.BattleFight.battleItemSize
                 )
 
-            // Item image if equipped
+            // Item image if equipped. Use the BASE item id (`item.id`) — the
+            // asset catalog is keyed by the JSON-defined item UUID, not by
+            // the wrapper's per-instance id (which can be a fresh UUID when
+            // the wrapper was built via `init(defenseItem:)`/`init(weaponItem:)`).
             if let elfItem = item {
-                itemImage(id: elfItem.id, size: ElfSizing.BattleFight.battleItemSize)
+                itemImage(id: elfItem.item.id, size: ElfSizing.BattleFight.battleItemSize)
             }
         }
     }
@@ -192,9 +204,9 @@ struct HeroDisplayView: View {
                     height: ElfSizing.BattleFight.battleJewelrySize
                 )
 
-            // Item image if equipped
+            // Item image if equipped — see `itemSlot` for why we use `item.id`.
             if let elfItem = item {
-                itemImage(id: elfItem.id, size: ElfSizing.BattleFight.battleJewelrySize)
+                itemImage(id: elfItem.item.id, size: ElfSizing.BattleFight.battleJewelrySize)
             }
         }
     }
@@ -261,7 +273,7 @@ struct HeroDisplayView: View {
         case .hit(let weaponDamage, let strengthDamage, let defenderArmor):
             let damage = max(0, weaponDamage + strengthDamage - defenderArmor)
             return "\(damage)"
-        case .critHit(let weaponDamage, let strengthDamage, let defenderArmor, let multiplier):
+        case .critHit(let weaponDamage, let strengthDamage, let defenderArmor, let multiplier, _):
             let baseDamage = weaponDamage + strengthDamage - defenderArmor
             let damage = max(0, Int(Double(baseDamage) * multiplier))
             return "crit \(damage)"
@@ -310,15 +322,17 @@ struct HeroDisplayView: View {
         combatantType: .monster,
         currentHP: 120,
         maxHP: 150,
+        currentEP: 1400,
+        maxEP: 2000,
         strength: 15,
         agility: 10,
         power: 12,
         intuition: 8,
         endurance: 0,
-        attackPoints: 1,
+        attacks: [
+            AttackProfile(minimumAttack: 5, maximumAttack: 10, epBlockCost: 200)
+        ],
         defensePoints: 2,
-        minimumAttack: 5,
-        maximumAttack: 10,
         armorValues: [:]
     )
 
@@ -329,15 +343,18 @@ struct HeroDisplayView: View {
         combatantType: .elf,
         currentHP: 180,
         maxHP: 225,
+        currentEP: 2000,
+        maxEP: 2000,
         strength: 18,
         agility: 12,
         power: 14,
         intuition: 10,
         endurance: 0,
-        attackPoints: 2,
+        attacks: [
+            AttackProfile(minimumAttack: 8, maximumAttack: 15, epBlockCost: 200),
+            AttackProfile(minimumAttack: 4, maximumAttack: 8, epBlockCost: 100)
+        ],
         defensePoints: 3,
-        minimumAttack: 8,
-        maximumAttack: 15,
         armorValues: [
             .head: 5,
             .body: 10,
@@ -352,13 +369,13 @@ struct HeroDisplayView: View {
             snapshot: monsterSnapshot,
             currentHP: 120,
             maxHP: 150,
-            currentEP: 1800,
-            maxEP: 2500,
+            currentEP: 1400,
+            maxEP: 2000,
             roundResults: [
-                .head: .blocked(wasCrit: false),
+                .head: .blocked(wasCrit: false, epSpent: 200),
                 .body: .hit(weaponDamage: 8, strengthDamage: 5, defenderArmor: 3),
                 .leftHand: .nothing,
-                .rightHand: .critHit(weaponDamage: 12, strengthDamage: 8, defenderArmor: 0, multiplier: 2.0),
+                .rightHand: .critHit(weaponDamage: 12, strengthDamage: 8, defenderArmor: 0, multiplier: 2.0, epSpent: 200),
                 .legs: .dodged(wasCrit: false)
             ]
         )
@@ -368,13 +385,13 @@ struct HeroDisplayView: View {
             snapshot: elfSnapshot,
             currentHP: 180,
             maxHP: 225,
-            currentEP: 2500,
-            maxEP: 2500,
+            currentEP: 2000,
+            maxEP: 2000,
             roundResults: [
                 .head: .hit(weaponDamage: 4, strengthDamage: 3, defenderArmor: 2),
-                .body: .blocked(wasCrit: false),
+                .body: .blocked(wasCrit: false, epSpent: 200),
                 .leftHand: .dodged(wasCrit: true),
-                .rightHand: .critHit(weaponDamage: 15, strengthDamage: 10, defenderArmor: 0, multiplier: 1.5),
+                .rightHand: .critHit(weaponDamage: 15, strengthDamage: 10, defenderArmor: 0, multiplier: 1.5, epSpent: 0),
                 .legs: .nothing
             ]
         )

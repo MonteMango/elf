@@ -140,7 +140,7 @@
             "tier": 4,
             "minimumAttackPoint": 6,
             "maximumAttackPoint": 9,
-            "epBlockCost": 400,
+            "epBlockCost": 300,
             "handUse": "both"
         },
         {

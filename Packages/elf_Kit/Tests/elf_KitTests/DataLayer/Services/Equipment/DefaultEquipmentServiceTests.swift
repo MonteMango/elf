@@ -28,31 +28,17 @@ final class DefaultEquipmentServiceTests: XCTestCase {
     // MARK: - Fixture Builders
 
     private func makeWeaponItem(id: UUID = UUID(), handUse: WeaponHandUse) -> WeaponItem {
-        let json = """
-        {
-            "id": "\(id.uuidString)",
-            "title": "Test Weapon",
-            "tier": 1,
-            "minimumAttackPoint": 5,
-            "maximumAttackPoint": 10,
-            "handUse": "\(handUse.rawValue)"
-        }
-        """
         // swiftlint:disable:next force_try
-        return try! JSONDecoder().decode(WeaponItem.self, from: Data(json.utf8))
+        return try! TestFixtures.weaponItem(
+            id: id, handUse: handUse,
+            minimumAttackPoint: 5, maximumAttackPoint: 10,
+            epBlockCost: 200
+        )
     }
 
     private func makeShieldItem(id: UUID = UUID()) -> ShieldItem {
-        let json = """
-        {
-            "id": "\(id.uuidString)",
-            "title": "Test Shield",
-            "tier": 1,
-            "physicalDefensePoint": 2
-        }
-        """
         // swiftlint:disable:next force_try
-        return try! JSONDecoder().decode(ShieldItem.self, from: Data(json.utf8))
+        return try! TestFixtures.shieldItem(id: id, physicalDefensePoint: 2)
     }
 
     private func makeOneHanded(id: UUID = UUID()) -> (ElfWeaponItem, ElfOneHandedWeaponItem) {

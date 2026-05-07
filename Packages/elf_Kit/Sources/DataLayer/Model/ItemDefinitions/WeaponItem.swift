@@ -27,7 +27,7 @@ public final class WeaponItem: Item {
 
     public let weaponSpecialAbility: WeaponSpecialAbility?
 
-    public let epBlockCost: Int16?
+    public let epBlockCost: Int16
 
     public let handUse: WeaponHandUse
 }

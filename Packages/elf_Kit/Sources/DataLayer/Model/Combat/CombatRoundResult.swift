@@ -21,15 +21,25 @@ public struct CombatRoundResult: Sendable {
     /// Total damage dealt to bot/monster this round
     public let botDamageTaken: Int
 
+    /// Total EP spent by the player on blocks this round
+    public let playerEPSpent: Int
+
+    /// Total EP spent by the bot/monster on blocks this round
+    public let botEPSpent: Int
+
     public init(
         playerResults: [BodyPart: PointStatus],
         botResults: [BodyPart: PointStatus],
         playerDamageTaken: Int,
-        botDamageTaken: Int
+        botDamageTaken: Int,
+        playerEPSpent: Int = 0,
+        botEPSpent: Int = 0
     ) {
         self.playerResults = playerResults
         self.botResults = botResults
         self.playerDamageTaken = playerDamageTaken
         self.botDamageTaken = botDamageTaken
+        self.playerEPSpent = playerEPSpent
+        self.botEPSpent = botEPSpent
     }
 }

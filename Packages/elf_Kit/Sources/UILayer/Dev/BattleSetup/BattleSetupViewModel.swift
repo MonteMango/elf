@@ -409,17 +409,17 @@ public final class BattleSetupViewModel {
             return nil
         }
 
-        // Build CombatantSnapshot for player
-        guard let playerSnapshot = snapshotBuilder.buildSnapshot(
+        // Build CombatantSnapshot for player. The adapter falls back to
+        // Recruit's Spear if no weapon is selected, so the dev screen can
+        // always start a battle.
+        let playerSnapshot = snapshotBuilder.buildSnapshot(
             name: "Player",
             imageName: "Yuuki Asuna",
             level: playerState.level,
             fightStyleAttributes: playerFightStyleAttrs,
             randomLevelAttributes: playerLevelAttrs,
-            selectedItems: playerState.selectedItems
-        ) else {
-            return nil
-        }
+            equipped: playerState.makeEquipped(itemsRepository: itemsRepository)
+        )
 
         // Handle opponent based on selection
         switch selectedOpponent {
@@ -431,16 +431,14 @@ public final class BattleSetupViewModel {
             }
 
             // Build CombatantSnapshot for bot
-            guard let botSnapshot = snapshotBuilder.buildSnapshot(
+            let botSnapshot = snapshotBuilder.buildSnapshot(
                 name: "Bot",
                 imageName: "",
                 level: botState.level,
                 fightStyleAttributes: botFightStyleAttrs,
                 randomLevelAttributes: botLevelAttrs,
-                selectedItems: botState.selectedItems
-            ) else {
-                return nil
-            }
+                equipped: botState.makeEquipped(itemsRepository: itemsRepository)
+            )
 
             // Create Battle with elf opponent
             return Battle(

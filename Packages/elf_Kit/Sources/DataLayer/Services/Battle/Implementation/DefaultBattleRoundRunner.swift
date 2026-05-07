@@ -100,6 +100,9 @@ public final class DefaultBattleRoundRunner: BattleRoundRunner {
             updatedLeft[input.leftIdx].currentHP = leftNewHP
             updatedRight[input.rightIdx].currentHP = rightNewHP
 
+            updatedLeft[input.leftIdx].currentEP = max(0, input.left.currentEP - result.playerEPSpent)
+            updatedRight[input.rightIdx].currentEP = max(0, input.right.currentEP - result.botEPSpent)
+
             pairResults.append(PairResult(
                 pair: input.pair,
                 leftSnapshot: input.left,

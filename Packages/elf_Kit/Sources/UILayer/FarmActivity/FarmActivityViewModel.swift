@@ -19,7 +19,6 @@ public final class FarmActivityViewModel {
     private let monsterRepository: any MonsterRepository
     private let snapshotBuilder: any CombatantSnapshotBuilder
     private let progressionService: any ProgressionService
-    private let equipmentQueryService: any EquipmentQueryService
 
     // MARK: - Activity
 
@@ -93,12 +92,10 @@ public final class FarmActivityViewModel {
         @Dependency(\.monsterRepository) var monsterRepository
         @Dependency(\.snapshotBuilder) var snapshotBuilder
         @Dependency(\.progressionService) var progressionService
-        @Dependency(\.equipmentQueryService) var equipmentQueryService
         self.farmActivityService = farmActivityService
         self.monsterRepository = monsterRepository
         self.snapshotBuilder = snapshotBuilder
         self.progressionService = progressionService
-        self.equipmentQueryService = equipmentQueryService
 
         self.activity = activity
         self.gameService = gameService
@@ -203,18 +200,14 @@ public final class FarmActivityViewModel {
         }
 
         let player = gameService.player.snapshot()
-        let selectedItems: [HeroItemType: UUID?] = equipmentQueryService.equippedBaseItemIds(from: player.equipped).mapValues { $0 }
-
-        guard let playerSnapshot = snapshotBuilder.buildSnapshot(
+        let playerSnapshot = snapshotBuilder.buildSnapshot(
             name: player.name,
             imageName: player.imageName,
             level: progressionService.calculateLevel(currentExp: player.currentExp),
             fightStyleAttributes: player.fightStyleAttributes,
             randomLevelAttributes: player.randomLevelAttributes,
-            selectedItems: selectedItems
-        ) else {
-            return false
-        }
+            equipped: player.equipped
+        )
 
         let monsterSnapshot = snapshotBuilder.buildSnapshot(from: monster)
 

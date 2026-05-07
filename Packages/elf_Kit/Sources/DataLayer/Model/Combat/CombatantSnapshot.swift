@@ -65,21 +65,26 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
     /// Endurance attribute - reserved for the EP/block-cost system (not yet read by combat math)
     public let endurance: Int
 
+    // MARK: - Attacks
+
+    /// Per-strike profile (damage range + EP-block cost). One element per
+    /// attack point per round.
+    ///
+    /// Hero: index 0 is the primary (right-hand) weapon; index 1 (when
+    /// dual-wielding) is the off-hand weapon. Monster: index 0 is
+    /// `Monster.rightAttack`, index 1 is `Monster.leftAttack` when present.
+    ///
+    /// `ElfSnapshotCombatCalculator` walks body parts in a fixed order and
+    /// the i-th attacked body part consumes `attacks[i]`.
+    public let attacks: [AttackProfile]
+
     // MARK: - Combat Points
 
-    /// Number of attack points per round
-    public let attackPoints: Int
+    /// Number of attack points per round (= `attacks.count`).
+    public var attackPoints: Int { attacks.count }
 
     /// Number of defense points per round
     public let defensePoints: Int
-
-    // MARK: - Damage
-
-    /// Minimum attack damage (from weapon or natural attack)
-    public let minimumAttack: Int
-
-    /// Maximum attack damage (from weapon or natural attack)
-    public let maximumAttack: Int
 
     // MARK: - Armor
 
@@ -135,17 +140,15 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
         level: Int = 1,
         currentHP: Int,
         maxHP: Int,
-        currentEP: Int = 2500,
-        maxEP: Int = 2500,
+        currentEP: Int,
+        maxEP: Int,
         strength: Int,
         agility: Int,
         power: Int,
         intuition: Int,
         endurance: Int,
-        attackPoints: Int,
+        attacks: [AttackProfile],
         defensePoints: Int,
-        minimumAttack: Int,
-        maximumAttack: Int,
         armorValues: [BodyPart: Int],
         helmetItem: ElfDefenseItem? = nil,
         glovesItem: ElfDefenseItem? = nil,
@@ -175,10 +178,8 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
         self.power = power
         self.intuition = intuition
         self.endurance = endurance
-        self.attackPoints = attackPoints
+        self.attacks = attacks
         self.defensePoints = defensePoints
-        self.minimumAttack = minimumAttack
-        self.maximumAttack = maximumAttack
         self.armorValues = armorValues
         self.helmetItem = helmetItem
         self.glovesItem = glovesItem

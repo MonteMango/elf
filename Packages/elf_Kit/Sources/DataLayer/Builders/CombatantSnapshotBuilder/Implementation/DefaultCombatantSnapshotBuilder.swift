@@ -10,13 +10,10 @@ import Foundation
 
 public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 
-    private let itemsRepository: any ItemsRepository
     private let armorService: any ArmorService
 
     public init() {
-        @Dependency(\.itemsRepository) var itemsRepository
         @Dependency(\.armorService) var armorService
-        self.itemsRepository = itemsRepository
         self.armorService = armorService
     }
 
@@ -28,130 +25,53 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
         level: Int,
         fightStyleAttributes: HeroAttributes,
         randomLevelAttributes: HeroAttributes,
-        selectedItems: [HeroItemType: UUID?]
-    ) -> CombatantSnapshot? {
+        equipped: EquippedItems
+    ) -> CombatantSnapshot {
 
-        // Convert UUID items to Elf*Item types
-        let helmetItem = convertToElfDefenseItem(selectedItems[.helmet] ?? nil)
-        let glovesItem = convertToElfDefenseItem(selectedItems[.gloves] ?? nil)
-        let shoesItem = convertToElfDefenseItem(selectedItems[.shoes] ?? nil)
-        let upperBodyItem = convertToElfDefenseItem(selectedItems[.upperBody] ?? nil)
-        let bottomBodyItem = convertToElfDefenseItem(selectedItems[.bottomBody] ?? nil)
+        // Type-safe weapon resolution: WeaponConfiguration's exhaustive cases
+        // make "no primary weapon" structurally impossible at this boundary.
+        let placement = resolveWeaponPlacement(equipped.weapons)
+        let attacks = buildAttacks(from: equipped.weapons)
 
-        let robeItem = convertToElfRobeItem(selectedItems[.shirt] ?? nil)
+        // Aggregate attributes: fight style + random per-level + equipped item bonuses.
+        let totalAttributes = fightStyleAttributes + randomLevelAttributes + equipped.attributes
 
-        let weaponItem = convertToElfWeaponItem(selectedItems[.weapons] ?? nil)
-
-        let ringItem = convertToElfJewelryItem(selectedItems[.ring] ?? nil)
-        let necklaceItem = convertToElfJewelryItem(selectedItems[.necklace] ?? nil)
-        let earringsItem = convertToElfJewelryItem(selectedItems[.earrings] ?? nil)
-
-        // Determine weapon placement and shield
-        var leftWeapon: ElfWeaponItem?
-        var rightWeapon: ElfWeaponItem?
-        var shield: ElfShieldItem?
-
-        if let weapon = weaponItem {
-            // Check if it's a two-handed weapon
-            if let weaponBaseItem = weapon.item as? WeaponItem,
-               weaponBaseItem.handUse == .both {
-                // Two-handed weapon goes to right hand only
-                rightWeapon = weapon
-            } else {
-                // One-handed weapon goes to right hand
-                rightWeapon = weapon
-
-                // Check what's in the shield slot - could be weapon (dual wield) or shield
-                if let shieldSlotItemId = selectedItems[.shields] ?? nil,
-                   let shieldSlotItem = itemsRepository.getHeroItem(shieldSlotItemId) {
-                    if shieldSlotItem is WeaponItem {
-                        // Dual wielding - second weapon in left hand
-                        leftWeapon = convertToElfWeaponItem(shieldSlotItemId)
-                    } else if shieldSlotItem is ShieldItem {
-                        // Shield in shield slot
-                        shield = convertToElfShieldItem(shieldSlotItemId)
-                    }
-                }
-            }
-        } else {
-            // No primary weapon, check if shield slot has a shield
-            shield = convertToElfShieldItem(selectedItems[.shields] ?? nil)
-        }
-
-        // Collect all equipped item IDs for armor calculation
-        var equippedItemIds: [UUID] = []
-        if let id = selectedItems[.helmet] ?? nil { equippedItemIds.append(id) }
-        if let id = selectedItems[.gloves] ?? nil { equippedItemIds.append(id) }
-        if let id = selectedItems[.shoes] ?? nil { equippedItemIds.append(id) }
-        if let id = selectedItems[.upperBody] ?? nil { equippedItemIds.append(id) }
-        if let id = selectedItems[.bottomBody] ?? nil { equippedItemIds.append(id) }
-        if let id = selectedItems[.shirt] ?? nil { equippedItemIds.append(id) }
-        if let id = selectedItems[.shields] ?? nil { equippedItemIds.append(id) }
-
-        // Calculate armor values using ArmorService
+        // Armor IDs: every wearable slot, plus the off-hand (shield or dual-wield
+        // secondary weapon). Primary weapon is never sent to the armor service.
+        let equippedItemIds = collectArmorRelevantIds(equipped: equipped)
         let armorValuesInt16 = armorService.getAllItemsArmor(for: equippedItemIds)
         let armorValues = armorValuesInt16.mapValues { Int($0) }
 
-        // Aggregate attributes from fight style and random level bonuses
-        let totalStrength = fightStyleAttributes.strength + randomLevelAttributes.strength
-        let totalAgility = fightStyleAttributes.agility + randomLevelAttributes.agility
-        let totalPower = fightStyleAttributes.power + randomLevelAttributes.power
-        let totalIntuition = fightStyleAttributes.instinct + randomLevelAttributes.instinct
-        let totalEndurance = fightStyleAttributes.endurance + randomLevelAttributes.endurance
-        let totalHP = fightStyleAttributes.hitPoints + randomLevelAttributes.hitPoints
-
-        // Get weapon damage range
-        let weapon = rightWeapon?.item as? WeaponItem
-        let minAttack = Int(weapon?.minimumAttackPoint ?? 0)
-        let maxAttack = Int(weapon?.maximumAttackPoint ?? 0)
-
-        // Calculate attack and defense points
-        let hasLeftWeapon = leftWeapon != nil
-        let hasRightWeapon = rightWeapon != nil
-        let hasShield = shield != nil
-
-        let attackPoints: Int
-        if hasLeftWeapon && hasRightWeapon {
-            attackPoints = 2  // Dual wield
-        } else {
-            attackPoints = 1  // Single weapon or no weapon
-        }
-
-        let defensePoints = hasShield ? 3 : 2  // Base 2, +1 with shield
-
-        // Build the CombatantSnapshot
         return CombatantSnapshot(
             sourceId: UUID(),
             name: name,
             imageName: imageName,
             combatantType: .elf,
             level: level,
-            currentHP: totalHP.intValue,
-            maxHP: totalHP.intValue,
-            currentEP: 2500,
-            maxEP: 2500,
-            strength: totalStrength.intValue,
-            agility: totalAgility.intValue,
-            power: totalPower.intValue,
-            intuition: totalIntuition.intValue,
-            endurance: totalEndurance.intValue,
-            attackPoints: attackPoints,
-            defensePoints: defensePoints,
-            minimumAttack: minAttack,
-            maximumAttack: maxAttack,
+            currentHP: totalAttributes.hitPoints.intValue,
+            maxHP: totalAttributes.hitPoints.intValue,
+            currentEP: GameMechanicsConstants.startingEP,
+            maxEP: GameMechanicsConstants.startingEP,
+            strength: totalAttributes.strength.intValue,
+            agility: totalAttributes.agility.intValue,
+            power: totalAttributes.power.intValue,
+            intuition: totalAttributes.instinct.intValue,
+            endurance: totalAttributes.endurance.intValue,
+            attacks: attacks,
+            defensePoints: placement.defensePoints,
             armorValues: armorValues,
-            helmetItem: helmetItem,
-            glovesItem: glovesItem,
-            shoesItem: shoesItem,
-            upperBodyItem: upperBodyItem,
-            bottomBodyItem: bottomBodyItem,
-            robeItem: robeItem,
-            leftWeaponItem: leftWeapon,
-            rightWeaponItem: rightWeapon,
-            shieldItem: shield,
-            ringItem: ringItem,
-            necklaceItem: necklaceItem,
-            earringsItem: earringsItem
+            helmetItem: equipped.helmet,
+            glovesItem: equipped.gloves,
+            shoesItem: equipped.shoes,
+            upperBodyItem: equipped.upperBody,
+            bottomBodyItem: equipped.bottomBody,
+            robeItem: equipped.shirt,
+            leftWeaponItem: placement.leftWeapon,
+            rightWeaponItem: placement.rightWeapon,
+            shieldItem: placement.shield,
+            ringItem: equipped.ring,
+            necklaceItem: equipped.necklace,
+            earringsItem: equipped.earrings
         )
     }
 
@@ -165,6 +85,8 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
             .legs: monster.partsProtection.legs
         ]
 
+        let attacks: [AttackProfile] = [monster.rightAttack] + (monster.leftAttack.map { [$0] } ?? [])
+
         return CombatantSnapshot(
             sourceId: monster.id,
             name: monster.title,
@@ -173,61 +95,114 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
             level: 1,  // Monsters don't have levels, default to 1
             currentHP: monster.hitPoints,
             maxHP: monster.hitPoints,
-            currentEP: 2500,
-            maxEP: 2500,
+            currentEP: GameMechanicsConstants.startingEP,
+            maxEP: GameMechanicsConstants.startingEP,
             strength: monster.strength,
             agility: monster.agility,
             power: monster.power,
             intuition: monster.intuition,
             endurance: monster.endurance,
-            attackPoints: monster.attackPoints,
+            attacks: attacks,
             defensePoints: monster.defensePoints,
-            minimumAttack: monster.minimumAttack,
-            maximumAttack: monster.maximumAttack,
             armorValues: armorValues
             // Equipment is nil for monsters (for now)
         )
     }
 
-    // MARK: - Private Conversion Methods
+    // MARK: - Private Helpers
 
-    private func convertToElfDefenseItem(_ itemId: UUID?) -> ElfDefenseItem? {
-        guard let itemId = itemId else { return nil }
-        guard let item = itemsRepository.getHeroItem(itemId) else { return nil }
-        guard item is DefenseItem else { return nil }
-
-        return ElfDefenseItem(id: itemId, item: item)
+    private struct WeaponPlacement {
+        let leftWeapon: ElfWeaponItem?
+        let rightWeapon: ElfWeaponItem?
+        let shield: ElfShieldItem?
+        let defensePoints: Int
     }
 
-    private func convertToElfRobeItem(_ itemId: UUID?) -> ElfRobeItem? {
-        guard let itemId = itemId else { return nil }
-        guard let item = itemsRepository.getHeroItem(itemId) else { return nil }
-        guard item is RobeItem else { return nil }
-
-        return ElfRobeItem(id: itemId, item: item)
+    /// Maps a `WeaponConfiguration` to the snapshot's hand-slot layout and
+    /// per-round defense count. Base defense is 2; a shield grants +1.
+    private func resolveWeaponPlacement(_ config: WeaponConfiguration) -> WeaponPlacement {
+        switch config {
+        case .oneHanded(let wrapper):
+            return WeaponPlacement(
+                leftWeapon: nil,
+                rightWeapon: wrapper.weapon,
+                shield: nil,
+                defensePoints: 2
+            )
+        case .oneHandedWithShield(let wrapper, let shield):
+            return WeaponPlacement(
+                leftWeapon: nil,
+                rightWeapon: wrapper.weapon,
+                shield: shield,
+                defensePoints: 3
+            )
+        case .twoHanded(let wrapper):
+            return WeaponPlacement(
+                leftWeapon: nil,
+                rightWeapon: wrapper.weapon,
+                shield: nil,
+                defensePoints: 2
+            )
+        case .dualWield(let primary, let secondary):
+            return WeaponPlacement(
+                leftWeapon: secondary.weapon,
+                rightWeapon: primary.weapon,
+                shield: nil,
+                defensePoints: 2
+            )
+        }
     }
 
-    private func convertToElfWeaponItem(_ itemId: UUID?) -> ElfWeaponItem? {
-        guard let itemId = itemId else { return nil }
-        guard let item = itemsRepository.getHeroItem(itemId) else { return nil }
-        guard item is WeaponItem else { return nil }
-
-        return ElfWeaponItem(id: itemId, item: item, enchantLevel: 0)
+    /// Builds the per-strike `AttackProfile` array from a `WeaponConfiguration`.
+    /// Index 0 is the primary (right-hand) weapon; index 1 (only for dual-wield)
+    /// is the off-hand weapon.
+    private func buildAttacks(from config: WeaponConfiguration) -> [AttackProfile] {
+        switch config {
+        case .oneHanded(let wrapper):
+            return [profile(from: wrapper.weapon)]
+        case .oneHandedWithShield(let wrapper, _):
+            return [profile(from: wrapper.weapon)]
+        case .twoHanded(let wrapper):
+            return [profile(from: wrapper.weapon)]
+        case .dualWield(let primary, let secondary):
+            return [profile(from: primary.weapon), profile(from: secondary.weapon)]
+        }
     }
 
-    private func convertToElfShieldItem(_ itemId: UUID?) -> ElfShieldItem? {
-        guard let itemId = itemId else { return nil }
-        guard let item = itemsRepository.getHeroItem(itemId) else { return nil }
-        guard item is ShieldItem else { return nil }
-
-        return ElfShieldItem(id: itemId, item: item)
+    /// Extracts `AttackProfile` (damage range + EP-block cost) from an
+    /// `ElfWeaponItem`. The cast is a programming-error backstop — every
+    /// weapon wrapper is constructed from a `WeaponItem`.
+    private func profile(from weapon: ElfWeaponItem) -> AttackProfile {
+        guard let weaponItem = weapon.item as? WeaponItem else {
+            assertionFailure("Weapon wrapper's underlying item must be a WeaponItem")
+            return AttackProfile(minimumAttack: 0, maximumAttack: 0, epBlockCost: 0)
+        }
+        return AttackProfile(
+            minimumAttack: Int(weaponItem.minimumAttackPoint),
+            maximumAttack: Int(weaponItem.maximumAttackPoint),
+            epBlockCost: Int(weaponItem.epBlockCost)
+        )
     }
 
-    private func convertToElfJewelryItem(_ itemId: UUID?) -> ElfJewelryItem? {
-        guard let itemId = itemId else { return nil }
-        guard let item = itemsRepository.getHeroItem(itemId) else { return nil }
-        guard item is JewelryItem else { return nil }
-
-        return ElfJewelryItem(id: itemId, item: item)
+    /// Collects base-item UUIDs of every item that contributes armor: all
+    /// wearable slots plus the off-hand (shield or dual-wield secondary).
+    /// Primary weapon is excluded — main-hand weapons aren't armor.
+    ///
+    /// Uses `item.id` (the JSON-defined base item id) rather than the
+    /// wrapper's per-instance `id`, because `ArmorService` looks values up
+    /// in `ItemsRepository` keyed by base id.
+    private func collectArmorRelevantIds(equipped: EquippedItems) -> [UUID] {
+        var ids: [UUID] = []
+        if let id = equipped.helmet?.item.id { ids.append(id) }
+        if let id = equipped.gloves?.item.id { ids.append(id) }
+        if let id = equipped.shoes?.item.id { ids.append(id) }
+        if let id = equipped.upperBody?.item.id { ids.append(id) }
+        if let id = equipped.bottomBody?.item.id { ids.append(id) }
+        if let id = equipped.shirt?.item.id { ids.append(id) }
+        if let id = equipped.weapons.shield?.item.id { ids.append(id) }
+        if let secondary = equipped.weapons.secondaryWeapon {
+            ids.append(secondary.item.id)
+        }
+        return ids
     }
 }

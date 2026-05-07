@@ -49,7 +49,8 @@ final class ElfItemsRepositoryTests: XCTestCase {
                           "tier": 4,
                           "minimumAttackPoint": 3,
                           "maximumAttackPoint": 5,
-                          "handUse": "oneHand"
+                          "handUse": "oneHand",
+                          "epBlockCost": 200
                         }
                       ],
                       "shields": [],
@@ -117,7 +118,8 @@ final class ElfItemsRepositoryTests: XCTestCase {
               "tier": 4,
               "minimumAttackPoint": 3,
               "maximumAttackPoint": 5,
-              "handUse": "oneHand"
+              "handUse": "oneHand",
+              "epBlockCost": 200
             }
           ],
           "shields": [],

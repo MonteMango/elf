@@ -13,16 +13,19 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
     private let damageService: any DamageService
     private let dodgeService: any DodgeService
     private let critService: any CritService
+    private let enduranceService: any EnduranceService
     private let debugLogger: any DebugBattleLogger
 
     public init() {
         @Dependency(\.damageService) var damageService
         @Dependency(\.dodgeService) var dodgeService
         @Dependency(\.critService) var critService
+        @Dependency(\.enduranceService) var enduranceService
         @Dependency(\.debugBattleLogger) var debugLogger
         self.damageService = damageService
         self.dodgeService = dodgeService
         self.critService = critService
+        self.enduranceService = enduranceService
         self.debugLogger = debugLogger
     }
 
@@ -35,189 +38,66 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         var results: [BodyPart: PointStatus] = [:]
         let allBodyParts: [BodyPart] = [.head, .body, .leftHand, .rightHand, .legs]
 
-        for bodyPart in allBodyParts {
-            let isAttacked = attackingPoints.contains(bodyPart)
+        // Strike-to-body-part mapping: among the attacker's chosen body parts,
+        // the i-th in `allBodyParts` enum order is hit by strike i.
+        // Strike 0 = primary (right-hand) weapon, strike 1 = off-hand (left)
+        // for dual-wield. We iterate strikes in this order so the right
+        // weapon's EP draw happens before the left weapon's — matches the
+        // design rule "primary checks first, then secondary".
+        let orderedAttackedBodyParts = allBodyParts.filter(attackingPoints.contains)
+
+        // Body parts NOT attacked emit `.nothing` directly. Done in a
+        // separate pass so the strike loop reads as pure per-strike logic.
+        for bodyPart in allBodyParts where !attackingPoints.contains(bodyPart) {
+            let finalStatus = PointStatus.nothing
+            results[bodyPart] = finalStatus
+            debugLogger.logBodyPartCalculation(
+                attacker: attacker.name,
+                defender: defender.name,
+                bodyPart: bodyPart,
+                isAttacked: false,
+                isDefended: defendingPoints.contains(bodyPart),
+                baseDamage: nil,
+                armor: nil,
+                finalDamage: nil,
+                finalStatus: finalStatus
+            )
+        }
+
+        // Drain EP sequentially across strikes in weapon order.
+        var defenderRemainingEP = defender.currentEP
+
+        for (strikeIndex, bodyPart) in orderedAttackedBodyParts.enumerated() {
+            // Defensive: if attacker selected more body parts than there are
+            // strikes (shouldn't happen — bot AI uses `attackPoints` as count),
+            // fall back to the last strike's profile.
+            let profile = attacker.attacks[min(strikeIndex, max(0, attacker.attacks.count - 1))]
+
+            // Per-strike block cost. Endurance is constant across the round,
+            // but base cost varies by weapon, so we recompute per strike.
+            let blockCost = enduranceService.calculateBlockCost(
+                baseCost: profile.epBlockCost,
+                defenderEndurance: defender.endurance
+            )
+
             let isDefended = defendingPoints.contains(bodyPart)
-
-            if isAttacked && isDefended {
-                // Case 1: Attack meets Defense - Check if crit breaks the block
-                let critResult = critService.calculateCrit(
-                    power: Int16(attacker.power),
-                    instinct: Int16(defender.intuition),
-                    defenderAgility: Int16(defender.agility)
-                )
-
-                debugLogger.logCritCalculation(
-                    attacker: attacker.name,
-                    result: critResult,
-                    power: Int16(attacker.power),
-                    instinct: Int16(defender.intuition)
-                )
-
-                if critResult.success {
-                    // Crit breaks the block
-                    let (strengthDamage, attackDamage, defenderArmor) = calculateDamageComponents(
-                        attacker: attacker,
-                        defender: defender,
-                        bodyPart: bodyPart
-                    )
-
-                    let finalStatus = PointStatus.critHit(
-                        weaponDamage: attackDamage,
-                        strengthDamage: strengthDamage,
-                        defenderArmor: defenderArmor,
-                        multiplier: critResult.selectedMultiplier
-                    )
-                    results[bodyPart] = finalStatus
-
-                    logBodyPartResult(
-                        attacker: attacker,
-                        defender: defender,
-                        bodyPart: bodyPart,
-                        isAttacked: isAttacked,
-                        isDefended: isDefended,
-                        strengthDamage: strengthDamage,
-                        attackDamage: attackDamage,
-                        defenderArmor: defenderArmor,
-                        multiplier: critResult.selectedMultiplier,
-                        finalStatus: finalStatus
-                    )
-                } else {
-                    // Block succeeded
-                    let finalStatus = PointStatus.blocked(wasCrit: false)
-                    results[bodyPart] = finalStatus
-
-                    debugLogger.logBodyPartCalculation(
-                        attacker: attacker.name,
-                        defender: defender.name,
-                        bodyPart: bodyPart,
-                        isAttacked: isAttacked,
-                        isDefended: isDefended,
-                        baseDamage: nil,
-                        armor: nil,
-                        finalDamage: nil,
-                        finalStatus: finalStatus
-                    )
-                }
-
-            } else if isAttacked && !isDefended {
-                // Case 2: Attack without Defense - Check dodge first, then crit
-                let dodgeResult = dodgeService.calculateDodge(
-                    agility: Int16(defender.agility),
-                    instinct: Int16(attacker.intuition)
-                )
-
-                debugLogger.logDodgeCalculation(
-                    defender: defender.name,
-                    result: dodgeResult,
-                    agility: Int16(defender.agility),
-                    instinct: Int16(attacker.intuition)
-                )
-
-                if dodgeResult.success {
-                    // Dodged
-                    let critResult = critService.calculateCrit(
-                        power: Int16(attacker.power),
-                        instinct: Int16(defender.intuition),
-                        defenderAgility: Int16(defender.agility)
-                    )
-
-                    let finalStatus = PointStatus.dodged(wasCrit: critResult.success)
-                    results[bodyPart] = finalStatus
-
-                    debugLogger.logBodyPartCalculation(
-                        attacker: attacker.name,
-                        defender: defender.name,
-                        bodyPart: bodyPart,
-                        isAttacked: isAttacked,
-                        isDefended: isDefended,
-                        baseDamage: nil,
-                        armor: nil,
-                        finalDamage: nil,
-                        finalStatus: finalStatus
-                    )
-                } else {
-                    // Not dodged - check for crit
-                    let critResult = critService.calculateCrit(
-                        power: Int16(attacker.power),
-                        instinct: Int16(defender.intuition),
-                        defenderAgility: Int16(defender.agility)
-                    )
-
-                    debugLogger.logCritCalculation(
-                        attacker: attacker.name,
-                        result: critResult,
-                        power: Int16(attacker.power),
-                        instinct: Int16(defender.intuition)
-                    )
-
-                    let (strengthDamage, attackDamage, defenderArmor) = calculateDamageComponents(
-                        attacker: attacker,
-                        defender: defender,
-                        bodyPart: bodyPart
-                    )
-
-                    if critResult.success {
-                        // Critical hit
-                        let finalStatus = PointStatus.critHit(
-                            weaponDamage: attackDamage,
-                            strengthDamage: strengthDamage,
-                            defenderArmor: defenderArmor,
-                            multiplier: critResult.selectedMultiplier
-                        )
-                        results[bodyPart] = finalStatus
-
-                        logBodyPartResult(
-                            attacker: attacker,
-                            defender: defender,
-                            bodyPart: bodyPart,
-                            isAttacked: isAttacked,
-                            isDefended: isDefended,
-                            strengthDamage: strengthDamage,
-                            attackDamage: attackDamage,
-                            defenderArmor: defenderArmor,
-                            multiplier: critResult.selectedMultiplier,
-                            finalStatus: finalStatus
-                        )
-                    } else {
-                        // Normal hit
-                        let finalStatus = PointStatus.hit(
-                            weaponDamage: attackDamage,
-                            strengthDamage: strengthDamage,
-                            defenderArmor: defenderArmor
-                        )
-                        results[bodyPart] = finalStatus
-
-                        logBodyPartResult(
-                            attacker: attacker,
-                            defender: defender,
-                            bodyPart: bodyPart,
-                            isAttacked: isAttacked,
-                            isDefended: isDefended,
-                            strengthDamage: strengthDamage,
-                            attackDamage: attackDamage,
-                            defenderArmor: defenderArmor,
-                            multiplier: nil,
-                            finalStatus: finalStatus
-                        )
-                    }
-                }
-
-            } else {
-                // Case 3: No attack on this body part
-                let finalStatus = PointStatus.nothing
-                results[bodyPart] = finalStatus
-
-                debugLogger.logBodyPartCalculation(
-                    attacker: attacker.name,
-                    defender: defender.name,
+            if isDefended {
+                results[bodyPart] = resolveDefendedAttack(
                     bodyPart: bodyPart,
-                    isAttacked: isAttacked,
-                    isDefended: isDefended,
-                    baseDamage: nil,
-                    armor: nil,
-                    finalDamage: nil,
-                    finalStatus: finalStatus
+                    profile: profile,
+                    blockCost: blockCost,
+                    defenderRemainingEP: &defenderRemainingEP,
+                    attacker: attacker,
+                    defender: defender
+                )
+            } else {
+                results[bodyPart] = resolveUndefendedAttack(
+                    bodyPart: bodyPart,
+                    isAttacked: true,
+                    isDefended: false,
+                    profile: profile,
+                    attacker: attacker,
+                    defender: defender
                 )
             }
         }
@@ -227,7 +107,202 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
 
     // MARK: - Private Helpers
 
+    /// Resolves a body part that was both attacked and defended for one strike.
+    /// Mutates `defenderRemainingEP` in place when the block is paid for.
+    private func resolveDefendedAttack(
+        bodyPart: BodyPart,
+        profile: AttackProfile,
+        blockCost: Int,
+        defenderRemainingEP: inout Int,
+        attacker: CombatantSnapshot,
+        defender: CombatantSnapshot
+    ) -> PointStatus {
+        // Insufficient EP → block input is accepted but provides no
+        // protection. Resolve as if the part were not blocked.
+        guard blockCost > 0 && defenderRemainingEP >= blockCost else {
+            return resolveUndefendedAttack(
+                bodyPart: bodyPart,
+                isAttacked: true,
+                isDefended: true,
+                profile: profile,
+                attacker: attacker,
+                defender: defender
+            )
+        }
+
+        // EP is committed up-front; spec says crit pierces block but
+        // EP is still consumed.
+        defenderRemainingEP -= blockCost
+
+        let critResult = critService.calculateCrit(
+            power: Int16(attacker.power),
+            instinct: Int16(defender.intuition),
+            defenderAgility: Int16(defender.agility)
+        )
+
+        debugLogger.logCritCalculation(
+            attacker: attacker.name,
+            result: critResult,
+            power: Int16(attacker.power),
+            instinct: Int16(defender.intuition)
+        )
+
+        if critResult.success {
+            let (strengthDamage, attackDamage, defenderArmor) = calculateDamageComponents(
+                profile: profile,
+                attacker: attacker,
+                defender: defender,
+                bodyPart: bodyPart
+            )
+
+            let finalStatus = PointStatus.critHit(
+                weaponDamage: attackDamage,
+                strengthDamage: strengthDamage,
+                defenderArmor: defenderArmor,
+                multiplier: critResult.selectedMultiplier,
+                epSpent: blockCost
+            )
+
+            logBodyPartResult(
+                attacker: attacker,
+                defender: defender,
+                bodyPart: bodyPart,
+                isAttacked: true,
+                isDefended: true,
+                strengthDamage: strengthDamage,
+                attackDamage: attackDamage,
+                defenderArmor: defenderArmor,
+                multiplier: critResult.selectedMultiplier,
+                finalStatus: finalStatus
+            )
+            return finalStatus
+        }
+
+        let finalStatus = PointStatus.blocked(wasCrit: false, epSpent: blockCost)
+        debugLogger.logBodyPartCalculation(
+            attacker: attacker.name,
+            defender: defender.name,
+            bodyPart: bodyPart,
+            isAttacked: true,
+            isDefended: true,
+            baseDamage: nil,
+            armor: nil,
+            finalDamage: nil,
+            finalStatus: finalStatus
+        )
+        return finalStatus
+    }
+
+    private func resolveUndefendedAttack(
+        bodyPart: BodyPart,
+        isAttacked: Bool,
+        isDefended: Bool,
+        profile: AttackProfile,
+        attacker: CombatantSnapshot,
+        defender: CombatantSnapshot
+    ) -> PointStatus {
+        let dodgeResult = dodgeService.calculateDodge(
+            agility: Int16(defender.agility),
+            instinct: Int16(attacker.intuition)
+        )
+
+        debugLogger.logDodgeCalculation(
+            defender: defender.name,
+            result: dodgeResult,
+            agility: Int16(defender.agility),
+            instinct: Int16(attacker.intuition)
+        )
+
+        if dodgeResult.success {
+            let critResult = critService.calculateCrit(
+                power: Int16(attacker.power),
+                instinct: Int16(defender.intuition),
+                defenderAgility: Int16(defender.agility)
+            )
+
+            let finalStatus = PointStatus.dodged(wasCrit: critResult.success)
+
+            debugLogger.logBodyPartCalculation(
+                attacker: attacker.name,
+                defender: defender.name,
+                bodyPart: bodyPart,
+                isAttacked: isAttacked,
+                isDefended: isDefended,
+                baseDamage: nil,
+                armor: nil,
+                finalDamage: nil,
+                finalStatus: finalStatus
+            )
+            return finalStatus
+        }
+
+        let critResult = critService.calculateCrit(
+            power: Int16(attacker.power),
+            instinct: Int16(defender.intuition),
+            defenderAgility: Int16(defender.agility)
+        )
+
+        debugLogger.logCritCalculation(
+            attacker: attacker.name,
+            result: critResult,
+            power: Int16(attacker.power),
+            instinct: Int16(defender.intuition)
+        )
+
+        let (strengthDamage, attackDamage, defenderArmor) = calculateDamageComponents(
+            profile: profile,
+            attacker: attacker,
+            defender: defender,
+            bodyPart: bodyPart
+        )
+
+        if critResult.success {
+            let finalStatus = PointStatus.critHit(
+                weaponDamage: attackDamage,
+                strengthDamage: strengthDamage,
+                defenderArmor: defenderArmor,
+                multiplier: critResult.selectedMultiplier,
+                epSpent: 0
+            )
+
+            logBodyPartResult(
+                attacker: attacker,
+                defender: defender,
+                bodyPart: bodyPart,
+                isAttacked: isAttacked,
+                isDefended: isDefended,
+                strengthDamage: strengthDamage,
+                attackDamage: attackDamage,
+                defenderArmor: defenderArmor,
+                multiplier: critResult.selectedMultiplier,
+                finalStatus: finalStatus
+            )
+            return finalStatus
+        }
+
+        let finalStatus = PointStatus.hit(
+            weaponDamage: attackDamage,
+            strengthDamage: strengthDamage,
+            defenderArmor: defenderArmor
+        )
+
+        logBodyPartResult(
+            attacker: attacker,
+            defender: defender,
+            bodyPart: bodyPart,
+            isAttacked: isAttacked,
+            isDefended: isDefended,
+            strengthDamage: strengthDamage,
+            attackDamage: attackDamage,
+            defenderArmor: defenderArmor,
+            multiplier: nil,
+            finalStatus: finalStatus
+        )
+        return finalStatus
+    }
+
     private func calculateDamageComponents(
+        profile: AttackProfile,
         attacker: CombatantSnapshot,
         defender: CombatantSnapshot,
         bodyPart: BodyPart
@@ -235,12 +310,12 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         // Get strength-based damage
         let strengthDamage = damageService.getRandomStrengthDamage(Int16(attacker.strength))
 
-        // Get attack damage (weapon damage for elves, natural attack for monsters)
+        // Per-strike weapon damage from this strike's profile.
         let attackDamage: Int
-        if attacker.maximumAttack > attacker.minimumAttack {
-            attackDamage = Int.random(in: attacker.minimumAttack...attacker.maximumAttack)
-        } else if attacker.maximumAttack == attacker.minimumAttack {
-            attackDamage = attacker.minimumAttack
+        if profile.maximumAttack > profile.minimumAttack {
+            attackDamage = Int.random(in: profile.minimumAttack...profile.maximumAttack)
+        } else if profile.maximumAttack == profile.minimumAttack {
+            attackDamage = profile.minimumAttack
         } else {
             attackDamage = 0
         }

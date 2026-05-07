@@ -40,18 +40,12 @@ final class DefaultGameService_CraftTests: XCTestCase {
     // MARK: - Fixture Builders
 
     private func makeWeaponItem(id: UUID = UUID()) -> WeaponItem {
-        let json = """
-        {
-            "id": "\(id.uuidString)",
-            "title": "Test Sword",
-            "tier": 1,
-            "minimumAttackPoint": 5,
-            "maximumAttackPoint": 10,
-            "handUse": "oneHand"
-        }
-        """
         // swiftlint:disable:next force_try
-        return try! JSONDecoder().decode(WeaponItem.self, from: Data(json.utf8))
+        return try! TestFixtures.weaponItem(
+            id: id, title: "Test Sword", handUse: .oneHand,
+            minimumAttackPoint: 5, maximumAttackPoint: 10,
+            epBlockCost: 200
+        )
     }
 
     private func makeElf(inventory: ElfInventory = ElfInventory()) -> ElfInfo {

@@ -16,9 +16,6 @@ public struct Monster: Codable, Sendable, Identifiable, Hashable {
     public let expReward: [ChanceAmount]
 
     // Combat stats
-    public let minimumAttack: Int
-    public let maximumAttack: Int
-    public let attackPoints: Int
     public let defensePoints: Int
     public let hitPoints: Int
     public let manaPoints: Int
@@ -29,6 +26,11 @@ public struct Monster: Codable, Sendable, Identifiable, Hashable {
     public let power: Int
     public let intuition: Int
     public let endurance: Int
+
+    // Per-strike attack profiles. `rightAttack` is always present; `leftAttack`
+    // is set only for monsters with two strikes per round.
+    public let rightAttack: AttackProfile
+    public let leftAttack: AttackProfile?
 
     // Armor per body part
     public let partsProtection: PartsProtection
@@ -41,9 +43,8 @@ public struct Monster: Codable, Sendable, Identifiable, Hashable {
         title: String,
         imageName: String,
         expReward: [ChanceAmount],
-        minimumAttack: Int,
-        maximumAttack: Int,
-        attackPoints: Int,
+        rightAttack: AttackProfile,
+        leftAttack: AttackProfile? = nil,
         defensePoints: Int,
         hitPoints: Int,
         manaPoints: Int,
@@ -59,9 +60,8 @@ public struct Monster: Codable, Sendable, Identifiable, Hashable {
         self.title = title
         self.imageName = imageName
         self.expReward = expReward
-        self.minimumAttack = minimumAttack
-        self.maximumAttack = maximumAttack
-        self.attackPoints = attackPoints
+        self.rightAttack = rightAttack
+        self.leftAttack = leftAttack
         self.defensePoints = defensePoints
         self.hitPoints = hitPoints
         self.manaPoints = manaPoints
@@ -73,4 +73,9 @@ public struct Monster: Codable, Sendable, Identifiable, Hashable {
         self.partsProtection = partsProtection
         self.drops = drops
     }
+
+    // MARK: - Derived
+
+    /// Number of strikes per round = number of attack profiles present.
+    public var attackPoints: Int { leftAttack != nil ? 2 : 1 }
 }

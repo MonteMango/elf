@@ -184,16 +184,14 @@ public final class GameDayViewModel {
         }
 
         let player = gameService.player.snapshot()
-        let playerSelected: [HeroItemType: UUID?] =
-            equipmentQueryService.equippedBaseItemIds(from: player.equipped).mapValues { $0 }
-        guard let heroSnapshot = snapshotBuilder.buildSnapshot(
+        let heroSnapshot = snapshotBuilder.buildSnapshot(
             name: player.name,
             imageName: player.imageName,
             level: progressionService.calculateLevel(currentExp: player.currentExp),
             fightStyleAttributes: player.fightStyleAttributes,
             randomLevelAttributes: player.randomLevelAttributes,
-            selectedItems: playerSelected
-        ) else { return nil }
+            equipped: player.equipped
+        )
 
         let house = gameService.houses[gameService.playerHouseIndex]
         let allies = house.members
@@ -202,16 +200,14 @@ public final class GameDayViewModel {
             .map(\.element)
             .shuffled()
             .prefix(4)
-        let allySnapshots: [CombatantSnapshot] = allies.compactMap { ally in
-            let selected: [HeroItemType: UUID?] =
-                equipmentQueryService.equippedBaseItemIds(from: ally.equipped).mapValues { $0 }
-            return snapshotBuilder.buildSnapshot(
+        let allySnapshots: [CombatantSnapshot] = allies.map { ally in
+            snapshotBuilder.buildSnapshot(
                 name: ally.name,
                 imageName: ally.imageName,
                 level: progressionService.calculateLevel(currentExp: ally.currentExp),
                 fightStyleAttributes: ally.fightStyleAttributes,
                 randomLevelAttributes: ally.randomLevelAttributes,
-                selectedItems: selected
+                equipped: ally.equipped
             )
         }
 

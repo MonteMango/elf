@@ -72,7 +72,7 @@ public final class ElfDamageService: DamageService {
             case .hit(let weaponDamage, let strengthDamage, let defenderArmor):
                 let damage = max(0, weaponDamage + strengthDamage - defenderArmor)
                 totalDamage += damage
-            case .critHit(let weaponDamage, let strengthDamage, let defenderArmor, let multiplier):
+            case .critHit(let weaponDamage, let strengthDamage, let defenderArmor, let multiplier, _):
                 let baseDamage = weaponDamage + strengthDamage
                 let damage = max(0, Int(Double(baseDamage) * multiplier) - defenderArmor)
                 totalDamage += damage

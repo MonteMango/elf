@@ -34,6 +34,8 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
         private var _captures: [Capture] = []
         private var _damageToPlayer: Int = 0
         private var _damageToBot: Int = 0
+        private var _epSpentByPlayer: Int = 0
+        private var _epSpentByBot: Int = 0
 
         var captures: [Capture] {
             lock.withLock { _captures }
@@ -47,6 +49,16 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
         var damageToBot: Int {
             get { lock.withLock { _damageToBot } }
             set { lock.withLock { _damageToBot = newValue } }
+        }
+
+        var epSpentByPlayer: Int {
+            get { lock.withLock { _epSpentByPlayer } }
+            set { lock.withLock { _epSpentByPlayer = newValue } }
+        }
+
+        var epSpentByBot: Int {
+            get { lock.withLock { _epSpentByBot } }
+            set { lock.withLock { _epSpentByBot = newValue } }
         }
 
         func executeRound(
@@ -70,7 +82,9 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
                     playerResults: [:],
                     botResults: [:],
                     playerDamageTaken: _damageToPlayer,
-                    botDamageTaken: _damageToBot
+                    botDamageTaken: _damageToBot,
+                    playerEPSpent: _epSpentByPlayer,
+                    botEPSpent: _epSpentByBot
                 )
             }
         }
@@ -108,10 +122,16 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
         name: String = "C",
         currentHP: Int = 100,
         maxHP: Int = 100,
+        currentEP: Int = GameMechanicsConstants.startingEP,
+        maxEP: Int = GameMechanicsConstants.startingEP,
         attackPoints: Int = 1,
         defensePoints: Int = 1
     ) -> CombatantSnapshot {
-        CombatantSnapshot(
+        let attacks = Array(
+            repeating: AttackProfile(minimumAttack: 1, maximumAttack: 5, epBlockCost: 0),
+            count: max(1, attackPoints)
+        )
+        return CombatantSnapshot(
             id: id,
             sourceId: UUID(),
             name: name,
@@ -120,15 +140,15 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
             level: 1,
             currentHP: currentHP,
             maxHP: maxHP,
+            currentEP: currentEP,
+            maxEP: maxEP,
             strength: 10,
             agility: 10,
             power: 10,
             intuition: 10,
             endurance: 0,
-            attackPoints: attackPoints,
+            attacks: attacks,
             defensePoints: defensePoints,
-            minimumAttack: 1,
-            maximumAttack: 5,
             armorValues: [:]
         )
     }
@@ -475,5 +495,58 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
         XCTAssertEqual(outcome.updatedLeftTeam.map(\.id), [left.id], "teams unchanged when no pairs")
         XCTAssertEqual(outcome.updatedRightTeam.map(\.id), [right.id])
         XCTAssertNil(outcome.battleOutcome, "no pairs → no damage → both alive → continues")
+    }
+
+    // MARK: - EP mutation
+
+    func testEPDecrementsAfterRound() async {
+        let pool = GameMechanicsConstants.startingEP
+        let left = makeCombatant(name: "L", currentEP: pool)
+        let right = makeCombatant(name: "R", currentEP: pool)
+        let round = makeRound(leftIds: [left.id], rightIds: [right.id])
+
+        let executor = MockExecutor()
+        executor.epSpentByPlayer = 200  // left side spent 200 EP
+        executor.epSpentByBot = 400     // right side spent 400 EP
+
+        let outcome = await withDependencies {
+            $0.combatRoundExecutor = executor
+            $0.botAI = FixedBotAI()
+        } operation: {
+            let runner = DefaultBattleRoundRunner()
+            return await runner.runRound(
+                leftTeam: [left], rightTeam: [right],
+                round: round, heroSelection: nil
+            )
+        }
+
+        XCTAssertEqual(outcome.updatedLeftTeam[0].currentEP, pool - 200)
+        XCTAssertEqual(outcome.updatedRightTeam[0].currentEP, pool - 400)
+        XCTAssertEqual(outcome.pairResults[0].result.playerEPSpent, 200)
+        XCTAssertEqual(outcome.pairResults[0].result.botEPSpent, 400)
+    }
+
+    func testEPClampsAtZero() async {
+        let left = makeCombatant(currentEP: 100)
+        let right = makeCombatant(currentEP: 100)
+        let round = makeRound(leftIds: [left.id], rightIds: [right.id])
+
+        let executor = MockExecutor()
+        executor.epSpentByPlayer = 500  // overspend
+        executor.epSpentByBot = 500
+
+        let outcome = await withDependencies {
+            $0.combatRoundExecutor = executor
+            $0.botAI = FixedBotAI()
+        } operation: {
+            let runner = DefaultBattleRoundRunner()
+            return await runner.runRound(
+                leftTeam: [left], rightTeam: [right],
+                round: round, heroSelection: nil
+            )
+        }
+
+        XCTAssertEqual(outcome.updatedLeftTeam[0].currentEP, 0, "EP must clamp at 0, not negative")
+        XCTAssertEqual(outcome.updatedRightTeam[0].currentEP, 0)
     }
 }

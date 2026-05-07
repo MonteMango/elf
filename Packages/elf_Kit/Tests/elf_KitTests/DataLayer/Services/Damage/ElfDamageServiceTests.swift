@@ -57,17 +57,13 @@ final class ElfDamageServiceTests: XCTestCase {
     // MARK: - Test Helpers
 
     private func makeWeapon(id: UUID, minDamage: Int16, maxDamage: Int16) -> WeaponItem {
-        let json = """
-        {
-            "id": "\(id.uuidString)",
-            "title": "Test Weapon",
-            "tier": 1,
-            "minimumAttackPoint": \(minDamage),
-            "maximumAttackPoint": \(maxDamage),
-            "handUse": "oneHand"
-        }
-        """
-        return try! JSONDecoder().decode(WeaponItem.self, from: Data(json.utf8))
+        // swiftlint:disable:next force_try
+        return try! TestFixtures.weaponItem(
+            id: id, handUse: .oneHand,
+            minimumAttackPoint: minDamage,
+            maximumAttackPoint: maxDamage,
+            epBlockCost: 200
+        )
     }
 
     // MARK: - Strength Damage Tests
@@ -242,7 +238,7 @@ final class ElfDamageServiceTests: XCTestCase {
 
         // Base=10+5=15, Multiplier=2.0 -> 30, Armor=5 -> 25
         let pointStatus: [BodyPart: PointStatus] = [
-            .body: .critHit(weaponDamage: 10, strengthDamage: 5, defenderArmor: 5, multiplier: 2.0)
+            .body: .critHit(weaponDamage: 10, strengthDamage: 5, defenderArmor: 5, multiplier: 2.0, epSpent: 0)
         ]
 
         let totalDamage = withDependencies {
@@ -266,7 +262,7 @@ final class ElfDamageServiceTests: XCTestCase {
         let repository = FakeItemsRepository()
 
         let pointStatus: [BodyPart: PointStatus] = [
-            .head: .blocked(wasCrit: false)
+            .head: .blocked(wasCrit: false, epSpent: 0)
         ]
 
         let totalDamage = withDependencies {
@@ -317,7 +313,7 @@ final class ElfDamageServiceTests: XCTestCase {
         let pointStatus: [BodyPart: PointStatus] = [
             .head: .hit(weaponDamage: 10, strengthDamage: 5, defenderArmor: 3),
             .body: .hit(weaponDamage: 20, strengthDamage: 10, defenderArmor: 5),
-            .legs: .blocked(wasCrit: false)
+            .legs: .blocked(wasCrit: false, epSpent: 0)
         ]
 
         let totalDamage = withDependencies {

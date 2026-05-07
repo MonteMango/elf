@@ -32,7 +32,7 @@ public final class ElfBattleStatisticsParser: BattleStatisticsParser {
             let isDefended = defendingPoints.contains(bodyPart)
 
             switch status {
-            case .critHit(_, let strengthDamage, _, let multiplier):
+            case .critHit(_, let strengthDamage, _, let multiplier, _):
                 // Attacker attempted crit and succeeded
                 attackerCritAttempts += 1
                 attackerCritSuccesses += 1
@@ -53,7 +53,7 @@ public final class ElfBattleStatisticsParser: BattleStatisticsParser {
                 // Undefended attack - dodge was attempted but failed
                 defenderDodgeAttempts += 1
 
-            case .blocked(let wasCrit):
+            case .blocked(let wasCrit, _):
                 // Defended attack - no dodge attempt (only crit check for block break)
                 attackerCritAttempts += 1
                 if wasCrit {
