@@ -125,8 +125,11 @@ internal struct GameDayScreen: View {
                     case .quests:
                         router.navigate(to: .questList)
                     case .dungeon:
-                        if let battle = viewModel.startDungeonBattle() {
-                            router.navigate(to: .battleFight(battle))
+                        if let run = viewModel.prepareDungeonRun() {
+                            router.navigate(to: .dungeon(
+                                dungeonId: run.dungeonId,
+                                allyIds: run.allyIds
+                            ))
                         }
                     }
                 }

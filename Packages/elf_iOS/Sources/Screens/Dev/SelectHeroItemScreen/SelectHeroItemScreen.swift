@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 internal struct SelectHeroItemScreen: View {
@@ -69,7 +70,7 @@ internal struct SelectHeroItemScreen: View {
             Text(itemTypeTitle)
                 .font(.title2.weight(.bold))
                 .foregroundStyle(.white)
-                .padding(.top, 20)
+                .padding(.top, ElfSpacing.screenTop)
         }
         .overlay(alignment: .topTrailing) {
             // Close button

@@ -29,6 +29,8 @@ public enum AppRoute {
     case battleFight(Battle)
     case autoBattleResult(Battle)
     case multiBattleResult(Battle)
+
+    case dungeon(dungeonId: UUID, allyIds: [UUID])
 }
 
 // MARK: - Hashable
@@ -37,34 +39,28 @@ extension AppRoute: Hashable {
 
     public static func == (lhs: AppRoute, rhs: AppRoute) -> Bool {
         switch (lhs, rhs) {
-        case (.mainMenu, .mainMenu):
-            return true
-        case (.characterCreation, .characterCreation):
+        case (.mainMenu, .mainMenu),
+             (.characterCreation, .characterCreation),
+             (.hunt, .hunt),
+             (.farm, .farm),
+             (.craft, .craft),
+             (.questList, .questList),
+             (.battleSetup, .battleSetup):
             return true
         case (.gameSession(let lhsGame, _), .gameSession(let rhsGame, _)):
             return lhsGame.id == rhsGame.id
         case (.calendar(let lhsCalendar, let lhsDay), .calendar(let rhsCalendar, let rhsDay)):
             return lhsCalendar.count == rhsCalendar.count && lhsDay == rhsDay
-        case (.hunt, .hunt):
-            return true
-        case (.farm, .farm):
-            return true
-        case (.craft, .craft):
-            return true
-        case (.questList, .questList):
-            return true
         case (.quest(let lhsId, _), .quest(let rhsId, _)):
             return lhsId == rhsId
         case (.farmActivity(let lhs), .farmActivity(let rhs)):
             return lhs == rhs
-        case (.battleSetup, .battleSetup):
-            return true
-        case (.battleFight(let lhsBattle), .battleFight(let rhsBattle)):
+        case (.battleFight(let lhsBattle), .battleFight(let rhsBattle)),
+             (.autoBattleResult(let lhsBattle), .autoBattleResult(let rhsBattle)),
+             (.multiBattleResult(let lhsBattle), .multiBattleResult(let rhsBattle)):
             return lhsBattle.id == rhsBattle.id
-        case (.autoBattleResult(let lhsBattle), .autoBattleResult(let rhsBattle)):
-            return lhsBattle.id == rhsBattle.id
-        case (.multiBattleResult(let lhsBattle), .multiBattleResult(let rhsBattle)):
-            return lhsBattle.id == rhsBattle.id
+        case (.dungeon(let lhsId, let lhsAllies), .dungeon(let rhsId, let rhsAllies)):
+            return lhsId == rhsId && lhsAllies == rhsAllies
         default:
             return false
         }
@@ -107,6 +103,10 @@ extension AppRoute: Hashable {
         case .multiBattleResult(let battle):
             hasher.combine("multiBattleResult")
             hasher.combine(battle.id)
+        case .dungeon(let dungeonId, let allyIds):
+            hasher.combine("dungeon")
+            hasher.combine(dungeonId)
+            hasher.combine(allyIds)
         }
     }
 }
@@ -147,6 +147,8 @@ extension AppRoute {
             AutoBattleResultScreen(battle: battle)
         case .multiBattleResult(let battle):
             MultiBattleResultScreen(battle: battle)
+        case .dungeon(let dungeonId, let allyIds):
+            SessionRouteView { DungeonScreen(dungeonId: dungeonId, allyIds: allyIds, session: $0) }
         }
     }
 }

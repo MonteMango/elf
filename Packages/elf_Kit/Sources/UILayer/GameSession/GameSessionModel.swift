@@ -70,4 +70,43 @@ public final class GameSessionModel {
     public func makeInventoryViewModel() -> InventoryViewModel {
         InventoryViewModel(gameService: gameService)
     }
+
+    public func makeDungeonViewModel(
+        dungeonId: UUID,
+        allyIds: [UUID]
+    ) -> DungeonViewModel {
+        DungeonViewModel(
+            gameService: gameService,
+            dungeonId: dungeonId,
+            allyIds: allyIds
+        )
+    }
+
+    public func makeDungeonOverviewViewModel(
+        dungeonId: UUID,
+        allyIds: [UUID]
+    ) -> DungeonOverviewViewModel {
+        DungeonOverviewViewModel(
+            gameService: gameService,
+            dungeonId: dungeonId,
+            allyIds: allyIds
+        )
+    }
+
+    public func makeDungeonSquadViewModel(
+        dungeonId: UUID,
+        allyIds: [UUID]
+    ) -> DungeonSquadViewModel {
+        DungeonSquadViewModel(
+            gameService: gameService,
+            dungeonId: dungeonId,
+            allyIds: allyIds
+        )
+    }
+
+    public func makeDungeonMapViewModel(
+        dungeonId: UUID
+    ) -> DungeonMapViewModel {
+        DungeonMapViewModel(dungeonId: dungeonId)
+    }
 }

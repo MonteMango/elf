@@ -69,6 +69,7 @@ App supports **landscape orientation only**.
 | Game mechanics questions | `game-design.md` — Combat, Activities, Attributes |
 | Attributes, fight styles, Endurance/EP system | `attributes.md` — single source of truth |
 | Driving the iOS Simulator with RocketSim | `rocketsim-usage.md` — landscape→portrait coord transform |
+| Generating game art via Leonardo AI (portraits, backgrounds, icons) | `leonardo-ai-prompts.md` — prompt structure, Anime XL specifics, project seed, working examples |
 
 **Quick reference:**
 - All docs: `.claude/docs/`

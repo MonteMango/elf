@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum WorldType: String, Sendable, CaseIterable {
+public enum WorldType: String, Codable, Sendable, CaseIterable {
     case upper
     case middle
     case lower

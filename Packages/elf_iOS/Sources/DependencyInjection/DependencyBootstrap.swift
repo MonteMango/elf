@@ -34,6 +34,7 @@ public enum DependencyBootstrap {
             $0.materialRepository = gameData.materials
             $0.recipeRepository = gameData.recipes
             $0.questRepository = gameData.quests
+            $0.dungeonRepository = gameData.dungeons
         }
     }
 }

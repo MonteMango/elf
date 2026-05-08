@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 internal struct MultiBattleResultScreen: View {
@@ -85,7 +86,7 @@ internal struct MultiBattleResultScreen: View {
                 bot1StatisticsSection(result)
                 bot2StatisticsSection(result)
             }
-            .padding(.top, 16)
+            .padding(.top, ElfSpacing.screenTop)
             .padding(.bottom, 32)
         }
     }

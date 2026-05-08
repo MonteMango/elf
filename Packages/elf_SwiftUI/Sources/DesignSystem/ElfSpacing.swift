@@ -34,6 +34,11 @@ public enum ElfSpacing {
     /// Screen edge padding (20pt)
     public static let screen: CGFloat = 20
 
+    /// Top padding for screen-level content directly below the safe area
+    /// edge (segmented controls, headers, hero rows). Use this instead of
+    /// `medium` / `xl` / literal values so every screen lines up the same.
+    public static let screenTop: CGFloat = 10
+
     /// Spacing between buttons (25pt)
     public static let button: CGFloat = 25
 

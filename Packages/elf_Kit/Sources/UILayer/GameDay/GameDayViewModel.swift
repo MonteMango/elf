@@ -21,6 +21,7 @@ public final class GameDayViewModel {
     private let itemsRepository: any ItemsRepository
     private let snapshotBuilder: any CombatantSnapshotBuilder
     private let monsterRepository: any MonsterRepository
+    private let dungeonRepository: any DungeonRepository
 
     // MARK: - Constants
 
@@ -77,13 +78,34 @@ public final class GameDayViewModel {
         @Dependency(\.itemsRepository) var itemsRepository
         @Dependency(\.snapshotBuilder) var snapshotBuilder
         @Dependency(\.monsterRepository) var monsterRepository
+        @Dependency(\.dungeonRepository) var dungeonRepository
         self.progressionService = progressionService
         self.equipmentQueryService = equipmentQueryService
         self.itemsRepository = itemsRepository
         self.snapshotBuilder = snapshotBuilder
         self.monsterRepository = monsterRepository
+        self.dungeonRepository = dungeonRepository
 
         self.gameService = gameService
+    }
+
+    /// Picks a random dungeon and freezes the squad of allies the hero will run with.
+    /// Returns the chosen `dungeonId` plus the four ally member ids — both are passed
+    /// through the route so reopening `DungeonOverviewScreen` with the same parameters
+    /// shows the same squad. Returns `nil` if AP is insufficient or the dungeon pool is empty.
+    /// Note: AP is **not** spent here — that happens when the run actually starts (follow-up PR).
+    public func prepareDungeonRun() -> (dungeonId: UUID, allyIds: [UUID])? {
+        guard gameService.actionPoints.current >= dungeonCost else { return nil }
+        guard let dungeon = dungeonRepository.randomDungeon() else { return nil }
+
+        let house = gameService.houses[gameService.playerHouseIndex]
+        let allyIds = house.members
+            .enumerated()
+            .filter { $0.offset != gameService.playerMemberIndex }
+            .map(\.element.id)
+            .shuffled()
+            .prefix(4)
+        return (dungeon.id, Array(allyIds))
     }
 
     // MARK: - Actions

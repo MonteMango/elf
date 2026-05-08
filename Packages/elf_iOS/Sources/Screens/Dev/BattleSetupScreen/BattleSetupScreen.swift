@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 internal struct BattleSetupScreen: View {
@@ -130,7 +131,7 @@ internal struct BattleSetupScreen: View {
                 }
                 .padding(.horizontal)
             }
-            .padding(.top)
+            .padding(.top, ElfSpacing.screenTop)
             .padding(.bottom)
         }
         .safeAreaInset(edge: .top) { Color.clear.frame(height: 0) }

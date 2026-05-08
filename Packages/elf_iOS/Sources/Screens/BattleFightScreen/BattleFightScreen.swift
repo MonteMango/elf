@@ -53,7 +53,7 @@ internal struct BattleFightScreen: View {
                         showLeaveConfirmation = true
                     }
                 }
-                .padding(.top, 16)
+                .padding(.top, ElfSpacing.screenTop)
                 Spacer()
                 if let displayed = viewModel.displayedBotSnapshot {
                     Text("[\(displayed.level)] \(displayed.name)")

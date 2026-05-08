@@ -1,0 +1,63 @@
+{
+    "version": "1.0",
+    "dungeons": [
+        {
+            "id": "11111111-0000-0000-0000-000000000001",
+            "title": "Crystal Caverns",
+            "description": "A network of frost-blue grottoes deep beneath the Upper World. Four chambers stand between you and whatever stalks the throne room.",
+            "type": "onePath",
+            "world": "upper",
+            "backgroundImageName": "dungeon_crystal_caverns",
+            "entryRoomIds": ["11111111-0000-0000-0000-100000000001"],
+            "rooms": [
+                {
+                    "id": "11111111-0000-0000-0000-100000000001",
+                    "title": "Entry Hall",
+                    "description": "A dim cave mouth, dripping with cold condensation. Goblin scouts notice you immediately.",
+                    "kind": {
+                        "type": "combat",
+                        "monsters": [
+                            { "monsterId": "550E8400-E29B-41D4-A716-446655440003", "count": 4 }
+                        ]
+                    },
+                    "nextRoomIds": ["11111111-0000-0000-0000-100000000002"]
+                },
+                {
+                    "id": "11111111-0000-0000-0000-100000000002",
+                    "title": "Frozen Pass",
+                    "description": "Wolves circle a heavier brute. The pack will not retreat.",
+                    "kind": {
+                        "type": "miniBoss",
+                        "monsters": [
+                            { "monsterId": "550E8400-E29B-41D4-A716-446655440001", "count": 2 },
+                            { "monsterId": "550E8400-E29B-41D4-A716-446655440005", "count": 1 }
+                        ]
+                    },
+                    "nextRoomIds": ["11111111-0000-0000-0000-100000000003"]
+                },
+                {
+                    "id": "11111111-0000-0000-0000-100000000003",
+                    "title": "Healing Spring",
+                    "description": "A pool of glowing water steams in the cold. The squad can drink to recover.",
+                    "kind": {
+                        "type": "event",
+                        "event": { "type": "healingSpring", "healPercent": 50 }
+                    },
+                    "nextRoomIds": ["11111111-0000-0000-0000-100000000004"]
+                },
+                {
+                    "id": "11111111-0000-0000-0000-100000000004",
+                    "title": "Throne Room",
+                    "description": "A vast cavern. The Goblin King waits on a throne of ice.",
+                    "kind": {
+                        "type": "boss",
+                        "monsters": [
+                            { "monsterId": "550E8400-E29B-41D4-A716-446655440009", "count": 1 }
+                        ]
+                    },
+                    "nextRoomIds": []
+                }
+            ]
+        }
+    ]
+}

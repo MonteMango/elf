@@ -40,7 +40,7 @@ struct GameDayHeader: View {
             onBack: onBack,
             onCalendarTap: onCalendarTap
         )
-        .padding(.top, ElfSizing.standardPadding)
+        .padding(.top, ElfSpacing.screenTop)
         .padding(.horizontal, ElfSpacing.screen)
     }
 }

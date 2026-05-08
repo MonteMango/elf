@@ -162,25 +162,13 @@ struct QuestScreen: View {
 
     // MARK: - Rewards Section
 
-    @ViewBuilder
     private func rewardsSection(_ rewards: [QuestRewardDisplay]) -> some View {
-        if !rewards.isEmpty {
-            VStack(alignment: .leading, spacing: ElfSpacing.small) {
-                Text("Rewards:")
-                    .font(.system(size: ElfFonts.Size.callout, weight: .semibold))
-                    .foregroundStyle(ElfColors.Text.primary)
-
-                HStack(spacing: ElfSpacing.small) {
-                    ForEach(rewards) { reward in
-                        ItemCard(
-                            imageName: reward.imageName,
-                            rarityColor: .tier(4),
-                            quantity: reward.quantity
-                        )
-                    }
-                }
+        RewardsSection(
+            title: "Rewards:",
+            items: rewards.map {
+                RewardItemData(id: $0.id, imageName: $0.imageName, quantity: $0.quantity)
             }
-        }
+        )
     }
 }
 

@@ -16,4 +16,5 @@ public protocol GameDataRepository: Sendable {
     var recipes: any RecipeRepository { get }
     var materials: any Repository<Material> { get }
     var quests: any QuestRepository { get }
+    var dungeons: any DungeonRepository { get }
 }

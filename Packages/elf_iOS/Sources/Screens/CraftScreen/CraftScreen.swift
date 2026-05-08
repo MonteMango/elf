@@ -89,6 +89,6 @@ struct CraftScreen: View {
             }
         }
         .padding(.horizontal, ElfSpacing.medium)
-        .padding(.top, ElfSpacing.medium)
+        .padding(.top, ElfSpacing.screenTop)
     }
 }

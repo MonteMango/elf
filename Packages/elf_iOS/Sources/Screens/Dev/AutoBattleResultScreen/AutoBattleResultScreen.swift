@@ -6,6 +6,7 @@
 //
 
 import elf_Kit
+import elf_SwiftUI
 import SwiftUI
 
 internal struct AutoBattleResultScreen: View {
@@ -66,7 +67,7 @@ internal struct AutoBattleResultScreen: View {
                 statisticsSection(result)
                 roundHistorySection(result)
             }
-            .padding(.top, 16)
+            .padding(.top, ElfSpacing.screenTop)
         }
     }
 
