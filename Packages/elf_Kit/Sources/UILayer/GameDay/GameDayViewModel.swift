@@ -37,7 +37,7 @@ public final class GameDayViewModel {
 
     // MARK: - Derived state (computed reactively)
 
-    public var player: ElfStore { session.state.player }
+    public var player: ElfInfo { session.state.player }
 
     public var characterLevel: Int {
         progressionService.calculateLevel(currentExp: session.state.player.currentExp)
@@ -205,7 +205,7 @@ public final class GameDayViewModel {
             snapshotBuilder.buildSnapshot(from: wolfTemplate)
         }
 
-        let player = session.state.player.snapshot()
+        let player = session.state.player
         let heroSnapshot = snapshotBuilder.buildSnapshot(
             name: player.name,
             imageName: player.imageName,

@@ -199,7 +199,7 @@ public final class FarmActivityViewModel {
             return false
         }
 
-        let player = session.state.player.snapshot()
+        let player = session.state.player
         let playerSnapshot = snapshotBuilder.buildSnapshot(
             name: player.name,
             imageName: player.imageName,

@@ -9,9 +9,10 @@ import Dependencies
 import Foundation
 
 /// Default implementation of `EquipmentService`.
-/// Reads inventory directly from the player store and writes `player.equipped`
-/// on `ElfStore`. Per-property `@Observable` tracking scopes invalidation to
-/// the equipped slot — unrelated views (e.g. farm skills) are not re-evaluated.
+/// Reads inventory directly from `store.player.inventory` and writes back via
+/// `store.player.equipped = …`, which the settable computed accessor on
+/// `GameStore` flows into `houses[…].members[…]`. `@Observable` invalidates
+/// SwiftUI observers reading any chain through `houses`.
 @MainActor
 public final class DefaultEquipmentService: EquipmentService {
 
