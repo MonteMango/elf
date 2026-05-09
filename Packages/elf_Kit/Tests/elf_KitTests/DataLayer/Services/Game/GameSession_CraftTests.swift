@@ -1,22 +1,22 @@
 //
-//  DefaultGameService_CraftTests.swift
+//  GameSession_CraftTests.swift
 //  elf_Kit
 //
-//  Created by Vitalii Lytvynov on 16.04.26.
+//  Created by Vitalii Lytvynov
 //
 
 import Dependencies
 import XCTest
 @testable import elf_Kit
 
-/// Tests for `DefaultGameService.craftItem(recipe:item:)`.
+/// Tests for `GameSession.craftItem(recipe:item:)`.
 ///
 /// Covers the atomic craft transaction (validate → deduct → add) that replaced
 /// the former `modifyInventory` closure escape hatch used by `CraftViewModel`.
 @MainActor
-final class DefaultGameService_CraftTests: XCTestCase {
+final class GameSession_CraftTests: XCTestCase {
 
-    /// `DefaultGameService` pulls craft/inventory services via `@Dependency`.
+    /// `GameSession` pulls craft/inventory services via `@Dependency`.
     /// Wire the real stateless implementations so every test exercises the actual
     /// craft transaction without each one spelling out `withDependencies`.
     override func invokeTest() {
@@ -91,8 +91,9 @@ final class DefaultGameService_CraftTests: XCTestCase {
         )
     }
 
-    private func makeService(inventory: ElfInventory = ElfInventory()) -> (DefaultGameService, GameStore) {
-        { let store = GameStore(from: makeGame(playerInventory: inventory)); return (DefaultGameService(store: store), store) }()
+    private func makeSession(inventory: ElfInventory = ElfInventory()) -> (GameSession, GameStore) {
+        let session = GameSession(game: makeGame(playerInventory: inventory))
+        return (session, session.state)
     }
 
     private func makeRecipe(
@@ -117,13 +118,13 @@ final class DefaultGameService_CraftTests: XCTestCase {
         let materialId = UUID()
         var inventory = ElfInventory()
         inventory.materials.append(InventoryMaterial(id: materialId, source: .monster, quantity: 5))
-        let (service, store) = makeService(inventory: inventory)
+        let (session, store) = makeSession(inventory: inventory)
 
         let item = makeWeaponItem()
         let recipe = makeRecipe(resultItemId: item.id, ingredientId: materialId, amount: 3)
 
         // When
-        let result = service.craftItem(recipe: recipe, item: item)
+        let result = session.craftItem(recipe: recipe, item: item)
 
         // Then
         XCTAssertTrue(result)
@@ -136,13 +137,13 @@ final class DefaultGameService_CraftTests: XCTestCase {
         let materialId = UUID()
         var inventory = ElfInventory()
         inventory.materials.append(InventoryMaterial(id: materialId, source: .monster, quantity: 3))
-        let (service, store) = makeService(inventory: inventory)
+        let (session, store) = makeSession(inventory: inventory)
 
         let item = makeWeaponItem()
         let recipe = makeRecipe(resultItemId: item.id, ingredientId: materialId, amount: 3)
 
         // When
-        let result = service.craftItem(recipe: recipe, item: item)
+        let result = session.craftItem(recipe: recipe, item: item)
 
         // Then
         XCTAssertTrue(result)
@@ -157,13 +158,13 @@ final class DefaultGameService_CraftTests: XCTestCase {
         let materialId = UUID()
         var inventory = ElfInventory()
         inventory.materials.append(InventoryMaterial(id: materialId, source: .monster, quantity: 2))
-        let (service, store) = makeService(inventory: inventory)
+        let (session, store) = makeSession(inventory: inventory)
 
         let item = makeWeaponItem()
         let recipe = makeRecipe(resultItemId: item.id, ingredientId: materialId, amount: 3)
 
         // When
-        let result = service.craftItem(recipe: recipe, item: item)
+        let result = session.craftItem(recipe: recipe, item: item)
 
         // Then
         XCTAssertFalse(result)
@@ -173,12 +174,12 @@ final class DefaultGameService_CraftTests: XCTestCase {
 
     func testCraftItem_WithMissingMaterial_ReturnsFalse_AndLeavesInventoryUnchanged() {
         // Given: empty inventory, recipe needs some material
-        let (service, store) = makeService()
+        let (session, store) = makeSession()
         let item = makeWeaponItem()
         let recipe = makeRecipe(ingredientId: UUID(), amount: 1)
 
         // When
-        let result = service.craftItem(recipe: recipe, item: item)
+        let result = session.craftItem(recipe: recipe, item: item)
 
         // Then
         XCTAssertFalse(result)
