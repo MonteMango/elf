@@ -23,7 +23,7 @@ public final class BattleFightViewModel {
     private let battleResultCalculator: any BattleResultCalculator
 
     // Optional session context (nil for non-hunt battles like dev BattleSetup flow)
-    private let gameService: (any GameService)?
+    private let session: GameSession?
 
     // MARK: - State
 
@@ -110,7 +110,7 @@ public final class BattleFightViewModel {
 
     // MARK: - Initialization
 
-    public init(battle: Battle, gameService: (any GameService)? = nil) {
+    public init(battle: Battle, session: GameSession? = nil) {
         precondition(!battle.leftTeam.isEmpty, "Battle.leftTeam must be non-empty")
         precondition(!battle.rightTeam.isEmpty, "Battle.rightTeam must be non-empty")
 
@@ -130,7 +130,7 @@ public final class BattleFightViewModel {
         self.battleResultCalculator = battleResultCalculator
 
         self.battle = battle
-        self.gameService = gameService
+        self.session = session
         self.leftTeam = battle.leftTeam
         self.rightTeam = battle.rightTeam
         self.playerCombatantId = battle.leftTeam.first?.id
@@ -295,7 +295,7 @@ public final class BattleFightViewModel {
 
         let outcome = determineBattleOutcome()
         let monster = getMonsterFromBot()
-        let currentExp: Int = gameService?.player.currentExp ?? 0
+        let currentExp: Int = session?.state.player.currentExp ?? 0
 
         let result = battleResultCalculator.calculateResult(
             outcome: outcome,
@@ -309,18 +309,18 @@ public final class BattleFightViewModel {
 
     /// Applies battle rewards to game state (XP, drops, save)
     private func applyBattleRewards(result: ManualBattleResult, monster: Monster?) async {
-        guard let gameService = gameService else { return }
+        guard let session = session else { return }
 
         if result.experienceGained > 0 {
-            gameService.addPlayerExperience(result.experienceGained)
+            session.addPlayerExperience(result.experienceGained)
         }
 
         if let huntRewards = result.huntRewards {
-            gameService.addDropsToPlayerInventory(rewards: huntRewards)
+            session.addDropsToPlayerInventory(rewards: huntRewards)
         }
 
         do {
-            try await gameService.saveGame()
+            try await session.save()
         } catch {
             #if DEBUG
             print("[BattleFightViewModel] Failed to save game: \(error)")

@@ -10,25 +10,24 @@ import elf_SwiftUI
 import SwiftUI
 
 /// Parent dungeon-briefing screen. Owns the picker, the full-bleed dungeon
-/// background, and the persistent Entrance button. The middle area swaps
-/// between three tab views (Overview / Squad / Map); each tab has its own
-/// VM and resolves its own data so this shell stays purely structural.
+/// background, and the persistent Entrance button. Reads its state from the
+/// active `DungeonSession` on `GameSession` (created by `GameDayScreen`
+/// before pushing this route). The middle area swaps between three tab views
+/// (Overview / Squad / Map); each tab makes its own ViewModel from the same
+/// session so this shell stays purely structural.
 struct DungeonScreen: View {
 
     @Environment(AppRouter.self) private var router
-    @State private var viewModel: DungeonViewModel
-    private let session: GameSessionModel
-    private let dungeonId: UUID
-    private let allyIds: [UUID]
+    private let dungeonSession: DungeonSession
 
-    init(dungeonId: UUID, allyIds: [UUID], session: GameSessionModel) {
-        self.session = session
-        self.dungeonId = dungeonId
-        self.allyIds = allyIds
-        self._viewModel = State(initialValue: session.makeDungeonViewModel(
-            dungeonId: dungeonId,
-            allyIds: allyIds
-        ))
+    init(session: GameSession) {
+        // Force-unwrap is safe: the route is only reachable from
+        // `GameDayScreen.dungeon` which calls `session.startDungeonSession(...)`
+        // before pushing the route.
+        guard let dungeonSession = session.dungeonSession else {
+            fatalError("DungeonScreen reached without an active DungeonSession on GameSession.")
+        }
+        self.dungeonSession = dungeonSession
     }
 
     var body: some View {
@@ -42,7 +41,7 @@ struct DungeonScreen: View {
         }
         .overlay(alignment: .bottomTrailing) {
             EntranceButton(
-                isEnabled: viewModel.canEnter,
+                isEnabled: dungeonSession.canEnter,
                 action: { router.pop() }
             )
         }
@@ -60,7 +59,7 @@ struct DungeonScreen: View {
 
     @ViewBuilder
     private var dungeonBackground: some View {
-        if let uiImage = UIImage(named: viewModel.backgroundImageName) {
+        if let uiImage = UIImage(named: dungeonSession.backgroundImageName) {
             Image(uiImage: uiImage)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
@@ -74,7 +73,8 @@ struct DungeonScreen: View {
     // MARK: - Segmented control
 
     private var segmentedControl: some View {
-        Picker("Tab", selection: $viewModel.activeTab) {
+        @Bindable var session = dungeonSession
+        return Picker("Tab", selection: $session.activeTab) {
             ForEach(DungeonTab.allCases, id: \.self) { tab in
                 Text(tab.title).tag(tab)
             }
@@ -88,16 +88,16 @@ struct DungeonScreen: View {
     @ViewBuilder
     private var tabBody: some View {
         Group {
-            switch viewModel.activeTab {
+            switch dungeonSession.activeTab {
             case .overview:
-                DungeonOverviewContent(session: session, dungeonId: dungeonId, allyIds: allyIds)
-                    .id(dungeonId)
+                DungeonOverviewContent(session: dungeonSession)
+                    .id(dungeonSession.dungeonId)
             case .squad:
-                DungeonSquadContent(session: session, dungeonId: dungeonId, allyIds: allyIds)
-                    .id(dungeonId)
+                DungeonSquadContent(session: dungeonSession)
+                    .id(dungeonSession.dungeonId)
             case .map:
-                DungeonMapContent(session: session, dungeonId: dungeonId)
-                    .id(dungeonId)
+                DungeonMapContent(session: dungeonSession)
+                    .id(dungeonSession.dungeonId)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -111,23 +111,20 @@ struct DungeonScreen: View {
 
     let dungeonId = UUID(uuidString: "11111111-0000-0000-0000-000000000001") ?? UUID()
 
-    if let coordinator, let session = coordinator.sessionModel {
-        let house = session.gameService.houses[session.gameService.playerHouseIndex]
+    if let coordinator, let session = coordinator.gameSession {
+        let house = session.state.houses[session.state.playerHouseIndex]
         let allyIds = house.members
             .enumerated()
-            .filter { $0.offset != session.gameService.playerMemberIndex }
+            .filter { $0.offset != session.state.playerMemberIndex }
             .map(\.element.id)
             .shuffled()
             .prefix(4)
+        let _ = session.startDungeonSession(dungeonId: dungeonId, allyIds: Array(allyIds))
 
         NavigationStack(path: $router.navigationPath) {
-            DungeonScreen(
-                dungeonId: dungeonId,
-                allyIds: Array(allyIds),
-                session: session
-            )
-            .environment(router)
-            .environment(coordinator)
+            DungeonScreen(session: session)
+                .environment(router)
+                .environment(coordinator)
         }
     } else {
         ProgressView()

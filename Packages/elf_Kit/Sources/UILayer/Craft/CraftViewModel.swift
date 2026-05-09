@@ -14,7 +14,7 @@ public final class CraftViewModel {
 
     // MARK: - Dependencies (snapshotted at init)
 
-    private let gameService: any GameService
+    private let session: GameSession
     private let recipeRepository: any RecipeRepository
     private let itemsRepository: any ItemsRepository
     private let materialRepository: any Repository<Material>
@@ -47,12 +47,12 @@ public final class CraftViewModel {
     }
 
     private var currentInventory: ElfInventory {
-        gameService.player.inventory
+        session.state.player.inventory
     }
 
     // MARK: - Initialization
 
-    public init(gameService: any GameService) {
+    public init(session: GameSession) {
         @Dependency(\.recipeRepository) var recipeRepository
         @Dependency(\.itemsRepository) var itemsRepository
         @Dependency(\.materialRepository) var materialRepository
@@ -64,7 +64,7 @@ public final class CraftViewModel {
         self.oreRepository = oreRepository
         self.craftService = craftService
 
-        self.gameService = gameService
+        self.session = session
     }
 
     // MARK: - Actions
@@ -90,7 +90,7 @@ public final class CraftViewModel {
 
         try? await Task.sleep(for: .seconds(2))
 
-        gameService.craftItem(recipe: recipe, item: item)
+        session.craftItem(recipe: recipe, item: item)
     }
 
     // MARK: - Private builders

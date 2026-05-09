@@ -17,7 +17,7 @@ struct QuestListScreen: View {
     @State private var viewModel: QuestListViewModel
     private let dayStateViewModel: GameDayStateViewModel
 
-    init(session: GameSessionModel) {
+    init(session: GameSession) {
         self._viewModel = State(initialValue: session.makeQuestListViewModel())
         self.dayStateViewModel = session.dayState
     }
@@ -89,7 +89,7 @@ struct QuestListScreen: View {
     @Previewable @State var coordinator: AppCoordinator?
     @Previewable @State var router = AppRouter()
 
-    if let coordinator, let session = coordinator.sessionModel {
+    if let coordinator, let session = coordinator.gameSession {
         NavigationStack(path: $router.navigationPath) {
             QuestListScreen(session: session)
                 .environment(router)

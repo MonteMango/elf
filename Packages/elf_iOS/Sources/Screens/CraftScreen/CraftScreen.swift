@@ -13,7 +13,7 @@ struct CraftScreen: View {
     @Environment(AppRouter.self) private var router
     @State private var viewModel: CraftViewModel
 
-    init(session: GameSessionModel) {
+    init(session: GameSession) {
         self._viewModel = State(initialValue: session.makeCraftViewModel())
     }
 

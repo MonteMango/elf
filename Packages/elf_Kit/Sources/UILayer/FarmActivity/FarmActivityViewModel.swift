@@ -14,7 +14,7 @@ public final class FarmActivityViewModel {
 
     // MARK: - Dependencies (snapshotted at init)
 
-    private let gameService: any GameService
+    private let session: GameSession
     private let farmActivityService: any FarmActivityService
     private let monsterRepository: any MonsterRepository
     private let snapshotBuilder: any CombatantSnapshotBuilder
@@ -57,14 +57,14 @@ public final class FarmActivityViewModel {
     // MARK: - Derived state (computed reactively)
 
     public var canPerformAction: Bool {
-        gameService.actionPoints.current >= actionCost && activityState == .idle
+        session.state.actionPoints.current >= actionCost && activityState == .idle
     }
 
     private var skillInfo: FarmSkillInfo {
         let exp: Int = switch activity {
-        case .fishing: gameService.player.fishingExp
-        case .foraging: gameService.player.foragingExp
-        case .mining: gameService.player.miningExp
+        case .fishing: session.state.player.fishingExp
+        case .foraging: session.state.player.foragingExp
+        case .mining: session.state.player.miningExp
         }
         return farmActivityService.getSkillInfo(for: activity, exp: exp)
     }
@@ -81,13 +81,13 @@ public final class FarmActivityViewModel {
 
     /// Pool of monsters that may attack during the activity.
     private var availableMonsters: [Monster] {
-        let level = min(progressionService.calculateLevel(currentExp: gameService.player.currentExp), 3)
+        let level = min(progressionService.calculateLevel(currentExp: session.state.player.currentExp), 3)
         return monsterRepository.getMonsters(world: .upper, level: level)
     }
 
     // MARK: - Initialization
 
-    public init(activity: FarmActivity, gameService: any GameService) {
+    public init(activity: FarmActivity, session: GameSession) {
         @Dependency(\.farmActivityService) var farmActivityService
         @Dependency(\.monsterRepository) var monsterRepository
         @Dependency(\.snapshotBuilder) var snapshotBuilder
@@ -98,20 +98,20 @@ public final class FarmActivityViewModel {
         self.progressionService = progressionService
 
         self.activity = activity
-        self.gameService = gameService
+        self.session = session
     }
 
     // MARK: - Actions
 
     /// Perform the current farm activity
     public func performActivity() async {
-        guard gameService.actionPoints.current >= actionCost, activityState == .idle else { return }
+        guard session.state.actionPoints.current >= actionCost, activityState == .idle else { return }
         guard !Task.isCancelled else { return }
 
         activityState = .performing
 
         // Point of no return: AP spent — must complete the operation
-        gameService.spendActionPoints(actionCost)
+        session.spendActionPoints(actionCost)
 
         // Wait 2 seconds (activity animation)
         try? await Task.sleep(for: .seconds(2))
@@ -132,19 +132,19 @@ public final class FarmActivityViewModel {
         // Apply result to game state (sync mutations on main)
         switch result {
         case .fishing(let r):
-            gameService.addFishingExperience(r.skillProgress.experienceGained)
-            gameService.addFishToInventory(r.caughtFish)
+            session.addFishingExperience(r.skillProgress.experienceGained)
+            session.addFishToInventory(r.caughtFish)
         case .foraging(let r):
-            gameService.addForagingExperience(r.skillProgress.experienceGained)
-            gameService.addHerbsToInventory(r.gatheredHerbs)
+            session.addForagingExperience(r.skillProgress.experienceGained)
+            session.addHerbsToInventory(r.gatheredHerbs)
         case .mining(let r):
-            gameService.addMiningExperience(r.skillProgress.experienceGained)
-            gameService.addOresToInventory(r.minedOres)
+            session.addMiningExperience(r.skillProgress.experienceGained)
+            session.addOresToInventory(r.minedOres)
         }
 
         // Skip UI updates if cancelled (user left the screen)
         guard !Task.isCancelled else {
-            try? await gameService.saveGame()
+            try? await session.save()
             return
         }
 
@@ -153,7 +153,7 @@ public final class FarmActivityViewModel {
         activityState = .idle
 
         // Save game
-        try? await gameService.saveGame()
+        try? await session.save()
     }
 
     /// Clear activity result after modal has been presented
@@ -167,11 +167,11 @@ public final class FarmActivityViewModel {
     private var currentActivityExp: Int {
         switch activity {
         case .fishing:
-            return gameService.player.fishingExp
+            return session.state.player.fishingExp
         case .foraging:
-            return gameService.player.foragingExp
+            return session.state.player.foragingExp
         case .mining:
-            return gameService.player.miningExp
+            return session.state.player.miningExp
         }
     }
 
@@ -199,7 +199,7 @@ public final class FarmActivityViewModel {
             return false
         }
 
-        let player = gameService.player.snapshot()
+        let player = session.state.player.snapshot()
         let playerSnapshot = snapshotBuilder.buildSnapshot(
             name: player.name,
             imageName: player.imageName,

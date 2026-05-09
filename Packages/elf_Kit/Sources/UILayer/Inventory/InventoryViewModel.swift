@@ -14,7 +14,7 @@ public final class InventoryViewModel {
 
     // MARK: - Dependencies (snapshotted at init)
 
-    let gameService: any GameService
+    let session: GameSession
     let equipmentService: any EquipmentService
     let materialRepository: any Repository<Material>
     let fishRepository: any Repository<Fish>
@@ -39,7 +39,7 @@ public final class InventoryViewModel {
     // MARK: - Derived State (computed reactively)
 
     /// All display items for the current player — rebuilt automatically on any
-    /// change to `gameService.player.inventory` / `equipped` observed through services.
+    /// change to `session.state.player.inventory` / `equipped` observed through services.
     public var allDisplayItems: [InventoryItemDisplay] {
         buildDisplayItems()
     }
@@ -84,7 +84,7 @@ public final class InventoryViewModel {
 
     // MARK: - Initialization
 
-    public init(gameService: any GameService) {
+    public init(session: GameSession) {
         @Dependency(\.materialRepository) var materialRepository
         @Dependency(\.fishRepository) var fishRepository
         @Dependency(\.herbRepository) var herbRepository
@@ -96,8 +96,8 @@ public final class InventoryViewModel {
         self.oreRepository = oreRepository
         self.equipmentQueryService = equipmentQueryService
 
-        self.gameService = gameService
-        self.equipmentService = DefaultEquipmentService(gameService: gameService)
+        self.session = session
+        self.equipmentService = DefaultEquipmentService(store: session.state)
     }
 
     // MARK: - Actions

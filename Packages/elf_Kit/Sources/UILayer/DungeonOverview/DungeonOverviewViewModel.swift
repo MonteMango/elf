@@ -9,18 +9,17 @@ import Dependencies
 import Foundation
 
 /// Drives the Overview tab: title, expected monsters, possible drops, squad
-/// preview, mini-map preview. Self-sufficient — accepts the same `dungeonId`
-/// and `allyIds` as the parent and resolves everything via repositories.
+/// preview, mini-map preview. All inputs come from the parent `DungeonSession`
+/// (dungeon, gameStore, allyIds); aggregation services that map domain
+/// types to display DTOs (monster lookup, drop tier resolution, level
+/// calculation) come from `@Dependency`.
 @MainActor
 @Observable
 public final class DungeonOverviewViewModel {
 
     // MARK: - Dependencies
 
-    private let gameService: any GameService
-
-    @ObservationIgnored
-    @Dependency(\.dungeonRepository) private var dungeonRepository
+    private let session: DungeonSession
 
     @ObservationIgnored
     @Dependency(\.monsterRepository) private var monsterRepository
@@ -31,24 +30,15 @@ public final class DungeonOverviewViewModel {
     @ObservationIgnored
     @Dependency(\.progressionService) private var progressionService
 
-    // MARK: - Inputs
-
-    private let dungeonId: UUID
-    private let allyIds: [UUID]
-
     // MARK: - Initialization
 
-    public init(gameService: any GameService, dungeonId: UUID, allyIds: [UUID]) {
-        self.gameService = gameService
-        self.dungeonId = dungeonId
-        self.allyIds = allyIds
+    public init(session: DungeonSession) {
+        self.session = session
     }
 
     // MARK: - Derived
 
-    private var dungeon: Dungeon? {
-        dungeonRepository.getById(id: dungeonId)
-    }
+    private var dungeon: Dungeon? { session.dungeon }
 
     public var header: DungeonHeaderDisplay {
         guard let dungeon else {
@@ -146,7 +136,7 @@ public final class DungeonOverviewViewModel {
     /// in a previous activity and were removed from the house), the row is
     /// silently dropped — the squad summary card handles fewer than 5 rows.
     public var squad: [DungeonSquadMemberDisplay] {
-        let player = gameService.player
+        let player = session.gameStore.player
         var rows: [DungeonSquadMemberDisplay] = [
             DungeonSquadMemberDisplay(
                 id: player.id,
@@ -159,9 +149,9 @@ public final class DungeonOverviewViewModel {
             )
         ]
 
-        let house = gameService.houses[gameService.playerHouseIndex]
+        let house = session.gameStore.houses[session.gameStore.playerHouseIndex]
         let elfById = Dictionary(uniqueKeysWithValues: house.members.map { ($0.id, $0) })
-        for id in allyIds {
+        for id in session.allyIds {
             guard let elf = elfById[id] else { continue }
             rows.append(DungeonSquadMemberDisplay(
                 id: elf.id,

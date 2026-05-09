@@ -14,36 +14,36 @@ public final class FarmViewModel {
 
     // MARK: - Dependencies (snapshotted at init)
 
-    private let gameService: any GameService
+    private let session: GameSession
     private let progressionService: any ProgressionService
 
     // MARK: - Farming Skills (computed reactively)
 
     public var foragingLevel: Int {
-        progressionService.farmingLevel(exp: gameService.player.foragingExp)
+        progressionService.farmingLevel(exp: session.state.player.foragingExp)
     }
     public var foragingProgress: Double {
-        progressionService.farmingProgress(exp: gameService.player.foragingExp)
+        progressionService.farmingProgress(exp: session.state.player.foragingExp)
     }
     public var fishingLevel: Int {
-        progressionService.farmingLevel(exp: gameService.player.fishingExp)
+        progressionService.farmingLevel(exp: session.state.player.fishingExp)
     }
     public var fishingProgress: Double {
-        progressionService.farmingProgress(exp: gameService.player.fishingExp)
+        progressionService.farmingProgress(exp: session.state.player.fishingExp)
     }
     public var miningLevel: Int {
-        progressionService.farmingLevel(exp: gameService.player.miningExp)
+        progressionService.farmingLevel(exp: session.state.player.miningExp)
     }
     public var miningProgress: Double {
-        progressionService.farmingProgress(exp: gameService.player.miningExp)
+        progressionService.farmingProgress(exp: session.state.player.miningExp)
     }
 
     // MARK: - Initialization
 
-    public init(gameService: any GameService) {
+    public init(session: GameSession) {
         @Dependency(\.progressionService) var progressionService
         self.progressionService = progressionService
 
-        self.gameService = gameService
+        self.session = session
     }
 }

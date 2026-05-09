@@ -15,8 +15,10 @@ internal struct GameDayScreen: View {
     @State private var viewModel: GameDayViewModel
     @State private var inventoryViewModel: InventoryViewModel
     private let dayStateViewModel: GameDayStateViewModel
+    private let session: GameSession
 
-    internal init(session: GameSessionModel) {
+    internal init(session: GameSession) {
+        self.session = session
         self._viewModel = State(initialValue: session.makeGameDayViewModel())
         self._inventoryViewModel = State(initialValue: session.makeInventoryViewModel())
         self.dayStateViewModel = session.dayState
@@ -126,6 +128,10 @@ internal struct GameDayScreen: View {
                         router.navigate(to: .questList)
                     case .dungeon:
                         if let run = viewModel.prepareDungeonRun() {
+                            session.startDungeonSession(
+                                dungeonId: run.dungeonId,
+                                allyIds: run.allyIds
+                            )
                             router.navigate(to: .dungeon(
                                 dungeonId: run.dungeonId,
                                 allyIds: run.allyIds
@@ -189,7 +195,7 @@ internal struct GameDayScreen: View {
     @Previewable @State var coordinator: AppCoordinator?
     @Previewable @State var router = AppRouter()
 
-    if let coordinator, let session = coordinator.sessionModel {
+    if let coordinator, let session = coordinator.gameSession {
         GameDayScreen(session: session)
             .environment(router)
             .environment(coordinator)

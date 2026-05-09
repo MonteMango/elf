@@ -14,7 +14,7 @@ public final class QuestListViewModel {
 
     // MARK: - Dependencies (snapshotted at init)
 
-    private let gameService: any GameService
+    private let session: GameSession
     private let questRepository: any QuestRepository
     private let materialRepository: any Repository<Material>
 
@@ -37,13 +37,13 @@ public final class QuestListViewModel {
 
     // MARK: - Initialization
 
-    public init(gameService: any GameService) {
+    public init(session: GameSession) {
         @Dependency(\.questRepository) var questRepository
         @Dependency(\.materialRepository) var materialRepository
         self.questRepository = questRepository
         self.materialRepository = materialRepository
 
-        self.gameService = gameService
+        self.session = session
     }
 
     // MARK: - Private

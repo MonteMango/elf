@@ -18,7 +18,7 @@ struct FarmActivityScreen: View {
     @State private var navigatedToBattle = false
     private let dayStateViewModel: GameDayStateViewModel
 
-    init(activity: FarmActivity, session: GameSessionModel) {
+    init(activity: FarmActivity, session: GameSession) {
         self._viewModel = State(initialValue: session.makeFarmActivityViewModel(activity: activity))
         self.dayStateViewModel = session.dayState
     }
@@ -166,7 +166,7 @@ struct FarmActivityScreen: View {
     @Previewable @State var coordinator: AppCoordinator?
     @Previewable @Namespace var previewNamespace
 
-    if let coordinator, let session = coordinator.sessionModel {
+    if let coordinator, let session = coordinator.gameSession {
         NavigationStack {
             FarmActivityScreen(activity: .fishing, session: session)
                 .environment(\.farmZoomNamespace, previewNamespace)

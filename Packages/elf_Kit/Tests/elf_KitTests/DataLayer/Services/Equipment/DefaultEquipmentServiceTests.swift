@@ -111,16 +111,16 @@ final class DefaultEquipmentServiceTests: XCTestCase {
         equipped: EquippedItems,
         inventoryWeapons: [ElfWeaponItem],
         repository: FakeItemsRepository
-    ) -> (DefaultEquipmentService, DefaultGameService) {
+    ) -> (DefaultEquipmentService, GameStore) {
         let player = makeElf(equipped: equipped, inventoryWeapons: inventoryWeapons)
         let game = makeGame(player: player)
-        let gameService = DefaultGameService(game: game)
+        let store = GameStore(from: game)
         let service = withDependencies {
             $0.itemsRepository = repository
         } operation: {
-            DefaultEquipmentService(gameService: gameService)
+            DefaultEquipmentService(store: store)
         }
-        return (service, gameService)
+        return (service, store)
     }
 
     // MARK: - equipOffhandWeapon
@@ -131,7 +131,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
 
         let repository = FakeItemsRepository()
         repository.items[newWeapon.id] = newWeapon.item
-        let (service, gameService) = makeService(
+        let (service, store) = makeService(
             equipped: EquippedItems(weapons: .oneHanded(weapon: existingWrap)),
             inventoryWeapons: [existing, newWeapon],
             repository: repository
@@ -139,7 +139,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
 
         service.equipOffhandWeapon(id: newWeapon.id)
 
-        guard case let .dualWield(primary, secondary) = gameService.player.equipped.weapons else {
+        guard case let .dualWield(primary, secondary) = store.player.equipped.weapons else {
             return XCTFail("Expected dualWield")
         }
         XCTAssertEqual(primary.id, existing.id)
@@ -153,7 +153,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
 
         let repository = FakeItemsRepository()
         repository.items[newWeapon.id] = newWeapon.item
-        let (service, gameService) = makeService(
+        let (service, store) = makeService(
             equipped: EquippedItems(weapons: .oneHandedWithShield(weapon: existingWrap, shield: shield)),
             inventoryWeapons: [existing, newWeapon],
             repository: repository
@@ -161,7 +161,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
 
         service.equipOffhandWeapon(id: newWeapon.id)
 
-        guard case let .dualWield(primary, secondary) = gameService.player.equipped.weapons else {
+        guard case let .dualWield(primary, secondary) = store.player.equipped.weapons else {
             return XCTFail("Expected dualWield (shield should have been dropped)")
         }
         XCTAssertEqual(primary.id, existing.id)
@@ -175,7 +175,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
 
         let repository = FakeItemsRepository()
         repository.items[newSecondary.id] = newSecondary.item
-        let (service, gameService) = makeService(
+        let (service, store) = makeService(
             equipped: EquippedItems(weapons: .dualWield(primary: primaryWrap, secondary: oldSecondaryWrap)),
             inventoryWeapons: [primary, oldSecondary, newSecondary],
             repository: repository
@@ -183,7 +183,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
 
         service.equipOffhandWeapon(id: newSecondary.id)
 
-        guard case let .dualWield(resultPrimary, resultSecondary) = gameService.player.equipped.weapons else {
+        guard case let .dualWield(resultPrimary, resultSecondary) = store.player.equipped.weapons else {
             return XCTFail("Expected dualWield")
         }
         XCTAssertEqual(resultPrimary.id, primary.id)
@@ -196,7 +196,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
 
         let repository = FakeItemsRepository()
         repository.items[newWeapon.id] = newWeapon.item
-        let (service, gameService) = makeService(
+        let (service, store) = makeService(
             equipped: EquippedItems(weapons: .twoHanded(weapon: existingWrap)),
             inventoryWeapons: [existing, newWeapon],
             repository: repository
@@ -204,7 +204,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
 
         service.equipOffhandWeapon(id: newWeapon.id)
 
-        guard case let .oneHanded(weapon) = gameService.player.equipped.weapons else {
+        guard case let .oneHanded(weapon) = store.player.equipped.weapons else {
             return XCTFail("Expected oneHanded (twoHanded should have been replaced)")
         }
         XCTAssertEqual(weapon.id, newWeapon.id)
@@ -216,7 +216,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
 
         let repository = FakeItemsRepository()
         repository.items[twoHandedInput.id] = twoHandedInput.item
-        let (service, gameService) = makeService(
+        let (service, store) = makeService(
             equipped: EquippedItems(weapons: .oneHanded(weapon: existingWrap)),
             inventoryWeapons: [existing, twoHandedInput],
             repository: repository
@@ -224,7 +224,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
 
         service.equipOffhandWeapon(id: twoHandedInput.id)
 
-        guard case let .oneHanded(weapon) = gameService.player.equipped.weapons else {
+        guard case let .oneHanded(weapon) = store.player.equipped.weapons else {
             return XCTFail("State should be unchanged")
         }
         XCTAssertEqual(weapon.id, existing.id)
@@ -238,7 +238,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
 
         let repository = FakeItemsRepository()
         repository.items[newWeapon.id] = newWeapon.item
-        let (service, gameService) = makeService(
+        let (service, store) = makeService(
             equipped: EquippedItems(weapons: .oneHanded(weapon: existingWrap)),
             inventoryWeapons: [existing, newWeapon],
             repository: repository
@@ -246,7 +246,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
 
         service.equipWeapon(id: newWeapon.id)
 
-        guard case let .dualWield(primary, secondary) = gameService.player.equipped.weapons else {
+        guard case let .dualWield(primary, secondary) = store.player.equipped.weapons else {
             return XCTFail("Expected dualWield (second one-hander should fill the off-hand slot)")
         }
         XCTAssertEqual(primary.id, existing.id)
@@ -260,7 +260,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
 
         let repository = FakeItemsRepository()
         repository.items[newPrimary.id] = newPrimary.item
-        let (service, gameService) = makeService(
+        let (service, store) = makeService(
             equipped: EquippedItems(weapons: .dualWield(primary: oldPrimaryWrap, secondary: secondaryWrap)),
             inventoryWeapons: [oldPrimary, secondary, newPrimary],
             repository: repository
@@ -268,7 +268,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
 
         service.equipWeapon(id: newPrimary.id)
 
-        guard case let .dualWield(resultPrimary, resultSecondary) = gameService.player.equipped.weapons else {
+        guard case let .dualWield(resultPrimary, resultSecondary) = store.player.equipped.weapons else {
             return XCTFail("Expected dualWield (secondary should have been preserved)")
         }
         XCTAssertEqual(resultPrimary.id, newPrimary.id)

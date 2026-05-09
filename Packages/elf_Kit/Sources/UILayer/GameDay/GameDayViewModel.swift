@@ -15,7 +15,7 @@ public final class GameDayViewModel {
 
     // MARK: - Dependencies (snapshotted at init)
 
-    private let gameService: any GameService
+    private let session: GameSession
     private let progressionService: any ProgressionService
     private let equipmentQueryService: any EquipmentQueryService
     private let itemsRepository: any ItemsRepository
@@ -37,19 +37,19 @@ public final class GameDayViewModel {
 
     // MARK: - Derived state (computed reactively)
 
-    public var player: PlayerStore { gameService.player }
+    public var player: PlayerStore { session.state.player }
 
     public var characterLevel: Int {
-        progressionService.calculateLevel(currentExp: gameService.player.currentExp)
+        progressionService.calculateLevel(currentExp: session.state.player.currentExp)
     }
     public var expToNextLevel: Int {
-        progressionService.expToNextLevel(currentExp: gameService.player.currentExp)
+        progressionService.expToNextLevel(currentExp: session.state.player.currentExp)
     }
     public var xpProgress: Double {
-        progressionService.expProgress(currentExp: gameService.player.currentExp)
+        progressionService.expProgress(currentExp: session.state.player.currentExp)
     }
     public var equippedItems: [HeroItemType: HeroEquippedSlot] {
-        let baseIds = equipmentQueryService.equippedBaseItemIds(from: gameService.player.equipped)
+        let baseIds = equipmentQueryService.equippedBaseItemIds(from: session.state.player.equipped)
         var result: [HeroItemType: HeroEquippedSlot] = baseIds.mapValues { uuid in
             let candidateName = uuid.uuidString.lowercased()
             let resolvedName = UIImage(named: candidateName) != nil ? candidateName : nil
@@ -59,7 +59,7 @@ public final class GameDayViewModel {
         // Two-handed weapons occupy both hands but live in a single enum case,
         // so the off-hand slot is empty. Mirror the weapon icon there so the
         // user can see at a glance why the shield slot is unavailable.
-        if case .twoHanded = gameService.player.equipped.weapons,
+        if case .twoHanded = session.state.player.equipped.weapons,
            let weaponSlot = result[.weapons] {
             result[.shields] = HeroEquippedSlot(
                 id: weaponSlot.id,
@@ -72,7 +72,7 @@ public final class GameDayViewModel {
 
     // MARK: - Initialization
 
-    public init(gameService: any GameService) {
+    public init(session: GameSession) {
         @Dependency(\.progressionService) var progressionService
         @Dependency(\.equipmentQueryService) var equipmentQueryService
         @Dependency(\.itemsRepository) var itemsRepository
@@ -86,7 +86,7 @@ public final class GameDayViewModel {
         self.monsterRepository = monsterRepository
         self.dungeonRepository = dungeonRepository
 
-        self.gameService = gameService
+        self.session = session
     }
 
     /// Picks a random dungeon and freezes the squad of allies the hero will run with.
@@ -95,13 +95,13 @@ public final class GameDayViewModel {
     /// shows the same squad. Returns `nil` if AP is insufficient or the dungeon pool is empty.
     /// Note: AP is **not** spent here — that happens when the run actually starts (follow-up PR).
     public func prepareDungeonRun() -> (dungeonId: UUID, allyIds: [UUID])? {
-        guard gameService.actionPoints.current >= dungeonCost else { return nil }
+        guard session.state.actionPoints.current >= dungeonCost else { return nil }
         guard let dungeon = dungeonRepository.randomDungeon() else { return nil }
 
-        let house = gameService.houses[gameService.playerHouseIndex]
+        let house = session.state.houses[session.state.playerHouseIndex]
         let allyIds = house.members
             .enumerated()
-            .filter { $0.offset != gameService.playerMemberIndex }
+            .filter { $0.offset != session.state.playerMemberIndex }
             .map(\.element.id)
             .shuffled()
             .prefix(4)
@@ -135,12 +135,12 @@ public final class GameDayViewModel {
         toAdd.append(contentsOf: missingWeapons())
         toAdd.append(contentsOf: missingShields())
         toAdd.append(contentsOf: missingArmor())
-        gameService.addItemsToPlayerInventory(toAdd)
+        session.addItemsToPlayerInventory(toAdd)
     }
 
     private func missingWeapons() -> [Item] {
         let allWeapons = itemsRepository.getItems(for: .weapons).compactMap { $0 as? WeaponItem }
-        let existingCountByItemId = gameService.player.inventory.weapons
+        let existingCountByItemId = session.state.player.inventory.weapons
             .reduce(into: [UUID: Int]()) { counts, weapon in counts[weapon.item.id, default: 0] += 1 }
 
         var toAdd: [Item] = []
@@ -158,13 +158,13 @@ public final class GameDayViewModel {
         // `getItems(for: .shields)` also returns one-handed weapons (off-hand candidates),
         // so filter to actual shields to avoid duplicating weapon top-ups.
         let allShields = itemsRepository.getItems(for: .shields).compactMap { $0 as? ShieldItem }
-        let existingItemIds = Set(gameService.player.inventory.shields.map { $0.item.id })
+        let existingItemIds = Set(session.state.player.inventory.shields.map { $0.item.id })
         return allShields.filter { !existingItemIds.contains($0.id) }
     }
 
     private func missingArmor() -> [Item] {
         let armorSlots: [HeroItemType] = [.helmet, .gloves, .shoes, .upperBody, .bottomBody]
-        let existingItemIds = Set(gameService.player.inventory.armor.map { $0.item.id })
+        let existingItemIds = Set(session.state.player.inventory.armor.map { $0.item.id })
 
         var toAdd: [Item] = []
         for slot in armorSlots {
@@ -183,20 +183,20 @@ public final class GameDayViewModel {
 
     /// Called when an equipment slot is tapped
     public func onEquipmentSlotTapped(_ slotType: HeroItemType) {
-        let itemId = equipmentQueryService.equippedItemId(for: slotType, in: gameService.player.equipped)
+        let itemId = equipmentQueryService.equippedItemId(for: slotType, in: session.state.player.equipped)
         pendingInventoryItemId = itemId
         isInventoryVisible = true
     }
 
     /// Saves game and prepares for exit
     public func exitGame() async {
-        try? await gameService.saveGame()
+        try? await session.save()
     }
 
     /// Assembles a 5v5 dungeon battle: hero + 4 random allies vs 5 wolves (level 1).
     /// Spends `dungeonCost` AP on success; returns nil if AP is insufficient or content is missing.
     public func startDungeonBattle() -> Battle? {
-        guard gameService.actionPoints.current >= dungeonCost else { return nil }
+        guard session.state.actionPoints.current >= dungeonCost else { return nil }
 
         let wolves = monsterRepository.getMonsters(world: .upper, level: 1)
             .filter { $0.title == "Wolf" }
@@ -205,7 +205,7 @@ public final class GameDayViewModel {
             snapshotBuilder.buildSnapshot(from: wolfTemplate)
         }
 
-        let player = gameService.player.snapshot()
+        let player = session.state.player.snapshot()
         let heroSnapshot = snapshotBuilder.buildSnapshot(
             name: player.name,
             imageName: player.imageName,
@@ -215,10 +215,10 @@ public final class GameDayViewModel {
             equipped: player.equipped
         )
 
-        let house = gameService.houses[gameService.playerHouseIndex]
+        let house = session.state.houses[session.state.playerHouseIndex]
         let allies = house.members
             .enumerated()
-            .filter { $0.offset != gameService.playerMemberIndex }
+            .filter { $0.offset != session.state.playerMemberIndex }
             .map(\.element)
             .shuffled()
             .prefix(4)
@@ -233,7 +233,7 @@ public final class GameDayViewModel {
             )
         }
 
-        gameService.spendActionPoints(dungeonCost)
+        session.spendActionPoints(dungeonCost)
 
         return Battle(
             leftTeam: [heroSnapshot] + allySnapshots,

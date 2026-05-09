@@ -168,13 +168,13 @@ enum PreviewGame {
     }
 
     @MainActor
-    static func createMockGameService() -> DefaultGameService {
-        DefaultGameService(game: createMockGame())
+    static func createMockSession() -> GameSession {
+        GameSession(game: createMockGame())
     }
 
     @MainActor
     static func createMockInventoryViewModel() -> InventoryViewModel {
-        InventoryViewModel(gameService: createMockGameService())
+        InventoryViewModel(session: createMockSession())
     }
 }
 

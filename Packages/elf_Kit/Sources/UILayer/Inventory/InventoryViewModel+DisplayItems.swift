@@ -15,8 +15,8 @@ extension InventoryViewModel {
     /// Reads only `inventory` and `equipped` from `PlayerStore` so SwiftUI observation
     /// is scoped to those two fields (avoids invalidation on unrelated changes like HP).
     func buildDisplayItems() -> [InventoryItemDisplay] {
-        let inventory = gameService.player.inventory
-        let equipped = gameService.player.equipped
+        let inventory = session.state.player.inventory
+        let equipped = session.state.player.equipped
 
         var items: [InventoryItemDisplay] = []
 

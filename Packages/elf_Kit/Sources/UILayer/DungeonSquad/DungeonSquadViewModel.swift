@@ -17,28 +17,21 @@ public final class DungeonSquadViewModel {
 
     // MARK: - Dependencies
 
-    private let gameService: any GameService
+    private let session: DungeonSession
 
     @ObservationIgnored
     @Dependency(\.progressionService) private var progressionService
 
-    // MARK: - Inputs
-
-    private let dungeonId: UUID
-    private let allyIds: [UUID]
-
     // MARK: - Initialization
 
-    public init(gameService: any GameService, dungeonId: UUID, allyIds: [UUID]) {
-        self.gameService = gameService
-        self.dungeonId = dungeonId
-        self.allyIds = allyIds
+    public init(session: DungeonSession) {
+        self.session = session
     }
 
     // MARK: - Derived
 
     public var squad: [DungeonSquadMemberDisplay] {
-        let player = gameService.player
+        let player = session.gameStore.player
         var rows: [DungeonSquadMemberDisplay] = [
             DungeonSquadMemberDisplay(
                 id: player.id,
@@ -51,9 +44,9 @@ public final class DungeonSquadViewModel {
             )
         ]
 
-        let house = gameService.houses[gameService.playerHouseIndex]
+        let house = session.gameStore.houses[session.gameStore.playerHouseIndex]
         let elfById = Dictionary(uniqueKeysWithValues: house.members.map { ($0.id, $0) })
-        for id in allyIds {
+        for id in session.allyIds {
             guard let elf = elfById[id] else { continue }
             rows.append(DungeonSquadMemberDisplay(
                 id: elf.id,

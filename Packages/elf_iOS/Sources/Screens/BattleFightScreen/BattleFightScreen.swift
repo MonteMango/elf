@@ -14,10 +14,10 @@ internal struct BattleFightScreen: View {
     @State private var viewModel: BattleFightViewModel
     @State private var showLeaveConfirmation = false
 
-    internal init(battle: Battle, session: GameSessionModel?) {
+    internal init(battle: Battle, session: GameSession?) {
         self._viewModel = State(initialValue: BattleFightViewModel(
             battle: battle,
-            gameService: session?.gameService
+            session: session
         ))
     }
 
@@ -364,7 +364,7 @@ internal struct BattleFightScreen: View {
         NavigationStack {
             BattleFightScreen(
                 battle: mockBattle,
-                session: coordinator.sessionModel
+                session: coordinator.gameSession
             )
             .environment(coordinator)
             .environment(AppRouter())

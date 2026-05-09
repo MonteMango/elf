@@ -5,7 +5,6 @@
 //  Created by Vitalii Lytvynov
 //
 
-import Dependencies
 import Foundation
 
 /// Drives the Map tab. Currently a thin shell over the dungeon graph; future
@@ -15,24 +14,11 @@ import Foundation
 @Observable
 public final class DungeonMapViewModel {
 
-    // MARK: - Dependencies
+    private let session: DungeonSession
 
-    @ObservationIgnored
-    @Dependency(\.dungeonRepository) private var dungeonRepository
-
-    // MARK: - Inputs
-
-    private let dungeonId: UUID
-
-    // MARK: - Initialization
-
-    public init(dungeonId: UUID) {
-        self.dungeonId = dungeonId
+    public init(session: DungeonSession) {
+        self.session = session
     }
 
-    // MARK: - Derived
-
-    public var dungeon: Dungeon? {
-        dungeonRepository.getById(id: dungeonId)
-    }
+    public var dungeon: Dungeon? { session.dungeon }
 }

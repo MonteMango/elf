@@ -15,11 +15,8 @@ import SwiftUI
 struct DungeonSquadContent: View {
     @State private var viewModel: DungeonSquadViewModel
 
-    init(session: GameSessionModel, dungeonId: UUID, allyIds: [UUID]) {
-        self._viewModel = State(initialValue: session.makeDungeonSquadViewModel(
-            dungeonId: dungeonId,
-            allyIds: allyIds
-        ))
+    init(session: DungeonSession) {
+        self._viewModel = State(initialValue: session.makeSquadViewModel())
     }
 
     var body: some View {

@@ -10,9 +10,9 @@ import Foundation
 
 /// App-level owner of the active game session and its lifecycle.
 ///
-/// Session-scoped `GameSessionModel` lifecycle (nil between games). `DefaultGameService`
-/// resolves its app-scoped service deps internally via `@Dependency`, so the coordinator
-/// only passes the session-scoped data (`game`, `playTime`).
+/// Holds an optional `GameSession` (nil between games). The session itself
+/// owns its `GameStore`, mutation service, and persistence — `AppCoordinator`
+/// just wires lifecycle events: start, end, save-on-background.
 ///
 /// Lifetime: one instance per app launch, held as `@State` in `ElfApp`.
 @MainActor
@@ -21,7 +21,7 @@ public final class AppCoordinator {
 
     // MARK: - Session State
 
-    public private(set) var sessionModel: GameSessionModel?
+    public private(set) var gameSession: GameSession?
 
     // MARK: - Initialization
 
@@ -29,23 +29,22 @@ public final class AppCoordinator {
 
     // MARK: - Session Lifecycle
 
-    /// Starts (or replaces) the active game session. Must be called before navigating
-    /// to `.gameSession` so that `DefaultGameService` is available to session-bound VMs.
+    /// Starts (or replaces) the active game session. Must be called before
+    /// navigating to `.gameSession` so that the session's state is available
+    /// to session-bound VMs.
     public func startGame(_ game: Game, playTime: TimeInterval = 0) {
-        let service = DefaultGameService(game: game, playTime: playTime)
-        sessionModel = GameSessionModel(gameService: service)
+        gameSession = GameSession(game: game, playTime: playTime)
     }
 
-    /// Ends the active game session and releases the `DefaultGameService`.
+    /// Ends the active game session and releases the session.
     /// Safe to call at any time: screens retain their VM strongly until unmount.
     public func endGame() {
-        sessionModel = nil
+        gameSession = nil
     }
 
     /// Saves the active game if a session exists (called on scene-phase background).
     public func saveIfNeeded() async {
-        guard let gameService = sessionModel?.gameService else { return }
-        try? await gameService.saveGame()
+        try? await gameSession?.save()
     }
 
     // MARK: - Preview Support

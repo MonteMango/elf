@@ -29,6 +29,9 @@ App supports **landscape orientation only**.
 - Never use `static` keyword in code. Only use it when there is no other option — prefer Dependency Injection
 - Build and test only for iOS (not macOS)
 
+## Save / Persistence Policy
+While the project is in active early development, **save-format migrations are NOT a concern**. If a refactor needs to change the shape of `Game`, `GameSaveData`, or any persisted structure, change it freely — old save files do not need to keep loading. No migration code, no version bumps, no compatibility shims. Existing saves on dev devices can be wiped between runs. This policy lifts once the game ships its first public build.
+
 ---
 
 ## SwiftUI Rules (iOS 17+)

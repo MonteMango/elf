@@ -14,7 +14,7 @@ public final class HuntViewModel {
 
     // MARK: - Dependencies (snapshotted at init)
 
-    private let gameService: any GameService
+    private let session: GameSession
     private let monsterRepository: any MonsterRepository
     private let materialRepository: any Repository<Material>
     private let itemsRepository: any ItemsRepository
@@ -30,12 +30,12 @@ public final class HuntViewModel {
     // MARK: - Derived (computed reactively)
 
     public var canHunt: Bool {
-        gameService.actionPoints.current >= huntCost && !isHunting
+        session.state.actionPoints.current >= huntCost && !isHunting
     }
 
     /// Pool of monsters for the player's current level.
     private var availableMonsters: [Monster] {
-        let monsterLevel = min(progressionService.calculateLevel(currentExp: gameService.player.currentExp), 3)
+        let monsterLevel = min(progressionService.calculateLevel(currentExp: session.state.player.currentExp), 3)
         return monsterRepository.getMonsters(world: .upper, level: monsterLevel)
     }
 
@@ -46,7 +46,7 @@ public final class HuntViewModel {
 
     // MARK: - Initialization
 
-    public init(gameService: any GameService) {
+    public init(session: GameSession) {
         @Dependency(\.monsterRepository) var monsterRepository
         @Dependency(\.materialRepository) var materialRepository
         @Dependency(\.itemsRepository) var itemsRepository
@@ -58,14 +58,14 @@ public final class HuntViewModel {
         self.snapshotBuilder = snapshotBuilder
         self.progressionService = progressionService
 
-        self.gameService = gameService
+        self.session = session
     }
 
     // MARK: - Actions
 
     /// Starts a hunt: spends action points, selects random monster, returns Battle
     public func startHunt() -> Battle? {
-        guard gameService.actionPoints.current >= huntCost, !isHunting else { return nil }
+        guard session.state.actionPoints.current >= huntCost, !isHunting else { return nil }
         isHunting = true
         defer { isHunting = false }
 
@@ -73,9 +73,9 @@ public final class HuntViewModel {
             return nil
         }
 
-        gameService.spendActionPoints(huntCost)
+        session.spendActionPoints(huntCost)
 
-        let player = gameService.player.snapshot()
+        let player = session.state.player.snapshot()
         let playerSnapshot = snapshotBuilder.buildSnapshot(
             name: player.name,
             imageName: player.imageName,

@@ -18,7 +18,7 @@ struct QuestScreen: View {
     private let dayStateViewModel: GameDayStateViewModel
     private let zoomSourceID: String
 
-    init(questId: QuestID, ownerImageName: String, session: GameSessionModel) {
+    init(questId: QuestID, ownerImageName: String, session: GameSession) {
         self._viewModel = State(initialValue: session.makeQuestViewModel(questId: questId))
         self.dayStateViewModel = session.dayState
         self.zoomSourceID = ownerImageName
@@ -180,7 +180,7 @@ struct QuestScreen: View {
     @Previewable @State var router = AppRouter()
     @Previewable @Namespace var previewNamespace
 
-    if let coordinator, let session = coordinator.sessionModel {
+    if let coordinator, let session = coordinator.gameSession {
         NavigationStack(path: $router.navigationPath) {
             QuestScreen(
                 questId: QuestID(),

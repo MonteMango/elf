@@ -8,17 +8,17 @@
 import elf_Kit
 import SwiftUI
 
-/// Wrapper used by `AppRoute.view()` to pass the active `GameSessionModel`
+/// Wrapper used by `AppRoute.view()` to pass the active `GameSession`
 /// into session-bound screens that declare `init(session:)`.
 ///
 /// `AppRoute.view()` is a non-View context (no `@Environment`), so reading
 /// the session is deferred to this small adapter view.
 struct SessionRouteView<Content: View>: View {
     @Environment(AppCoordinator.self) private var coordinator
-    @ViewBuilder let content: (GameSessionModel) -> Content
+    @ViewBuilder let content: (GameSession) -> Content
 
     var body: some View {
-        if let session = coordinator.sessionModel {
+        if let session = coordinator.gameSession {
             content(session)
         }
     }
@@ -31,6 +31,6 @@ struct BattleFightRouteView: View {
     let battle: Battle
 
     var body: some View {
-        BattleFightScreen(battle: battle, session: coordinator.sessionModel)
+        BattleFightScreen(battle: battle, session: coordinator.gameSession)
     }
 }

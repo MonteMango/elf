@@ -147,8 +147,8 @@ extension AppRoute {
             AutoBattleResultScreen(battle: battle)
         case .multiBattleResult(let battle):
             MultiBattleResultScreen(battle: battle)
-        case .dungeon(let dungeonId, let allyIds):
-            SessionRouteView { DungeonScreen(dungeonId: dungeonId, allyIds: allyIds, session: $0) }
+        case .dungeon:
+            SessionRouteView { DungeonScreen(session: $0) }
         }
     }
 }

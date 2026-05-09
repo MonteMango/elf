@@ -15,10 +15,8 @@ import SwiftUI
 struct DungeonMapContent: View {
     @State private var viewModel: DungeonMapViewModel
 
-    init(session: GameSessionModel, dungeonId: UUID) {
-        self._viewModel = State(initialValue: session.makeDungeonMapViewModel(
-            dungeonId: dungeonId
-        ))
+    init(session: DungeonSession) {
+        self._viewModel = State(initialValue: session.makeMapViewModel())
     }
 
     var body: some View {
