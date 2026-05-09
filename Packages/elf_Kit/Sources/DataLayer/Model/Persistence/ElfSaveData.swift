@@ -18,8 +18,6 @@ public struct ElfSaveData: Codable, Sendable {
     public let miningExp: Int
     public let fightStyleAttributes: HeroAttributes
     public let randomLevelAttributes: HeroAttributes
-    public let currentHP: Int16
-    public let currentMP: Int16
 
     // Equipment (new unified structure)
     public let equipped: EquippedItemsSaveData
@@ -38,8 +36,6 @@ public struct ElfSaveData: Codable, Sendable {
         self.miningExp = elf.miningExp
         self.fightStyleAttributes = elf.fightStyleAttributes
         self.randomLevelAttributes = elf.randomLevelAttributes
-        self.currentHP = elf.currentHP
-        self.currentMP = elf.currentMP
 
         // Convert equipment
         self.equipped = EquippedItemsSaveData(from: elf.equipped)
@@ -69,8 +65,6 @@ public struct ElfSaveData: Codable, Sendable {
             miningExp: miningExp,
             fightStyleAttributes: fightStyleAttributes,
             randomLevelAttributes: randomLevelAttributes,
-            currentHP: currentHP,
-            currentMP: currentMP,
             equipped: restoredEquipped,
             inventory: restoredInventory,
             reputation: reputation

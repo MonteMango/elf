@@ -143,7 +143,7 @@ public final class DungeonOverviewViewModel {
                 name: player.name,
                 imageName: player.imageName,
                 level: progressionService.calculateLevel(currentExp: player.currentExp),
-                currentHP: Int(player.currentHP),
+                currentHP: Int(player.maxHP),
                 maxHP: Int(player.maxHP),
                 isHero: true
             )
@@ -158,7 +158,7 @@ public final class DungeonOverviewViewModel {
                 name: elf.name,
                 imageName: elf.imageName,
                 level: progressionService.calculateLevel(currentExp: elf.currentExp),
-                currentHP: Int(elf.currentHP),
+                currentHP: Int(elf.maxHP),
                 maxHP: Int(elf.maxHP),
                 isHero: false
             ))

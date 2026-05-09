@@ -12,7 +12,7 @@ import Foundation
 extension InventoryViewModel {
 
     /// Builds all display items from the player's current inventory & equipment.
-    /// Reads only `inventory` and `equipped` from `PlayerStore` so SwiftUI observation
+    /// Reads only `inventory` and `equipped` from `ElfStore` so SwiftUI observation
     /// is scoped to those two fields (avoids invalidation on unrelated changes like HP).
     func buildDisplayItems() -> [InventoryItemDisplay] {
         let inventory = session.state.player.inventory

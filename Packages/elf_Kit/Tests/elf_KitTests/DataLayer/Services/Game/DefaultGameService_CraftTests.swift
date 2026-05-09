@@ -63,8 +63,6 @@ final class DefaultGameService_CraftTests: XCTestCase {
             currentExp: 0,
             fightStyleAttributes: attrs,
             randomLevelAttributes: HeroAttributes(),
-            currentHP: 80,
-            currentMP: 20,
             equipped: EquippedItems(weapons: .oneHanded(weapon: oneHanded)),
             inventory: inventory
         )
@@ -93,8 +91,8 @@ final class DefaultGameService_CraftTests: XCTestCase {
         )
     }
 
-    private func makeService(inventory: ElfInventory = ElfInventory()) -> DefaultGameService {
-        DefaultGameService(game: makeGame(playerInventory: inventory))
+    private func makeService(inventory: ElfInventory = ElfInventory()) -> (DefaultGameService, GameStore) {
+        { let store = GameStore(from: makeGame(playerInventory: inventory)); return (DefaultGameService(store: store), store) }()
     }
 
     private func makeRecipe(
@@ -119,7 +117,7 @@ final class DefaultGameService_CraftTests: XCTestCase {
         let materialId = UUID()
         var inventory = ElfInventory()
         inventory.materials.append(InventoryMaterial(id: materialId, source: .monster, quantity: 5))
-        let service = makeService(inventory: inventory)
+        let (service, store) = makeService(inventory: inventory)
 
         let item = makeWeaponItem()
         let recipe = makeRecipe(resultItemId: item.id, ingredientId: materialId, amount: 3)
@@ -129,8 +127,8 @@ final class DefaultGameService_CraftTests: XCTestCase {
 
         // Then
         XCTAssertTrue(result)
-        XCTAssertEqual(service.player.inventory.materials.first(where: { $0.id == materialId })?.quantity, 2)
-        XCTAssertEqual(service.player.inventory.weapons.count, 1)
+        XCTAssertEqual(store.player.inventory.materials.first(where: { $0.id == materialId })?.quantity, 2)
+        XCTAssertEqual(store.player.inventory.weapons.count, 1)
     }
 
     func testCraftItem_WithExactMatch_RemovesEmptyMaterialStack() {
@@ -138,7 +136,7 @@ final class DefaultGameService_CraftTests: XCTestCase {
         let materialId = UUID()
         var inventory = ElfInventory()
         inventory.materials.append(InventoryMaterial(id: materialId, source: .monster, quantity: 3))
-        let service = makeService(inventory: inventory)
+        let (service, store) = makeService(inventory: inventory)
 
         let item = makeWeaponItem()
         let recipe = makeRecipe(resultItemId: item.id, ingredientId: materialId, amount: 3)
@@ -148,8 +146,8 @@ final class DefaultGameService_CraftTests: XCTestCase {
 
         // Then
         XCTAssertTrue(result)
-        XCTAssertNil(service.player.inventory.materials.first(where: { $0.id == materialId }))
-        XCTAssertEqual(service.player.inventory.weapons.count, 1)
+        XCTAssertNil(store.player.inventory.materials.first(where: { $0.id == materialId }))
+        XCTAssertEqual(store.player.inventory.weapons.count, 1)
     }
 
     // MARK: - Failure Cases
@@ -159,7 +157,7 @@ final class DefaultGameService_CraftTests: XCTestCase {
         let materialId = UUID()
         var inventory = ElfInventory()
         inventory.materials.append(InventoryMaterial(id: materialId, source: .monster, quantity: 2))
-        let service = makeService(inventory: inventory)
+        let (service, store) = makeService(inventory: inventory)
 
         let item = makeWeaponItem()
         let recipe = makeRecipe(resultItemId: item.id, ingredientId: materialId, amount: 3)
@@ -169,13 +167,13 @@ final class DefaultGameService_CraftTests: XCTestCase {
 
         // Then
         XCTAssertFalse(result)
-        XCTAssertEqual(service.player.inventory.materials.first(where: { $0.id == materialId })?.quantity, 2)
-        XCTAssertEqual(service.player.inventory.weapons.count, 0)
+        XCTAssertEqual(store.player.inventory.materials.first(where: { $0.id == materialId })?.quantity, 2)
+        XCTAssertEqual(store.player.inventory.weapons.count, 0)
     }
 
     func testCraftItem_WithMissingMaterial_ReturnsFalse_AndLeavesInventoryUnchanged() {
         // Given: empty inventory, recipe needs some material
-        let service = makeService()
+        let (service, store) = makeService()
         let item = makeWeaponItem()
         let recipe = makeRecipe(ingredientId: UUID(), amount: 1)
 
@@ -184,7 +182,7 @@ final class DefaultGameService_CraftTests: XCTestCase {
 
         // Then
         XCTAssertFalse(result)
-        XCTAssertTrue(service.player.inventory.materials.isEmpty)
-        XCTAssertTrue(service.player.inventory.weapons.isEmpty)
+        XCTAssertTrue(store.player.inventory.materials.isEmpty)
+        XCTAssertTrue(store.player.inventory.weapons.isEmpty)
     }
 }

@@ -37,7 +37,7 @@ public final class GameDayViewModel {
 
     // MARK: - Derived state (computed reactively)
 
-    public var player: PlayerStore { session.state.player }
+    public var player: ElfStore { session.state.player }
 
     public var characterLevel: Int {
         progressionService.calculateLevel(currentExp: session.state.player.currentExp)

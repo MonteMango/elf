@@ -84,8 +84,8 @@ internal struct GameDayScreen: View {
             HeroSection(
                 imageName: viewModel.player.imageName,
                 equippedItems: viewModel.equippedItems,
-                currentHP: Int(viewModel.player.currentHP),
-                currentMP: Int(viewModel.player.currentMP),
+                currentHP: Int(viewModel.player.maxHP),
+                currentMP: Int(viewModel.player.maxMP),
                 reputation: viewModel.player.reputation,
                 onEquipmentSlotTapped: viewModel.onEquipmentSlotTapped,
                 onPocketTapped: viewModel.onPocketTapped

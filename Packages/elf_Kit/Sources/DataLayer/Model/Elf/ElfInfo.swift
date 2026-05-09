@@ -36,11 +36,6 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
     public var fightStyleAttributes: HeroAttributes
     public var randomLevelAttributes: HeroAttributes
 
-    // MARK: - Current Stats
-
-    public var currentHP: Int16
-    public var currentMP: Int16
-
     // MARK: - Equipment
 
     public var equipped: EquippedItems
@@ -80,8 +75,6 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
         miningExp: Int = 0,
         fightStyleAttributes: HeroAttributes,
         randomLevelAttributes: HeroAttributes,
-        currentHP: Int16,
-        currentMP: Int16,
         equipped: EquippedItems,
         inventory: ElfInventory = ElfInventory(),
         reputation: Int = 0
@@ -96,8 +89,6 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
         self.miningExp = miningExp
         self.fightStyleAttributes = fightStyleAttributes
         self.randomLevelAttributes = randomLevelAttributes
-        self.currentHP = currentHP
-        self.currentMP = currentMP
         self.equipped = equipped
         self.inventory = inventory
         self.reputation = reputation

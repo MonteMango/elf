@@ -100,8 +100,6 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
             currentExp: 0,
             fightStyleAttributes: character.fightStyleAttributes,
             randomLevelAttributes: character.randomLevelAttributes,
-            currentHP: character.totalAttributes.hitPoints.value,
-            currentMP: character.totalAttributes.manaPoints.value,
             equipped: equipped,
             inventory: inventory,
             reputation: 0
@@ -119,9 +117,6 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
             for: Int16(level)
         )
 
-        let totalHP = fightStyleAttributes.hitPoints + randomLevelAttributes.hitPoints
-        let totalMP = fightStyleAttributes.manaPoints + randomLevelAttributes.manaPoints
-
         let (equipped, inventory) = createDefaultEquipment()
 
         // Calculate currentExp for desired level
@@ -134,8 +129,6 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
             currentExp: currentExp,
             fightStyleAttributes: fightStyleAttributes,
             randomLevelAttributes: randomLevelAttributes,
-            currentHP: totalHP.value,
-            currentMP: totalMP.value,
             equipped: equipped,
             inventory: inventory
         )

@@ -65,8 +65,6 @@ enum PreviewGame {
                 instinct: 0,
                 endurance: 0
             ),
-            currentHP: 83,
-            currentMP: 23,
             equipped: createDefaultEquipped()
         )
     }
@@ -95,8 +93,6 @@ enum PreviewGame {
                 instinct: 1,
                 endurance: 0
             ),
-            currentHP: 80,
-            currentMP: 20,
             equipped: createDefaultEquipped()
         )
     }

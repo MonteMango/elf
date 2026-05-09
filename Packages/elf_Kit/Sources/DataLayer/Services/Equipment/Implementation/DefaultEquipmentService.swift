@@ -10,7 +10,7 @@ import Foundation
 
 /// Default implementation of `EquipmentService`.
 /// Reads inventory directly from the player store and writes `player.equipped`
-/// on `PlayerStore`. Per-property `@Observable` tracking scopes invalidation to
+/// on `ElfStore`. Per-property `@Observable` tracking scopes invalidation to
 /// the equipped slot — unrelated views (e.g. farm skills) are not re-evaluated.
 @MainActor
 public final class DefaultEquipmentService: EquipmentService {

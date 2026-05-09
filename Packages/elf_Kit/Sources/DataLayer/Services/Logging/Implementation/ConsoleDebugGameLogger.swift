@@ -58,7 +58,7 @@ public final class ConsoleDebugGameLogger: DebugGameLogger {
     private func logPlayerInfo(_ player: ElfInfo) {
         print("\n👤 PLAYER (\(player.name)):")
         print("  📊 Exp: \(player.currentExp) | Fishing: \(player.fishingExp) | Foraging: \(player.foragingExp) | Mining: \(player.miningExp)")
-        print("  ❤️ HP: \(player.currentHP)/\(player.maxHP) | 💙 MP: \(player.currentMP)/\(player.maxMP)")
+        print("  ❤️ HP: \(player.maxHP)/\(player.maxHP) | 💙 MP: \(player.maxMP)/\(player.maxMP)")
         print("  ⭐ Reputation: \(player.reputation)")
     }
 

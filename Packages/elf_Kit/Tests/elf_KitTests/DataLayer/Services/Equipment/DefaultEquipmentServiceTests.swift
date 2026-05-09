@@ -77,8 +77,6 @@ final class DefaultEquipmentServiceTests: XCTestCase {
             currentExp: 0,
             fightStyleAttributes: attrs,
             randomLevelAttributes: HeroAttributes(),
-            currentHP: 80,
-            currentMP: 20,
             equipped: equipped,
             inventory: inventory
         )

@@ -1,21 +1,24 @@
 //
-//  PlayerStore.swift
+//  ElfStore.swift
 //  elf_Kit
 //
-//  Created by Vitalii Lytvynov on 15.04.26.
+//  Created by Vitalii Lytvynov
 //
 
 import Foundation
 import Observation
 
-/// Observable wrapper over player `ElfInfo` fields.
+/// Observable wrapper over an `ElfInfo` value. Used uniformly for the player
+/// elf and every AI house member at runtime — eliminates the historic
+/// duplication where the player had a separate `PlayerStore` while AI elves
+/// stayed as value-types in `house.members`.
 ///
-/// Provides per-field SwiftUI observation: mutating `currentExp` does not invalidate
-/// views reading `inventory`, and vice versa. Extract a value snapshot with `snapshot()`
-/// when writing to persistence.
+/// Per-field SwiftUI observation: mutating `currentExp` does not invalidate
+/// views reading `inventory`, and vice versa. Extract a value snapshot with
+/// `snapshot()` when writing to persistence.
 @MainActor
 @Observable
-public final class PlayerStore {
+public final class ElfStore {
 
     // MARK: - Identity
 
@@ -41,11 +44,6 @@ public final class PlayerStore {
 
     public var fightStyleAttributes: HeroAttributes
     public var randomLevelAttributes: HeroAttributes
-
-    // MARK: - Current Stats
-
-    public var currentHP: Int16
-    public var currentMP: Int16
 
     // MARK: - Equipment / Inventory
 
@@ -78,8 +76,6 @@ public final class PlayerStore {
         self.miningExp = elf.miningExp
         self.fightStyleAttributes = elf.fightStyleAttributes
         self.randomLevelAttributes = elf.randomLevelAttributes
-        self.currentHP = elf.currentHP
-        self.currentMP = elf.currentMP
         self.equipped = elf.equipped
         self.inventory = elf.inventory
         self.reputation = elf.reputation
@@ -99,8 +95,6 @@ public final class PlayerStore {
             miningExp: miningExp,
             fightStyleAttributes: fightStyleAttributes,
             randomLevelAttributes: randomLevelAttributes,
-            currentHP: currentHP,
-            currentMP: currentMP,
             equipped: equipped,
             inventory: inventory,
             reputation: reputation

@@ -8,10 +8,14 @@
 import Foundation
 import Observation
 
-/// Observable state container for an active game session. Mirrors `PlayerStore`
-/// for the game-level scope: holds all session-bound mutable state (action
-/// points, calendar, houses, player), exposes per-property SwiftUI observation,
-/// and produces a value-type `Game` snapshot for persistence.
+/// Observable state container for an active game session. Holds session-bound
+/// mutable state (action points, calendar, houses) and exposes per-property
+/// SwiftUI observation. Houses are kept as `[HouseStore]` (runtime, observable)
+/// — the player elf is just a computed accessor into one slot of one house,
+/// so there's a single source of truth for every elf at runtime.
+///
+/// `Game` (value-type) is the on-disk / initial-creation shape; the store
+/// lifts it into runtime via `init(from:)` and writes it back via `snapshot()`.
 ///
 /// Mutations are restricted to the same module — the public surface is
 /// read-only. `DefaultGameService` (mutator) and `GameSession` (facade) live
@@ -32,12 +36,16 @@ public final class GameStore {
     public internal(set) var actionPoints: ActionPoints
     public internal(set) var currentDay: GameDay
     public internal(set) var calendar: [GameDay]
-    public internal(set) var houses: [House]
+    public internal(set) var houses: [HouseStore]
     public internal(set) var playTime: TimeInterval
 
-    /// Nested observable store for the player elf — fields tracked granularly
-    /// so mutating `currentExp` doesn't invalidate views reading `inventory`.
-    public let player: PlayerStore
+    /// Live reference to the player elf — the SAME `ElfStore` instance that
+    /// lives at `houses[playerHouseIndex].members[playerMemberIndex]`. No
+    /// duplication: any mutation through `player.X = Y` is immediately
+    /// visible through the houses array, and vice versa.
+    public var player: ElfStore {
+        houses[playerHouseIndex].members[playerMemberIndex]
+    }
 
     // MARK: - Initialization
 
@@ -46,10 +54,9 @@ public final class GameStore {
         self.actionPoints = game.gameState.actionPoints
         self.currentDay = game.gameState.currentDay
         self.calendar = game.gameState.calendar
-        self.houses = game.houses
+        self.houses = game.houses.map { HouseStore(from: $0) }
         self.playerHouseIndex = game.playerHouseIndex
         self.playerMemberIndex = game.playerMemberIndex
-        self.player = PlayerStore(from: game.houses[game.playerHouseIndex].members[game.playerMemberIndex])
         self.playTime = playTime
     }
 
@@ -74,13 +81,12 @@ public final class GameStore {
 
     /// Reconstructs the current state as a value-type `Game`. Used when
     /// persisting — `GameSession.save()` calls this and writes the result
-    /// through `gameRepository`.
+    /// through `gameRepository`. Houses and elves walk the runtime tree and
+    /// extract `.snapshot()` from each.
     public func snapshot() -> Game {
-        var updatedHouses = houses
-        updatedHouses[playerHouseIndex].members[playerMemberIndex] = player.snapshot()
-        return Game(
+        Game(
             id: gameId,
-            houses: updatedHouses,
+            houses: houses.map { $0.snapshot() },
             gameState: GameState(
                 currentDay: currentDay,
                 actionPoints: actionPoints,
@@ -91,6 +97,3 @@ public final class GameStore {
         )
     }
 }
-
-// Duplicated Player data in PlayerStore and in House -> ElfInfo
-// think about reimplement house and elf system to avoid duplicated data
