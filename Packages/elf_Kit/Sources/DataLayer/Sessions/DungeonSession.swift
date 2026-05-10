@@ -61,18 +61,4 @@ public final class DungeonSession {
     /// MVP: Entrance is always enabled. The view currently pops back; the
     /// real dungeon-run flow lands in a follow-up phase.
     public var canEnter: Bool { true }
-
-    // MARK: - Tab ViewModel factories
-
-    public func makeOverviewViewModel() -> DungeonOverviewViewModel {
-        DungeonOverviewViewModel(session: self)
-    }
-
-    public func makeSquadViewModel() -> DungeonSquadViewModel {
-        DungeonSquadViewModel(session: self)
-    }
-
-    public func makeMapViewModel() -> DungeonMapViewModel {
-        DungeonMapViewModel(session: self)
-    }
 }
