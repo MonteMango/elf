@@ -16,11 +16,10 @@ struct FarmActivityScreen: View {
     @State private var viewModel: FarmActivityViewModel
     @State private var showCalendar = false
     @State private var navigatedToBattle = false
-    private let dayStateViewModel: GameDayStateViewModel
+    @Environment(GameDayStateViewModel.self) private var dayStateViewModel
 
     init(activity: FarmActivity, session: GameSession) {
         self._viewModel = State(initialValue: session.makeFarmActivityViewModel(activity: activity))
-        self.dayStateViewModel = session.dayState
     }
 
     // MARK: - Items Grid Data

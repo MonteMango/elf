@@ -18,8 +18,10 @@ struct SessionRouteView<Content: View>: View {
     @ViewBuilder let content: (GameSession) -> Content
 
     var body: some View {
-        if let session = coordinator.gameSession {
+        if let session = coordinator.gameSession,
+           let dayStateVM = coordinator.dayStateViewModel {
             content(session)
+                .environment(dayStateVM)
         }
     }
 }

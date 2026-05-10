@@ -8,18 +8,19 @@
 import Foundation
 
 /// Shared view model for the current-day state (action points, calendar position,
-/// next-day transition). One instance lives on `GameSession.dayState` for the
-/// duration of a game session and is reused by every screen that needs day
-/// context (Hunt, Farm, Quest, Craft, GameDay, Dungeon).
+/// next-day transition). One instance is owned by `AppCoordinator` for the
+/// duration of a game session and injected into the view tree by
+/// `SessionRouteView` via `.environment(...)`. In-game screens read it through
+/// `@Environment(GameDayStateViewModel.self)`.
 @MainActor
 @Observable
 public final class GameDayStateViewModel {
 
     // MARK: - Dependencies
 
-    /// Weak ref to break the retain cycle (`session.dayState` ↔ `dayState.session`).
-    /// `session` is alive for as long as the game session is active, which is
-    /// strictly longer than any view that observes `dayState`.
+    /// Weak ref so the VM doesn't keep `GameSession` alive past `endGame()`.
+    /// `session` outlives any view that observes this VM (coordinator releases
+    /// both together), so unwrap-on-read is safe in practice.
     private weak var session: GameSession?
 
     // MARK: - State (read through the session's store)

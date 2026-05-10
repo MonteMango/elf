@@ -15,11 +15,10 @@ struct FarmScreen: View {
     @Environment(AppRouter.self) private var router
     @Environment(\.farmZoomNamespace) private var zoomNamespace
     @State private var viewModel: FarmViewModel
-    private let dayStateViewModel: GameDayStateViewModel
+    @Environment(GameDayStateViewModel.self) private var dayStateViewModel
 
     init(session: GameSession) {
         self._viewModel = State(initialValue: session.makeFarmViewModel())
-        self.dayStateViewModel = session.dayState
     }
 
     // MARK: - Body

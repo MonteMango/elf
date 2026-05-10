@@ -31,14 +31,6 @@ public final class GameSession {
 
     public var dungeonSession: DungeonSession?
 
-    // MARK: - Day-state shortcut
-
-    /// Convenience VM exposing day/AP/calendar bits and the advance/spend ops.
-    /// IUO is intentional — it captures `self` at the end of `init`, after all
-    /// stored properties are set, so the weak ref inside the dayState VM
-    /// resolves correctly. Never observed as nil from outside.
-    public private(set) var dayState: GameDayStateViewModel!
-
     // MARK: - Private dependencies
 
     @ObservationIgnored
@@ -64,8 +56,6 @@ public final class GameSession {
     ) {
         self.state = GameStore(from: game, playTime: playTime)
         self.slotId = slotId
-        // Build dayState last — captures `self` weakly.
-        self.dayState = GameDayStateViewModel(session: self)
     }
 
     // MARK: - Day Management

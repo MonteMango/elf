@@ -15,11 +15,10 @@ struct QuestListScreen: View {
     @Environment(AppRouter.self) private var router
     @Environment(\.questZoomNamespace) private var zoomNamespace
     @State private var viewModel: QuestListViewModel
-    private let dayStateViewModel: GameDayStateViewModel
+    @Environment(GameDayStateViewModel.self) private var dayStateViewModel
 
     init(session: GameSession) {
         self._viewModel = State(initialValue: session.makeQuestListViewModel())
-        self.dayStateViewModel = session.dayState
     }
 
     // MARK: - Body

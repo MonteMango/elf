@@ -15,12 +15,11 @@ struct QuestScreen: View {
     @Environment(AppRouter.self) private var router
     @Environment(\.questZoomNamespace) private var zoomNamespace
     @State private var viewModel: QuestViewModel
-    private let dayStateViewModel: GameDayStateViewModel
+    @Environment(GameDayStateViewModel.self) private var dayStateViewModel
     private let zoomSourceID: String
 
     init(questId: QuestID, ownerImageName: String, session: GameSession) {
         self._viewModel = State(initialValue: session.makeQuestViewModel(questId: questId))
-        self.dayStateViewModel = session.dayState
         self.zoomSourceID = ownerImageName
     }
 

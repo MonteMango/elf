@@ -14,14 +14,13 @@ internal struct GameDayScreen: View {
     @Environment(AppCoordinator.self) private var coordinator
     @State private var viewModel: GameDayViewModel
     @State private var inventoryViewModel: InventoryViewModel
-    private let dayStateViewModel: GameDayStateViewModel
+    @Environment(GameDayStateViewModel.self) private var dayStateViewModel
     private let session: GameSession
 
     internal init(session: GameSession) {
         self.session = session
         self._viewModel = State(initialValue: session.makeGameDayViewModel())
         self._inventoryViewModel = State(initialValue: session.makeInventoryViewModel())
-        self.dayStateViewModel = session.dayState
     }
 
     internal var body: some View {

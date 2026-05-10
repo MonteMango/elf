@@ -12,11 +12,10 @@ import SwiftUI
 struct HuntScreen: View {
     @Environment(AppRouter.self) private var router
     @State private var viewModel: HuntViewModel
-    private let dayStateViewModel: GameDayStateViewModel
+    @Environment(GameDayStateViewModel.self) private var dayStateViewModel
 
     init(session: GameSession) {
         self._viewModel = State(initialValue: session.makeHuntViewModel())
-        self.dayStateViewModel = session.dayState
     }
 
     var body: some View {

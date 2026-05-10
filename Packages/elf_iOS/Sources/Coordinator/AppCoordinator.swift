@@ -23,6 +23,11 @@ public final class AppCoordinator {
 
     public private(set) var gameSession: GameSession?
 
+    /// Day-level VM, kept alive for the lifetime of `gameSession`. Injected
+    /// into the view tree by `SessionRouteView` via `.environment(...)` so
+    /// every in-game screen reads the same instance through `@Environment`.
+    public private(set) var dayStateViewModel: GameDayStateViewModel?
+
     // MARK: - Initialization
 
     public init() {}
@@ -33,13 +38,16 @@ public final class AppCoordinator {
     /// navigating to `.gameSession` so that the session's state is available
     /// to session-bound VMs.
     public func startGame(_ game: Game, playTime: TimeInterval = 0) {
-        gameSession = GameSession(game: game, playTime: playTime)
+        let session = GameSession(game: game, playTime: playTime)
+        gameSession = session
+        dayStateViewModel = GameDayStateViewModel(session: session)
     }
 
     /// Ends the active game session and releases the session.
     /// Safe to call at any time: screens retain their VM strongly until unmount.
     public func endGame() {
         gameSession = nil
+        dayStateViewModel = nil
     }
 
     /// Saves the active game if a session exists (called on scene-phase background).
