@@ -33,17 +33,10 @@ public final class GameSession {
 
     // MARK: - Private dependencies
 
-    @ObservationIgnored
-    @Dependency(\.gameRepository) private var gameRepository
-
-    @ObservationIgnored
-    @Dependency(\.debugGameLogger) private var debugGameLogger
-
-    @ObservationIgnored
-    @Dependency(\.inventoryService) private var inventoryService
-
-    @ObservationIgnored
-    @Dependency(\.craftService) private var craftService
+    private let gameRepository: any GameSaveStorage
+    private let debugGameLogger: any DebugGameLogger
+    private let inventoryService: any InventoryService
+    private let craftService: any CraftService
 
     private let slotId: String
 
@@ -54,6 +47,14 @@ public final class GameSession {
         playTime: TimeInterval = 0,
         slotId: String = SaveSlotInfo.defaultSlotId
     ) {
+        @Dependency(\.gameRepository) var gameRepository
+        @Dependency(\.debugGameLogger) var debugGameLogger
+        @Dependency(\.inventoryService) var inventoryService
+        @Dependency(\.craftService) var craftService
+        self.gameRepository = gameRepository
+        self.debugGameLogger = debugGameLogger
+        self.inventoryService = inventoryService
+        self.craftService = craftService
         self.state = GameStore(from: game, playTime: playTime)
         self.slotId = slotId
     }
