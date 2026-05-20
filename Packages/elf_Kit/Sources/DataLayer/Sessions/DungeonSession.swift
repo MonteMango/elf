@@ -24,8 +24,7 @@ public final class DungeonSession {
 
     // MARK: - Dependencies
 
-    @ObservationIgnored
-    @Dependency(\.dungeonRepository) private var dungeonRepository
+    private let dungeonRepository: any DungeonRepository
 
     /// Read-only access to the parent game-level state (player, houses).
     /// Future phases will add mutator references when dungeon mutations land.
@@ -43,6 +42,8 @@ public final class DungeonSession {
     // MARK: - Initialization
 
     public init(gameStore: GameStore, dungeonId: UUID, allyIds: [UUID]) {
+        @Dependency(\.dungeonRepository) var dungeonRepository
+        self.dungeonRepository = dungeonRepository
         self.gameStore = gameStore
         self.dungeonId = dungeonId
         self.allyIds = allyIds
