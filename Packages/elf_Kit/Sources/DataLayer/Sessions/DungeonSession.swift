@@ -15,9 +15,9 @@ import Foundation
 /// Lifecycle: created by `GameSession.startDungeonSession(...)` when the
 /// player taps Dungeon on a Dungeon Day, released by `endDungeonSession()`
 /// when they leave the briefing or finish the run. Phase 1 — only stable
-/// inputs (`dungeonId`, `allyIds`) and view state (`activeTab`); the
-/// mutating run state (alive/dead members, current room, defeated rooms,
-/// drops collected) lands in Phase 4 with `DungeonRoomScreen`.
+/// inputs (`dungeonId`, `allyIds`); the mutating run state (alive/dead
+/// members, current room, defeated rooms, drops collected) lands in Phase 4
+/// with `DungeonRoomScreen`.
 @MainActor
 @Observable
 public final class DungeonSession {
@@ -34,10 +34,6 @@ public final class DungeonSession {
 
     public let dungeonId: UUID
     public let allyIds: [UUID]
-
-    // MARK: - View state
-
-    public var activeTab: DungeonTab = .overview
 
     // MARK: - Initialization
 

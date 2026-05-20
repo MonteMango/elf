@@ -19,6 +19,7 @@ struct DungeonScreen: View {
 
     @Environment(AppRouter.self) private var router
     private let dungeonSession: DungeonSession
+    @State private var viewModel: DungeonViewModel
 
     init(session: GameSession) {
         // Force-unwrap is safe: the route is only reachable from
@@ -28,6 +29,7 @@ struct DungeonScreen: View {
             fatalError("DungeonScreen reached without an active DungeonSession on GameSession.")
         }
         self.dungeonSession = dungeonSession
+        self._viewModel = State(initialValue: DungeonViewModel(session: dungeonSession))
     }
 
     var body: some View {
@@ -73,8 +75,8 @@ struct DungeonScreen: View {
     // MARK: - Segmented control
 
     private var segmentedControl: some View {
-        @Bindable var session = dungeonSession
-        return Picker("Tab", selection: $session.activeTab) {
+        @Bindable var viewModel = viewModel
+        return Picker("Tab", selection: $viewModel.activeTab) {
             ForEach(DungeonTab.allCases, id: \.self) { tab in
                 Text(tab.title).tag(tab)
             }
@@ -88,7 +90,7 @@ struct DungeonScreen: View {
     @ViewBuilder
     private var tabBody: some View {
         Group {
-            switch dungeonSession.activeTab {
+            switch viewModel.activeTab {
             case .overview:
                 DungeonOverviewContent(session: dungeonSession)
                     .id(dungeonSession.dungeonId)
