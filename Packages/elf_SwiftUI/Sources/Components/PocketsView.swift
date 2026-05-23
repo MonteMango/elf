@@ -1,17 +1,27 @@
 //
 //  PocketsView.swift
-//  elf_iOS
+//  elf_SwiftUI
 //
-//  Created by Vitalii Lytvynov on 28.11.25.
+//  Created by Vitalii Lytvynov
 //
 
-import elf_SwiftUI
 import SwiftUI
 
-struct PocketsView: View {
+public struct PocketsView: View {
+
+    // MARK: - Properties
+
     let onPocketTapped: (Int) -> Void
 
-    var body: some View {
+    // MARK: - Init
+
+    public init(onPocketTapped: @escaping (Int) -> Void) {
+        self.onPocketTapped = onPocketTapped
+    }
+
+    // MARK: - Body
+
+    public var body: some View {
         #if DEBUG
         let _ = Self._printChanges()
         #endif
@@ -21,6 +31,8 @@ struct PocketsView: View {
             }
         }
     }
+
+    // MARK: - Subviews
 
     @ViewBuilder
     private func pocketSlot(index: Int) -> some View {

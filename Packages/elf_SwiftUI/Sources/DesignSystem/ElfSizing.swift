@@ -120,6 +120,28 @@ public enum ElfSizing {
         public static let smallSpacing: CGFloat = 6
     }
 
+    // MARK: - Dungeon Squad Specific
+
+    public enum DungeonSquad {
+        /// Width of one Squad-tab cell (fixed-size card in the horizontal scroller)
+        public static let cellWidth: CGFloat = 246
+        /// Inner padding of the Squad-tab cell
+        public static let cellPadding: CGFloat = 12
+        /// Max height reserved for `CombatantBodyView` inside the Squad-tab cell
+        public static let cellBodyMaxHeight: CGFloat = 160
+
+        /// Compact squad row (Overview tab): outer portrait circle diameter
+        public static let compactPortraitOuter: CGFloat = 22
+        /// Compact squad row: inner portrait image diameter
+        public static let compactPortraitImage: CGFloat = 20
+        /// Compact squad row: SF Symbol size for portrait fallback icon
+        public static let compactPortraitIconSize: CGFloat = 11
+        /// Compact squad row: HP bar height
+        public static let compactHpBarHeight: CGFloat = 5
+        /// Compact squad row: HP bar corner radius
+        public static let compactHpBarCornerRadius: CGFloat = 2
+    }
+
     // MARK: - Battle Fight Screen Specific
 
     public enum BattleFight {
@@ -129,8 +151,8 @@ public enum ElfSizing {
         public static let separatorHeight: CGFloat = 1
         public static let teamImageSize: CGFloat = 20
         public static let teamImageActiveSize: CGFloat = 30
-        public static let battleItemSize: CGFloat = 20
-        public static let battleJewelrySize: CGFloat = 15
+        public static let battleItemSize: CGFloat = 30
+        public static let battleJewelrySize: CGFloat = 20
     }
 
     // MARK: - Hunt Screen Specific

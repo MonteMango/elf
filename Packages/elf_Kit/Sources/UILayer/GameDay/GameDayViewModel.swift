@@ -7,7 +7,6 @@
 
 import Dependencies
 import Foundation
-import UIKit
 
 @MainActor
 @Observable
@@ -18,6 +17,7 @@ public final class GameDayViewModel {
     private let session: GameSession
     private let progressionService: any ProgressionService
     private let equipmentQueryService: any EquipmentQueryService
+    private let equippedSlotResolver: any HeroEquippedSlotResolver
     private let itemsRepository: any ItemsRepository
     private let snapshotBuilder: any CombatantSnapshotBuilder
     private let monsterRepository: any MonsterRepository
@@ -49,25 +49,7 @@ public final class GameDayViewModel {
         progressionService.expProgress(currentExp: session.state.player.currentExp)
     }
     public var equippedItems: [HeroItemType: HeroEquippedSlot] {
-        let baseIds = equipmentQueryService.equippedBaseItemIds(from: session.state.player.equipped)
-        var result: [HeroItemType: HeroEquippedSlot] = baseIds.mapValues { uuid in
-            let candidateName = uuid.uuidString.lowercased()
-            let resolvedName = UIImage(named: candidateName) != nil ? candidateName : nil
-            return HeroEquippedSlot(id: uuid, imageName: resolvedName)
-        }
-
-        // Two-handed weapons occupy both hands but live in a single enum case,
-        // so the off-hand slot is empty. Mirror the weapon icon there so the
-        // user can see at a glance why the shield slot is unavailable.
-        if case .twoHanded = session.state.player.equipped.weapons,
-           let weaponSlot = result[.weapons] {
-            result[.shields] = HeroEquippedSlot(
-                id: weaponSlot.id,
-                imageName: weaponSlot.imageName,
-                mirroredFrom: .weapons
-            )
-        }
-        return result
+        equippedSlotResolver.resolve(equipped: session.state.player.equipped)
     }
 
     // MARK: - Initialization
@@ -75,12 +57,14 @@ public final class GameDayViewModel {
     public init(session: GameSession) {
         @Dependency(\.progressionService) var progressionService
         @Dependency(\.equipmentQueryService) var equipmentQueryService
+        @Dependency(\.equippedSlotResolver) var equippedSlotResolver
         @Dependency(\.itemsRepository) var itemsRepository
         @Dependency(\.snapshotBuilder) var snapshotBuilder
         @Dependency(\.monsterRepository) var monsterRepository
         @Dependency(\.dungeonRepository) var dungeonRepository
         self.progressionService = progressionService
         self.equipmentQueryService = equipmentQueryService
+        self.equippedSlotResolver = equippedSlotResolver
         self.itemsRepository = itemsRepository
         self.snapshotBuilder = snapshotBuilder
         self.monsterRepository = monsterRepository

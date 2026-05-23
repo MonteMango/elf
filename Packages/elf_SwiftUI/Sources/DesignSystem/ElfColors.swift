@@ -34,6 +34,8 @@ public enum ElfColors {
         public static let accent = Color.orange
         public static let onAccent = Color.white
         public static let error = Color.red
+        /// Hint text shown on top of a missing-image placeholder.
+        public static let placeholderOnDark = Color.white.opacity(0.5)
     }
 
     // Legacy text colors (for backwards compatibility)
@@ -53,6 +55,10 @@ public enum ElfColors {
         public static let overlayMedium = Color.black.opacity(0.5)
         public static let overlayLight = Color.black.opacity(0.3)
         public static let card = Color(white: 0.96)
+        /// Translucent white card used by squad cells laid over the dungeon background.
+        public static let dungeonCard = Color.white.opacity(0.8)
+        /// Translucent white pip behind compact squad-row portraits when not the hero.
+        public static let compactPortraitFallback = Color.white.opacity(0.4)
     }
 
     // MARK: - Image Colors
@@ -61,6 +67,8 @@ public enum ElfColors {
     public enum Image {
         /// Backing fill behind a hero / character image while it renders.
         public static let placeholder = Color.gray
+        /// Soft tint behind a placeholder rectangle when an image asset is missing.
+        public static let placeholderTint = Color.gray.opacity(0.3)
     }
 
     // Legacy background colors (for backwards compatibility)
@@ -94,6 +102,8 @@ public enum ElfColors {
         public static let ap = Color.yellow
         public static let ep = Attributes.endurance
         public static let levelUpGlow = Color.yellow
+        /// Background fill for compact resource bars rendered on translucent cards.
+        public static let compactBackground = Color.white.opacity(0.25)
     }
 
     // Legacy stat colors (for backwards compatibility)

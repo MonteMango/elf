@@ -18,7 +18,7 @@ import Foundation
 /// slot reflecting a two-handed weapon equipped in the weapons slot). The
 /// view renders mirrored slots with reduced opacity and routes interactions
 /// to the source slot type.
-public struct HeroEquippedSlot: Equatable, Sendable {
+public struct HeroEquippedSlot: Hashable, Sendable {
     public let id: UUID
     public let imageName: String?
     public let mirroredFrom: HeroItemType?

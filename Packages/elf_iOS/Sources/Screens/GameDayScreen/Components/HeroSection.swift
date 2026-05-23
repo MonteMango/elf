@@ -93,13 +93,12 @@ struct HeroSection: View {
 
     // MARK: - Subviews
 
-    @ViewBuilder
     private func slotButton(for itemType: HeroItemType) -> some View {
         let slot = equippedItems[itemType]
         // Mirrored slots are a visual reflection of an item that lives in
         // another slot; route the tap to the source slot type.
         let tapTarget = slot?.mirroredFrom ?? itemType
-        EquipmentSlotButton(
+        return EquipmentSlotButton(
             itemType: itemType,
             slot: slot,
             onTap: { onEquipmentSlotTapped(tapTarget) }
@@ -122,23 +121,11 @@ private struct EquipmentSlotButton: View {
         let iconSize = isJewelry ? ElfSizing.GameDay.jewelryIconSize : ElfSizing.GameDay.equipmentIconSize
 
         Button(action: onTap) {
-            Rectangle()
-                .fill(ElfColors.Interactive.slotBackground)
-                .frame(width: slotSize, height: slotSize)
-                .overlay {
-                    Rectangle()
-                        .stroke(ElfColors.Interactive.border, lineWidth: 1)
-                }
-                .overlay {
-                    if let slot {
-                        ItemIconImage(
-                            imageName: slot.imageName,
-                            size: iconSize,
-                            opacity: slot.isMirror ? ElfOpacity.GameDay.mirroredSlot : 1.0
-                        )
-                    }
-                }
-                .contentShape(Rectangle())
+            EquipmentSlotView(
+                item: slot?.slotContent,
+                slotSize: slotSize,
+                iconSize: iconSize
+            )
         }
         .accessibilityLabel(accessibilityLabel(for: slot))
         .accessibilityHint(accessibilityHint(for: slot))
