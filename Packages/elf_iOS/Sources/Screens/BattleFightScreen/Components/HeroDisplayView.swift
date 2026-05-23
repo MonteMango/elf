@@ -8,7 +8,6 @@
 import elf_Kit
 import elf_SwiftUI
 import SwiftUI
-import UIKit
 
 // MARK: - HeroDisplayView
 
@@ -37,15 +36,12 @@ struct HeroDisplayView: View {
 
             // Hero Image with overlays
             ZStack {
-                // Layer 1: Combatant image
-                combatantImage
+                CombatantBodyView(
+                    imageName: snapshot.imageName,
+                    equippedItems: snapshot.equippedItems
+                )
 
-                // Layer 2: Items Grid Overlay (show if snapshot has equipment)
-                if snapshot.hasEquipment {
-                    itemsGridOverlay
-                }
-
-                // Layer 3: Result Dots Overlay (top layer)
+                // Per-round result dots — battle-only, stays on the outer caller.
                 resultDotsOverlay
             }
 
@@ -108,112 +104,6 @@ struct HeroDisplayView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Endurance points")
         .accessibilityValue("\(currentEP) of \(maxEP)")
-    }
-
-    @ViewBuilder
-    private var combatantImage: some View {
-        if UIImage(named: snapshot.imageName) != nil {
-            Image(snapshot.imageName)
-                .resizable()
-                .scaledToFit()
-                .frame(maxWidth: .infinity)
-        } else {
-            // Fallback placeholder
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(maxWidth: .infinity)
-                .overlay(
-                    Text(snapshot.name)
-                        .foregroundStyle(.white.opacity(0.5))
-                )
-        }
-    }
-
-    @ViewBuilder
-    private var itemsGridOverlay: some View {
-        GeometryReader { geometry in
-            let width = geometry.size.width
-            let height = geometry.size.height
-            let itemSize = ElfSizing.BattleFight.battleItemSize
-            let jewelrySize = ElfSizing.BattleFight.battleJewelrySize
-            let spacing: CGFloat = 4
-
-            // Column positioning
-            let leftColumnX: CGFloat = spacing
-            let rightColumnX: CGFloat = width - itemSize - spacing
-
-            ZStack {
-                // LEFT column (4 items)
-                VStack(spacing: spacing) {
-                    itemSlot(item: snapshot.helmetItem)
-                    itemSlot(item: snapshot.glovesItem)
-                    itemSlot(item: snapshot.shoesItem)
-                    itemSlot(item: snapshot.rightWeaponItem)
-                }
-                .position(x: leftColumnX + itemSize / 2, y: height / 2)
-
-                // RIGHT column (4 items)
-                VStack(spacing: spacing) {
-                    itemSlot(item: snapshot.upperBodyItem ?? snapshot.robeItem)
-                    itemSlot(item: snapshot.bottomBodyItem)
-                    itemSlot(item: nil) // shirt placeholder
-                    itemSlot(item: snapshot.shieldItem ?? snapshot.leftWeaponItem)
-                }
-                .position(x: rightColumnX + itemSize / 2, y: height / 2)
-
-                // CENTER BOTTOM: Jewelry row (3 items)
-                HStack(spacing: spacing) {
-                    jewelrySlot(item: snapshot.ringItem)
-                    jewelrySlot(item: snapshot.necklaceItem)
-                    jewelrySlot(item: snapshot.earringsItem)
-                }
-                .position(x: width / 2, y: height - jewelrySize / 2 - spacing)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func itemSlot(item: (any ElfItem)?) -> some View {
-        ZStack {
-            // Always show placeholder
-            RoundedRectangle(cornerRadius: 0)
-                .fill(ElfColors.Interactive.slotBackground)
-                .frame(
-                    width: ElfSizing.BattleFight.battleItemSize,
-                    height: ElfSizing.BattleFight.battleItemSize
-                )
-
-            // Item image if equipped. Use the BASE item id (`item.id`) — the
-            // asset catalog is keyed by the JSON-defined item UUID, not by
-            // the wrapper's per-instance id (which can be a fresh UUID when
-            // the wrapper was built via `init(defenseItem:)`/`init(weaponItem:)`).
-            if let elfItem = item {
-                itemImage(id: elfItem.item.id, size: ElfSizing.BattleFight.battleItemSize)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func jewelrySlot(item: (any ElfItem)?) -> some View {
-        ZStack {
-            // Always show placeholder
-            RoundedRectangle(cornerRadius: 0)
-                .fill(ElfColors.Interactive.slotBackground)
-                .frame(
-                    width: ElfSizing.BattleFight.battleJewelrySize,
-                    height: ElfSizing.BattleFight.battleJewelrySize
-                )
-
-            // Item image if equipped — see `itemSlot` for why we use `item.id`.
-            if let elfItem = item {
-                itemImage(id: elfItem.item.id, size: ElfSizing.BattleFight.battleJewelrySize)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func itemImage(id: UUID, size: CGFloat) -> some View {
-        ItemIconImage(uuid: id, size: size, placeholderScale: 0.6)
     }
 
     @ViewBuilder

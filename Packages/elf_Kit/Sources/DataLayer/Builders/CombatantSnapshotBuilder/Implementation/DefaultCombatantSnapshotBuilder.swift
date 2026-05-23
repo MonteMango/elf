@@ -11,10 +11,13 @@ import Foundation
 public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 
     private let armorService: any ArmorService
+    private let equippedSlotResolver: any HeroEquippedSlotResolver
 
     public init() {
         @Dependency(\.armorService) var armorService
+        @Dependency(\.equippedSlotResolver) var equippedSlotResolver
         self.armorService = armorService
+        self.equippedSlotResolver = equippedSlotResolver
     }
 
     // MARK: - CombatantSnapshotBuilder
@@ -71,7 +74,8 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
             shieldItem: placement.shield,
             ringItem: equipped.ring,
             necklaceItem: equipped.necklace,
-            earringsItem: equipped.earrings
+            earringsItem: equipped.earrings,
+            equippedItems: equippedSlotResolver.resolve(equipped: equipped)
         )
     }
 

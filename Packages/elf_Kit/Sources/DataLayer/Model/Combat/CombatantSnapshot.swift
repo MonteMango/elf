@@ -129,6 +129,15 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
     /// Earrings accessory
     public let earringsItem: ElfJewelryItem?
 
+    // MARK: - UI slot layout
+
+    /// Pre-resolved per-slot display data, shared with `HeroSection` and the
+    /// Dungeon → Squad cell. Carries the off-hand mirror entry for two-handed
+    /// weapons (a slot marked `isMirror == true` reflecting the main-hand item)
+    /// so the BattleFight view can render the off-hand cell consistently.
+    /// Empty for monsters.
+    public let equippedItems: [HeroItemType: HeroEquippedSlot]
+
     // MARK: - Initialization
 
     public init(
@@ -161,7 +170,8 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
         shieldItem: ElfShieldItem? = nil,
         ringItem: ElfJewelryItem? = nil,
         necklaceItem: ElfJewelryItem? = nil,
-        earringsItem: ElfJewelryItem? = nil
+        earringsItem: ElfJewelryItem? = nil,
+        equippedItems: [HeroItemType: HeroEquippedSlot] = [:]
     ) {
         self.id = id
         self.sourceId = sourceId
@@ -193,6 +203,7 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
         self.ringItem = ringItem
         self.necklaceItem = necklaceItem
         self.earringsItem = earringsItem
+        self.equippedItems = equippedItems
     }
 
     // MARK: - Computed Properties
