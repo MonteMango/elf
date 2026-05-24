@@ -7,11 +7,12 @@
 
 import Foundation
 
-/// Result of a critical hit calculation using triangular distribution
+/// Result of a critical hit calculation
 ///
-/// **Stage 1**: Select crit chance from triangular distribution (configurable peak position)
+/// **Stage 1**: Select crit chance from peak+linear-tail distribution
 /// **Stage 2**: Roll to check if crit succeeds with the selected chance
-/// **Stage 3**: If crit succeeded, select damage multiplier from agility-adjusted distribution
+/// **Stage 3**: If crit succeeded, select damage multiplier from the fixed
+///             multiplier distribution
 ///
 /// This result contains all intermediate values for logging and debugging purposes.
 public struct CritCalculationResult: Sendable {
@@ -21,9 +22,9 @@ public struct CritCalculationResult: Sendable {
     /// The distribution used for selecting crit chance
     public let distribution: CritDistribution
 
-    /// The crit chance selected from triangular distribution
-    /// Can be negative or zero (results in auto-fail)
-    /// Can be 100+ (results in auto-success)
+    /// The crit chance selected from the stage-1 distribution.
+    /// Can be negative or zero (results in auto-fail).
+    /// Can be 100+ (results in auto-success).
     public let selectedChance: Int16
 
     // MARK: - Stage 2: Check Crit Success
@@ -39,19 +40,8 @@ public struct CritCalculationResult: Sendable {
 
     // MARK: - Stage 3: Select Damage Multiplier
 
-    /// The original multiplier distribution before agility adjustment
+    /// The fixed multiplier distribution used to roll stage 3.
     public let multiplierDistribution: CritMultiplierDistribution
-
-    /// The adjusted multiplier distribution after agility-based weight redistribution
-    /// If defender has high agility, weights shift from high multipliers to low multipliers
-    public let adjustedMultiplierDistribution: CritMultiplierDistribution
-
-    /// The decreaser value used to adjust multiplier weights (0.0 - 1.0)
-    /// - `0.0`: No adjustment (power >= agility * coefficient)
-    /// - `1.0`: Maximum adjustment (all weight taken from high multipliers)
-    ///
-    /// Formula: `((agility * coefficient) - power) / agility`
-    public let critMultiplierDecreaser: Double
 
     /// Random roll used to select multiplier in stage 3
     /// `nil` if crit failed (success = false)
@@ -60,7 +50,7 @@ public struct CritCalculationResult: Sendable {
 
     /// The final damage multiplier
     /// - `1.0` if crit failed
-    /// - `0.75 / 1.00 / 1.25 / 1.5 / 2.0 / 3.0` if crit succeeded (selected from adjusted distribution)
+    /// - `0.75 / 1.00 / 1.25 / 1.5 / 2.0 / 3.0` if crit succeeded (selected from `multiplierDistribution`)
     public let selectedMultiplier: Double
 
     // MARK: - Initialization
@@ -71,8 +61,6 @@ public struct CritCalculationResult: Sendable {
         stage2Roll: Int?,
         success: Bool,
         multiplierDistribution: CritMultiplierDistribution,
-        adjustedMultiplierDistribution: CritMultiplierDistribution,
-        critMultiplierDecreaser: Double,
         multiplierRoll: Int?,
         selectedMultiplier: Double
     ) {
@@ -81,8 +69,6 @@ public struct CritCalculationResult: Sendable {
         self.stage2Roll = stage2Roll
         self.success = success
         self.multiplierDistribution = multiplierDistribution
-        self.adjustedMultiplierDistribution = adjustedMultiplierDistribution
-        self.critMultiplierDecreaser = critMultiplierDecreaser
         self.multiplierRoll = multiplierRoll
         self.selectedMultiplier = selectedMultiplier
     }

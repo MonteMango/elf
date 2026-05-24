@@ -95,7 +95,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         nonisolated(unsafe) var shouldCrit: Bool = false
         nonisolated(unsafe) var critMultiplier: Double = 1.5
 
-        func calculateCrit(power: Int16, instinct: Int16, defenderAgility: Int16) -> CritCalculationResult {
+        func calculateCrit(power: Int16, instinct: Int16) -> CritCalculationResult {
             let distribution = CritDistribution(
                 minimumChance: 10,
                 maximumChance: 50,
@@ -110,8 +110,6 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
                 stage2Roll: shouldCrit ? 10 : 90,
                 success: shouldCrit,
                 multiplierDistribution: multiplierDistribution,
-                adjustedMultiplierDistribution: multiplierDistribution,
-                critMultiplierDecreaser: 0,
                 multiplierRoll: shouldCrit ? 50 : nil,
                 selectedMultiplier: shouldCrit ? critMultiplier : 1.0
             )

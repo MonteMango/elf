@@ -19,9 +19,9 @@ internal struct BattleSetupScreen: View {
     }
 
     internal var body: some View {
-        #if DEBUG
-        let _ = Self._printChanges()
-        #endif
+//        #if DEBUG
+//        let _ = Self._printChanges()
+//        #endif
         ZStack {
             Color.black.ignoresSafeArea()
 
@@ -47,8 +47,8 @@ internal struct BattleSetupScreen: View {
 
                 // Bottom row with close, battle, and autobattle buttons
                 ZStack {
-                    // Close button (bottom left)
-                    HStack {
+                    // Close button + random-attributes toggle (bottom left)
+                    HStack(spacing: 16) {
                         Button(action: {
                             dismiss()
                         }) {
@@ -57,6 +57,16 @@ internal struct BattleSetupScreen: View {
                                 .font(.system(size: 20, weight: .bold))
                                 .frame(width: 44, height: 44)
                         }
+
+                        Toggle(isOn: $viewModel.includeRandomAttributes) {
+                            Text("Random attrs")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(.white)
+                        }
+                        .toggleStyle(.switch)
+                        .tint(.orange)
+                        .fixedSize()
+
                         Spacer()
                     }
 

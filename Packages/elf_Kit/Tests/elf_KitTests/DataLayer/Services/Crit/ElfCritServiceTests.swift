@@ -12,9 +12,9 @@ import XCTest
 /// Tests for ElfCritService
 ///
 /// **Algorithm**:
-/// **Stage 1**: Select crit chance from triangular distribution
+/// **Stage 1**: Select crit chance from the peak+linear-tail distribution
 /// **Stage 2**: Check crit success (roll 1-100, succeed if roll <= chance)
-/// **Stage 3**: Select damage multiplier from agility-adjusted distribution
+/// **Stage 3**: Select damage multiplier from the fixed multiplier distribution
 final class ElfCritServiceTests: XCTestCase {
 
     /// Wire the real stateless strategy + distribution so every test can exercise
@@ -42,7 +42,7 @@ final class ElfCritServiceTests: XCTestCase {
 
         // When: Run multiple times to verify selected chance is within range
         for _ in 0..<100 {
-            let result = service.calculateCrit(power: 30, instinct: 10, defenderAgility: 20)
+            let result = service.calculateCrit(power: 30, instinct: 10)
 
             // Then: Selected chance should be within [20, 30] (power - instinct to power)
             XCTAssertGreaterThanOrEqual(result.selectedChance, 20)
@@ -55,7 +55,7 @@ final class ElfCritServiceTests: XCTestCase {
         let service = makeService()
 
         // When
-        let result = service.calculateCrit(power: 5, instinct: 15, defenderAgility: 10)
+        let result = service.calculateCrit(power: 5, instinct: 15)
 
         // Then: Selected chance can be negative (range: -10 to 5)
         XCTAssertGreaterThanOrEqual(result.selectedChance, -10)
@@ -71,7 +71,7 @@ final class ElfCritServiceTests: XCTestCase {
 
         // When: Run many times with low power/high instinct to get negative chances
         for _ in 0..<200 {
-            let result = service.calculateCrit(power: 5, instinct: 20, defenderAgility: 10)
+            let result = service.calculateCrit(power: 5, instinct: 20)
             if result.selectedChance <= 0 {
                 XCTAssertFalse(result.success, "Negative or zero chance should always fail")
                 XCTAssertNil(result.stage2Roll, "No roll needed for auto-fail")
@@ -88,7 +88,7 @@ final class ElfCritServiceTests: XCTestCase {
         let service = makeService()
 
         // When: Power much higher than instinct, min >= 100
-        let result = service.calculateCrit(power: 150, instinct: 10, defenderAgility: 20)
+        let result = service.calculateCrit(power: 150, instinct: 10)
 
         // Then: 140+ chance should always succeed
         XCTAssertTrue(result.success, "100+ chance should always succeed")
@@ -103,7 +103,7 @@ final class ElfCritServiceTests: XCTestCase {
 
         // When: Run many times to find a zero chance
         for _ in 0..<500 {
-            let result = service.calculateCrit(power: 10, instinct: 10, defenderAgility: 10)
+            let result = service.calculateCrit(power: 10, instinct: 10)
             if result.selectedChance == 0 {
                 XCTAssertFalse(result.success, "Zero chance should fail")
                 XCTAssertNil(result.stage2Roll, "No roll for zero chance")
@@ -125,7 +125,7 @@ final class ElfCritServiceTests: XCTestCase {
         // When: Get a result with normal roll (chance between 1-99)
         var normalRollFound = false
         for _ in 0..<100 {
-            let result = service.calculateCrit(power: 50, instinct: 10, defenderAgility: 20)
+            let result = service.calculateCrit(power: 50, instinct: 10)
             if let roll = result.stage2Roll {
                 XCTAssertGreaterThanOrEqual(roll, 1)
                 XCTAssertLessThanOrEqual(roll, 100)
@@ -145,7 +145,7 @@ final class ElfCritServiceTests: XCTestCase {
         // When: Find a failed crit
         var failedCritFound = false
         for _ in 0..<100 {
-            let result = service.calculateCrit(power: 10, instinct: 20, defenderAgility: 30)
+            let result = service.calculateCrit(power: 10, instinct: 20)
             if !result.success {
                 XCTAssertEqual(result.selectedMultiplier, 1.0, "Failed crit should have 1.0 multiplier")
                 XCTAssertNil(result.multiplierRoll, "No multiplier roll for failed crit")
@@ -165,7 +165,7 @@ final class ElfCritServiceTests: XCTestCase {
         // When: Find a successful crit
         var successfulCritFound = false
         for _ in 0..<100 {
-            let result = service.calculateCrit(power: 80, instinct: 10, defenderAgility: 20)
+            let result = service.calculateCrit(power: 80, instinct: 10)
             if result.success {
                 XCTAssertTrue(validMultipliers.contains(result.selectedMultiplier),
                              "Multiplier \(result.selectedMultiplier) should be in valid set")
@@ -178,41 +178,6 @@ final class ElfCritServiceTests: XCTestCase {
         XCTAssertTrue(successfulCritFound, "Should find at least one successful crit")
     }
 
-    // MARK: - Agility Adjustment Tests
-
-    func testAgilityAdjustment_HighAgility_DecreasesHighMultiplierChance() async {
-        // Given
-        let service = makeService()
-
-        // When: High defender agility should shift weights to lower multipliers
-        let result = service.calculateCrit(power: 50, instinct: 10, defenderAgility: 100)
-
-        // Then: Decreaser should be positive (agility advantage)
-        XCTAssertGreaterThan(result.critMultiplierDecreaser, 0,
-                            "High agility should create positive decreaser")
-
-        // Adjusted distribution should have reduced weights for high multipliers
-        let originalHighWeights = result.multiplierDistribution.weights[3...5].reduce(0, +)
-        let adjustedHighWeights = result.adjustedMultiplierDistribution.weights[3...5].reduce(0, +)
-        XCTAssertLessThanOrEqual(adjustedHighWeights, originalHighWeights,
-                                  "High multiplier weights should be reduced or equal")
-    }
-
-    func testAgilityAdjustment_LowAgility_NoAdjustment() async {
-        // Given
-        let service = makeService()
-
-        // When: Low defender agility (power > agility * coefficient)
-        let result = service.calculateCrit(power: 100, instinct: 10, defenderAgility: 10)
-
-        // Then: Decreaser should be 0 (no adjustment)
-        XCTAssertEqual(result.critMultiplierDecreaser, 0,
-                      "Low agility should not adjust multiplier distribution")
-
-        // Distributions should be equal
-        XCTAssertEqual(result.multiplierDistribution, result.adjustedMultiplierDistribution)
-    }
-
     // MARK: - Result Structure Tests
 
     func testResultStructure_ContainsAllFields() async {
@@ -220,7 +185,7 @@ final class ElfCritServiceTests: XCTestCase {
         let service = makeService()
 
         // When
-        let result = service.calculateCrit(power: 40, instinct: 15, defenderAgility: 25)
+        let result = service.calculateCrit(power: 40, instinct: 15)
 
         // Then: All fields should be populated
         XCTAssertNotNil(result.distribution)
@@ -230,7 +195,6 @@ final class ElfCritServiceTests: XCTestCase {
 
         // Multiplier distribution should be populated
         XCTAssertFalse(result.multiplierDistribution.values.isEmpty)
-        XCTAssertFalse(result.adjustedMultiplierDistribution.values.isEmpty)
     }
 
     // MARK: - Statistical Tests
@@ -245,8 +209,8 @@ final class ElfCritServiceTests: XCTestCase {
         var highPowerSuccesses = 0
 
         for _ in 0..<iterations {
-            let lowResult = service.calculateCrit(power: 20, instinct: 15, defenderAgility: 20)
-            let highResult = service.calculateCrit(power: 60, instinct: 15, defenderAgility: 20)
+            let lowResult = service.calculateCrit(power: 20, instinct: 15)
+            let highResult = service.calculateCrit(power: 60, instinct: 15)
 
             if lowResult.success { lowPowerSuccesses += 1 }
             if highResult.success { highPowerSuccesses += 1 }
@@ -264,7 +228,7 @@ final class ElfCritServiceTests: XCTestCase {
 
         // When: Run many crits to collect different multipliers
         for _ in 0..<1000 {
-            let result = service.calculateCrit(power: 80, instinct: 10, defenderAgility: 20)
+            let result = service.calculateCrit(power: 80, instinct: 10)
             if result.success {
                 multipliersFound.insert(result.selectedMultiplier)
             }
@@ -282,7 +246,7 @@ final class ElfCritServiceTests: XCTestCase {
         let service = makeService()
 
         // When
-        let result = service.calculateCrit(power: 0, instinct: 10, defenderAgility: 20)
+        let result = service.calculateCrit(power: 0, instinct: 10)
 
         // Then: Distribution min = -10, max = 0
         XCTAssertEqual(result.distribution.minimumChance, -10)
@@ -295,7 +259,7 @@ final class ElfCritServiceTests: XCTestCase {
         let service = makeService()
 
         // When
-        let result = service.calculateCrit(power: 50, instinct: 0, defenderAgility: 20)
+        let result = service.calculateCrit(power: 50, instinct: 0)
 
         // Then: Distribution min = max = 50
         XCTAssertEqual(result.distribution.minimumChance, 50)
@@ -303,23 +267,12 @@ final class ElfCritServiceTests: XCTestCase {
         XCTAssertEqual(result.selectedChance, 50)
     }
 
-    func testEdgeCase_ZeroAgility() async {
-        // Given
-        let service = makeService()
-
-        // When
-        let result = service.calculateCrit(power: 50, instinct: 10, defenderAgility: 0)
-
-        // Then: Should not crash, decreaser should be 0 (no agility advantage)
-        XCTAssertEqual(result.critMultiplierDecreaser, 0)
-    }
-
     func testEdgeCase_AllZeros() async {
         // Given
         let service = makeService()
 
         // When
-        let result = service.calculateCrit(power: 0, instinct: 0, defenderAgility: 0)
+        let result = service.calculateCrit(power: 0, instinct: 0)
 
         // Then: min = max = 0, should always fail
         XCTAssertEqual(result.distribution.minimumChance, 0)
@@ -332,7 +285,7 @@ final class ElfCritServiceTests: XCTestCase {
         let service = makeService()
 
         // When
-        let result = service.calculateCrit(power: 200, instinct: 50, defenderAgility: 100)
+        let result = service.calculateCrit(power: 200, instinct: 50)
 
         // Then: max capped at 100, min = 150
         XCTAssertEqual(result.distribution.maximumChance, 100)

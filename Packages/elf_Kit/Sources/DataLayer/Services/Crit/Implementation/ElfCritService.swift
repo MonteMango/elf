@@ -8,12 +8,14 @@
 import Dependencies
 import Foundation
 
-/// Default implementation of crit calculation service
+/// Default implementation of crit calculation service.
 ///
-/// Uses triangular distribution with configurable peak position:
-/// 1. **Stage 1**: Select crit chance from triangular distribution
+/// Uses the peak+linear-tail distribution (configurable peak position +
+/// peak weight):
+/// 1. **Stage 1**: Select crit chance from the distribution
 /// 2. **Stage 2**: Roll to check crit success (with auto-fail/success edge cases)
-/// 3. **Stage 3**: Select damage multiplier from agility-adjusted distribution
+/// 3. **Stage 3**: Select damage multiplier from the fixed distribution
+///    (defender stats no longer skew it)
 public final class ElfCritService: CritService {
 
     private let distributionStrategy: any CritDistributionStrategy
@@ -30,29 +32,23 @@ public final class ElfCritService: CritService {
 
     // MARK: - CritService
 
-    public func calculateCrit(power: Int16, instinct: Int16, defenderAgility: Int16) -> CritCalculationResult {
+    public func calculateCrit(power: Int16, instinct: Int16) -> CritCalculationResult {
         // Get distribution
         let distribution = distributionStrategy.distribution(
             power: power,
             instinct: instinct
         )
 
-        // STAGE 1: Select crit chance from triangular distribution
+        // STAGE 1: Select crit chance from stage-1 distribution
         let selectedChance = selectCritChance(from: distribution)
 
         // STAGE 2: Check crit success with selected chance
         let (stage2Roll, success) = checkCritSuccess(chance: selectedChance)
 
-        // Calculate adjusted multiplier distribution based on defender's agility
-        let (adjustedDistribution, decreaser) = multiplierDistribution.adjusted(
-            attackerPower: power,
-            defenderAgility: defenderAgility
-        )
-
-        // STAGE 3: Select multiplier from adjusted distribution (only if crit succeeded)
+        // STAGE 3: Select multiplier from the fixed distribution (only if crit succeeded)
         let (multiplierRoll, selectedMultiplier) = selectMultiplier(
             critSuccess: success,
-            from: adjustedDistribution
+            from: multiplierDistribution
         )
 
         return CritCalculationResult(
@@ -61,8 +57,6 @@ public final class ElfCritService: CritService {
             stage2Roll: stage2Roll,
             success: success,
             multiplierDistribution: multiplierDistribution,
-            adjustedMultiplierDistribution: adjustedDistribution,
-            critMultiplierDecreaser: decreaser,
             multiplierRoll: multiplierRoll,
             selectedMultiplier: selectedMultiplier
         )

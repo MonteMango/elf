@@ -21,10 +21,15 @@ public final class ElfAttributeService: AttributeService {
     }
 
     public func getAllFightStyleAttributes(for fightStyle: FightStyle, at level: Int16) -> HeroAttributes {
+        // Base HP 80 + 5 per level applies to every fight style (so a lvl-12
+        // hero starts a battle with 140 HP). Per-style differentiation is
+        // expressed via offensive/defensive stats, not HP scaling.
+        let hitPoints = Attribute(80 + 5 * level)
+
         switch fightStyle {
         case .crit:
             return HeroAttributes(
-                hitPoints: 80,
+                hitPoints: hitPoints,
                 manaPoints: 20,
                 agility: 0,
                 strength: Attribute(1 * level),
@@ -35,7 +40,7 @@ public final class ElfAttributeService: AttributeService {
 
         case .def:
             return HeroAttributes(
-                hitPoints: 80,
+                hitPoints: hitPoints,
                 manaPoints: 20,
                 agility: 0,
                 strength: Attribute(1 * level),
@@ -46,7 +51,7 @@ public final class ElfAttributeService: AttributeService {
 
         case .dodge:
             return HeroAttributes(
-                hitPoints: 80,
+                hitPoints: hitPoints,
                 manaPoints: 20,
                 agility: Attribute(4 * level),
                 strength: Attribute(1 * level),

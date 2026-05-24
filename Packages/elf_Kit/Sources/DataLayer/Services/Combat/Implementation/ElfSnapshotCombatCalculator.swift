@@ -130,14 +130,14 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
             )
         }
 
-        // EP is committed up-front; spec says crit pierces block but
-        // EP is still consumed.
+        // EP is committed up-front. A block that catches a crit reduces the
+        // crit multiplier to 1.0× (normal hit damage), but EP is still spent
+        // — the defender pays for the protection that downgraded the crit.
         defenderRemainingEP -= blockCost
 
         let critResult = critService.calculateCrit(
             power: Int16(attacker.power),
-            instinct: Int16(defender.intuition),
-            defenderAgility: Int16(defender.agility)
+            instinct: Int16(defender.intuition)
         )
 
         debugLogger.logCritCalculation(
@@ -155,11 +155,18 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                 bodyPart: bodyPart
             )
 
+            // Crit succeeded against a blocked part: damage is scaled by
+            // `blockedCritMultiplier` (default `1.0` = normal-hit damage)
+            // instead of the rolled multiplier. The `PointStatus.critHit`
+            // case is kept so UI still renders the crit indicator and
+            // statistics still record it as a crit success — only the
+            // damage scaling is suppressed.
+            let blockedCritMultiplier = GameMechanicsConstants.blockedCritMultiplier
             let finalStatus = PointStatus.critHit(
                 weaponDamage: attackDamage,
                 strengthDamage: strengthDamage,
                 defenderArmor: defenderArmor,
-                multiplier: critResult.selectedMultiplier,
+                multiplier: blockedCritMultiplier,
                 epSpent: blockCost
             )
 
@@ -172,7 +179,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                 strengthDamage: strengthDamage,
                 attackDamage: attackDamage,
                 defenderArmor: defenderArmor,
-                multiplier: critResult.selectedMultiplier,
+                multiplier: blockedCritMultiplier,
                 finalStatus: finalStatus
             )
             return finalStatus
@@ -216,8 +223,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         if dodgeResult.success {
             let critResult = critService.calculateCrit(
                 power: Int16(attacker.power),
-                instinct: Int16(defender.intuition),
-                defenderAgility: Int16(defender.agility)
+                instinct: Int16(defender.intuition)
             )
 
             let finalStatus = PointStatus.dodged(wasCrit: critResult.success)
@@ -238,8 +244,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
 
         let critResult = critService.calculateCrit(
             power: Int16(attacker.power),
-            instinct: Int16(defender.intuition),
-            defenderAgility: Int16(defender.agility)
+            instinct: Int16(defender.intuition)
         )
 
         debugLogger.logCritCalculation(

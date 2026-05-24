@@ -32,6 +32,18 @@ public final class BattleSetupViewModel {
     /// All available monsters for the picker
     public private(set) var allMonsters: [Monster] = []
 
+    /// When `false`, random per-level attributes are not generated — only
+    /// fight-style attributes (scaled by level) contribute to totals. Default
+    /// `false` so dev battles are deterministic; toggle on to mimic the
+    /// regular character creation roll.
+    public var includeRandomAttributes: Bool = false {
+        didSet {
+            guard oldValue != includeRandomAttributes else { return }
+            schedulePlayerUpdate()
+            scheduleBotUpdate()
+        }
+    }
+
     // Hero configurations
     public var playerState = HeroConfigurationState()
     public var botState = HeroConfigurationState()
@@ -264,6 +276,9 @@ public final class BattleSetupViewModel {
             return
         }
 
+        // Capture toggle state so the rest of the task uses a consistent value.
+        let shouldIncludeRandom = includeRandomAttributes
+
         let task = Task {
             do {
                 // Debounce: Wait 250ms
@@ -282,9 +297,9 @@ public final class BattleSetupViewModel {
                     for: fightStyle,
                     at: Int16(currentLevel)
                 )
-                let lrAttrs = attributeService.getAllRandomLevelAttributes(
-                    for: Int16(currentLevel)
-                )
+                let lrAttrs: HeroAttributes = shouldIncludeRandom
+                    ? attributeService.getAllRandomLevelAttributes(for: Int16(currentLevel))
+                    : HeroAttributes()
 
                 // Final validation before updating UI
                 guard !Task.isCancelled,
