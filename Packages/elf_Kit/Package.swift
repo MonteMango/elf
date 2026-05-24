@@ -37,5 +37,14 @@ let package = Package(
             swiftSettings: [
                 .enableExperimentalFeature("DebugDescriptionMacro")
             ]),
+        .testTarget(
+            name: "battle_simulation_IntegrationTests",
+            dependencies: [
+                "elf_Kit",
+                .product(name: "DependenciesTestSupport", package: "swift-dependencies"),
+            ],
+            swiftSettings: [
+                .enableExperimentalFeature("DebugDescriptionMacro")
+            ]),
     ], swiftLanguageModes: [.v5]
 )

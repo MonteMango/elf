@@ -245,67 +245,19 @@ public final class MultiBattleViewModel {
         print("\n========================================\n")
     }
 
-    // Per-side block / EP diagnostics derived from `roundHistory`.
-    //
-    // We re-walk the per-round `PointStatus` entries because `BattleStatistics`
-    // doesn't carry EP info. Output is meant to confirm whether `Endurance`
-    // actually bottlenecks anything in the lvl-12 triangle simulations.
+    // Per-side block / EP diagnostics derived from `roundHistory`. Aggregation
+    // lives in `BattleDiagnostics` so headless tests can reuse the same math
+    // without depending on this @MainActor ViewModel.
     private func logBalanceDiagnostics(result: MultiBattleResult) {
-        var bot1Diag = SideDiagnostics()
-        var bot2Diag = SideDiagnostics()
         let bot1MaxEP = result.battleResults.first?.battle.leftTeam.first?.maxEP ?? 0
         let bot2MaxEP = result.battleResults.first?.battle.rightTeam.first?.maxEP ?? 0
-
-        for battle in result.battleResults {
-            var bot1EPSpent = 0
-            var bot2EPSpent = 0
-            var bot1BlocksUsed = 0    // body parts that were both attacked & blocked
-            var bot2BlocksUsed = 0
-            var bot1BlocksDefended = 0   // total block-points chosen across the battle
-            var bot2BlocksDefended = 0
-            var bot1AttacksLanded = 0    // attacker actually struck this body part
-            var bot2AttacksLanded = 0
-
-            for round in battle.roundHistory {
-                // bot1 is defender for bot2's attacks → bot1Results carries EP/blocked info.
-                bot1BlocksDefended += round.bot1DefensePoints.count
-                bot2BlocksDefended += round.bot2DefensePoints.count
-                bot1AttacksLanded += round.bot2AttackPoints.count
-                bot2AttacksLanded += round.bot1AttackPoints.count
-
-                for (_, status) in round.bot1Results {
-                    bot1EPSpent += status.epSpentValue
-                    if case .blocked = status { bot1BlocksUsed += 1 }
-                    if case .critHit(_, _, _, _, let ep) = status, ep > 0 { bot1BlocksUsed += 1 }
-                }
-                for (_, status) in round.bot2Results {
-                    bot2EPSpent += status.epSpentValue
-                    if case .blocked = status { bot2BlocksUsed += 1 }
-                    if case .critHit(_, _, _, _, let ep) = status, ep > 0 { bot2BlocksUsed += 1 }
-                }
-            }
-
-            bot1Diag.accumulate(
-                epSpent: bot1EPSpent,
-                maxEP: bot1MaxEP,
-                blocksUsed: bot1BlocksUsed,
-                blocksDefended: bot1BlocksDefended,
-                attacksLanded: bot1AttacksLanded
-            )
-            bot2Diag.accumulate(
-                epSpent: bot2EPSpent,
-                maxEP: bot2MaxEP,
-                blocksUsed: bot2BlocksUsed,
-                blocksDefended: bot2BlocksDefended,
-                attacksLanded: bot2AttacksLanded
-            )
-        }
-
+        let bot1Diag = BattleDiagnostics.compute(from: result.battleResults, side: .bot1, maxEP: bot1MaxEP)
+        let bot2Diag = BattleDiagnostics.compute(from: result.battleResults, side: .bot2, maxEP: bot2MaxEP)
         printSideDiagnostics(label: "BOT1 (Lv.\(result.bot1Level))", diag: bot1Diag, maxEP: bot1MaxEP, totalBattles: result.totalBattles)
         printSideDiagnostics(label: "BOT2 (Lv.\(result.bot2Level))", diag: bot2Diag, maxEP: bot2MaxEP, totalBattles: result.totalBattles)
     }
 
-    private func printSideDiagnostics(label: String, diag: SideDiagnostics, maxEP: Int, totalBattles: Int) {
+    private func printSideDiagnostics(label: String, diag: BattleDiagnostics, maxEP: Int, totalBattles: Int) {
         let n = Double(max(totalBattles, 1))
         // NSLog so the output reaches the unified system log (`xcrun simctl
         // spawn booted log stream`). Plain `print` only goes to stdout, which
@@ -324,25 +276,19 @@ public final class MultiBattleViewModel {
         NSLog("ELFBAL   Battles where EP ran out:   %d  (%.1f%% of battles)",
               diag.battlesExhausted,
               Double(diag.battlesExhausted) / n * 100)
-    }
-
-    private struct SideDiagnostics {
-        var totalEPSpent: Int = 0
-        var totalBlocksUsed: Int = 0
-        var totalBlocksDefended: Int = 0
-        var totalAttacksLanded: Int = 0
-        var battlesExhausted: Int = 0
-
-        mutating func accumulate(epSpent: Int, maxEP: Int, blocksUsed: Int, blocksDefended: Int, attacksLanded: Int) {
-            totalEPSpent += epSpent
-            totalBlocksUsed += blocksUsed
-            totalBlocksDefended += blocksDefended
-            totalAttacksLanded += attacksLanded
-            if epSpent >= maxEP && maxEP > 0 {
-                battlesExhausted += 1
-            }
+        // Soft EP-exhaustion = at least one round where the side tried to
+        // block but currentEP < blockCost, so the block resolved as undefended.
+        NSLog("ELFBAL   Battles w/ block-fail (soft):%d  (%.1f%% of battles)",
+              diag.battlesWithBlockFailure,
+              Double(diag.battlesWithBlockFailure) / n * 100)
+        if !diag.firstFailRounds.isEmpty {
+            let avgRound = Double(diag.firstFailRounds.reduce(0, +)) / Double(diag.firstFailRounds.count)
+            let avgPct = diag.firstFailPercents.reduce(0, +) / Double(diag.firstFailPercents.count) * 100
+            NSLog("ELFBAL   Avg round of first fail:    %.1f", avgRound)
+            NSLog("ELFBAL   Avg %% through battle at fail: %.1f%%  (round / total rounds)", avgPct)
         }
     }
+
 }
 
 // MARK: - Perf measurement helper

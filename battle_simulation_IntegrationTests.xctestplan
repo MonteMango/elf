@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "5C9E1A9D-3E1B-4F77-9C0D-2A4F1E8B5D02",
+      "name" : "Integration",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "battle_simulation_IntegrationTests",
+        "name" : "battle_simulation_IntegrationTests"
+      }
+    }
+  ],
+  "version" : 1
+}

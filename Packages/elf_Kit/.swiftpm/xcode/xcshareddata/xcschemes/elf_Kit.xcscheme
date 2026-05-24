@@ -30,8 +30,11 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <TestPlans>
          <TestPlanReference
-            reference = "container:../../elf_Kit_Tests.xctestplan"
+            reference = "container:../../elf_Kit_UnitTests.xctestplan"
             default = "YES">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:../../battle_simulation_IntegrationTests.xctestplan">
          </TestPlanReference>
       </TestPlans>
    </TestAction>
