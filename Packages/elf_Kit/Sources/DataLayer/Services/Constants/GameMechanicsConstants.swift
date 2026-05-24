@@ -80,6 +80,19 @@ enum GameMechanicsConstants {
     /// Starting EP pool for every combatant (hero or monster).
     static let startingEP: Int = 2000
 
+    /// How many *extra effective blocks* one Endurance attribute point grants,
+    /// independent of weapon. The default `0.5` matches the canonical design
+    /// rule "+2 Endurance = +1 effective block".
+    ///
+    /// Used by `ElfEnduranceService.calculateBlockCost`:
+    /// `cost = pool / (pool / baseCost + endurance × blocksPerEndurancePoint)`
+    ///
+    /// Examples (1H weapon, baseCost 200, pool 2000):
+    /// - `0.5` (default): 36 Endurance → cost 71 EP (28 blocks)
+    /// - `0.4`: 36 Endurance → cost 81 EP (24 blocks); each Endurance adds 0.4 blocks
+    /// - `0.25`: 36 Endurance → cost 105 EP (19 blocks); each Endurance adds 0.25 blocks
+    static let blocksPerEndurancePoint: Double = 0.5
+
     // MARK: - Calendar
 
     /// Number of upcoming days to show in the calendar preview

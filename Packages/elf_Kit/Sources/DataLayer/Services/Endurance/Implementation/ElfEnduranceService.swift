@@ -16,7 +16,12 @@ public final class ElfEnduranceService: EnduranceService {
 
         let pool = GameMechanicsConstants.startingEP
         let endurance = max(0, defenderEndurance)
-        let denom = Double(pool) / Double(baseCost) + Double(endurance) / 2.0
+        let blocksPerPoint = GameMechanicsConstants.blocksPerEndurancePoint
+        // Canonical formula:
+        //     cost = pool / (pool/baseCost + endurance * blocksPerPoint)
+        // With the default `blocksPerPoint = 0.5`, every +2 Endurance grants
+        // exactly +1 effective block regardless of weapon.
+        let denom = Double(pool) / Double(baseCost) + Double(endurance) * blocksPerPoint
         let raw = Int((Double(pool) / denom).rounded())
         // Clamp to ≥1: extreme endurance values would otherwise round the cost
         // to 0, which the calculator's `blockCost > 0` guard treats as "no

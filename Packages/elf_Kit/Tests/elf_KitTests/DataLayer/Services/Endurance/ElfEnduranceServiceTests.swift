@@ -11,11 +11,11 @@ import XCTest
 /// Tests for `ElfEnduranceService` block-cost formula.
 ///
 /// Canonical formula from `attributes.md`:
-/// `cost = round( pool / ( pool/baseCost + endurance/2 ) )`
+/// `cost = round( pool / ( pool/baseCost + endurance × blocksPerEndurancePoint ) )`
 ///
 /// Tests are written against properties of the formula rather than
 /// hard-coded magic numbers so they remain valid if
-/// `GameMechanicsConstants.startingEP` is tuned.
+/// `GameMechanicsConstants.startingEP` or `blocksPerEndurancePoint` is tuned.
 final class ElfEnduranceServiceTests: XCTestCase {
 
     private let service = ElfEnduranceService()
@@ -67,11 +67,21 @@ final class ElfEnduranceServiceTests: XCTestCase {
         XCTAssertEqual(pool / cost, pool / 400)
     }
 
-    func testEndurance2_AddsOneEffectiveBlock() {
-        // attributes.md: "every +2 endurance grants +1 effective block".
+    func testEndurance_OneBlockGain_MatchesBlocksPerEndurancePoint() {
+        // attributes.md: each Endurance point grants `blocksPerEndurancePoint`
+        // effective blocks (default 0.5 → +2 endurance = +1 block).
+        // Pick the smallest endurance that yields exactly +1 block of capacity
+        // so the assertion stays integer-clean regardless of the constant.
+        let blocksPerPoint = GameMechanicsConstants.blocksPerEndurancePoint
+        guard blocksPerPoint > 0 else {
+            XCTFail("blocksPerEndurancePoint must be > 0 for this test to be meaningful")
+            return
+        }
+        let enduranceForOneBlock = Int((1.0 / blocksPerPoint).rounded())
+
         let baseBlocks = pool / service.calculateBlockCost(baseCost: 400, defenderEndurance: 0)
-        let endurance2Blocks = pool / service.calculateBlockCost(baseCost: 400, defenderEndurance: 2)
-        XCTAssertEqual(endurance2Blocks, baseBlocks + 1)
+        let withEnduranceBlocks = pool / service.calculateBlockCost(baseCost: 400, defenderEndurance: enduranceForOneBlock)
+        XCTAssertEqual(withEnduranceBlocks, baseBlocks + 1)
     }
 
     // MARK: - Defensive bounds

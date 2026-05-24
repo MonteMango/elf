@@ -183,10 +183,15 @@ gains most of its weight from equipment, not levels.
 
 ### Endurance
 
-**1 endurance = +0.5 effective blocks** (universal across weapons by the
-rule). For a typical-damage hit at lvl 12 (~5-10 base damage), one block
+**1 endurance = `blocksPerEndurancePoint` extra effective blocks**
+(universal across weapons by the rule). The constant lives in
+`GameMechanicsConstants.blocksPerEndurancePoint` and defaults to `0.5`
+(canonical "+2 Endurance = +1 block"); tune it down (e.g. `0.4`) to make
+Endurance scale slower, or up (`1.0`) to make every point grant a full
+block. For a typical-damage hit at lvl 12 (~5-10 base damage), one block
 saves roughly that much HP, so **1 endurance ≈ 2.5-5 HP saved per
-battle** — but only for a hero who actually allocates block points.
+battle** at the default — but only for a hero who actually allocates
+block points.
 
 ### Per-point HP-equivalent (rough, lvl 12, both heroes with equal intuition)
 
@@ -562,21 +567,23 @@ longer protect — and (later) start damaging the equipment instead.
 
 ### Endurance → block-cost formula
 
-**Rule.** Every **+2 Endurance grants +1 effective block**, regardless of
-weapon. The pool stays nominally at `startingEP` (currently 2000); Endurance
-reduces the EP paid per block such that one extra block fits.
+**Rule.** Each `+1 Endurance` grants `+blocksPerEndurancePoint` effective
+blocks, regardless of weapon. At the default `blocksPerEndurancePoint = 0.5`,
+that's the canonical **+2 Endurance = +1 effective block** rule. The pool
+stays nominally at `startingEP` (currently 2000); Endurance reduces the
+EP paid per block such that the extra blocks fit.
 
 **Formula (canonical).**
 
 ```
-cost = pool / (pool / baseCost + endurance / 2)
+cost = pool / (pool / baseCost + endurance × blocksPerEndurancePoint)
 ```
 
 **Equivalent implementation — bonus pool** (preferred in code, no
 rounding drift):
 
 ```
-effective_pool = startingEP + (baseCost × endurance / 2)
+effective_pool = startingEP + (baseCost × endurance × blocksPerEndurancePoint)
 cost           = baseCost                  // unchanged
 blocks         = floor(effective_pool / baseCost)
 ```
