@@ -20,6 +20,7 @@ public final class DefaultGameDataRepository: GameDataRepository {
     public let materials: any Repository<Material>
     public let quests: any QuestRepository
     public let dungeons: any DungeonRepository
+    public let buffs: any BuffsRepository
 
     /// Async init — loads all JSON data on the cooperative thread pool,
     /// then creates immutable repositories. `DataLoader` is resolved via
@@ -55,6 +56,9 @@ public final class DefaultGameDataRepository: GameDataRepository {
         let dungeonsData: DungeonsData = await dataLoader.loadAndDecode(
             resourceName: "Dungeons", fallback: .empty(), log: log
         )
+        let buffsData: BuffsData = await dataLoader.loadAndDecode(
+            resourceName: "Buffs", fallback: BuffsData(version: "1.0-empty", buffs: []), log: log
+        )
 
         self.fish = ArrayRepository(items: fishData.items)
         self.herbs = ArrayRepository(items: herbData.items)
@@ -65,5 +69,6 @@ public final class DefaultGameDataRepository: GameDataRepository {
         self.recipes = ElfRecipeRepository(recipesData: recipesData)
         self.quests = ElfQuestRepository(questsData: questsData)
         self.dungeons = ElfDungeonRepository(dungeonsData: dungeonsData)
+        self.buffs = ElfBuffsRepository(buffsData: buffsData)
     }
 }

@@ -116,6 +116,14 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         }
     }
 
+    /// Passthrough BuffEffectsCalculator — no buffs altered, returns base
+    /// attributes unchanged. Keeps combat tests independent of buff math.
+    final class PassthroughBuffEffectsCalculator: BuffEffectsCalculator, @unchecked Sendable {
+        func apply(buffs: [AppliedBuff], to base: HeroAttributes) -> HeroAttributes {
+            base
+        }
+    }
+
     // MARK: - Test Helpers
 
     private var mockDamageService: MockDamageService!
@@ -131,7 +139,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         agility: Int = 10,
         strength: Int = 10,
         power: Int = 10,
-        intuition: Int = 10,
+        instinct: Int = 10,
         endurance: Int = 0,
         currentEP: Int = GameMechanicsConstants.startingEP,
         attacks: [AttackProfile] = [
@@ -146,14 +154,17 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
             imageName: "",
             combatantType: .elf,
             currentHP: 100,
-            maxHP: 100,
+            currentMP: 0,
             currentEP: currentEP,
             maxEP: GameMechanicsConstants.startingEP,
-            strength: strength,
-            agility: agility,
-            power: power,
-            intuition: intuition,
-            endurance: endurance,
+            baseHeroAttributes: HeroAttributes(
+                hitPoints: 100, manaPoints: 0,
+                agility: Attribute(Int16(clamping: agility)),
+                strength: Attribute(Int16(clamping: strength)),
+                power: Attribute(Int16(clamping: power)),
+                instinct: Attribute(Int16(clamping: instinct)),
+                endurance: Attribute(Int16(clamping: endurance))
+            ),
             attacks: attacks,
             defensePoints: 2,
             armorValues: armor
@@ -180,6 +191,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
             $0.dodgeService = dodge
             $0.critService = crit
             $0.enduranceService = endurance
+            $0.buffEffectsCalculator = PassthroughBuffEffectsCalculator()
         } operation: {
             super.invokeTest()
             self.mockDamageService = nil
@@ -196,7 +208,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         mockCritService.shouldCrit = false
         let calculator = makeCalculator()
         let attacker = makeSnapshot(power: 20)
-        let defender = makeSnapshot(intuition: 30)
+        let defender = makeSnapshot(instinct: 30)
 
         // When
         let results = calculator.calculatePointStatus(
@@ -217,7 +229,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         mockDamageService.strengthDamageToReturn = 5
         let calculator = makeCalculator()
         let attacker = makeSnapshot(power: 50, attacks: [AttackProfile(minimumAttack: 10, maximumAttack: 10, epBlockCost: 200)])
-        let defender = makeSnapshot(intuition: 10, armor: [.head: 3])
+        let defender = makeSnapshot(instinct: 10, armor: [.head: 3])
 
         // When
         let results = calculator.calculatePointStatus(
@@ -227,12 +239,13 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
             defender: defender
         )
 
-        // Then
+        // Then: status remains `.critHit` for UI, but multiplier is suppressed
+        // to `blockedCritMultiplier` — block downgrades the crit's damage scaling.
         if case .critHit(let weaponDmg, let strengthDmg, let armor, let multiplier, _) = results[.head] {
             XCTAssertEqual(weaponDmg, 10)
             XCTAssertEqual(strengthDmg, 5)
             XCTAssertEqual(armor, 3)
-            XCTAssertEqual(multiplier, 2.0)
+            XCTAssertEqual(multiplier, GameMechanicsConstants.blockedCritMultiplier)
         } else {
             XCTFail("Expected critHit, got \(String(describing: results[.head]))")
         }
@@ -739,4 +752,5 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
             XCTFail("Expected .hit on body, got \(String(describing: results[.body]))")
         }
     }
+
 }

@@ -21,6 +21,7 @@ public final class BattleSetupViewModel {
     private let weaponValidator: any WeaponValidator
     private let snapshotBuilder: any CombatantSnapshotBuilder
     private let monsterRepository: any MonsterRepository
+    private let equippedSlotResolver: any HeroEquippedSlotResolver
 
     // MARK: - State
 
@@ -147,6 +148,7 @@ public final class BattleSetupViewModel {
         @Dependency(\.weaponValidator) var weaponValidator
         @Dependency(\.snapshotBuilder) var snapshotBuilder
         @Dependency(\.monsterRepository) var monsterRepository
+        @Dependency(\.equippedSlotResolver) var equippedSlotResolver
         self.itemsRepository = itemsRepository
         self.attributeService = attributeService
         self.armorService = armorService
@@ -154,6 +156,7 @@ public final class BattleSetupViewModel {
         self.weaponValidator = weaponValidator
         self.snapshotBuilder = snapshotBuilder
         self.monsterRepository = monsterRepository
+        self.equippedSlotResolver = equippedSlotResolver
 
         Task { await loadAllMonsters() }
     }
@@ -427,13 +430,15 @@ public final class BattleSetupViewModel {
         // Build CombatantSnapshot for player. The adapter falls back to
         // Recruit's Spear if no weapon is selected, so the dev screen can
         // always start a battle.
+        let playerEquipped = playerState.makeEquipped(itemsRepository: itemsRepository)
         let playerSnapshot = snapshotBuilder.buildSnapshot(
             name: "Player",
             imageName: "Yuuki Asuna",
             level: playerState.level,
             fightStyleAttributes: playerFightStyleAttrs,
             randomLevelAttributes: playerLevelAttrs,
-            equipped: playerState.makeEquipped(itemsRepository: itemsRepository)
+            equipped: playerEquipped,
+            globalBuffs: []
         )
 
         // Handle opponent based on selection
@@ -446,29 +451,38 @@ public final class BattleSetupViewModel {
             }
 
             // Build CombatantSnapshot for bot
+            let botEquipped = botState.makeEquipped(itemsRepository: itemsRepository)
             let botSnapshot = snapshotBuilder.buildSnapshot(
                 name: "Bot",
                 imageName: "",
                 level: botState.level,
                 fightStyleAttributes: botFightStyleAttrs,
                 randomLevelAttributes: botLevelAttrs,
-                equipped: botState.makeEquipped(itemsRepository: itemsRepository)
+                equipped: botEquipped,
+                globalBuffs: []
             )
 
             // Create Battle with elf opponent
             return Battle(
                 leftTeam: [playerSnapshot],
-                rightTeam: [botSnapshot]
+                rightTeam: [botSnapshot],
+                equippedItemsByCombatantId: [
+                    playerSnapshot.id: equippedSlotResolver.resolve(equipped: playerEquipped),
+                    botSnapshot.id: equippedSlotResolver.resolve(equipped: botEquipped)
+                ]
             )
 
         case .monster(let monster):
             // Build CombatantSnapshot from monster
-            let monsterSnapshot = snapshotBuilder.buildSnapshot(from: monster)
+            let monsterSnapshot = snapshotBuilder.buildSnapshot(from: monster, globalBuffs: [])
 
             // Create Battle with monster opponent
             return Battle(
                 leftTeam: [playerSnapshot],
-                rightTeam: [monsterSnapshot]
+                rightTeam: [monsterSnapshot],
+                equippedItemsByCombatantId: [
+                    playerSnapshot.id: equippedSlotResolver.resolve(equipped: playerEquipped)
+                ]
             )
         }
     }

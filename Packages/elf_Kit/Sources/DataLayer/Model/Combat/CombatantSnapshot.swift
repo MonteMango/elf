@@ -10,6 +10,15 @@ import Foundation
 /// A unified snapshot of a combatant's state for battle calculations.
 /// This struct captures all relevant combat stats from either an ElfHero or Monster,
 /// enabling unified battle logic regardless of combatant type.
+///
+/// Combat attributes are stored as a single `baseHeroAttributes: HeroAttributes`
+/// (post-equipment, pre-buff). Effective values with buff math are NOT computed
+/// on the snapshot — `ElfSnapshotCombatCalculator` resolves them through
+/// `BuffEffectsCalculator` at the use site, keeping this type free of DI.
+///
+/// UI-side equipment layout (`[HeroItemType: HeroEquippedSlot]`) is NOT carried
+/// here — it lives on `Battle.equippedItemsByCombatantId` keyed by snapshot id,
+/// so per-round HP / battleBuffs mutations don't invalidate equipment rendering.
 public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
 
     // MARK: - Identity
@@ -37,8 +46,13 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
     /// Current hit points (mutable during battle)
     public var currentHP: Int
 
-    /// Maximum hit points
-    public let maxHP: Int
+    // MARK: - Mana
+
+    /// Current mana points (mutable during battle). Cosmetic today — no
+    /// combat consumer yet — but kept parallel to `currentHP` so flat MP
+    /// buffs in `BuffEffect.vitalsFlat` round-trip honestly through the
+    /// snapshot rather than being silently dropped.
+    public var currentMP: Int
 
     // MARK: - Endurance Points
 
@@ -50,20 +64,29 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
 
     // MARK: - Attributes
 
-    /// Strength attribute - affects damage dealt
-    public let strength: Int
+    /// Base attributes for combat math: post-equipment, pre-buff. Single source
+    /// of truth — scalar `baseStrength` / `baseAgility` / ... below are simple
+    /// `Int` projections of these values. Combat code combines this with
+    /// `globalBuffs` + `battleBuffs` via `BuffEffectsCalculator` to get
+    /// effective values.
+    ///
+    /// TODO: [combat/equipment-mutation] becomes mutable once item-destruction
+    /// lands. Will need to recompute on each equipped-item-destroyed event,
+    /// alongside `attacks`, `armorValues`, `defensePoints`. The single-source-of-
+    /// truth formula will then live on a mutating method (e.g. `recomputeAttrs`)
+    /// driven by the current `equipped` set, not from `ElfInfo.totalAttributes`
+    /// (which becomes the initial value only).
+    public let baseHeroAttributes: HeroAttributes
 
-    /// Agility attribute - affects dodge chance, reduces enemy crit multiplier
-    public let agility: Int
+    /// Global-scope buffs copied from the elf at the start of the battle.
+    /// Immutable here — the source of truth is `ElfInfo.globalBuffs`. Empty
+    /// for monsters and for snapshots constructed without buff context.
+    public let globalBuffs: [AppliedBuff]
 
-    /// Power attribute - affects critical hit chance
-    public let power: Int
-
-    /// Intuition attribute - reduces enemy dodge/crit chance
-    public let intuition: Int
-
-    /// Endurance attribute - reserved for the EP/block-cost system (not yet read by combat math)
-    public let endurance: Int
+    /// Battle-scope buffs gained during the fight. Mutated by
+    /// `BattleFightViewModel.applyBattleBuff` and discarded with the snapshot
+    /// at `finishBattle` — never propagated back to `ElfInfo`.
+    public var battleBuffs: [AppliedBuff]
 
     // MARK: - Attacks
 
@@ -91,53 +114,6 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
     /// Armor values per body part
     public let armorValues: [BodyPart: Int]
 
-    // MARK: - Equipment (nullable - monsters may or may not have equipment)
-
-    /// Head armor item
-    public let helmetItem: ElfDefenseItem?
-
-    /// Hand armor item
-    public let glovesItem: ElfDefenseItem?
-
-    /// Feet armor item
-    public let shoesItem: ElfDefenseItem?
-
-    /// Upper body armor item
-    public let upperBodyItem: ElfDefenseItem?
-
-    /// Lower body armor item
-    public let bottomBodyItem: ElfDefenseItem?
-
-    /// Robe item (worn over armor)
-    public let robeItem: ElfRobeItem?
-
-    /// Weapon in left hand
-    public let leftWeaponItem: ElfWeaponItem?
-
-    /// Weapon in right hand
-    public let rightWeaponItem: ElfWeaponItem?
-
-    /// Shield item
-    public let shieldItem: ElfShieldItem?
-
-    /// Ring accessory
-    public let ringItem: ElfJewelryItem?
-
-    /// Necklace accessory
-    public let necklaceItem: ElfJewelryItem?
-
-    /// Earrings accessory
-    public let earringsItem: ElfJewelryItem?
-
-    // MARK: - UI slot layout
-
-    /// Pre-resolved per-slot display data, shared with `HeroSection` and the
-    /// Dungeon → Squad cell. Carries the off-hand mirror entry for two-handed
-    /// weapons (a slot marked `isMirror == true` reflecting the main-hand item)
-    /// so the BattleFight view can render the off-hand cell consistently.
-    /// Empty for monsters.
-    public let equippedItems: [HeroItemType: HeroEquippedSlot]
-
     // MARK: - Initialization
 
     public init(
@@ -148,30 +124,15 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
         combatantType: CombatantType,
         level: Int = 1,
         currentHP: Int,
-        maxHP: Int,
+        currentMP: Int,
         currentEP: Int,
         maxEP: Int,
-        strength: Int,
-        agility: Int,
-        power: Int,
-        intuition: Int,
-        endurance: Int,
+        baseHeroAttributes: HeroAttributes,
         attacks: [AttackProfile],
         defensePoints: Int,
         armorValues: [BodyPart: Int],
-        helmetItem: ElfDefenseItem? = nil,
-        glovesItem: ElfDefenseItem? = nil,
-        shoesItem: ElfDefenseItem? = nil,
-        upperBodyItem: ElfDefenseItem? = nil,
-        bottomBodyItem: ElfDefenseItem? = nil,
-        robeItem: ElfRobeItem? = nil,
-        leftWeaponItem: ElfWeaponItem? = nil,
-        rightWeaponItem: ElfWeaponItem? = nil,
-        shieldItem: ElfShieldItem? = nil,
-        ringItem: ElfJewelryItem? = nil,
-        necklaceItem: ElfJewelryItem? = nil,
-        earringsItem: ElfJewelryItem? = nil,
-        equippedItems: [HeroItemType: HeroEquippedSlot] = [:]
+        globalBuffs: [AppliedBuff] = [],
+        battleBuffs: [AppliedBuff] = []
     ) {
         self.id = id
         self.sourceId = sourceId
@@ -180,52 +141,42 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
         self.combatantType = combatantType
         self.level = level
         self.currentHP = currentHP
-        self.maxHP = maxHP
+        self.currentMP = currentMP
         self.currentEP = currentEP
         self.maxEP = maxEP
-        self.strength = strength
-        self.agility = agility
-        self.power = power
-        self.intuition = intuition
-        self.endurance = endurance
+        self.baseHeroAttributes = baseHeroAttributes
         self.attacks = attacks
         self.defensePoints = defensePoints
         self.armorValues = armorValues
-        self.helmetItem = helmetItem
-        self.glovesItem = glovesItem
-        self.shoesItem = shoesItem
-        self.upperBodyItem = upperBodyItem
-        self.bottomBodyItem = bottomBodyItem
-        self.robeItem = robeItem
-        self.leftWeaponItem = leftWeaponItem
-        self.rightWeaponItem = rightWeaponItem
-        self.shieldItem = shieldItem
-        self.ringItem = ringItem
-        self.necklaceItem = necklaceItem
-        self.earringsItem = earringsItem
-        self.equippedItems = equippedItems
+        self.globalBuffs = globalBuffs
+        self.battleBuffs = battleBuffs
     }
+
+    // MARK: - Base attribute projections
+
+    /// Maximum hit points — `Int` projection of `baseHeroAttributes.hitPoints`.
+    /// Pre-buff cap; for the buff-folded value use
+    /// `SnapshotCombatCalculator.effectiveAttributes(of:)`. `currentHP` is the
+    /// mutable in-battle counter.
+    public var maxHP: Int { baseHeroAttributes.hitPoints.intValue }
+
+    /// Maximum mana points — `Int` projection of `baseHeroAttributes.manaPoints`.
+    /// Pre-buff cap; for the buff-folded value use
+    /// `SnapshotCombatCalculator.effectiveAttributes(of:)`.
+    public var maxMP: Int { baseHeroAttributes.manaPoints.intValue }
+
+    /// `Int` projection of `baseHeroAttributes.strength`. Pre-buff value; combat
+    /// math should use the effective value computed through `BuffEffectsCalculator`.
+    public var baseStrength: Int { Int(baseHeroAttributes.strength.value) }
+    public var baseAgility: Int { Int(baseHeroAttributes.agility.value) }
+    public var basePower: Int { Int(baseHeroAttributes.power.value) }
+    public var baseInstinct: Int { Int(baseHeroAttributes.instinct.value) }
+    public var baseEndurance: Int { Int(baseHeroAttributes.endurance.value) }
 
     // MARK: - Computed Properties
 
     /// Whether the combatant is still alive
     public var isAlive: Bool {
         currentHP > 0
-    }
-
-    /// Whether the combatant has any equipment
-    public var hasEquipment: Bool {
-        helmetItem != nil ||
-        glovesItem != nil ||
-        shoesItem != nil ||
-        upperBodyItem != nil ||
-        bottomBodyItem != nil ||
-        robeItem != nil ||
-        leftWeaponItem != nil ||
-        rightWeaponItem != nil ||
-        shieldItem != nil ||
-        ringItem != nil ||
-        necklaceItem != nil ||
-        earringsItem != nil
     }
 }

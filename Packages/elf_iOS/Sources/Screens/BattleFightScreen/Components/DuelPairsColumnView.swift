@@ -14,13 +14,13 @@ import SwiftUI
 /// Waiting combatants (without pair) are shown at the top with empty slot on opposite side.
 struct DuelPairsColumnView: View {
     let battleRound: BattleRound
-    let leftTeam: [CombatantSnapshot]
-    let rightTeam: [CombatantSnapshot]
+    let leftCells: [CombatantCellState]
+    let rightCells: [CombatantCellState]
     let playerCombatantId: UUID?
 
-    /// Returns combatant snapshot by ID
-    private func snapshot(for id: UUID) -> CombatantSnapshot? {
-        leftTeam.first { $0.id == id } ?? rightTeam.first { $0.id == id }
+    /// Returns the cell descriptor matching the given combatant id, across both teams.
+    private func cell(for id: UUID) -> CombatantCellState? {
+        leftCells.first { $0.id == id } ?? rightCells.first { $0.id == id }
     }
 
     /// Pair containing the player on the left side, if present in this round.
@@ -52,7 +52,7 @@ struct DuelPairsColumnView: View {
     /// Hero is alive somewhere in the left team but has no pair this round → render alone.
     private var isHeroWaiting: Bool {
         guard let playerId = playerCombatantId,
-              let player = leftTeam.first(where: { $0.id == playerId }),
+              let player = leftCells.first(where: { $0.id == playerId }),
               player.isAlive
         else { return false }
         return heroPair == nil
@@ -74,26 +74,26 @@ struct DuelPairsColumnView: View {
             VStack(alignment: .trailing, spacing: 8) {
                 // Waiting left combatants (top, no pair) — hero excluded; he sits at the bottom alone.
                 ForEach(waitingLeftIdsForDisplay, id: \.self) { id in
-                    if let combatant = snapshot(for: id) {
-                        CombatantImageView(snapshot: combatant, isActive: false)
+                    if let combatant = cell(for: id) {
+                        CombatantImageView(cell: combatant, isActive: false)
                     }
                 }
 
                 // Other pairs (non-hero), from last to first
                 ForEach(otherPairs.reversed()) { pair in
-                    if let combatant = snapshot(for: pair.leftCombatantId) {
-                        CombatantImageView(snapshot: combatant, isActive: false)
+                    if let combatant = cell(for: pair.leftCombatantId) {
+                        CombatantImageView(cell: combatant, isActive: false)
                     }
                 }
 
                 // Bottom-active row: hero's pair (or fallback first pair) — large icon.
                 if isHeroWaiting,
                    let playerId = playerCombatantId,
-                   let player = snapshot(for: playerId) {
-                    CombatantImageView(snapshot: player, isActive: true)
+                   let player = cell(for: playerId) {
+                    CombatantImageView(cell: player, isActive: true)
                 } else if let activePair = activeBottomPair,
-                          let combatant = snapshot(for: activePair.leftCombatantId) {
-                    CombatantImageView(snapshot: combatant, isActive: true)
+                          let combatant = cell(for: activePair.leftCombatantId) {
+                    CombatantImageView(cell: combatant, isActive: true)
                 }
             }
 
@@ -106,8 +106,8 @@ struct DuelPairsColumnView: View {
             VStack(alignment: .leading, spacing: 8) {
                 // Waiting right combatants (top, no pair)
                 ForEach(battleRound.waitingRightIds, id: \.self) { id in
-                    if let combatant = snapshot(for: id) {
-                        CombatantImageView(snapshot: combatant, isActive: false)
+                    if let combatant = cell(for: id) {
+                        CombatantImageView(cell: combatant, isActive: false)
                     }
                 }
 
@@ -122,8 +122,8 @@ struct DuelPairsColumnView: View {
 
                 // Other pairs, from last to first
                 ForEach(otherPairs.reversed()) { pair in
-                    if let combatant = snapshot(for: pair.rightCombatantId) {
-                        CombatantImageView(snapshot: combatant, isActive: false)
+                    if let combatant = cell(for: pair.rightCombatantId) {
+                        CombatantImageView(cell: combatant, isActive: false)
                     }
                 }
 
@@ -135,8 +135,8 @@ struct DuelPairsColumnView: View {
                             height: ElfSizing.BattleFight.teamImageActiveSize
                         )
                 } else if let activePair = activeBottomPair,
-                          let combatant = snapshot(for: activePair.rightCombatantId) {
-                    CombatantImageView(snapshot: combatant, isActive: true)
+                          let combatant = cell(for: activePair.rightCombatantId) {
+                    CombatantImageView(cell: combatant, isActive: true)
                 }
             }
         }
@@ -144,122 +144,32 @@ struct DuelPairsColumnView: View {
 }
 
 #Preview {
-    let leftTeam = [
-        CombatantSnapshot(
-            id: UUID(),
-            sourceId: UUID(),
-            name: "Elf A",
-            imageName: "elf_player",
-            combatantType: .elf,
-            currentHP: 100,
-            maxHP: 100,
-            currentEP: 2000,
-            maxEP: 2000,
-            strength: 10,
-            agility: 10,
-            power: 10,
-            intuition: 10,
-            endurance: 0,
-            attacks: [AttackProfile(minimumAttack: 5, maximumAttack: 10, epBlockCost: 200)],
-            defensePoints: 2,
-            armorValues: [:]
-        ),
-        CombatantSnapshot(
-            id: UUID(),
-            sourceId: UUID(),
-            name: "Elf B",
-            imageName: "elf_player",
-            combatantType: .elf,
-            currentHP: 100,
-            maxHP: 100,
-            currentEP: 2000,
-            maxEP: 2000,
-            strength: 10,
-            agility: 10,
-            power: 10,
-            intuition: 10,
-            endurance: 0,
-            attacks: [AttackProfile(minimumAttack: 5, maximumAttack: 10, epBlockCost: 200)],
-            defensePoints: 2,
-            armorValues: [:]
-        ),
-        CombatantSnapshot(
-            id: UUID(),
-            sourceId: UUID(),
-            name: "Elf C",
-            imageName: "elf_player",
-            combatantType: .elf,
-            currentHP: 100,
-            maxHP: 100,
-            currentEP: 2000,
-            maxEP: 2000,
-            strength: 10,
-            agility: 10,
-            power: 10,
-            intuition: 10,
-            endurance: 0,
-            attacks: [AttackProfile(minimumAttack: 5, maximumAttack: 10, epBlockCost: 200)],
-            defensePoints: 2,
-            armorValues: [:]
-        )
+    let leftCells = [
+        CombatantCellState(id: UUID(), imageName: "elf_player", isAlive: true),
+        CombatantCellState(id: UUID(), imageName: "elf_player", isAlive: true),
+        CombatantCellState(id: UUID(), imageName: "elf_player", isAlive: true)
     ]
 
-    let rightTeam = [
-        CombatantSnapshot(
-            id: UUID(),
-            sourceId: UUID(),
-            name: "Goblin D",
-            imageName: "monster_goblin",
-            combatantType: .monster,
-            currentHP: 80,
-            maxHP: 80,
-            currentEP: 2000,
-            maxEP: 2000,
-            strength: 8,
-            agility: 12,
-            power: 8,
-            intuition: 8,
-            endurance: 0,
-            attacks: [AttackProfile(minimumAttack: 3, maximumAttack: 8, epBlockCost: 200)],
-            defensePoints: 2,
-            armorValues: [:]
-        ),
-        CombatantSnapshot(
-            id: UUID(),
-            sourceId: UUID(),
-            name: "Goblin E",
-            imageName: "monster_goblin",
-            combatantType: .monster,
-            currentHP: 80,
-            maxHP: 80,
-            currentEP: 2000,
-            maxEP: 2000,
-            strength: 8,
-            agility: 12,
-            power: 8,
-            intuition: 8,
-            endurance: 0,
-            attacks: [AttackProfile(minimumAttack: 3, maximumAttack: 8, epBlockCost: 200)],
-            defensePoints: 2,
-            armorValues: [:]
-        )
+    let rightCells = [
+        CombatantCellState(id: UUID(), imageName: "monster_goblin", isAlive: true),
+        CombatantCellState(id: UUID(), imageName: "monster_goblin", isAlive: true)
     ]
 
     let battleRound = BattleRound(
         roundNumber: 1,
         duelPairs: [
-            DuelPair(leftCombatantId: leftTeam[0].id, rightCombatantId: rightTeam[0].id),
-            DuelPair(leftCombatantId: leftTeam[1].id, rightCombatantId: rightTeam[1].id)
+            DuelPair(leftCombatantId: leftCells[0].id, rightCombatantId: rightCells[0].id),
+            DuelPair(leftCombatantId: leftCells[1].id, rightCombatantId: rightCells[1].id)
         ],
-        waitingLeftIds: [leftTeam[2].id],
+        waitingLeftIds: [leftCells[2].id],
         waitingRightIds: []
     )
 
     return DuelPairsColumnView(
         battleRound: battleRound,
-        leftTeam: leftTeam,
-        rightTeam: rightTeam,
-        playerCombatantId: leftTeam[0].id
+        leftCells: leftCells,
+        rightCells: rightCells,
+        playerCombatantId: leftCells[0].id
     )
     .padding()
     .background(Color.yellow)

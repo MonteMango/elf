@@ -37,6 +37,8 @@ public final class GameSession {
     private let debugGameLogger: any DebugGameLogger
     private let inventoryService: any InventoryService
     private let craftService: any CraftService
+    private let buffsRepository: any BuffsRepository
+    private let buffApplicationService: any BuffApplicationService
 
     private let slotId: String
 
@@ -51,17 +53,22 @@ public final class GameSession {
         @Dependency(\.debugGameLogger) var debugGameLogger
         @Dependency(\.inventoryService) var inventoryService
         @Dependency(\.craftService) var craftService
+        @Dependency(\.buffsRepository) var buffsRepository
+        @Dependency(\.buffApplicationService) var buffApplicationService
         self.gameRepository = gameRepository
         self.debugGameLogger = debugGameLogger
         self.inventoryService = inventoryService
         self.craftService = craftService
+        self.buffsRepository = buffsRepository
+        self.buffApplicationService = buffApplicationService
         self.state = GameStore(from: game, playTime: playTime)
         self.slotId = slotId
     }
 
     // MARK: - Day Management
 
-    /// Advances to the next day in the calendar. Resets action points.
+    /// Advances to the next day in the calendar. Resets action points and
+    /// expires global buffs whose `durationDays` has elapsed.
     public func advanceToNextDay() {
         let nextDayNumber = state.currentDay.dayNumber + 1
         guard let nextDayIndex = state.calendar.firstIndex(where: { $0.dayNumber == nextDayNumber }) else {
@@ -69,6 +76,26 @@ public final class GameSession {
         }
         state.currentDay = state.calendar[nextDayIndex]
         state.actionPoints = state.actionPoints.reset()
+        expireGlobalBuffs(currentDayNumber: nextDayNumber)
+    }
+
+    private func expireGlobalBuffs(currentDayNumber: Int) {
+        for houseIndex in state.houses.indices {
+            for memberIndex in state.houses[houseIndex].members.indices {
+                let current = state.houses[houseIndex].members[memberIndex].globalBuffs
+                let kept = current.filter { applied in
+                    guard let buff = buffsRepository.getById(id: applied.buffId),
+                          let duration = buff.durationDays,
+                          let appliedOnDay = applied.appliedOnDay else {
+                        return true  // unknown buff, no expiry, or missing day → keep
+                    }
+                    return currentDayNumber - appliedOnDay < duration
+                }
+                if kept.count != current.count {
+                    state.houses[houseIndex].members[memberIndex].globalBuffs = kept
+                }
+            }
+        }
     }
 
     /// Spends action points for an activity. No-op if insufficient.
@@ -144,6 +171,31 @@ public final class GameSession {
             inventory = inventoryService.addCraftedItem(item, to: inventory)
         }
         state.player.inventory = inventory
+    }
+
+    // MARK: - Buffs
+
+    /// Applies a global-scope buff to the player respecting the buff's
+    /// `stackingRule`. Scope is enforced by `BuffApplicationService.applyAsGlobal`.
+    public func applyGlobalBuffToPlayer(buffId: UUID) {
+        state.player.globalBuffs = buffApplicationService.applyAsGlobal(
+            buffId: buffId,
+            to: state.player.globalBuffs,
+            currentDay: state.currentDay.dayNumber
+        )
+    }
+
+    /// Applies a global-scope buff to a specific elf in the roster.
+    public func applyGlobalBuff(buffId: UUID, toElfAt houseIndex: Int, memberIndex: Int) {
+        guard houseIndex >= 0, houseIndex < state.houses.count,
+              memberIndex >= 0, memberIndex < state.houses[houseIndex].members.count else {
+            return
+        }
+        state.houses[houseIndex].members[memberIndex].globalBuffs = buffApplicationService.applyAsGlobal(
+            buffId: buffId,
+            to: state.houses[houseIndex].members[memberIndex].globalBuffs,
+            currentDay: state.currentDay.dayNumber
+        )
     }
 
     // MARK: - Crafting

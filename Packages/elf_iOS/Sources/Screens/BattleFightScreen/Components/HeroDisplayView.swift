@@ -15,11 +15,7 @@ struct HeroDisplayView: View {
 
     // MARK: - Properties
 
-    let snapshot: CombatantSnapshot
-    let currentHP: Int
-    let maxHP: Int
-    let currentEP: Int
-    let maxEP: Int
+    let display: HeroDisplayState
     let roundResults: [BodyPart: PointStatus]
 
     // MARK: - Body
@@ -31,27 +27,31 @@ struct HeroDisplayView: View {
         VStack(spacing: 10) {
             VStack(spacing: 2) {
                 hpBar
+                // TODO: [buffs/P2] render MP bar between hpBar and epBar — data already in display.currentMP/maxMP (effective). Blocked on a magic mechanic that actually spends MP; rendering 0/0 today would be visual debt.
                 epBar
             }
 
             // Hero Image with overlays
             ZStack {
                 CombatantBodyView(
-                    imageName: snapshot.imageName,
-                    equippedItems: snapshot.equippedItems
+                    imageName: display.imageName,
+                    equippedItems: display.equippedItems
                 )
+
+                // TODO: [buffs/P1] render buff badges from display.buffBadges — needs design (placement: portrait corner overlay vs. row above hpBar; polarity colors in ElfColors.Buff; stacks count badge; optional tooltip). Land alongside #9 (dev-menu apply-buff trigger) so the strip is exercised end-to-end.
 
                 // Per-round result dots — battle-only, stays on the outer caller.
                 resultDotsOverlay
             }
 
-            // Attributes
+            // Attributes (effective values; buff-folded combat math is what the
+            // player sees on-screen).
             elf_SwiftUI.AttributesCompactView(
-                strength: snapshot.strength,
-                agility: snapshot.agility,
-                power: snapshot.power,
-                instinct: snapshot.intuition,
-                endurance: snapshot.endurance
+                strength: display.strength.effective,
+                agility: display.agility.effective,
+                power: display.power.effective,
+                instinct: display.instinct.effective,
+                endurance: display.endurance.effective
             )
         }
     }
@@ -70,7 +70,7 @@ struct HeroDisplayView: View {
                     .fill(ElfColors.ProgressBar.hp)
                     .frame(width: geometry.size.width * hpPercentage)
 
-                Text("\(currentHP)/\(maxHP)")
+                Text("\(display.currentHP)/\(display.maxHP)")
                     .font(ElfFonts.Component.statValue)
                     .foregroundStyle(ElfColors.Text.primaryLight)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -80,7 +80,7 @@ struct HeroDisplayView: View {
         .frame(height: ElfSizing.BattleFight.hpBarHeight)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Hit points")
-        .accessibilityValue("\(currentHP) of \(maxHP)")
+        .accessibilityValue("\(display.currentHP) of \(display.maxHP)")
     }
 
     private var epBar: some View {
@@ -93,7 +93,7 @@ struct HeroDisplayView: View {
                     .fill(ElfColors.ProgressBar.ep)
                     .frame(width: geometry.size.width * epPercentage)
 
-                Text("\(currentEP)/\(maxEP)")
+                Text("\(display.currentEP)/\(display.maxEP)")
                     .font(ElfFonts.Component.statLabel)
                     .foregroundStyle(ElfColors.Text.primaryLight)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -103,7 +103,7 @@ struct HeroDisplayView: View {
         .frame(height: ElfSizing.BattleFight.epBarHeight)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Endurance points")
-        .accessibilityValue("\(currentEP) of \(maxEP)")
+        .accessibilityValue("\(display.currentEP) of \(display.maxEP)")
     }
 
     @ViewBuilder
@@ -192,75 +192,68 @@ struct HeroDisplayView: View {
     // MARK: - Computed Properties
 
     private var hpPercentage: CGFloat {
-        guard maxHP > 0 else { return 0 }
-        return min(max(0, CGFloat(currentHP) / CGFloat(maxHP)), 1)
+        guard display.maxHP > 0 else { return 0 }
+        return min(max(0, CGFloat(display.currentHP) / CGFloat(display.maxHP)), 1)
     }
 
     private var epPercentage: CGFloat {
-        guard maxEP > 0 else { return 0 }
-        return min(max(0, CGFloat(currentEP) / CGFloat(maxEP)), 1)
+        guard display.maxEP > 0 else { return 0 }
+        return min(max(0, CGFloat(display.currentEP) / CGFloat(display.maxEP)), 1)
     }
 }
 
 // MARK: - Preview
 
 #Preview {
-    let monsterSnapshot = CombatantSnapshot(
-        sourceId: UUID(),
+    let monsterDisplay = HeroDisplayState(
+        id: UUID(),
         name: "Goblin",
+        level: 1,
         imageName: "monster_goblin",
-        combatantType: .monster,
         currentHP: 120,
         maxHP: 150,
+        currentMP: 0,
+        maxMP: 0,
         currentEP: 1400,
         maxEP: 2000,
-        strength: 15,
-        agility: 10,
-        power: 12,
-        intuition: 8,
-        endurance: 0,
-        attacks: [
-            AttackProfile(minimumAttack: 5, maximumAttack: 10, epBlockCost: 200)
-        ],
-        defensePoints: 2,
-        armorValues: [:]
+        strength: AttributeDisplay(base: 15, effective: 15),
+        agility: AttributeDisplay(base: 10, effective: 10),
+        power: AttributeDisplay(base: 12, effective: 12),
+        instinct: AttributeDisplay(base: 8, effective: 8),
+        endurance: AttributeDisplay(base: 0, effective: 0),
+        attackPointsCount: 1,
+        defensePointsCount: 2,
+        equippedItems: [:],
+        buffBadges: [],
+        isAlive: true
     )
 
-    let elfSnapshot = CombatantSnapshot(
-        sourceId: UUID(),
+    let elfDisplay = HeroDisplayState(
+        id: UUID(),
         name: "Elara",
+        level: 5,
         imageName: "elf_warrior",
-        combatantType: .elf,
         currentHP: 180,
         maxHP: 225,
+        currentMP: 0,
+        maxMP: 0,
         currentEP: 2000,
         maxEP: 2000,
-        strength: 18,
-        agility: 12,
-        power: 14,
-        intuition: 10,
-        endurance: 0,
-        attacks: [
-            AttackProfile(minimumAttack: 8, maximumAttack: 15, epBlockCost: 200),
-            AttackProfile(minimumAttack: 4, maximumAttack: 8, epBlockCost: 100)
-        ],
-        defensePoints: 3,
-        armorValues: [
-            .head: 5,
-            .body: 10,
-            .leftHand: 3,
-            .rightHand: 3,
-            .legs: 7
-        ]
+        strength: AttributeDisplay(base: 18, effective: 18),
+        agility: AttributeDisplay(base: 12, effective: 12),
+        power: AttributeDisplay(base: 14, effective: 14),
+        instinct: AttributeDisplay(base: 10, effective: 10),
+        endurance: AttributeDisplay(base: 0, effective: 0),
+        attackPointsCount: 2,
+        defensePointsCount: 3,
+        equippedItems: [:],
+        buffBadges: [],
+        isAlive: true
     )
 
     return HStack(spacing: 30) {
         HeroDisplayView(
-            snapshot: monsterSnapshot,
-            currentHP: 120,
-            maxHP: 150,
-            currentEP: 1400,
-            maxEP: 2000,
+            display: monsterDisplay,
             roundResults: [
                 .head: .blocked(wasCrit: false, epSpent: 200),
                 .body: .hit(weaponDamage: 8, strengthDamage: 5, defenderArmor: 3),
@@ -272,11 +265,7 @@ struct HeroDisplayView: View {
         .frame(width: 150)
 
         HeroDisplayView(
-            snapshot: elfSnapshot,
-            currentHP: 180,
-            maxHP: 225,
-            currentEP: 2000,
-            maxEP: 2000,
+            display: elfDisplay,
             roundResults: [
                 .head: .hit(weaponDamage: 4, strengthDamage: 3, defenderArmor: 2),
                 .body: .blocked(wasCrit: false, epSpent: 200),

@@ -21,9 +21,12 @@ public final class BattleFightViewModel {
     private let duelPairingService: any DuelPairingService
     private let monsterRepository: any MonsterRepository
     private let battleResultCalculator: any BattleResultCalculator
+    private let buffApplicationService: any BuffApplicationService
+    let buffEffectsCalculator: any BuffEffectsCalculator
+    let buffsRepository: any BuffsRepository
 
     // Optional session context (nil for non-hunt battles like dev BattleSetup flow)
-    private let session: GameSession?
+    let session: GameSession?
 
     // MARK: - State
 
@@ -79,9 +82,22 @@ public final class BattleFightViewModel {
     }
 
     public var playerCurrentHP: Int { playerSnapshot.currentHP }
-    public var playerMaxHP: Int { playerSnapshot.maxHP }
+    public var playerMaxHP: Int {
+        buffEffectsCalculator.effectiveAttributes(of: playerSnapshot).hitPoints.intValue
+    }
     public var botCurrentHP: Int? { botSnapshot?.currentHP }
-    public var botMaxHP: Int? { botSnapshot?.maxHP }
+    public var botMaxHP: Int? {
+        botSnapshot.map { buffEffectsCalculator.effectiveAttributes(of: $0).hitPoints.intValue }
+    }
+
+    public var playerCurrentMP: Int { playerSnapshot.currentMP }
+    public var playerMaxMP: Int {
+        buffEffectsCalculator.effectiveAttributes(of: playerSnapshot).manaPoints.intValue
+    }
+    public var botCurrentMP: Int? { botSnapshot?.currentMP }
+    public var botMaxMP: Int? {
+        botSnapshot.map { buffEffectsCalculator.effectiveAttributes(of: $0).manaPoints.intValue }
+    }
 
     public var isHeroAlive: Bool { playerSnapshot.isAlive }
 
@@ -121,6 +137,9 @@ public final class BattleFightViewModel {
         @Dependency(\.duelPairingService) var duelPairingService
         @Dependency(\.monsterRepository) var monsterRepository
         @Dependency(\.battleResultCalculator) var battleResultCalculator
+        @Dependency(\.buffApplicationService) var buffApplicationService
+        @Dependency(\.buffEffectsCalculator) var buffEffectsCalculator
+        @Dependency(\.buffsRepository) var buffsRepository
         self.battleRoundRunner = battleRoundRunner
         self.botAI = botAI
         self.battleLogger = battleLogger
@@ -128,6 +147,9 @@ public final class BattleFightViewModel {
         self.duelPairingService = duelPairingService
         self.monsterRepository = monsterRepository
         self.battleResultCalculator = battleResultCalculator
+        self.buffApplicationService = buffApplicationService
+        self.buffEffectsCalculator = buffEffectsCalculator
+        self.buffsRepository = buffsRepository
 
         self.battle = battle
         self.session = session
@@ -142,6 +164,61 @@ public final class BattleFightViewModel {
     /// Loads initial battle data. Call from View's .task {} modifier.
     public func loadInitialData() {
         generateNewRoundPairings()
+    }
+
+    // MARK: - Buffs
+
+    /// Applies a buff to a specific combatant on either team. Buffs added
+    /// during a battle live only on the snapshot and are discarded at
+    /// `finishBattle` — no propagation back to `ElfInfo`.
+    ///
+    /// If the buff shifts the effective HP/MP cap, `currentHP` and `currentMP`
+    /// are scaled proportionally so the fraction-of-cap is preserved
+    /// (e.g. 50/100 HP + a buff raising the cap to 120 → 60/120).
+    public func applyBattleBuff(buffId: UUID, toCombatantWithId combatantId: UUID) {
+        if let index = leftTeam.firstIndex(where: { $0.id == combatantId }) {
+            let before = buffEffectsCalculator.effectiveAttributes(of: leftTeam[index])
+            leftTeam[index].battleBuffs = buffApplicationService.applyAsBattle(
+                buffId: buffId,
+                to: leftTeam[index].battleBuffs
+            )
+            rescaleCurrentVitals(combatant: &leftTeam[index], before: before)
+            return
+        }
+        if let index = rightTeam.firstIndex(where: { $0.id == combatantId }) {
+            let before = buffEffectsCalculator.effectiveAttributes(of: rightTeam[index])
+            rightTeam[index].battleBuffs = buffApplicationService.applyAsBattle(
+                buffId: buffId,
+                to: rightTeam[index].battleBuffs
+            )
+            rescaleCurrentVitals(combatant: &rightTeam[index], before: before)
+        }
+    }
+
+    /// Rescales `currentHP` / `currentMP` proportionally after a buff change
+    /// shifts the effective cap. Reads the post-mutation effective attributes
+    /// internally — caller passes the pre-mutation snapshot for comparison.
+    private func rescaleCurrentVitals(combatant: inout CombatantSnapshot, before: HeroAttributes) {
+        let after = buffEffectsCalculator.effectiveAttributes(of: combatant)
+        combatant.currentHP = Self.scaledVital(
+            current: combatant.currentHP,
+            oldMax: before.hitPoints.intValue,
+            newMax: after.hitPoints.intValue
+        )
+        combatant.currentMP = Self.scaledVital(
+            current: combatant.currentMP,
+            oldMax: before.manaPoints.intValue,
+            newMax: after.manaPoints.intValue
+        )
+    }
+
+    /// Half-up integer scaling of `current` from `oldMax` to `newMax`, clamped
+    /// to `[0, newMax]`. `oldMax == 0` short-circuits to `min(current, newMax)`
+    /// — preserves a dead combatant (current == 0) and avoids ÷0.
+    static func scaledVital(current: Int, oldMax: Int, newMax: Int) -> Int {
+        guard oldMax > 0 else { return max(0, min(current, newMax)) }
+        let scaled = (current * newMax + oldMax / 2) / oldMax
+        return max(0, min(scaled, newMax))
     }
 
     // MARK: - Player Actions

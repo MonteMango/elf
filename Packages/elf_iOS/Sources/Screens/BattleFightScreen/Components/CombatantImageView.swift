@@ -11,7 +11,7 @@ import SwiftUI
 
 /// Displays a combatant's image with size based on active state and defeated overlay.
 struct CombatantImageView: View {
-    let snapshot: CombatantSnapshot
+    let cell: CombatantCellState
     let isActive: Bool
 
     private var size: CGFloat {
@@ -26,13 +26,13 @@ struct CombatantImageView: View {
         #endif
         ZStack {
             // Combatant image
-            Image(snapshot.imageName)
+            Image(cell.imageName)
                 .resizable()
                 .scaledToFit()
                 .frame(width: size, height: size)
 
             // Red X overlay for defeated combatants
-            if !snapshot.isAlive {
+            if !cell.isAlive {
                 Image(systemName: "xmark")
                     .font(.system(size: size * 0.6, weight: .bold))
                     .foregroundStyle(.red)
@@ -45,72 +45,21 @@ struct CombatantImageView: View {
 
 #Preview("Active Combatant") {
     CombatantImageView(
-        snapshot: CombatantSnapshot(
-            sourceId: UUID(),
-            name: "Test",
-            imageName: "elf_player",
-            combatantType: .elf,
-            currentHP: 100,
-            maxHP: 100,
-            currentEP: 2000,
-            maxEP: 2000,
-            strength: 10,
-            agility: 10,
-            power: 10,
-            intuition: 10,
-            endurance: 0,
-            attacks: [AttackProfile(minimumAttack: 5, maximumAttack: 10, epBlockCost: 200)],
-            defensePoints: 2,
-            armorValues: [:]
-        ),
+        cell: CombatantCellState(id: UUID(), imageName: "elf_player", isAlive: true),
         isActive: true
     )
 }
 
 #Preview("Inactive Combatant") {
     CombatantImageView(
-        snapshot: CombatantSnapshot(
-            sourceId: UUID(),
-            name: "Test",
-            imageName: "elf_player",
-            combatantType: .elf,
-            currentHP: 100,
-            maxHP: 100,
-            currentEP: 2000,
-            maxEP: 2000,
-            strength: 10,
-            agility: 10,
-            power: 10,
-            intuition: 10,
-            endurance: 0,
-            attacks: [AttackProfile(minimumAttack: 5, maximumAttack: 10, epBlockCost: 200)],
-            defensePoints: 2,
-            armorValues: [:]
-        ),
+        cell: CombatantCellState(id: UUID(), imageName: "elf_player", isAlive: true),
         isActive: false
     )
 }
 
 #Preview("Defeated Combatant") {
     CombatantImageView(
-        snapshot: CombatantSnapshot(
-            sourceId: UUID(),
-            name: "Test",
-            imageName: "elf_player",
-            combatantType: .elf,
-            currentHP: 0,
-            maxHP: 100,
-            currentEP: 2000,
-            maxEP: 2000,
-            strength: 10,
-            agility: 10,
-            power: 10,
-            intuition: 10,
-            endurance: 0,
-            attacks: [AttackProfile(minimumAttack: 5, maximumAttack: 10, epBlockCost: 200)],
-            defensePoints: 2,
-            armorValues: [:]
-        ),
+        cell: CombatantCellState(id: UUID(), imageName: "elf_player", isAlive: false),
         isActive: false
     )
 }

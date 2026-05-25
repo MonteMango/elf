@@ -155,29 +155,42 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
 
     // MARK: - Tent Distribution Weight Tests
 
-    func testDistribution_TentWeights_HasPeak() async {
+    func testDistribution_PeakDominatesWithConfiguredShare() async {
         // Given
         let strategy = ElfCritDistributionStrategy()
 
         // When
         let distribution = await strategy.distribution(power: 30, instinct: 10) // Range: 20-30
 
-        // Then: Weights should form a tent shape
+        // Then
         XCTAssertEqual(distribution.rangeWeights.count, 11)
 
-        // Find the peak (maximum weight)
+        // Peak should appear at the configured position.
+        let expectedPeakIndex = Int(round(GameMechanicsConstants.critPeakPosition * Double(distribution.rangeValues.count - 1)))
         let maxWeight = distribution.rangeWeights.max()!
-        let peakIndex = distribution.rangeWeights.firstIndex(of: maxWeight)!
+        XCTAssertEqual(
+            distribution.rangeWeights[expectedPeakIndex],
+            maxWeight,
+            "Peak must land at index derived from critPeakPosition"
+        )
 
-        // Peak should be the range size (tent peak = rangeSize)
-        XCTAssertEqual(maxWeight, distribution.rangeValues.count)
+        // Peak weight should claim ≈ `critPeakWeight` of total mass. Small
+        // integer-rounding drift is tolerated.
+        let totalSum = distribution.rangeWeights.reduce(0, +)
+        let actualShare = Double(maxWeight) / Double(totalSum)
+        XCTAssertEqual(
+            actualShare,
+            GameMechanicsConstants.critPeakWeight,
+            accuracy: 0.05,
+            "Peak should claim ≈ \(GameMechanicsConstants.critPeakWeight) of total mass"
+        )
 
-        // Weights should decrease from peak in both directions (if not at edges)
-        if peakIndex > 0 {
-            XCTAssertLessThan(distribution.rangeWeights[peakIndex - 1], maxWeight)
+        // Tail must not grow toward the edges.
+        for i in stride(from: expectedPeakIndex - 1, through: 0, by: -1) where i + 1 != expectedPeakIndex {
+            XCTAssertLessThanOrEqual(distribution.rangeWeights[i], distribution.rangeWeights[i + 1])
         }
-        if peakIndex < distribution.rangeWeights.count - 1 {
-            XCTAssertLessThan(distribution.rangeWeights[peakIndex + 1], maxWeight)
+        for i in (expectedPeakIndex + 1)..<distribution.rangeWeights.count where i - 1 != expectedPeakIndex {
+            XCTAssertLessThanOrEqual(distribution.rangeWeights[i], distribution.rangeWeights[i - 1])
         }
     }
 

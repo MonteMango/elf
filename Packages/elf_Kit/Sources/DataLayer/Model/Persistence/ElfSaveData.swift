@@ -24,6 +24,7 @@ public struct ElfSaveData: Codable, Sendable {
 
     public let inventory: InventorySaveData
     public let reputation: Int
+    public let globalBuffs: [AppliedBuff]
 
     public init(from elf: ElfInfo) {
         self.id = elf.id
@@ -42,6 +43,7 @@ public struct ElfSaveData: Codable, Sendable {
 
         self.inventory = InventorySaveData(from: elf.inventory)
         self.reputation = elf.reputation
+        self.globalBuffs = elf.globalBuffs
     }
 
     /// Convert to ElfInfo using ItemsRepository and InventoryService
@@ -67,7 +69,8 @@ public struct ElfSaveData: Codable, Sendable {
             randomLevelAttributes: randomLevelAttributes,
             equipped: restoredEquipped,
             inventory: restoredInventory,
-            reputation: reputation
+            reputation: reputation,
+            globalBuffs: globalBuffs
         )
     }
 }

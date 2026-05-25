@@ -16,13 +16,31 @@ public struct Battle: Sendable, Identifiable {
     /// Right team combatants (opponent team). Uses CombatantSnapshot for unified elf/monster handling.
     public let rightTeam: [CombatantSnapshot]
 
+    /// Pre-resolved per-combatant equipment slot map, keyed by `CombatantSnapshot.id`.
+    /// UI-only data (consumed by `BattleFightViewModel+Display.makeDisplay` to feed
+    /// `HeroDisplayState.equippedItems`); kept off `CombatantSnapshot` so combat
+    /// invalidations don't ripple through the equipment layout. Static for the
+    /// duration of the battle — no mid-fight item swaps.
+    ///
+    /// Monsters carry no entry (or `[:]` if explicitly included); the consumer
+    /// falls back to an empty map per missing key.
+    ///
+    /// TODO: [combat/equipment-mutation] when items can be destroyed mid-battle,
+    /// this immutable map goes stale on the first destruction event. Cleaner
+    /// future state: move raw `EquippedItems` onto `CombatantSnapshot` (mutable),
+    /// drop this field, and have VM `makeDisplay` resolve the UI map on-the-fly
+    /// per render via `HeroEquippedSlotResolver`.
+    public let equippedItemsByCombatantId: [UUID: [HeroItemType: HeroEquippedSlot]]
+
     public init(
         id: UUID = UUID(),
         leftTeam: [CombatantSnapshot],
-        rightTeam: [CombatantSnapshot]
+        rightTeam: [CombatantSnapshot],
+        equippedItemsByCombatantId: [UUID: [HeroItemType: HeroEquippedSlot]] = [:]
     ) {
         self.id = id
         self.leftTeam = leftTeam
         self.rightTeam = rightTeam
+        self.equippedItemsByCombatantId = equippedItemsByCombatantId
     }
 }

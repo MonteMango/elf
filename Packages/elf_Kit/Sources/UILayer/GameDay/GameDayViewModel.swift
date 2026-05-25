@@ -186,17 +186,14 @@ public final class GameDayViewModel {
             .filter { $0.title == "Wolf" }
         guard let wolfTemplate = wolves.first else { return nil }
         let wolfSnapshots: [CombatantSnapshot] = (0..<5).map { _ in
-            snapshotBuilder.buildSnapshot(from: wolfTemplate)
+            snapshotBuilder.buildSnapshot(from: wolfTemplate, globalBuffs: [])
         }
 
         let player = session.state.player
         let heroSnapshot = snapshotBuilder.buildSnapshot(
-            name: player.name,
-            imageName: player.imageName,
+            elf: player,
             level: progressionService.calculateLevel(currentExp: player.currentExp),
-            fightStyleAttributes: player.fightStyleAttributes,
-            randomLevelAttributes: player.randomLevelAttributes,
-            equipped: player.equipped
+            globalBuffs: player.globalBuffs
         )
 
         let house = session.state.houses[session.state.playerHouseIndex]
@@ -208,20 +205,27 @@ public final class GameDayViewModel {
             .prefix(4)
         let allySnapshots: [CombatantSnapshot] = allies.map { ally in
             snapshotBuilder.buildSnapshot(
-                name: ally.name,
-                imageName: ally.imageName,
+                elf: ally,
                 level: progressionService.calculateLevel(currentExp: ally.currentExp),
-                fightStyleAttributes: ally.fightStyleAttributes,
-                randomLevelAttributes: ally.randomLevelAttributes,
-                equipped: ally.equipped
+                globalBuffs: ally.globalBuffs
             )
         }
 
         session.spendActionPoints(dungeonCost)
 
+        // Pre-resolve UI equipment maps for every elf-side combatant. Keyed by
+        // snapshot id; monsters carry no entry (consumer falls back to [:]).
+        var equipmentMap: [UUID: [HeroItemType: HeroEquippedSlot]] = [
+            heroSnapshot.id: equippedSlotResolver.resolve(equipped: player.equipped)
+        ]
+        for (snapshot, ally) in zip(allySnapshots, allies) {
+            equipmentMap[snapshot.id] = equippedSlotResolver.resolve(equipped: ally.equipped)
+        }
+
         return Battle(
             leftTeam: [heroSnapshot] + allySnapshots,
-            rightTeam: wolfSnapshots
+            rightTeam: wolfSnapshots,
+            equippedItemsByCombatantId: equipmentMap
         )
     }
 

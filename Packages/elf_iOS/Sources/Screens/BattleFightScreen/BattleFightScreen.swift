@@ -28,8 +28,8 @@ internal struct BattleFightScreen: View {
     }
 
     private var hasFullSelection: Bool {
-        viewModel.playerAttackPoints.count == viewModel.playerSnapshot.attackPoints &&
-        viewModel.playerDefensePoints.count == viewModel.playerSnapshot.defensePoints
+        viewModel.playerAttackPoints.count == viewModel.playerDisplay.attackPointsCount &&
+        viewModel.playerDefensePoints.count == viewModel.playerDisplay.defensePointsCount
     }
 
     // MARK: - Body
@@ -41,7 +41,7 @@ internal struct BattleFightScreen: View {
         VStack(spacing: 0) {
             // Top bar: Player title, Round number with Close button, Bot title
             HStack(alignment: .firstTextBaseline, spacing: 0) {
-                Text("[\(viewModel.playerSnapshot.level)] \(viewModel.playerSnapshot.name)")
+                Text("[\(viewModel.playerDisplay.level)] \(viewModel.playerDisplay.name)")
                     .font(ElfFonts.Component.statLabel)
                     .foregroundStyle(.black)
                 Spacer()
@@ -55,7 +55,7 @@ internal struct BattleFightScreen: View {
                 }
                 .padding(.top, ElfSpacing.screenTop)
                 Spacer()
-                if let displayed = viewModel.displayedBotSnapshot {
+                if let displayed = viewModel.displayedBotDisplay {
                     Text("[\(displayed.level)] \(displayed.name)")
                         .font(ElfFonts.Component.statLabel)
                         .foregroundStyle(.black)
@@ -70,11 +70,7 @@ internal struct BattleFightScreen: View {
                 // Player Hero
                 VStack {
                     HeroDisplayView(
-                        snapshot: viewModel.playerSnapshot,
-                        currentHP: viewModel.playerCurrentHP,
-                        maxHP: viewModel.playerMaxHP,
-                        currentEP: viewModel.playerSnapshot.currentEP,
-                        maxEP: viewModel.playerSnapshot.maxEP,
+                        display: viewModel.playerDisplay,
                         roundResults: viewModel.playerLastRoundResults
                     )
                     Spacer()
@@ -90,7 +86,7 @@ internal struct BattleFightScreen: View {
                     BodyPointSelector(
                         mode: .defense,
                         selectedPoints: viewModel.playerDefensePoints,
-                        maxPoints: viewModel.playerSnapshot.defensePoints,
+                        maxPoints: viewModel.playerDisplay.defensePointsCount,
                         onToggle: { bodyPart in
                             viewModel.togglePlayerDefensePoint(bodyPart)
                         }
@@ -105,8 +101,8 @@ internal struct BattleFightScreen: View {
                 if let battleRound = viewModel.currentBattleRound {
                     DuelPairsColumnView(
                         battleRound: battleRound,
-                        leftTeam: viewModel.leftTeam,
-                        rightTeam: viewModel.rightTeam,
+                        leftCells: viewModel.leftTeamCells,
+                        rightCells: viewModel.rightTeamCells,
                         playerCombatantId: viewModel.playerCombatantId
                     )
                 } else {
@@ -126,7 +122,7 @@ internal struct BattleFightScreen: View {
                     BodyPointSelector(
                         mode: .attack,
                         selectedPoints: viewModel.playerAttackPoints,
-                        maxPoints: viewModel.playerSnapshot.attackPoints,
+                        maxPoints: viewModel.playerDisplay.attackPointsCount,
                         onToggle: { bodyPart in
                             viewModel.togglePlayerAttackPoint(bodyPart)
                         }
@@ -138,13 +134,9 @@ internal struct BattleFightScreen: View {
                     .frame(width: 15)
 
                 VStack {
-                    if let displayed = viewModel.displayedBotSnapshot {
+                    if let botDisplay = viewModel.displayedBotDisplay {
                         HeroDisplayView(
-                            snapshot: displayed,
-                            currentHP: viewModel.botSnapshot?.currentHP ?? displayed.currentHP,
-                            maxHP: displayed.maxHP,
-                            currentEP: viewModel.botSnapshot?.currentEP ?? displayed.currentEP,
-                            maxEP: displayed.maxEP,
+                            display: botDisplay,
                             roundResults: viewModel.botLastRoundResults
                         )
                         .opacity(viewModel.isHeroWaiting ? 0 : 1)
@@ -256,14 +248,13 @@ internal struct BattleFightScreen: View {
         combatantType: .elf,
         level: 5,
         currentHP: 150,
-        maxHP: 150,
+        currentMP: 0,
         currentEP: 2000,
         maxEP: 2000,
-        strength: 22,
-        agility: 15,
-        power: 18,
-        intuition: 12,
-        endurance: 0,
+        baseHeroAttributes: HeroAttributes(
+            hitPoints: 150, manaPoints: 0, agility: 15,
+            strength: 22, power: 18, instinct: 12, endurance: 0
+        ),
         attacks: [AttackProfile(minimumAttack: 8, maximumAttack: 15, epBlockCost: 200)],
         defensePoints: 2,
         armorValues: [
@@ -282,14 +273,13 @@ internal struct BattleFightScreen: View {
         combatantType: .elf,
         level: 4,
         currentHP: 130,
-        maxHP: 130,
+        currentMP: 0,
         currentEP: 2000,
         maxEP: 2000,
-        strength: 18,
-        agility: 16,
-        power: 14,
-        intuition: 14,
-        endurance: 0,
+        baseHeroAttributes: HeroAttributes(
+            hitPoints: 130, manaPoints: 0, agility: 16,
+            strength: 18, power: 14, instinct: 14, endurance: 0
+        ),
         attacks: [AttackProfile(minimumAttack: 6, maximumAttack: 12, epBlockCost: 200)],
         defensePoints: 2,
         armorValues: [:]
@@ -302,14 +292,13 @@ internal struct BattleFightScreen: View {
         combatantType: .elf,
         level: 3,
         currentHP: 110,
-        maxHP: 110,
+        currentMP: 0,
         currentEP: 2000,
         maxEP: 2000,
-        strength: 15,
-        agility: 20,
-        power: 12,
-        intuition: 16,
-        endurance: 0,
+        baseHeroAttributes: HeroAttributes(
+            hitPoints: 110, manaPoints: 0, agility: 20,
+            strength: 15, power: 12, instinct: 16, endurance: 0
+        ),
         attacks: [AttackProfile(minimumAttack: 5, maximumAttack: 10, epBlockCost: 200)],
         defensePoints: 2,
         armorValues: [:]
@@ -322,14 +311,13 @@ internal struct BattleFightScreen: View {
         combatantType: .monster,
         level: 3,
         currentHP: 120,
-        maxHP: 120,
+        currentMP: 0,
         currentEP: 2000,
         maxEP: 2000,
-        strength: 15,
-        agility: 18,
-        power: 20,
-        intuition: 15,
-        endurance: 0,
+        baseHeroAttributes: HeroAttributes(
+            hitPoints: 120, manaPoints: 0, agility: 18,
+            strength: 15, power: 20, instinct: 15, endurance: 0
+        ),
         attacks: [AttackProfile(minimumAttack: 5, maximumAttack: 12, epBlockCost: 200)],
         defensePoints: 2,
         armorValues: [:]
@@ -342,14 +330,13 @@ internal struct BattleFightScreen: View {
         combatantType: .monster,
         level: 2,
         currentHP: 100,
-        maxHP: 100,
+        currentMP: 0,
         currentEP: 2000,
         maxEP: 2000,
-        strength: 12,
-        agility: 15,
-        power: 18,
-        intuition: 12,
-        endurance: 0,
+        baseHeroAttributes: HeroAttributes(
+            hitPoints: 100, manaPoints: 0, agility: 15,
+            strength: 12, power: 18, instinct: 12, endurance: 0
+        ),
         attacks: [AttackProfile(minimumAttack: 4, maximumAttack: 10, epBlockCost: 200)],
         defensePoints: 2,
         armorValues: [:]

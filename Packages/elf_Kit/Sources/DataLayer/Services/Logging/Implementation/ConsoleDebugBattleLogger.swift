@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 19.11.25.
 //
 
+import Dependencies
 import Foundation
 
 /// Console implementation of DebugBattleLogger with detailed formatted output
@@ -19,11 +20,14 @@ import Foundation
 public final class ConsoleDebugBattleLogger: DebugBattleLogger {
 
     private let categories: Set<DebugBattleLogCategory>
+    private let buffEffectsCalculator: any BuffEffectsCalculator
 
     /// Initialize logger with specific categories to log
     /// - Parameter categories: Set of categories to enable logging for
     public init(categories: Set<DebugBattleLogCategory>) {
+        @Dependency(\.buffEffectsCalculator) var buffEffectsCalculator
         self.categories = categories
+        self.buffEffectsCalculator = buffEffectsCalculator
     }
 
     public func logRoundStart(
@@ -227,12 +231,14 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         let allies = leftTeam
             .map { snapshot in
                 let heroMark = snapshot.id == playerCombatantId ? " ← HERO" : ""
-                return "  - \(snapshot.name) [id=\(snapshot.id.uuidString.prefix(8))] HP \(snapshot.currentHP)/\(snapshot.maxHP)\(heroMark)"
+                let effMax = buffEffectsCalculator.effectiveAttributes(of: snapshot).hitPoints.intValue
+                return "  - \(snapshot.name) [id=\(snapshot.id.uuidString.prefix(8))] HP \(snapshot.currentHP)/\(effMax)\(heroMark)"
             }
             .joined(separator: "\n")
         let enemies = rightTeam
             .map { snapshot in
-                "  - \(snapshot.name) [id=\(snapshot.id.uuidString.prefix(8))] HP \(snapshot.currentHP)/\(snapshot.maxHP)"
+                let effMax = buffEffectsCalculator.effectiveAttributes(of: snapshot).hitPoints.intValue
+                return "  - \(snapshot.name) [id=\(snapshot.id.uuidString.prefix(8))] HP \(snapshot.currentHP)/\(effMax)"
             }
             .joined(separator: "\n")
 
@@ -276,11 +282,13 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
     // MARK: - Private Helpers
 
     private func logCombatantStats(_ snapshot: CombatantSnapshot) {
-        print("  💪 Strength: \(snapshot.strength)")
-        print("  ⚡ Agility: \(snapshot.agility)")
-        print("  🔥 Power: \(snapshot.power)")
-        print("  🎯 Intuition: \(snapshot.intuition)")
-        print("  ❤️ HP: \(snapshot.currentHP)/\(snapshot.maxHP)")
+        let effective = buffEffectsCalculator.effectiveAttributes(of: snapshot)
+        print(formatStat(emoji: "💪", name: "Strength", base: snapshot.baseStrength, effective: Int(effective.strength.value)))
+        print(formatStat(emoji: "⚡", name: "Agility", base: snapshot.baseAgility, effective: Int(effective.agility.value)))
+        print(formatStat(emoji: "🔥", name: "Power", base: snapshot.basePower, effective: Int(effective.power.value)))
+        print(formatStat(emoji: "🎯", name: "Instinct", base: snapshot.baseInstinct, effective: Int(effective.instinct.value)))
+        print("  ❤️ HP: \(snapshot.currentHP)/\(effective.hitPoints.intValue)")
+        print("  🔮 MP: \(snapshot.currentMP)/\(effective.manaPoints.intValue)")
 
         print("  🛡️ Armor:", terminator: "")
         for bodyPart in [BodyPart.head, .body, .leftHand, .rightHand, .legs] {
@@ -289,17 +297,20 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         }
         print("")
 
-        if let leftWeapon = snapshot.leftWeaponItem {
-            print("  ⚔️ Left: \(leftWeapon.item.title)")
-        }
-        if let rightWeapon = snapshot.rightWeaponItem {
-            print("  ⚔️ Right: \(rightWeapon.item.title)")
-        }
-
         for (idx, profile) in snapshot.attacks.enumerated() {
             print("  📊 Strike \(idx + 1): \(profile.minimumAttack)-\(profile.maximumAttack) dmg, \(profile.epBlockCost) EP block cost")
         }
         print("  🎯 Attack Points: \(snapshot.attackPoints), Defense Points: \(snapshot.defensePoints)")
+    }
+
+    /// Renders a combat-attribute line. When buffs make `effective` differ from
+    /// `base`, the base value is shown in parentheses so the dev can read off
+    /// the buff delta directly; without buffs the line collapses to a single
+    /// number to keep the log clean.
+    private func formatStat(emoji: String, name: String, base: Int, effective: Int) -> String {
+        base == effective
+            ? "  \(emoji) \(name): \(effective)"
+            : "  \(emoji) \(name): \(effective) (base \(base))"
     }
 
     private func formatBodyParts(_ bodyParts: [BodyPart]) -> String {

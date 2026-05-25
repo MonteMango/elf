@@ -14,6 +14,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
     private let dodgeService: any DodgeService
     private let critService: any CritService
     private let enduranceService: any EnduranceService
+    private let buffEffectsCalculator: any BuffEffectsCalculator
     private let debugLogger: any DebugBattleLogger
 
     public init() {
@@ -21,11 +22,13 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         @Dependency(\.dodgeService) var dodgeService
         @Dependency(\.critService) var critService
         @Dependency(\.enduranceService) var enduranceService
+        @Dependency(\.buffEffectsCalculator) var buffEffectsCalculator
         @Dependency(\.debugBattleLogger) var debugLogger
         self.damageService = damageService
         self.dodgeService = dodgeService
         self.critService = critService
         self.enduranceService = enduranceService
+        self.buffEffectsCalculator = buffEffectsCalculator
         self.debugLogger = debugLogger
     }
 
@@ -35,6 +38,9 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         attacker: CombatantSnapshot,
         defender: CombatantSnapshot
     ) -> [BodyPart: PointStatus] {
+        let attackerEff = buffEffectsCalculator.effectiveAttributes(of: attacker)
+        let defenderEff = buffEffectsCalculator.effectiveAttributes(of: defender)
+
         var results: [BodyPart: PointStatus] = [:]
         let allBodyParts: [BodyPart] = [.head, .body, .leftHand, .rightHand, .legs]
 
@@ -77,7 +83,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
             // but base cost varies by weapon, so we recompute per strike.
             let blockCost = enduranceService.calculateBlockCost(
                 baseCost: profile.epBlockCost,
-                defenderEndurance: defender.endurance
+                defenderEndurance: Int(defenderEff.endurance.value)
             )
 
             let isDefended = defendingPoints.contains(bodyPart)
@@ -88,7 +94,9 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                     blockCost: blockCost,
                     defenderRemainingEP: &defenderRemainingEP,
                     attacker: attacker,
-                    defender: defender
+                    defender: defender,
+                    attackerEff: attackerEff,
+                    defenderEff: defenderEff
                 )
             } else {
                 results[bodyPart] = resolveUndefendedAttack(
@@ -97,7 +105,9 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                     isDefended: false,
                     profile: profile,
                     attacker: attacker,
-                    defender: defender
+                    defender: defender,
+                    attackerEff: attackerEff,
+                    defenderEff: defenderEff
                 )
             }
         }
@@ -115,7 +125,9 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         blockCost: Int,
         defenderRemainingEP: inout Int,
         attacker: CombatantSnapshot,
-        defender: CombatantSnapshot
+        defender: CombatantSnapshot,
+        attackerEff: HeroAttributes,
+        defenderEff: HeroAttributes
     ) -> PointStatus {
         // Insufficient EP → block input is accepted but provides no
         // protection. Resolve as if the part were not blocked.
@@ -126,7 +138,9 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                 isDefended: true,
                 profile: profile,
                 attacker: attacker,
-                defender: defender
+                defender: defender,
+                attackerEff: attackerEff,
+                defenderEff: defenderEff
             )
         }
 
@@ -136,21 +150,21 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         defenderRemainingEP -= blockCost
 
         let critResult = critService.calculateCrit(
-            power: Int16(attacker.power),
-            instinct: Int16(defender.intuition)
+            power: attackerEff.power.value,
+            instinct: defenderEff.instinct.value
         )
 
         debugLogger.logCritCalculation(
             attacker: attacker.name,
             result: critResult,
-            power: Int16(attacker.power),
-            instinct: Int16(defender.intuition)
+            power: attackerEff.power.value,
+            instinct: defenderEff.instinct.value
         )
 
         if critResult.success {
             let (strengthDamage, attackDamage, defenderArmor) = calculateDamageComponents(
                 profile: profile,
-                attacker: attacker,
+                attackerEff: attackerEff,
                 defender: defender,
                 bodyPart: bodyPart
             )
@@ -206,24 +220,26 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         isDefended: Bool,
         profile: AttackProfile,
         attacker: CombatantSnapshot,
-        defender: CombatantSnapshot
+        defender: CombatantSnapshot,
+        attackerEff: HeroAttributes,
+        defenderEff: HeroAttributes
     ) -> PointStatus {
         let dodgeResult = dodgeService.calculateDodge(
-            agility: Int16(defender.agility),
-            instinct: Int16(attacker.intuition)
+            agility: defenderEff.agility.value,
+            instinct: attackerEff.instinct.value
         )
 
         debugLogger.logDodgeCalculation(
             defender: defender.name,
             result: dodgeResult,
-            agility: Int16(defender.agility),
-            instinct: Int16(attacker.intuition)
+            agility: defenderEff.agility.value,
+            instinct: attackerEff.instinct.value
         )
 
         if dodgeResult.success {
             let critResult = critService.calculateCrit(
-                power: Int16(attacker.power),
-                instinct: Int16(defender.intuition)
+                power: attackerEff.power.value,
+                instinct: defenderEff.instinct.value
             )
 
             let finalStatus = PointStatus.dodged(wasCrit: critResult.success)
@@ -243,20 +259,20 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         }
 
         let critResult = critService.calculateCrit(
-            power: Int16(attacker.power),
-            instinct: Int16(defender.intuition)
+            power: attackerEff.power.value,
+            instinct: defenderEff.instinct.value
         )
 
         debugLogger.logCritCalculation(
             attacker: attacker.name,
             result: critResult,
-            power: Int16(attacker.power),
-            instinct: Int16(defender.intuition)
+            power: attackerEff.power.value,
+            instinct: defenderEff.instinct.value
         )
 
         let (strengthDamage, attackDamage, defenderArmor) = calculateDamageComponents(
             profile: profile,
-            attacker: attacker,
+            attackerEff: attackerEff,
             defender: defender,
             bodyPart: bodyPart
         )
@@ -308,12 +324,12 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
 
     private func calculateDamageComponents(
         profile: AttackProfile,
-        attacker: CombatantSnapshot,
+        attackerEff: HeroAttributes,
         defender: CombatantSnapshot,
         bodyPart: BodyPart
     ) -> (strengthDamage: Int, attackDamage: Int, defenderArmor: Int) {
         // Get strength-based damage
-        let strengthDamage = damageService.getRandomStrengthDamage(Int16(attacker.strength))
+        let strengthDamage = damageService.getRandomStrengthDamage(attackerEff.strength.value)
 
         // Per-strike weapon damage from this strike's profile.
         let attackDamage: Int

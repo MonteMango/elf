@@ -24,7 +24,7 @@ public struct Monster: Codable, Sendable, Identifiable, Hashable {
     public let strength: Int
     public let agility: Int
     public let power: Int
-    public let intuition: Int
+    public let instinct: Int
     public let endurance: Int
 
     // Per-strike attack profiles. `rightAttack` is always present; `leftAttack`
@@ -51,7 +51,7 @@ public struct Monster: Codable, Sendable, Identifiable, Hashable {
         strength: Int,
         agility: Int,
         power: Int,
-        intuition: Int,
+        instinct: Int,
         endurance: Int,
         partsProtection: PartsProtection,
         drops: MonsterDrops
@@ -68,7 +68,7 @@ public struct Monster: Codable, Sendable, Identifiable, Hashable {
         self.strength = strength
         self.agility = agility
         self.power = power
-        self.intuition = intuition
+        self.instinct = instinct
         self.endurance = endurance
         self.partsProtection = partsProtection
         self.drops = drops

@@ -122,6 +122,18 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
 1. **Tests must construct the SUT _inside_ the `withDependencies` override block** (the project already does this everywhere).
 2. **Cold-path deps need a `testValue`.** A test that constructs a service and only exercises a subset of its methods will still cause `init` to resolve every declared dep. Any key without `testValue` will trip swift-dependencies' "no test implementation" assertion. Add `static var testValue: any Foo { liveValue }` for pure deps, or a NoOp stub for deps with side-effects (file I/O, network).
 
+### Anti-pattern — don't use the property wrapper as storage
+
+```swift
+// ❌ Do NOT do this on long-lived classes (ViewModels, services, sessions).
+@ObservationIgnored
+@Dependency(\.progressionService) private var progressionService
+```
+
+This lazily resolves the dependency on **every** access — a TaskLocal lookup plus a source-location capture per call. On a long-lived `@Observable` ViewModel each computed-property read that touches a dep pays that cost; in hot loops (per-frame or per-row) it adds up. It also masks resolution failures: a missing `testValue` won't trip at `init` time but only on first read, which can hide bugs until the affected code path runs.
+
+Snapshot the value in `init` into a `private let` instead (pattern above). The `@Dependency` property wrapper is fine as a **local `var`** inside `init` to pull the value out — that's exactly how the canonical pattern uses it.
+
 ---
 
 ## App bootstrap

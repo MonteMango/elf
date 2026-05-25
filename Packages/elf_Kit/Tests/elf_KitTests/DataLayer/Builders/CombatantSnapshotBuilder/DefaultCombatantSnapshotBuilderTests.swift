@@ -121,14 +121,14 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             strength: 15,
             agility: 12,
             power: 8,
-            intuition: 10,
+            instinct: 10,
             endurance: 0,
             partsProtection: PartsProtection(head: 2, left: 1, center: 3, right: 1, legs: 2),
             drops: MonsterDrops(weapons: [], armor: [], materials: [])
         )
 
         // When
-        let snapshot = builder.buildSnapshot(from: monster)
+        let snapshot = builder.buildSnapshot(from: monster, globalBuffs: [])
 
         // Then
         XCTAssertEqual(snapshot.name, "Goblin")
@@ -137,10 +137,10 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
         XCTAssertEqual(snapshot.level, 1)
         XCTAssertEqual(snapshot.currentHP, 100)
         XCTAssertEqual(snapshot.maxHP, 100)
-        XCTAssertEqual(snapshot.strength, 15)
-        XCTAssertEqual(snapshot.agility, 12)
-        XCTAssertEqual(snapshot.power, 8)
-        XCTAssertEqual(snapshot.intuition, 10)
+        XCTAssertEqual(snapshot.baseStrength, 15)
+        XCTAssertEqual(snapshot.baseAgility, 12)
+        XCTAssertEqual(snapshot.basePower, 8)
+        XCTAssertEqual(snapshot.baseInstinct, 10)
         XCTAssertEqual(snapshot.attackPoints, 1)
         XCTAssertEqual(snapshot.defensePoints, 2)
         XCTAssertEqual(snapshot.attacks.count, 1)
@@ -163,14 +163,14 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             strength: 10,
             agility: 10,
             power: 10,
-            intuition: 10,
+            instinct: 10,
             endurance: 0,
             partsProtection: PartsProtection(head: 5, left: 3, center: 10, right: 3, legs: 7),
             drops: MonsterDrops(weapons: [], armor: [], materials: [])
         )
 
         // When
-        let snapshot = builder.buildSnapshot(from: monster)
+        let snapshot = builder.buildSnapshot(from: monster, globalBuffs: [])
 
         // Then
         XCTAssertEqual(snapshot.armorValues[.head], 5)
@@ -180,44 +180,9 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
         XCTAssertEqual(snapshot.armorValues[.legs], 7)
     }
 
-    func testBuildSnapshot_FromMonster_HasNoEquipment() {
-        // Given
-        let monster = Monster(
-            id: UUID(),
-            title: "Test",
-            imageName: "",
-            expReward: [],
-            rightAttack: AttackProfile(minimumAttack: 0, maximumAttack: 0, epBlockCost: 300),
-            defensePoints: 2,
-            hitPoints: 50,
-            manaPoints: 0,
-            strength: 10,
-            agility: 10,
-            power: 10,
-            intuition: 10,
-            endurance: 0,
-            partsProtection: PartsProtection(head: 0, left: 0, center: 0, right: 0, legs: 0),
-            drops: MonsterDrops(weapons: [], armor: [], materials: [])
-        )
-
-        // When
-        let snapshot = builder.buildSnapshot(from: monster)
-
-        // Then
-        XCTAssertNil(snapshot.helmetItem)
-        XCTAssertNil(snapshot.glovesItem)
-        XCTAssertNil(snapshot.shoesItem)
-        XCTAssertNil(snapshot.upperBodyItem)
-        XCTAssertNil(snapshot.bottomBodyItem)
-        XCTAssertNil(snapshot.robeItem)
-        XCTAssertNil(snapshot.leftWeaponItem)
-        XCTAssertNil(snapshot.rightWeaponItem)
-        XCTAssertNil(snapshot.shieldItem)
-        XCTAssertNil(snapshot.ringItem)
-        XCTAssertNil(snapshot.necklaceItem)
-        XCTAssertNil(snapshot.earringsItem)
-        XCTAssertFalse(snapshot.hasEquipment)
-    }
+    // Note: monster snapshots structurally cannot carry equipment item refs —
+    // `CombatantSnapshot` lost its equipment fields in PR-B. Type system enforces
+    // what the previous `testBuildSnapshot_FromMonster_HasNoEquipment` asserted.
 
     func testBuildSnapshot_FromMonster_PreservesSourceId() {
         // Given
@@ -234,14 +199,14 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             strength: 10,
             agility: 10,
             power: 10,
-            intuition: 10,
+            instinct: 10,
             endurance: 0,
             partsProtection: PartsProtection(head: 0, left: 0, center: 0, right: 0, legs: 0),
             drops: MonsterDrops(weapons: [], armor: [], materials: [])
         )
 
         // When
-        let snapshot = builder.buildSnapshot(from: monster)
+        let snapshot = builder.buildSnapshot(from: monster, globalBuffs: [])
 
         // Then
         XCTAssertEqual(snapshot.sourceId, monsterId)
@@ -269,7 +234,8 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             level: 5,
             fightStyleAttributes: fightStyle,
             randomLevelAttributes: randomLevel,
-            equipped: equipped
+            equipped: equipped,
+            globalBuffs: []
         )
 
         // Then
@@ -305,17 +271,18 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             level: 1,
             fightStyleAttributes: fightStyle,
             randomLevelAttributes: randomLevel,
-            equipped: equipped
+            equipped: equipped,
+            globalBuffs: []
         )
 
         // Then — fightStyle + randomLevel + item bonuses
         XCTAssertEqual(snapshot.currentHP, 150)  // 100 + 20 + 30
         XCTAssertEqual(snapshot.maxHP, 150)
-        XCTAssertEqual(snapshot.strength, 25)    // 15 + 5 + 5
-        XCTAssertEqual(snapshot.agility, 16)     // 10 + 5 + 1
-        XCTAssertEqual(snapshot.power, 15)       // 12 + 3 + 0
-        XCTAssertEqual(snapshot.intuition, 10)   // 8 + 2 + 0
-        XCTAssertEqual(snapshot.endurance, 7)    // 4 + 2 + 1
+        XCTAssertEqual(snapshot.baseStrength, 25)    // 15 + 5 + 5
+        XCTAssertEqual(snapshot.baseAgility, 16)     // 10 + 5 + 1
+        XCTAssertEqual(snapshot.basePower, 15)       // 12 + 3 + 0
+        XCTAssertEqual(snapshot.baseInstinct, 10)   // 8 + 2 + 0
+        XCTAssertEqual(snapshot.baseEndurance, 7)    // 4 + 2 + 1
     }
 
     // MARK: - WeaponConfiguration → snapshot
@@ -339,9 +306,6 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
         XCTAssertEqual(snapshot.attacks[0].minimumAttack, 4)
         XCTAssertEqual(snapshot.attacks[0].maximumAttack, 8)
         XCTAssertEqual(snapshot.attacks[0].epBlockCost, 200)
-        XCTAssertNotNil(snapshot.rightWeaponItem)
-        XCTAssertNil(snapshot.leftWeaponItem)
-        XCTAssertNil(snapshot.shieldItem)
     }
 
     func testBuildSnapshot_OneHandedWithShield_DefensePlusOne() throws {
@@ -358,10 +322,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
 
         // Then
         XCTAssertEqual(snapshot.attackPoints, 1)
-        XCTAssertEqual(snapshot.defensePoints, 3)
-        XCTAssertNotNil(snapshot.rightWeaponItem)
-        XCTAssertNil(snapshot.leftWeaponItem)
-        XCTAssertNotNil(snapshot.shieldItem)
+        XCTAssertEqual(snapshot.defensePoints, 3, "Shield raises base defense from 2 to 3")
         XCTAssertEqual(snapshot.attacks.count, 1)
         XCTAssertEqual(snapshot.attacks[0].epBlockCost, 200, "Shield config must surface the weapon's EP block cost — original bug returned 0")
     }
@@ -423,10 +384,6 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
         XCTAssertEqual(snapshot.attacks[1].minimumAttack, 1, "Strike 2 = left weapon damage min")
         XCTAssertEqual(snapshot.attacks[1].maximumAttack, 5, "Strike 2 = left weapon damage max")
         XCTAssertEqual(snapshot.attacks[1].epBlockCost, 250, "Strike 2 = left weapon EP cost")
-
-        XCTAssertNotNil(snapshot.rightWeaponItem)
-        XCTAssertNotNil(snapshot.leftWeaponItem)
-        XCTAssertNil(snapshot.shieldItem)
     }
 
     // MARK: - Armor IDs set
@@ -499,6 +456,114 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
         XCTAssertEqual(snapshot.armorValues[.legs], 7)
     }
 
+    // MARK: - Buff-folded initial vitals
+
+    func testBuildSnapshot_FromElfConfig_SeedsCurrentHPMPFromEffectiveCap() throws {
+        // Given: a buff calculator stub that adds +40 HP / +15 MP to whatever
+        // base it receives, regardless of the buff arrays. The builder should
+        // hand currentHP/currentMP the buff-folded cap so the combatant enters
+        // battle "full" relative to active buffs, not capped at base.
+        final class PlusForty: BuffEffectsCalculator, @unchecked Sendable {
+            func apply(buffs: [AppliedBuff], to base: HeroAttributes) -> HeroAttributes {
+                HeroAttributes(
+                    hitPoints: base.hitPoints + Attribute(40),
+                    manaPoints: base.manaPoints + Attribute(15),
+                    agility: base.agility,
+                    strength: base.strength,
+                    power: base.power,
+                    instinct: base.instinct,
+                    endurance: base.endurance
+                )
+            }
+        }
+
+        let weapon = try makeWeaponItem(handUse: .oneHand)
+        let equipped = EquippedItems(weapons: try makeOneHandedConfig(weapon))
+        let fightStyle = HeroAttributes(
+            hitPoints: 100, manaPoints: 50, agility: 10,
+            strength: 10, power: 10, instinct: 10, endurance: 0
+        )
+
+        // When
+        let snapshot: CombatantSnapshot = withDependencies {
+            $0.armorService = mockArmorService
+            $0.buffEffectsCalculator = PlusForty()
+        } operation: {
+            let buffAwareBuilder = DefaultCombatantSnapshotBuilder()
+            return buffAwareBuilder.buildSnapshot(
+                name: "Test",
+                imageName: "",
+                level: 1,
+                fightStyleAttributes: fightStyle,
+                randomLevelAttributes: HeroAttributes(),
+                equipped: equipped,
+                globalBuffs: []
+            )
+        }
+
+        // Then: base maxHP/maxMP unchanged, but currentHP/currentMP take the
+        // effective cap. `baseHeroAttributes` itself is still the pre-buff value
+        // — buff folding happens at read time via the calculator.
+        XCTAssertEqual(snapshot.maxHP, 100, "maxHP projects base, not effective")
+        XCTAssertEqual(snapshot.maxMP, 50, "maxMP projects base, not effective")
+        XCTAssertEqual(snapshot.currentHP, 140, "currentHP seeded from effective (base 100 + buff 40)")
+        XCTAssertEqual(snapshot.currentMP, 65, "currentMP seeded from effective (base 50 + buff 15)")
+    }
+
+    func testBuildSnapshot_FromMonster_SeedsCurrentHPMPFromEffectiveCap() {
+        // Parity with the elf overload: when a monster is spawned with a
+        // pre-applied global buff, currentHP/currentMP should reflect the
+        // buff-folded cap, not raw monster base. Same `PlusForty` shape as
+        // the elf test — kept local to keep the stub self-contained.
+        final class PlusForty: BuffEffectsCalculator, @unchecked Sendable {
+            func apply(buffs: [AppliedBuff], to base: HeroAttributes) -> HeroAttributes {
+                HeroAttributes(
+                    hitPoints: base.hitPoints + Attribute(40),
+                    manaPoints: base.manaPoints + Attribute(15),
+                    agility: base.agility,
+                    strength: base.strength,
+                    power: base.power,
+                    instinct: base.instinct,
+                    endurance: base.endurance
+                )
+            }
+        }
+
+        let monster = Monster(
+            id: UUID(),
+            title: "Boss",
+            imageName: "boss",
+            expReward: [],
+            rightAttack: AttackProfile(minimumAttack: 5, maximumAttack: 10, epBlockCost: 300),
+            defensePoints: 2,
+            hitPoints: 100,
+            manaPoints: 50,
+            strength: 10,
+            agility: 10,
+            power: 10,
+            instinct: 10,
+            endurance: 0,
+            partsProtection: PartsProtection(head: 0, left: 0, center: 0, right: 0, legs: 0),
+            drops: MonsterDrops(weapons: [], armor: [], materials: [])
+        )
+        let preApplied = AppliedBuff(buffId: UUID(), appliedOnDay: 1)
+
+        let snapshot: CombatantSnapshot = withDependencies {
+            $0.armorService = mockArmorService
+            $0.buffEffectsCalculator = PlusForty()
+        } operation: {
+            let buffAwareBuilder = DefaultCombatantSnapshotBuilder()
+            return buffAwareBuilder.buildSnapshot(from: monster, globalBuffs: [preApplied])
+        }
+
+        XCTAssertEqual(snapshot.maxHP, 100, "maxHP projects base, not effective")
+        XCTAssertEqual(snapshot.maxMP, 50, "maxMP projects base, not effective")
+        XCTAssertEqual(snapshot.currentHP, 140, "currentHP seeded from effective (base 100 + buff 40)")
+        XCTAssertEqual(snapshot.currentMP, 65, "currentMP seeded from effective (base 50 + buff 15)")
+        XCTAssertEqual(snapshot.globalBuffs.count, 1, "Pre-applied buffs must propagate into the snapshot for combat math to read")
+        XCTAssertEqual(snapshot.globalBuffs.first?.id, preApplied.id)
+    }
+
     // MARK: - Helpers
 
     private func makeElfSnapshot(equipped: EquippedItems) -> CombatantSnapshot {
@@ -512,7 +577,8 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             level: 1,
             fightStyleAttributes: attributes,
             randomLevelAttributes: HeroAttributes(),
-            equipped: equipped
+            equipped: equipped,
+            globalBuffs: []
         )
     }
 }

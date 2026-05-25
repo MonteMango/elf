@@ -48,6 +48,12 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
 
     public var reputation: Int
 
+    // MARK: - Buffs
+
+    /// Currently-active global-scope buffs. Battle-scope buffs live on
+    /// `CombatantSnapshot` only and never reach this collection.
+    public var globalBuffs: [AppliedBuff]
+
     // MARK: - Computed Properties
 
     public var totalAttributes: HeroAttributes {
@@ -77,7 +83,8 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
         randomLevelAttributes: HeroAttributes,
         equipped: EquippedItems,
         inventory: ElfInventory = ElfInventory(),
-        reputation: Int = 0
+        reputation: Int = 0,
+        globalBuffs: [AppliedBuff] = []
     ) {
         self.id = id
         self.name = name
@@ -92,6 +99,7 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
         self.equipped = equipped
         self.inventory = inventory
         self.reputation = reputation
+        self.globalBuffs = globalBuffs
     }
 
 }

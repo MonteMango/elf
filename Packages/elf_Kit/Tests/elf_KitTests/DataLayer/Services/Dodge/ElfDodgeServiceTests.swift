@@ -11,11 +11,50 @@ import XCTest
 
 /// Tests for ElfDodgeService and ElfDodgeDistributionStrategy
 ///
-/// Distribution uses tent-shaped weights with configurable peak position via `GameMechanicsConstants.dodgePeakPosition`:
-/// - peakPosition = 0.0: Peak at minimum (favors lower chances)
-/// - peakPosition = 0.4 (current): Peak at 40% of range
-/// - peakPosition = 1.0: Peak at maximum (favors higher chances)
+/// Distribution uses linear-tail weights around a peak whose position is
+/// `GameMechanicsConstants.dodgePeakPosition` and whose share of total
+/// probability mass is `GameMechanicsConstants.dodgePeakWeight`. Tests
+/// read those constants rather than hardcoding numbers, so they stay
+/// green when the balance is re-tuned.
 final class ElfDodgeServiceTests: XCTestCase {
+
+    // MARK: - Property helpers
+
+    /// Index of the peak for a distribution of the given size, matching the
+    /// strategy's own formula: `round(peakPosition * (rangeSize - 1))`.
+    private func expectedPeakIndex(rangeSize: Int) -> Int {
+        Int(round(GameMechanicsConstants.dodgePeakPosition * Double(rangeSize - 1)))
+    }
+
+    /// Tolerance for the peak-share assertion. The strategy rounds the peak
+    /// weight to an integer, so for small ranges the realized share drifts
+    /// a few percent from the configured share.
+    private let peakShareTolerance: Double = 0.05
+
+    /// Assert peak weight dominates with share ≈ `dodgePeakWeight`, and
+    /// non-peak weights taper monotonically from peak toward both ends.
+    private func assertPeakDominates(_ weights: [Int], peakIndex: Int, file: StaticString = #file, line: UInt = #line) {
+        let totalSum = weights.reduce(0, +)
+        guard totalSum > 0 else {
+            XCTFail("Weights sum must be positive", file: file, line: line)
+            return
+        }
+        let actualShare = Double(weights[peakIndex]) / Double(totalSum)
+        XCTAssertEqual(
+            actualShare,
+            GameMechanicsConstants.dodgePeakWeight,
+            accuracy: peakShareTolerance,
+            "Peak should claim ≈ \(GameMechanicsConstants.dodgePeakWeight) of total mass",
+            file: file, line: line
+        )
+        // Tail monotonic falloff from peak.
+        for i in stride(from: peakIndex - 1, through: 0, by: -1) where i + 1 != peakIndex {
+            XCTAssertLessThanOrEqual(weights[i], weights[i + 1], "Left tail must not grow toward edges", file: file, line: line)
+        }
+        for i in (peakIndex + 1)..<weights.count where i - 1 != peakIndex {
+            XCTAssertLessThanOrEqual(weights[i], weights[i - 1], "Right tail must not grow toward edges", file: file, line: line)
+        }
+    }
 
     /// Wire the real stateless distribution strategy so every test can exercise
     /// `ElfDodgeService` without each one spelling out `withDependencies`.
@@ -42,20 +81,10 @@ final class ElfDodgeServiceTests: XCTestCase {
         XCTAssertEqual(distribution.rangeValues.count, 11, "Range should have 11 values (12-22)")
         XCTAssertEqual(distribution.rangeValues.first, 12, "Range should start at minimum")
         XCTAssertEqual(distribution.rangeValues.last, 22, "Range should end at maximum")
-
-        // Verify tent-shaped weights with peakPosition = 0.4
-        // Range size = 11, peak index = round(0.4 * 10) = 4
-        // Weights = [11 - |i - 4|] for i in 0..<11
-        // Expected: [7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 5]
         XCTAssertEqual(distribution.rangeWeights.count, 11)
 
-        // Peak should be at index 4 (value 16)
-        let peakIndex = 4
-        XCTAssertEqual(distribution.rangeWeights[peakIndex], 11, "Peak weight should be range size")
-
-        // Weights should decrease from peak in both directions
-        XCTAssertLessThan(distribution.rangeWeights.first!, distribution.rangeWeights[peakIndex], "First weight should be less than peak")
-        XCTAssertLessThan(distribution.rangeWeights.last!, distribution.rangeWeights[peakIndex], "Last weight should be less than peak")
+        let peakIndex = expectedPeakIndex(rangeSize: distribution.rangeValues.count)
+        assertPeakDominates(distribution.rangeWeights, peakIndex: peakIndex)
     }
 
     func testDistribution_NegativeMinimum_5Agility8Instinct() async {
@@ -72,11 +101,8 @@ final class ElfDodgeServiceTests: XCTestCase {
         XCTAssertEqual(distribution.rangeValues.first, -3, "Range starts at minimum")
         XCTAssertEqual(distribution.rangeValues.last, 5, "Range ends at maximum")
 
-        // Verify tent-shaped weights with peakPosition = 0.4
-        // Range size = 9, peak index = round(0.4 * 8) = 3
-        let peakIndex = 3
-        XCTAssertEqual(distribution.rangeWeights[peakIndex], 9, "Peak weight should be range size")
-        XCTAssertGreaterThan(distribution.rangeWeights[peakIndex], distribution.rangeWeights.last!)
+        let peakIndex = expectedPeakIndex(rangeSize: distribution.rangeValues.count)
+        assertPeakDominates(distribution.rangeWeights, peakIndex: peakIndex)
     }
 
     func testDistribution_HighAgility_110Agility10Instinct() async {
@@ -139,12 +165,8 @@ final class ElfDodgeServiceTests: XCTestCase {
         XCTAssertEqual(distribution.rangeValues.first, 3)
         XCTAssertEqual(distribution.rangeValues.last, 15)
 
-        // Verify tent-shaped weights with peakPosition = 0.4
-        // Range size = 13, peak index = round(0.4 * 12) = 5
-        let peakIndex = 5
-        XCTAssertEqual(distribution.rangeWeights[peakIndex], 13, "Peak weight should be range size")
-        XCTAssertGreaterThan(distribution.rangeWeights[peakIndex], distribution.rangeWeights.first!)
-        XCTAssertGreaterThan(distribution.rangeWeights[peakIndex], distribution.rangeWeights.last!)
+        let peakIndex = expectedPeakIndex(rangeSize: distribution.rangeValues.count)
+        assertPeakDominates(distribution.rangeWeights, peakIndex: peakIndex)
     }
 
     func testDistribution_EdgeCase_LargeNegative_1Agility100Instinct() async {

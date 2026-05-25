@@ -11,16 +11,35 @@ import Foundation
 public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 
     private let armorService: any ArmorService
-    private let equippedSlotResolver: any HeroEquippedSlotResolver
+    private let buffEffectsCalculator: any BuffEffectsCalculator
 
     public init() {
         @Dependency(\.armorService) var armorService
-        @Dependency(\.equippedSlotResolver) var equippedSlotResolver
+        @Dependency(\.buffEffectsCalculator) var buffEffectsCalculator
         self.armorService = armorService
-        self.equippedSlotResolver = equippedSlotResolver
+        self.buffEffectsCalculator = buffEffectsCalculator
     }
 
     // MARK: - CombatantSnapshotBuilder
+
+    public func buildSnapshot(
+        elf: ElfInfo,
+        level: Int,
+        globalBuffs: [AppliedBuff]
+    ) -> CombatantSnapshot {
+        // Single source of truth: `ElfInfo.totalAttributes` aggregates fight-style
+        // + random-per-level + equipped item bonuses. New attribute terms
+        // (reputation perk, training bonus, …) added there flow into combat
+        // automatically — no second formula to update.
+        buildElfSnapshot(
+            name: elf.name,
+            imageName: elf.imageName,
+            level: level,
+            totalAttributes: elf.totalAttributes,
+            equipped: elf.equipped,
+            globalBuffs: globalBuffs
+        )
+    }
 
     public func buildSnapshot(
         name: String,
@@ -28,7 +47,35 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
         level: Int,
         fightStyleAttributes: HeroAttributes,
         randomLevelAttributes: HeroAttributes,
-        equipped: EquippedItems
+        equipped: EquippedItems,
+        globalBuffs: [AppliedBuff]
+    ) -> CombatantSnapshot {
+        // Synthetic overload for the dev `BattleSetupViewModel` path: the formula
+        // below MUST mirror `ElfInfo.totalAttributes`. If `ElfInfo.totalAttributes`
+        // grows a new term (e.g. reputation perk), this line will drift — but the
+        // synthetic path is dev-only and acceptable to maintain manually.
+        let totalAttributes = fightStyleAttributes + randomLevelAttributes + equipped.attributes
+        return buildElfSnapshot(
+            name: name,
+            imageName: imageName,
+            level: level,
+            totalAttributes: totalAttributes,
+            equipped: equipped,
+            globalBuffs: globalBuffs
+        )
+    }
+
+    /// Shared implementation: takes pre-aggregated total attributes (no formula
+    /// here) and assembles the snapshot. Weapon placement, attack profiles, and
+    /// armor lookup all derive from `equipped` regardless of how `totalAttributes`
+    /// was computed by the caller.
+    private func buildElfSnapshot(
+        name: String,
+        imageName: String,
+        level: Int,
+        totalAttributes: HeroAttributes,
+        equipped: EquippedItems,
+        globalBuffs: [AppliedBuff]
     ) -> CombatantSnapshot {
 
         // Type-safe weapon resolution: WeaponConfiguration's exhaustive cases
@@ -36,8 +83,10 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
         let placement = resolveWeaponPlacement(equipped.weapons)
         let attacks = buildAttacks(from: equipped.weapons)
 
-        // Aggregate attributes: fight style + random per-level + equipped item bonuses.
-        let totalAttributes = fightStyleAttributes + randomLevelAttributes + equipped.attributes
+        // Seed currentHP/currentMP from the buff-folded cap so the combatant
+        // enters battle at full effective HP/MP, not just base. Battle buffs
+        // start empty — only globals are active at construction time.
+        let effective = buffEffectsCalculator.apply(buffs: globalBuffs, to: totalAttributes)
 
         // Armor IDs: every wearable slot, plus the off-hand (shield or dual-wield
         // secondary weapon). Primary weapon is never sent to the armor service.
@@ -51,35 +100,20 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
             imageName: imageName,
             combatantType: .elf,
             level: level,
-            currentHP: totalAttributes.hitPoints.intValue,
-            maxHP: totalAttributes.hitPoints.intValue,
+            currentHP: effective.hitPoints.intValue,
+            currentMP: effective.manaPoints.intValue,
             currentEP: GameMechanicsConstants.startingEP,
             maxEP: GameMechanicsConstants.startingEP,
-            strength: totalAttributes.strength.intValue,
-            agility: totalAttributes.agility.intValue,
-            power: totalAttributes.power.intValue,
-            intuition: totalAttributes.instinct.intValue,
-            endurance: totalAttributes.endurance.intValue,
+            baseHeroAttributes: totalAttributes,
             attacks: attacks,
             defensePoints: placement.defensePoints,
             armorValues: armorValues,
-            helmetItem: equipped.helmet,
-            glovesItem: equipped.gloves,
-            shoesItem: equipped.shoes,
-            upperBodyItem: equipped.upperBody,
-            bottomBodyItem: equipped.bottomBody,
-            robeItem: equipped.shirt,
-            leftWeaponItem: placement.leftWeapon,
-            rightWeaponItem: placement.rightWeapon,
-            shieldItem: placement.shield,
-            ringItem: equipped.ring,
-            necklaceItem: equipped.necklace,
-            earringsItem: equipped.earrings,
-            equippedItems: equippedSlotResolver.resolve(equipped: equipped)
+            globalBuffs: globalBuffs,
+            battleBuffs: []
         )
     }
 
-    public func buildSnapshot(from monster: Monster) -> CombatantSnapshot {
+    public func buildSnapshot(from monster: Monster, globalBuffs: [AppliedBuff]) -> CombatantSnapshot {
         // Map monster's parts protection to BodyPart keys
         let armorValues: [BodyPart: Int] = [
             .head: monster.partsProtection.head,
@@ -91,69 +125,60 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
 
         let attacks: [AttackProfile] = [monster.rightAttack] + (monster.leftAttack.map { [$0] } ?? [])
 
+        // Mirror monster's scalar attributes into HeroAttributes so the snapshot
+        // exposes a consistent `baseHeroAttributes` for buff math.
+        let baseHeroAttributes = HeroAttributes(
+            hitPoints: Attribute(Int16(clamping: monster.hitPoints)),
+            manaPoints: Attribute(Int16(clamping: monster.manaPoints)),
+            agility: Attribute(Int16(clamping: monster.agility)),
+            strength: Attribute(Int16(clamping: monster.strength)),
+            power: Attribute(Int16(clamping: monster.power)),
+            instinct: Attribute(Int16(clamping: monster.instinct)),
+            endurance: Attribute(Int16(clamping: monster.endurance))
+        )
+
+        // Symmetry with the elf overload: seed currentHP/currentMP from the
+        // buff-folded cap so a monster spawned with pre-applied globals enters
+        // battle "full" relative to those buffs. Empty `globalBuffs` is the
+        // common case and short-circuits inside the calculator to base.
+        let effective = buffEffectsCalculator.apply(buffs: globalBuffs, to: baseHeroAttributes)
+
         return CombatantSnapshot(
             sourceId: monster.id,
             name: monster.title,
             imageName: monster.imageName,
             combatantType: .monster,
             level: 1,  // Monsters don't have levels, default to 1
-            currentHP: monster.hitPoints,
-            maxHP: monster.hitPoints,
+            currentHP: effective.hitPoints.intValue,
+            currentMP: effective.manaPoints.intValue,
             currentEP: GameMechanicsConstants.startingEP,
             maxEP: GameMechanicsConstants.startingEP,
-            strength: monster.strength,
-            agility: monster.agility,
-            power: monster.power,
-            intuition: monster.intuition,
-            endurance: monster.endurance,
+            baseHeroAttributes: baseHeroAttributes,
             attacks: attacks,
             defensePoints: monster.defensePoints,
-            armorValues: armorValues
-            // Equipment is nil for monsters (for now)
+            armorValues: armorValues,
+            globalBuffs: globalBuffs
         )
     }
 
     // MARK: - Private Helpers
 
     private struct WeaponPlacement {
-        let leftWeapon: ElfWeaponItem?
-        let rightWeapon: ElfWeaponItem?
-        let shield: ElfShieldItem?
         let defensePoints: Int
     }
 
-    /// Maps a `WeaponConfiguration` to the snapshot's hand-slot layout and
-    /// per-round defense count. Base defense is 2; a shield grants +1.
+    /// Computes the snapshot's per-round defense count from a `WeaponConfiguration`.
+    /// Base defense is 2; a shield grants +1.
     private func resolveWeaponPlacement(_ config: WeaponConfiguration) -> WeaponPlacement {
         switch config {
-        case .oneHanded(let wrapper):
-            return WeaponPlacement(
-                leftWeapon: nil,
-                rightWeapon: wrapper.weapon,
-                shield: nil,
-                defensePoints: 2
-            )
-        case .oneHandedWithShield(let wrapper, let shield):
-            return WeaponPlacement(
-                leftWeapon: nil,
-                rightWeapon: wrapper.weapon,
-                shield: shield,
-                defensePoints: 3
-            )
-        case .twoHanded(let wrapper):
-            return WeaponPlacement(
-                leftWeapon: nil,
-                rightWeapon: wrapper.weapon,
-                shield: nil,
-                defensePoints: 2
-            )
-        case .dualWield(let primary, let secondary):
-            return WeaponPlacement(
-                leftWeapon: secondary.weapon,
-                rightWeapon: primary.weapon,
-                shield: nil,
-                defensePoints: 2
-            )
+        case .oneHanded:
+            return WeaponPlacement(defensePoints: 2)
+        case .oneHandedWithShield:
+            return WeaponPlacement(defensePoints: 3)
+        case .twoHanded:
+            return WeaponPlacement(defensePoints: 2)
+        case .dualWield:
+            return WeaponPlacement(defensePoints: 2)
         }
     }
 

@@ -1,0 +1,18 @@
+{
+    "version": "1.0",
+    "buffs": [
+        {
+            "id": "BD000000-0000-4000-A000-000000000001",
+            "title": "Exhausted",
+            "imageName": "buff_exhausted",
+            "description": "All combat attributes are reduced by 30%.",
+            "polarity": "negative",
+            "scope": "global",
+            "durationDays": 3,
+            "stackingRule": "refresh",
+            "effects": [
+                { "type": "combatAttributesPercent", "value": -0.30 }
+            ]
+        }
+    ]
+}

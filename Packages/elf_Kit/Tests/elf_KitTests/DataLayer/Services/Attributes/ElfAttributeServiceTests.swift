@@ -91,7 +91,7 @@ final class ElfAttributeServiceTests: XCTestCase {
             return service.getAllFightStyleAttributes(for: .crit, at: 10)
         }
 
-        XCTAssertEqual(result.hitPoints, 80)
+        XCTAssertEqual(result.hitPoints, 130)  // 80 + 5 * level
         XCTAssertEqual(result.manaPoints, 20)
         XCTAssertEqual(result.instinct, 10)   // 1 * level
         XCTAssertEqual(result.power, 40)      // 4 * level
@@ -108,7 +108,7 @@ final class ElfAttributeServiceTests: XCTestCase {
             return service.getAllFightStyleAttributes(for: .dodge, at: 10)
         }
 
-        XCTAssertEqual(result.hitPoints, 80)
+        XCTAssertEqual(result.hitPoints, 130)  // 80 + 5 * level
         XCTAssertEqual(result.manaPoints, 20)
         XCTAssertEqual(result.instinct, 10)   // 1 * level
         XCTAssertEqual(result.power, 0)
@@ -125,7 +125,7 @@ final class ElfAttributeServiceTests: XCTestCase {
             return service.getAllFightStyleAttributes(for: .def, at: 10)
         }
 
-        XCTAssertEqual(result.hitPoints, 80)
+        XCTAssertEqual(result.hitPoints, 130)  // 80 + 5 * level
         XCTAssertEqual(result.manaPoints, 20)
         XCTAssertEqual(result.instinct, 20)   // 2 * level
         XCTAssertEqual(result.power, 0)
