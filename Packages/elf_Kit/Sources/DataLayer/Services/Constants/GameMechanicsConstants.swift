@@ -60,15 +60,37 @@ enum GameMechanicsConstants {
     /// Default weights for crit multiplier distribution
     static let critMultiplierWeights: [Int] = [0, 15, 30, 40, 10, 5]
 
-    /// Multiplier applied to a crit that landed on a **blocked** body part.
-    /// The crit still succeeded — `PointStatus.critHit` is kept so the UI
-    /// renders the crit indicator and statistics record a crit success —
-    /// but the damage is scaled by this value instead of the rolled
-    /// multiplier. `1.0` means a blocked crit deals exactly normal-hit
-    /// damage (block fully cancels the crit bonus); anything below `1.0`
-    /// (e.g. `0.5`) would let the block partially "absorb" even the
-    /// normal hit. The defender still pays the block's EP cost.
-    static let blockedCritMultiplier: Double = 1.0
+    /// Weights for the multiplier rolled when a crit lands on a **blocked**
+    /// body part. Paired with `critMultiplierValues` (same index order):
+    /// `[0.75, 1.00, 1.25, 1.5, 2.0, 3.0]`. The block downgrades the crit's
+    /// damage scaling — most weight sits at 1.0× (block fully cancels crit
+    /// bonus) and 1.25× (slight leak through), with rare 0.75× (block
+    /// absorbs some normal hit too) and 1.5× tail. The 2.0× / 3.0× bands are
+    /// closed (weight 0) so a blocked crit can never spike harder than a
+    /// non-crit big-multiplier hit. Defender still pays the block's EP cost.
+    ///
+    /// Mean ≈ `0.05·0.75 + 0.5·1.0 + 0.4·1.25 + 0.05·1.5 = 1.1125×`.
+    ///
+    /// The `PointStatus.critHit` case is kept so the UI renders the crit
+    /// indicator and statistics record a crit success — only the damage
+    /// scaling differs from the unblocked roll.
+    static let blockedCritMultiplierWeights: [Int] = [5, 50, 40, 5, 0, 0]
+
+    /// Multiplier applied to the **post-armor** damage of a weak block —
+    /// the special path where an Exhausted defender at 0 EP still puts a
+    /// guard up. They pay no EP (have none to spend) but absorb the strike
+    /// at this fraction. `0.6` = defender takes 60 % of the would-be damage
+    /// (weak block soaks 40 %).
+    ///
+    /// Applied **only on the no-crit branch** of weak block: full damage
+    /// chain (weapon + strength − endurance − armor, clamped at 0) is then
+    /// multiplied by this value.
+    ///
+    /// On the crit branch the calculator instead rolls
+    /// `blockedCritMultiplierWeights` to downgrade the crit multiplier —
+    /// that IS the penalty for the attacker there, and this value does NOT
+    /// stack on top (no double-dip).
+    static let exhaustedBlockDamageMultiplier: Double = 0.6
 
     // MARK: - Character Creation
 
@@ -78,7 +100,7 @@ enum GameMechanicsConstants {
     // MARK: - Endurance Points (EP)
 
     /// Starting EP pool for every combatant (hero or monster).
-    static let startingEP: Int = 2000
+    static let startingEP: Int = 2400
 
     /// How many *extra effective blocks* one Endurance attribute point grants,
     /// independent of weapon. The default `0.5` matches the canonical design
@@ -91,7 +113,7 @@ enum GameMechanicsConstants {
     /// - `0.5` (default): 36 Endurance → cost 71 EP (28 blocks)
     /// - `0.4`: 36 Endurance → cost 81 EP (24 blocks); each Endurance adds 0.4 blocks
     /// - `0.25`: 36 Endurance → cost 105 EP (19 blocks); each Endurance adds 0.25 blocks
-    static let blocksPerEndurancePoint: Double = 0.5
+    static let blocksPerEndurancePoint: Double = 0.4
 
     // MARK: - Calendar
 

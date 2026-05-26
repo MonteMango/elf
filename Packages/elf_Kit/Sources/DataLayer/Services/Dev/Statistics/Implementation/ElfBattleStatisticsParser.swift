@@ -32,7 +32,7 @@ public final class ElfBattleStatisticsParser: BattleStatisticsParser {
             let isDefended = defendingPoints.contains(bodyPart)
 
             switch status {
-            case .critHit(_, let strengthDamage, _, let multiplier, _):
+            case .critHit(_, let strengthDamage, _, _, let multiplier, _):
                 // Attacker attempted crit and succeeded
                 attackerCritAttempts += 1
                 attackerCritSuccesses += 1
@@ -46,7 +46,7 @@ public final class ElfBattleStatisticsParser: BattleStatisticsParser {
                     defenderDodgeAttempts += 1
                 }
 
-            case .hit(_, let strengthDamage, _):
+            case .hit(_, let strengthDamage, _, _):
                 // Attacker attempted crit but failed (normal hit)
                 attackerCritAttempts += 1
                 attackerStrengthDamage += strengthDamage
@@ -58,6 +58,19 @@ public final class ElfBattleStatisticsParser: BattleStatisticsParser {
                 attackerCritAttempts += 1
                 if wasCrit {
                     attackerCritSuccesses += 1
+                }
+
+            case .weakBlocked(_, let strengthDamage, _, _, let multiplier, _, let wasCrit):
+                // Defended attack against an Exhausted defender — block held
+                // at half effectiveness. Mirror `.blocked` for crit tracking
+                // (no dodge), but also record the strength damage that
+                // actually landed on the defender.
+                attackerCritAttempts += 1
+                attackerStrengthDamage += strengthDamage
+                if wasCrit {
+                    attackerCritSuccesses += 1
+                    attackerCritMultipliers[multiplier, default: 0] += 1
+                    attackerCritBlockBreaks += 1
                 }
 
             case .dodged(let wasCrit):

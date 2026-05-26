@@ -310,3 +310,13 @@ traces/**/sample.txt
 
 # Claude Code runtime artifacts
 .claude/scheduled_tasks.lock
+
+# Local agent skills and per-project skill installs (per-user, not shared)
+.agents/
+.claude/skills/
+
+# Leonardo AI prompt guide — local working doc, not part of project documentation
+.claude/docs/leonardo-ai-prompts.md
+
+# Battle simulation sweep outputs — local dev artifacts (raw numbers per balance step)
+.claude/docs/simulationResults/

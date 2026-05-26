@@ -11,13 +11,16 @@ import Foundation
 public final class ElfDamageService: DamageService {
 
     private let itemsRepository: any ItemsRepository
-    private let distributionStrategy: any StrengthDamageDistributionStrategy
+    private let strengthDistributionStrategy: any StrengthDamageDistributionStrategy
+    private let enduranceDistributionStrategy: any EnduranceDamageReductionDistributionStrategy
 
     public init() {
         @Dependency(\.itemsRepository) var itemsRepository
-        @Dependency(\.strengthDamageDistributionStrategy) var distributionStrategy
+        @Dependency(\.strengthDamageDistributionStrategy) var strengthDistributionStrategy
+        @Dependency(\.enduranceDamageReductionDistributionStrategy) var enduranceDistributionStrategy
         self.itemsRepository = itemsRepository
-        self.distributionStrategy = distributionStrategy
+        self.strengthDistributionStrategy = strengthDistributionStrategy
+        self.enduranceDistributionStrategy = enduranceDistributionStrategy
     }
 
     public func getWeaponDamage(weaponId: UUID?) -> (minDmg: Int16, maxDmg: Int16)? {
@@ -37,10 +40,14 @@ public final class ElfDamageService: DamageService {
     }
 
     public func getRandomStrengthDamage(_ strengthAttribute: Int16) -> Int16 {
-        // Get distribution from strategy
-        let distribution = distributionStrategy.distribution(for: strengthAttribute)
+        weightedRoll(from: strengthDistributionStrategy.distribution(for: strengthAttribute))
+    }
 
-        // Calculate total weight
+    public func getRandomEnduranceDamageReduction(_ enduranceAttribute: Int16) -> Int16 {
+        weightedRoll(from: enduranceDistributionStrategy.distribution(for: enduranceAttribute))
+    }
+
+    private func weightedRoll(from distribution: DamageDistribution) -> Int16 {
         let totalWeight = distribution.weights.reduce(0, +)
 
         // If total weight is 0, return 0 (edge case)
@@ -48,10 +55,8 @@ public final class ElfDamageService: DamageService {
             return 0
         }
 
-        // Generate random number in range [0, totalWeight)
         let randomValue = Int.random(in: 0..<totalWeight)
 
-        // Find which value corresponds to this random weight
         var cumulativeWeight = 0
         for (index, weight) in distribution.weights.enumerated() {
             cumulativeWeight += weight
@@ -65,23 +70,10 @@ public final class ElfDamageService: DamageService {
     }
 
     public func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) -> Int {
-        var totalDamage = 0
-
-        for (_, status) in pointStatus {
-            switch status {
-            case .hit(let weaponDamage, let strengthDamage, let defenderArmor):
-                let damage = max(0, weaponDamage + strengthDamage - defenderArmor)
-                totalDamage += damage
-            case .critHit(let weaponDamage, let strengthDamage, let defenderArmor, let multiplier, _):
-                let baseDamage = weaponDamage + strengthDamage
-                let damage = max(0, Int(Double(baseDamage) * multiplier) - defenderArmor)
-                totalDamage += damage
-            case .blocked, .dodged, .nothing:
-                // No damage for blocked, dodged, or nothing
-                break
-            }
-        }
-
-        return totalDamage
+        // Single source of truth lives on `PointStatus.damageTakenValue` so the
+        // production damage path and the diagnostics aggregator can never
+        // drift. Per-case math (weapon × crit multiplier, weakBlocked's
+        // pre-halved final, clamp at 0) is encoded there.
+        pointStatus.values.reduce(0) { $0 + $1.damageTakenValue }
     }
 }

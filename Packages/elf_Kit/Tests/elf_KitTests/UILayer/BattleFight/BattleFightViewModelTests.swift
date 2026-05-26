@@ -13,6 +13,7 @@ import XCTest
 /// covered by exercising the helper directly — wiring a `BattleFightViewModel`
 /// requires a `Battle` and a battery of DI overrides that would dwarf the
 /// single decision under test.
+@MainActor
 final class BattleFightViewModelTests: XCTestCase {
 
     // MARK: - scaledVital

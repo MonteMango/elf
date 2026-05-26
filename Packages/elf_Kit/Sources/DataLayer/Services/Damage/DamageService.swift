@@ -11,8 +11,10 @@ import Foundation
 ///
 /// This protocol aggregates focused interfaces for:
 /// - Strength-based damage calculation
+/// - Endurance-based damage reduction calculation
 /// - Weapon-based damage calculation
 /// - Total damage aggregation
 public protocol DamageService: StrengthDamageCalculator,
+                               EnduranceDamageReductionCalculator,
                                WeaponDamageCalculator,
                                TotalDamageCalculator {}

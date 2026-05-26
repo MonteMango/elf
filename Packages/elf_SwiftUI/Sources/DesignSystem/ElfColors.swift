@@ -118,10 +118,26 @@ public enum ElfColors {
         public static let defeat = Color.red
         public static let draw = Color.orange
         public static let blocked = Color.green
+        public static let weakBlocked = Color.mint
         public static let hit = Color.red
         public static let critHit = Color.orange
         public static let dodged = Color.yellow
         public static let nothing = Color.gray.opacity(0.5)
+    }
+
+    // MARK: - Buff Colors
+
+    public enum Buff {
+        /// Border / accent color for positive (helpful) buffs.
+        public static let positive = Color.green
+        /// Border / accent color for negative (harmful) debuffs.
+        public static let negative = Color.red
+        /// Background tint behind the badge icon.
+        public static let badgeBackground = Color.black.opacity(0.55)
+        /// Background color of the stacks-count corner pill.
+        public static let stacksBackground = Color.black.opacity(0.8)
+        /// Text color of the stacks-count corner pill.
+        public static let stacksText = Color.white
     }
 
     // MARK: - Tier Colors (Fish, Items)

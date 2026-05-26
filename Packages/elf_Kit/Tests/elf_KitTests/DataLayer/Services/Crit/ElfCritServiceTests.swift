@@ -292,4 +292,47 @@ final class ElfCritServiceTests: XCTestCase {
         XCTAssertEqual(result.distribution.minimumChance, 150)
         XCTAssertTrue(result.success, "150+ chance should always succeed")
     }
+
+    // MARK: - selectBlockedCritMultiplier
+
+    /// Defaults from `GameMechanicsConstants.blockedCritMultiplierWeights`
+    /// `[5, 50, 40, 5, 0, 0]` paired with values `[0.75, 1.00, 1.25, 1.5, 2.0, 3.0]`.
+    /// Bands with weight 0 (2.0×, 3.0×) must never be picked; every other
+    /// band must appear at least once over a large enough sample.
+    func testBlockedCritMultiplier_StaysWithinDistributionTail() async {
+        let service = makeService()
+        var picked: Set<Double> = []
+        var max: Double = 0
+
+        for _ in 0..<5000 {
+            let m = service.selectBlockedCritMultiplier()
+            picked.insert(m)
+            if m > max { max = m }
+        }
+
+        XCTAssertFalse(picked.contains(2.0), "blocked-crit multiplier must never roll 2.0× (weight 0)")
+        XCTAssertFalse(picked.contains(3.0), "blocked-crit multiplier must never roll 3.0× (weight 0)")
+        XCTAssertLessThanOrEqual(max, 1.5, "blocked-crit multiplier capped at 1.5× by weights")
+        // With 5/50/40/5 weights over 5000 rolls, the 5-weight bands appear
+        // with very high probability (~99.9%).
+        XCTAssertTrue(picked.contains(0.75))
+        XCTAssertTrue(picked.contains(1.0))
+        XCTAssertTrue(picked.contains(1.25))
+        XCTAssertTrue(picked.contains(1.5))
+    }
+
+    /// Pins the canonical mean of the blocked-crit distribution. If weights
+    /// are retuned this test will fail loudly — that's the point: any change
+    /// here has direct combat-balance consequences and should be intentional.
+    func testBlockedCritMultiplier_MeanMatchesWeightedExpectation() async {
+        let service = makeService()
+        let trials = 20_000
+        var total: Double = 0
+        for _ in 0..<trials {
+            total += service.selectBlockedCritMultiplier()
+        }
+        let mean = total / Double(trials)
+        // Expected: 0.05·0.75 + 0.5·1.0 + 0.4·1.25 + 0.05·1.5 = 1.1125
+        XCTAssertEqual(mean, 1.1125, accuracy: 0.02, "Mean must match weights·values dot product within stochastic tolerance")
+    }
 }

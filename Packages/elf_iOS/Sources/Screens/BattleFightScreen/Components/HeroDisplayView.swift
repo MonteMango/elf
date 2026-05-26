@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 16.11.25.
 //
 
+import Dependencies
 import elf_Kit
 import elf_SwiftUI
 import SwiftUI
@@ -18,6 +19,8 @@ struct HeroDisplayView: View {
     let display: HeroDisplayState
     let roundResults: [BodyPart: PointStatus]
 
+    @Dependency(\.pointStatusFormatter) private var pointStatusFormatter
+
     // MARK: - Body
 
     var body: some View {
@@ -29,6 +32,10 @@ struct HeroDisplayView: View {
                 hpBar
                 // TODO: [buffs/P2] render MP bar between hpBar and epBar — data already in display.currentMP/maxMP (effective). Blocked on a magic mechanic that actually spends MP; rendering 0/0 today would be visual debt.
                 epBar
+                if !display.buffBadges.isEmpty {
+                    BuffBadgeStripView(badges: display.buffBadges)
+                        .padding(.top, 2)
+                }
             }
 
             // Hero Image with overlays
@@ -37,8 +44,6 @@ struct HeroDisplayView: View {
                     imageName: display.imageName,
                     equippedItems: display.equippedItems
                 )
-
-                // TODO: [buffs/P1] render buff badges from display.buffBadges — needs design (placement: portrait corner overlay vs. row above hpBar; polarity colors in ElfColors.Buff; stacks count badge; optional tooltip). Land alongside #9 (dev-menu apply-buff trigger) so the strip is exercised end-to-end.
 
                 // Per-round result dots — battle-only, stays on the outer caller.
                 resultDotsOverlay
@@ -149,28 +154,10 @@ struct HeroDisplayView: View {
 
     @ViewBuilder
     private func resultLabel(status: PointStatus) -> some View {
-        if let text = statusText(for: status) {
+        if let text = pointStatusFormatter.shortLabel(for: status) {
             Text(text)
                 .font(Font.system(size: 12, weight: .bold))
                 .foregroundStyle(statusColor(for: status))
-        }
-    }
-
-    private func statusText(for status: PointStatus) -> String? {
-        switch status {
-        case .dodged:
-            return "dodge"
-        case .hit(let weaponDamage, let strengthDamage, let defenderArmor):
-            let damage = max(0, weaponDamage + strengthDamage - defenderArmor)
-            return "\(damage)"
-        case .critHit(let weaponDamage, let strengthDamage, let defenderArmor, let multiplier, _):
-            let baseDamage = weaponDamage + strengthDamage - defenderArmor
-            let damage = max(0, Int(Double(baseDamage) * multiplier))
-            return "crit \(damage)"
-        case .blocked:
-            return "block"
-        case .nothing:
-            return nil
         }
     }
 
@@ -184,6 +171,8 @@ struct HeroDisplayView: View {
             return ElfColors.Battle.critHit
         case .blocked:
             return ElfColors.Battle.blocked
+        case .weakBlocked:
+            return ElfColors.Battle.weakBlocked
         case .nothing:
             return ElfColors.Battle.nothing
         }
@@ -256,9 +245,9 @@ struct HeroDisplayView: View {
             display: monsterDisplay,
             roundResults: [
                 .head: .blocked(wasCrit: false, epSpent: 200),
-                .body: .hit(weaponDamage: 8, strengthDamage: 5, defenderArmor: 3),
+                .body: .hit(weaponDamage: 8, strengthDamage: 5, enduranceReduction: 0, defenderArmor: 3),
                 .leftHand: .nothing,
-                .rightHand: .critHit(weaponDamage: 12, strengthDamage: 8, defenderArmor: 0, multiplier: 2.0, epSpent: 200),
+                .rightHand: .critHit(weaponDamage: 12, strengthDamage: 8, enduranceReduction: 0, defenderArmor: 0, multiplier: 2.0, epSpent: 200),
                 .legs: .dodged(wasCrit: false)
             ]
         )
@@ -267,10 +256,10 @@ struct HeroDisplayView: View {
         HeroDisplayView(
             display: elfDisplay,
             roundResults: [
-                .head: .hit(weaponDamage: 4, strengthDamage: 3, defenderArmor: 2),
+                .head: .hit(weaponDamage: 4, strengthDamage: 3, enduranceReduction: 0, defenderArmor: 2),
                 .body: .blocked(wasCrit: false, epSpent: 200),
                 .leftHand: .dodged(wasCrit: true),
-                .rightHand: .critHit(weaponDamage: 15, strengthDamage: 10, defenderArmor: 0, multiplier: 1.5, epSpent: 0),
+                .rightHand: .critHit(weaponDamage: 15, strengthDamage: 10, enduranceReduction: 0, defenderArmor: 0, multiplier: 1.5, epSpent: 0),
                 .legs: .nothing
             ]
         )

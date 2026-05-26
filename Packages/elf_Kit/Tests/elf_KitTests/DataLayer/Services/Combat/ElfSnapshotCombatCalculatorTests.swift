@@ -23,6 +23,11 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
     final class MockDamageService: DamageService, @unchecked Sendable {
         nonisolated(unsafe) var strengthDamageToReturn: Int16 = 5
         nonisolated(unsafe) var weaponDamageToReturn: Int16 = 10
+        nonisolated(unsafe) var enduranceReductionToReturn: Int16 = 0
+        /// Captures the defender endurance value passed to
+        /// `getRandomEnduranceDamageReduction` so tests can assert the
+        /// calculator reads the **defender**'s stat (not the attacker's).
+        nonisolated(unsafe) var lastEnduranceQueried: Int16?
 
         func getMinMaxStrengthDamage(_ strengthAttribute: Int16) -> (minDmg: Int16, maxDmg: Int16)? {
             return (0, strengthDamageToReturn)
@@ -36,6 +41,11 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
             return strengthDamageToReturn
         }
 
+        func getRandomEnduranceDamageReduction(_ enduranceAttribute: Int16) -> Int16 {
+            lastEnduranceQueried = enduranceAttribute
+            return enduranceReductionToReturn
+        }
+
         func getWeaponDamage(weaponId: UUID?) -> (minDmg: Int16, maxDmg: Int16)? {
             return (weaponDamageToReturn, weaponDamageToReturn)
         }
@@ -45,18 +55,10 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         }
 
         func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) -> Int {
-            var total = 0
-            for (_, status) in pointStatus {
-                switch status {
-                case .hit(let weaponDmg, let strengthDmg, let armor):
-                    total += max(0, weaponDmg + strengthDmg - armor)
-                case .critHit(let weaponDmg, let strengthDmg, let armor, let multiplier, _):
-                    total += max(0, Int(Double(weaponDmg + strengthDmg) * multiplier) - armor)
-                default:
-                    break
-                }
-            }
-            return total
+            // Delegate to the single source of truth — same as production
+            // `ElfDamageService.calculateTotalDamage`. Keeps this mock from
+            // re-deriving the formula and drifting from `PointStatus.damageTakenValue`.
+            pointStatus.values.reduce(0) { $0 + $1.damageTakenValue }
         }
     }
 
@@ -94,6 +96,10 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
     final class MockCritService: CritService, @unchecked Sendable {
         nonisolated(unsafe) var shouldCrit: Bool = false
         nonisolated(unsafe) var critMultiplier: Double = 1.5
+        /// Deterministic value returned by `selectBlockedCritMultiplier()`.
+        /// Defaults to 1.0 — matches the old "always 1.0" behavior so
+        /// non-blocked-crit tests don't need to set anything.
+        nonisolated(unsafe) var blockedCritMultiplier: Double = 1.0
 
         func calculateCrit(power: Int16, instinct: Int16) -> CritCalculationResult {
             let distribution = CritDistribution(
@@ -113,6 +119,10 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
                 multiplierRoll: shouldCrit ? 50 : nil,
                 selectedMultiplier: shouldCrit ? critMultiplier : 1.0
             )
+        }
+
+        func selectBlockedCritMultiplier() -> Double {
+            blockedCritMultiplier
         }
     }
 
@@ -145,7 +155,8 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         attacks: [AttackProfile] = [
             AttackProfile(minimumAttack: 10, maximumAttack: 10, epBlockCost: 200)
         ],
-        armor: [BodyPart: Int] = [:]
+        armor: [BodyPart: Int] = [:],
+        battleBuffs: [AppliedBuff] = []
     ) -> CombatantSnapshot {
         return CombatantSnapshot(
             id: UUID(),
@@ -167,8 +178,13 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
             ),
             attacks: attacks,
             defensePoints: 2,
-            armorValues: armor
+            armorValues: armor,
+            battleBuffs: battleBuffs
         )
+    }
+
+    private func exhaustedBattleBuff() -> AppliedBuff {
+        AppliedBuff(buffId: BuffCatalogID.exhaustedBattle, stacks: 1)
     }
 
     /// Wrap every test in `withDependencies` so the calculator's @Dependency property
@@ -223,9 +239,13 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
     }
 
     func testAttackOnDefendedPoint_WithCrit_BreaksBlock() async {
-        // Given
+        // Given: the rolled crit multiplier (2.0) would normally apply, but
+        // block downgrades it to whatever `CritService.selectBlockedCritMultiplier`
+        // returns. We pin the mock to 1.25 to verify the calculator uses the
+        // service's rolled value, not the original `critResult.selectedMultiplier`.
         mockCritService.shouldCrit = true
         mockCritService.critMultiplier = 2.0
+        mockCritService.blockedCritMultiplier = 1.25
         mockDamageService.strengthDamageToReturn = 5
         let calculator = makeCalculator()
         let attacker = makeSnapshot(power: 50, attacks: [AttackProfile(minimumAttack: 10, maximumAttack: 10, epBlockCost: 200)])
@@ -239,13 +259,13 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
             defender: defender
         )
 
-        // Then: status remains `.critHit` for UI, but multiplier is suppressed
-        // to `blockedCritMultiplier` — block downgrades the crit's damage scaling.
-        if case .critHit(let weaponDmg, let strengthDmg, let armor, let multiplier, _) = results[.head] {
+        // Then: status remains `.critHit` for UI, but multiplier is whatever
+        // the service rolled for blocked crits (here pinned to 1.25 via mock).
+        if case .critHit(let weaponDmg, let strengthDmg, _, let armor, let multiplier, _) = results[.head] {
             XCTAssertEqual(weaponDmg, 10)
             XCTAssertEqual(strengthDmg, 5)
             XCTAssertEqual(armor, 3)
-            XCTAssertEqual(multiplier, GameMechanicsConstants.blockedCritMultiplier)
+            XCTAssertEqual(multiplier, 1.25, "Calculator must use service-rolled blocked-crit multiplier, not raw critResult.selectedMultiplier")
         } else {
             XCTFail("Expected critHit, got \(String(describing: results[.head]))")
         }
@@ -311,7 +331,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         )
 
         // Then
-        if case .hit(let weaponDmg, let strengthDmg, let armor) = results[.legs] {
+        if case .hit(let weaponDmg, let strengthDmg, _, let armor) = results[.legs] {
             XCTAssertEqual(weaponDmg, 12)
             XCTAssertEqual(strengthDmg, 6)
             XCTAssertEqual(armor, 5)
@@ -339,7 +359,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         )
 
         // Then
-        if case .critHit(let weaponDmg, let strengthDmg, let armor, let multiplier, _) = results[.rightHand] {
+        if case .critHit(let weaponDmg, let strengthDmg, _, let armor, let multiplier, _) = results[.rightHand] {
             XCTAssertEqual(weaponDmg, 15)
             XCTAssertEqual(strengthDmg, 8)
             XCTAssertEqual(armor, 2)
@@ -393,7 +413,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
 
         // Then
         // Head: attacked, not defended → hit
-        if case .hit(let weaponDmg, let strengthDmg, let armor) = results[.head] {
+        if case .hit(let weaponDmg, let strengthDmg, _, let armor) = results[.head] {
             XCTAssertEqual(weaponDmg, 10)
             XCTAssertEqual(strengthDmg, 5)
             XCTAssertEqual(armor, 2)
@@ -450,7 +470,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         )
 
         // Then
-        if case .hit(_, _, let armor) = results[.head] {
+        if case .hit(_, _, _, let armor) = results[.head] {
             XCTAssertEqual(armor, 8, "Armor should be taken from defender's armor values")
         } else {
             XCTFail("Expected hit")
@@ -474,7 +494,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         )
 
         // Then
-        if case .hit(_, _, let armor) = results[.body] {
+        if case .hit(_, _, _, let armor) = results[.body] {
             XCTAssertEqual(armor, 0, "Armor should be 0 when not specified")
         } else {
             XCTFail("Expected hit")
@@ -518,12 +538,14 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         XCTAssertEqual(results[.head]?.epSpentValue, 0, "Zero-cost block must not consume EP")
     }
 
-    func testBlock_InsufficientEP_FallsThroughAndSpendsZero() async {
+    /// New: a defender with EP > 0 but less than `blockCost` still BLOCKS the
+    /// strike. The remaining EP is drained to 0; the runner will apply
+    /// `Exhausted` at end of round.
+    func testBlock_InsufficientEP_DrainsRemainderAndStillBlocks() async {
         // Given: cost 200, defender has only 100
         mockEnduranceService.costToReturn = 200
         mockDodgeService.shouldDodge = false
         mockCritService.shouldCrit = false
-        mockDamageService.strengthDamageToReturn = 5
         let calculator = makeCalculator()
         let attacker = makeSnapshot(attacks: [AttackProfile(minimumAttack: 10, maximumAttack: 10, epBlockCost: 200)])
         let defender = makeSnapshot(currentEP: 100)
@@ -536,14 +558,121 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
             defender: defender
         )
 
-        // Then: block accepted but doesn't protect → resolved as undefended hit, no EP spent.
-        if case .hit(let weaponDmg, let strengthDmg, _) = results[.head] {
+        // Then: block held — defender pays the remaining 100 EP, takes no damage.
+        XCTAssertEqual(results[.head], .blocked(wasCrit: false, epSpent: 100))
+    }
+
+    /// EP == 0 and the defender does NOT carry Exhausted (e.g. drained earlier
+    /// this same round, before the end-of-round hook ran): the block has no
+    /// resource to absorb anything, so the strike falls through to undefended.
+    func testBlock_EPZero_WithoutExhausted_FallsThroughToUndefended() async {
+        // Given
+        mockEnduranceService.costToReturn = 200
+        mockDodgeService.shouldDodge = false
+        mockCritService.shouldCrit = false
+        mockDamageService.strengthDamageToReturn = 5
+        let calculator = makeCalculator()
+        let attacker = makeSnapshot(attacks: [AttackProfile(minimumAttack: 10, maximumAttack: 10, epBlockCost: 200)])
+        let defender = makeSnapshot(currentEP: 0)
+
+        // When
+        let results = calculator.calculatePointStatus(
+            attackingPoints: [.head],
+            defendingPoints: [.head],
+            attacker: attacker,
+            defender: defender
+        )
+
+        // Then: resolved as a normal undefended hit, no EP spent.
+        if case .hit(let weaponDmg, let strengthDmg, _, _) = results[.head] {
             XCTAssertEqual(weaponDmg, 10)
             XCTAssertEqual(strengthDmg, 5)
         } else {
-            XCTFail("Expected hit fallthrough on insufficient EP, got \(String(describing: results[.head]))")
+            XCTFail("Expected hit fallthrough on EP=0 without Exhausted, got \(String(describing: results[.head]))")
         }
         XCTAssertEqual(results[.head]?.epSpentValue, 0)
+    }
+
+    /// EP == 0 and the defender carries `Exhausted` (applied by the round runner
+    /// in a previous round) and the strike is NOT a crit: the strike is
+    /// "weak-blocked" — full damage chain runs, then the post-armor total is
+    /// multiplied by `exhaustedBlockDamageMultiplier` (`0.6`).
+    func testBlock_EPZero_WithExhausted_NoCrit_AppliesPostArmorMultiplier() async {
+        // Given: full chain would deal weapon 10 + str 6 − end 0 − armor 4 = 12;
+        //        × 0.6 = 7.2 → floor → 7.
+        mockEnduranceService.costToReturn = 200
+        mockCritService.shouldCrit = false
+        mockDamageService.strengthDamageToReturn = 6
+        let calculator = makeCalculator()
+        let attacker = makeSnapshot(attacks: [AttackProfile(minimumAttack: 10, maximumAttack: 10, epBlockCost: 200)])
+        let defender = makeSnapshot(
+            currentEP: 0,
+            armor: [.head: 4],
+            battleBuffs: [exhaustedBattleBuff()]
+        )
+
+        // When
+        let results = calculator.calculatePointStatus(
+            attackingPoints: [.head],
+            defendingPoints: [.head],
+            attacker: attacker,
+            defender: defender
+        )
+
+        // Then
+        if case .weakBlocked(let weaponDmg, let strengthDmg, let endRed, let armor, let mult, let finalDamage, let wasCrit) = results[.head] {
+            XCTAssertEqual(weaponDmg, 10)
+            XCTAssertEqual(strengthDmg, 6)
+            XCTAssertEqual(endRed, 0)
+            XCTAssertEqual(armor, 4)
+            XCTAssertEqual(mult, 1.0)
+            XCTAssertFalse(wasCrit)
+            XCTAssertEqual(finalDamage, 7, "10 + 6 − 0 − 4 = 12, × 0.6 = 7.2 → 7")
+        } else {
+            XCTFail("Expected weakBlocked, got \(String(describing: results[.head]))")
+        }
+        XCTAssertEqual(results[.head]?.epSpentValue, 0, "Weak block must not spend EP")
+    }
+
+    /// A crit landing on a weak block: the calculator must roll the
+    /// **blocked-crit** multiplier distribution (mock pinned to `1.25`)
+    /// instead of using the raw `selectedMultiplier`. The downgraded crit IS
+    /// the entire penalty — `exhaustedBlockDamageMultiplier` does NOT apply
+    /// on this branch (no double-dip).
+    func testBlock_EPZero_WithExhausted_CritUsesBlockedMultiplierNotHalved() async {
+        // Given: blocked-crit multiplier pinned to 1.25.
+        //        weapon 10 × 1.25 = 12 (Int floor), + str 5 − end 0 − armor 2 = 15.
+        //        No further halving by 0.6 — final = 15.
+        mockEnduranceService.costToReturn = 200
+        mockCritService.shouldCrit = true
+        mockCritService.critMultiplier = 2.0          // raw multiplier — must be IGNORED on weak-block crit
+        mockCritService.blockedCritMultiplier = 1.25  // value calculator must read instead
+        mockDamageService.strengthDamageToReturn = 5
+        let calculator = makeCalculator()
+        let attacker = makeSnapshot(attacks: [AttackProfile(minimumAttack: 10, maximumAttack: 10, epBlockCost: 200)])
+        let defender = makeSnapshot(
+            currentEP: 0,
+            armor: [.head: 2],
+            battleBuffs: [exhaustedBattleBuff()]
+        )
+
+        // When
+        let results = calculator.calculatePointStatus(
+            attackingPoints: [.head],
+            defendingPoints: [.head],
+            attacker: attacker,
+            defender: defender
+        )
+
+        // Then
+        if case .weakBlocked(_, _, _, _, let mult, let finalDamage, let wasCrit) = results[.head] {
+            XCTAssertTrue(wasCrit)
+            XCTAssertEqual(mult, 1.25, "Weak-block crit must use selectBlockedCritMultiplier(), not raw selectedMultiplier")
+            XCTAssertEqual(finalDamage, 15, "Int(10×1.25) + 5 − 0 − 2 = 15; no extra ×0.6 on the crit branch")
+        } else {
+            XCTFail("Expected weakBlocked crit, got \(String(describing: results[.head]))")
+        }
+        XCTAssertEqual(results[.head]?.epSpentValue, 0, "Weak block must not spend EP")
     }
 
     func testCritPiercesBlock_StillSpendsEP() async {
@@ -565,7 +694,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         )
 
         // Then: damage applies AND EP is consumed.
-        if case .critHit(_, _, _, _, let epSpent) = results[.head] {
+        if case .critHit(_, _, _, _, _, let epSpent) = results[.head] {
             XCTAssertEqual(epSpent, 200)
         } else {
             XCTFail("Expected critHit with EP spent, got \(String(describing: results[.head]))")
@@ -573,7 +702,9 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
     }
 
     func testMultipleBlocks_DrainEPSequentially() async {
-        // Given: cost 200 per block, defender has 350 → can afford 1 block, second falls through.
+        // Given: cost 200 per block, defender has 350 → first block spends 200,
+        // second block drains the remaining 150 and STILL holds (new behavior).
+        // Total EP spent across both = 350 (fully drained).
         mockEnduranceService.costToReturn = 200
         mockDodgeService.shouldDodge = false
         mockCritService.shouldCrit = false
@@ -590,9 +721,11 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
             defender: defender
         )
 
-        // Then: total EP spent across both parts is exactly one block's cost (200).
+        // Then: both blocks hold, second drains the remainder.
+        XCTAssertEqual(results[.head], .blocked(wasCrit: false, epSpent: 200))
+        XCTAssertEqual(results[.body], .blocked(wasCrit: false, epSpent: 150))
         let totalEP = (results[.head]?.epSpentValue ?? 0) + (results[.body]?.epSpentValue ?? 0)
-        XCTAssertEqual(totalEP, 200, "Only one block should fit in 350 EP at cost 200")
+        XCTAssertEqual(totalEP, 350, "Both blocks hold; second one drains EP to 0")
     }
 
     // MARK: - EP boundaries
@@ -710,10 +843,12 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
             defender: defender
         )
 
-        // Then: head (strike 0 = right) wins the block. body (strike 1 = left)
-        // sees only 50 EP left, falls through to undefended hit.
+        // Then: head (strike 0 = right) takes the full 200-EP block. body
+        // (strike 1 = left) sees only 50 EP left — under the new rule the
+        // block still HOLDS, draining the remaining 50 EP.
         XCTAssertEqual(results[.head]?.epSpentValue, 200, "Right weapon's strike must drain EP first")
-        XCTAssertEqual(results[.body]?.epSpentValue, 0, "Left weapon's strike falls through after EP is exhausted")
+        XCTAssertEqual(results[.body]?.epSpentValue, 50, "Left weapon's strike drains the remaining 50 EP and still blocks")
+        XCTAssertEqual(results[.body], .blocked(wasCrit: false, epSpent: 50))
     }
 
     /// Strike 1 deals right weapon's damage; strike 2 deals left weapon's
@@ -741,16 +876,93 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         )
 
         // Then: head (1st) gets weapon damage 10; body (2nd) gets 4.
-        if case .hit(let weaponDmg, _, _) = results[.head] {
+        if case .hit(let weaponDmg, _, _, _) = results[.head] {
             XCTAssertEqual(weaponDmg, 10, "Strike 1 uses right weapon damage")
         } else {
             XCTFail("Expected .hit on head, got \(String(describing: results[.head]))")
         }
-        if case .hit(let weaponDmg, _, _) = results[.body] {
+        if case .hit(let weaponDmg, _, _, _) = results[.body] {
             XCTAssertEqual(weaponDmg, 4, "Strike 2 uses left weapon damage")
         } else {
             XCTFail("Expected .hit on body, got \(String(describing: results[.body]))")
         }
     }
 
+    // MARK: - Endurance Damage Reduction
+
+    /// Pins the wiring: the calculator must read **defender's** endurance for
+    /// the reduction roll (not the attacker's). Mirror of how Strength reads
+    /// the attacker's stat. Captured via the mock's `lastEnduranceQueried`.
+    func testHit_ReadsDefenderEnduranceForReduction() async {
+        // Given: attacker has endurance 99 (must be ignored), defender has 36.
+        mockDodgeService.shouldDodge = false
+        mockCritService.shouldCrit = false
+        mockDamageService.strengthDamageToReturn = 4
+        mockDamageService.enduranceReductionToReturn = 3
+        let calculator = makeCalculator()
+        let attacker = makeSnapshot(
+            strength: 20,
+            endurance: 99,
+            attacks: [AttackProfile(minimumAttack: 8, maximumAttack: 8, epBlockCost: 200)]
+        )
+        let defender = makeSnapshot(endurance: 36)
+
+        // When
+        let results = calculator.calculatePointStatus(
+            attackingPoints: [.head],
+            defendingPoints: [],
+            attacker: attacker,
+            defender: defender
+        )
+
+        // Then
+        XCTAssertEqual(
+            mockDamageService.lastEnduranceQueried,
+            36,
+            "Reduction roll must consult defender's effective endurance, not attacker's"
+        )
+        if case .hit(let weaponDmg, let strengthDmg, let enduranceRed, _) = results[.head] {
+            XCTAssertEqual(weaponDmg, 8)
+            XCTAssertEqual(strengthDmg, 4)
+            XCTAssertEqual(enduranceRed, 3, "Endurance reduction must be propagated into PointStatus.hit")
+        } else {
+            XCTFail("Expected .hit, got \(String(describing: results[.head]))")
+        }
+    }
+
+    /// On a successful crit (undefended), the endurance reduction is recorded
+    /// in the `.critHit` payload alongside Strength, ready for the multiplier
+    /// to scale them together via `calculateTotalDamage`.
+    func testCritHit_CarriesEnduranceReduction() async {
+        // Given
+        mockDodgeService.shouldDodge = false
+        mockCritService.shouldCrit = true
+        mockCritService.critMultiplier = 2.0
+        mockDamageService.strengthDamageToReturn = 6
+        mockDamageService.enduranceReductionToReturn = 2
+        let calculator = makeCalculator()
+        let attacker = makeSnapshot(
+            power: 50,
+            attacks: [AttackProfile(minimumAttack: 10, maximumAttack: 10, epBlockCost: 200)]
+        )
+        let defender = makeSnapshot(endurance: 20)
+
+        // When
+        let results = calculator.calculatePointStatus(
+            attackingPoints: [.body],
+            defendingPoints: [],
+            attacker: attacker,
+            defender: defender
+        )
+
+        // Then
+        if case .critHit(let weaponDmg, let strengthDmg, let enduranceRed, _, let multiplier, _) = results[.body] {
+            XCTAssertEqual(weaponDmg, 10)
+            XCTAssertEqual(strengthDmg, 6)
+            XCTAssertEqual(enduranceRed, 2)
+            XCTAssertEqual(multiplier, 2.0)
+        } else {
+            XCTFail("Expected .critHit, got \(String(describing: results[.body]))")
+        }
+    }
 }

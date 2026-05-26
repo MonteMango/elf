@@ -62,6 +62,18 @@ public final class ElfCritService: CritService {
         )
     }
 
+    public func selectBlockedCritMultiplier() -> Double {
+        // Reuse the same values array as the regular distribution; only
+        // weights differ. Defender's block downgrades the multiplier
+        // distribution toward 1.0×, closing the 2.0× / 3.0× tail.
+        let blocked = CritMultiplierDistribution(
+            values: GameMechanicsConstants.critMultiplierValues,
+            weights: GameMechanicsConstants.blockedCritMultiplierWeights
+        )
+        let (_, multiplier) = selectMultiplier(critSuccess: true, from: blocked)
+        return multiplier
+    }
+
     // MARK: - Private Methods
 
     /// Selects a crit chance from the distribution using weighted random selection

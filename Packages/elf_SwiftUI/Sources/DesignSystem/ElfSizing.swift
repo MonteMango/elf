@@ -153,6 +153,13 @@ public enum ElfSizing {
         public static let teamImageActiveSize: CGFloat = 30
         public static let battleItemSize: CGFloat = 30
         public static let battleJewelrySize: CGFloat = 20
+
+        // Buff badge strip (in-battle indicator for active buffs/debuffs)
+        public static let buffBadgeSize: CGFloat = 24
+        public static let buffBadgeBorderWidth: CGFloat = 1.5
+        public static let buffBadgeCornerRadius: CGFloat = 4
+        public static let buffBadgeSpacing: CGFloat = 4
+        public static let buffBadgeStacksFontSize: CGFloat = 9
     }
 
     // MARK: - Hunt Screen Specific

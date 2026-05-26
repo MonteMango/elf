@@ -138,9 +138,9 @@
             "id": "dfbd2742-5470-4f97-84ea-fb17b5f3a6d2",
             "title": "Recruit's Spear",
             "tier": 4,
-            "minimumAttackPoint": 6,
+            "minimumAttackPoint": 9,
             "maximumAttackPoint": 9,
-            "epBlockCost": 300,
+            "epBlockCost": 400,
             "handUse": "both"
         },
         {

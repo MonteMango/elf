@@ -33,4 +33,13 @@ public protocol CritService: Sendable {
     ///   - instinct: Defender's total instinct attribute
     /// - Returns: Complete calculation result including distribution, rolls, success, and multiplier
     func calculateCrit(power: Int16, instinct: Int16) -> CritCalculationResult
+
+    /// Rolls the damage multiplier for a crit that landed on a defender
+    /// who successfully blocked. Uses the weighted distribution paired
+    /// with `GameMechanicsConstants.blockedCritMultiplierWeights` (most
+    /// mass on 1.0×, some on 1.25×, rare 0.75× / 1.5×, no 2.0× / 3.0×).
+    /// Invoked from `ElfSnapshotCombatCalculator` after a successful
+    /// block + crit-roll so the calculator can scale `PointStatus.critHit`
+    /// by the rolled value instead of a constant.
+    func selectBlockedCritMultiplier() -> Double
 }

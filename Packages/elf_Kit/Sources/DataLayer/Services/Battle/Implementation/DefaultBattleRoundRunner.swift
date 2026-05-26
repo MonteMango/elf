@@ -14,14 +14,17 @@ public final class DefaultBattleRoundRunner: BattleRoundRunner {
 
     private let combatRoundExecutor: any CombatRoundExecutor
     private let botAI: any BotAIService
+    private let buffApplicationService: any BuffApplicationService
 
     // MARK: - Initialization
 
     public init() {
         @Dependency(\.combatRoundExecutor) var combatRoundExecutor
         @Dependency(\.botAI) var botAI
+        @Dependency(\.buffApplicationService) var buffApplicationService
         self.combatRoundExecutor = combatRoundExecutor
         self.botAI = botAI
+        self.buffApplicationService = buffApplicationService
     }
 
     // MARK: - Per-pair compute input
@@ -103,6 +106,19 @@ public final class DefaultBattleRoundRunner: BattleRoundRunner {
             updatedLeft[input.leftIdx].currentEP = max(0, input.left.currentEP - result.playerEPSpent)
             updatedRight[input.rightIdx].currentEP = max(0, input.right.currentEP - result.botEPSpent)
 
+            // End-of-round Exhausted application: any combatant who ends
+            // the round at 0 EP and still alive picks up the battle-scoped
+            // `Exhausted` debuff so next round's strikes feel its bite
+            // (Strength/Endurance −30 %, and they can only "weak block" at
+            // half effectiveness). `applyAsBattle` is idempotent here —
+            // catalog `stackingRule == .ignore`.
+            updatedLeft[input.leftIdx].battleBuffs = applyExhaustedIfNeeded(
+                snapshot: updatedLeft[input.leftIdx]
+            )
+            updatedRight[input.rightIdx].battleBuffs = applyExhaustedIfNeeded(
+                snapshot: updatedRight[input.rightIdx]
+            )
+
             pairResults.append(PairResult(
                 pair: input.pair,
                 leftSnapshot: input.left,
@@ -129,6 +145,16 @@ public final class DefaultBattleRoundRunner: BattleRoundRunner {
     }
 
     // MARK: - Private helpers
+
+    private func applyExhaustedIfNeeded(snapshot: CombatantSnapshot) -> [AppliedBuff] {
+        guard snapshot.isAlive, snapshot.currentEP == 0 else {
+            return snapshot.battleBuffs
+        }
+        return buffApplicationService.applyAsBattle(
+            buffId: BuffCatalogID.exhaustedBattle,
+            to: snapshot.battleBuffs
+        )
+    }
 
     private func buildPairInputs(
         leftTeam: [CombatantSnapshot],

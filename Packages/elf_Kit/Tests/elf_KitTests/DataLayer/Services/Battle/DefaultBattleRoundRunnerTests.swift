@@ -554,4 +554,158 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
         XCTAssertEqual(outcome.updatedLeftTeam[0].currentEP, 0, "EP must clamp at 0, not negative")
         XCTAssertEqual(outcome.updatedRightTeam[0].currentEP, 0)
     }
+
+    // MARK: - End-of-round Exhausted application
+
+    /// Hand the runner's `BuffApplicationService` a catalog containing the
+    /// real `ExhaustedBattle` UUID so `applyAsBattle` actually finds the buff.
+    /// Without this override, `testValue` for `buffsRepository` is empty and
+    /// `applyAsBattle` no-ops.
+    private func exhaustedBattleBuffCatalog() -> Buff {
+        Buff(
+            id: BuffCatalogID.exhaustedBattle,
+            title: "Exhausted",
+            imageName: "",
+            description: "",
+            polarity: .negative,
+            scope: .battle,
+            durationDays: nil,
+            stackingRule: .ignore,
+            effects: []
+        )
+    }
+
+    func testExhaustedApplied_WhenEPHitsZero() async {
+        let left = makeCombatant(currentEP: 100)
+        let right = makeCombatant(currentEP: 100)
+        let round = makeRound(leftIds: [left.id], rightIds: [right.id])
+
+        let executor = MockExecutor()
+        executor.epSpentByPlayer = 200  // overspend → EP clamps to 0
+        executor.epSpentByBot = 0       // right keeps EP
+
+        let outcome = await withDependencies {
+            $0.combatRoundExecutor = executor
+            $0.botAI = FixedBotAI()
+            $0.buffsRepository = ElfBuffsRepository(
+                buffsData: BuffsData(version: "1.0-test", buffs: [exhaustedBattleBuffCatalog()])
+            )
+        } operation: {
+            let runner = DefaultBattleRoundRunner()
+            return await runner.runRound(
+                leftTeam: [left], rightTeam: [right],
+                round: round, heroSelection: nil
+            )
+        }
+
+        XCTAssertTrue(
+            outcome.updatedLeftTeam[0].battleBuffs.contains { $0.buffId == BuffCatalogID.exhaustedBattle },
+            "Left ended round at 0 EP — Exhausted must be applied"
+        )
+        XCTAssertFalse(
+            outcome.updatedRightTeam[0].battleBuffs.contains { $0.buffId == BuffCatalogID.exhaustedBattle },
+            "Right still has EP — no Exhausted"
+        )
+    }
+
+    func testExhaustedNotApplied_WhenEPRemains() async {
+        let left = makeCombatant(currentEP: 1000)
+        let right = makeCombatant(currentEP: 1000)
+        let round = makeRound(leftIds: [left.id], rightIds: [right.id])
+
+        let executor = MockExecutor()
+        executor.epSpentByPlayer = 100
+        executor.epSpentByBot = 100
+
+        let outcome = await withDependencies {
+            $0.combatRoundExecutor = executor
+            $0.botAI = FixedBotAI()
+            $0.buffsRepository = ElfBuffsRepository(
+                buffsData: BuffsData(version: "1.0-test", buffs: [exhaustedBattleBuffCatalog()])
+            )
+        } operation: {
+            let runner = DefaultBattleRoundRunner()
+            return await runner.runRound(
+                leftTeam: [left], rightTeam: [right],
+                round: round, heroSelection: nil
+            )
+        }
+
+        XCTAssertTrue(outcome.updatedLeftTeam[0].battleBuffs.isEmpty)
+        XCTAssertTrue(outcome.updatedRightTeam[0].battleBuffs.isEmpty)
+    }
+
+    func testExhaustedNotDuplicated_OnSecondZeroEPRound() async {
+        // First round drains the defender to 0 EP and adds Exhausted; a second
+        // round (also at 0 EP) must NOT add a second copy — `ExhaustedBattle`
+        // has stackingRule `.ignore`.
+        let left = makeCombatant(currentEP: 100)
+        let right = makeCombatant(currentEP: 1000)
+        let round1 = makeRound(leftIds: [left.id], rightIds: [right.id])
+
+        let executor = MockExecutor()
+        executor.epSpentByPlayer = 200  // EP clamps to 0
+        executor.epSpentByBot = 0
+
+        let (firstOutcome, secondOutcome) = await withDependencies {
+            $0.combatRoundExecutor = executor
+            $0.botAI = FixedBotAI()
+            $0.buffsRepository = ElfBuffsRepository(
+                buffsData: BuffsData(version: "1.0-test", buffs: [exhaustedBattleBuffCatalog()])
+            )
+        } operation: {
+            let runner = DefaultBattleRoundRunner()
+            let r1 = await runner.runRound(
+                leftTeam: [left], rightTeam: [right],
+                round: round1, heroSelection: nil
+            )
+            executor.epSpentByPlayer = 0   // no EP to spend on second round
+            let updatedLeft = r1.updatedLeftTeam
+            let updatedRight = r1.updatedRightTeam
+            let round2 = makeRound(leftIds: [updatedLeft[0].id], rightIds: [updatedRight[0].id], roundNumber: 2)
+            let r2 = await runner.runRound(
+                leftTeam: updatedLeft, rightTeam: updatedRight,
+                round: round2, heroSelection: nil
+            )
+            return (r1, r2)
+        }
+
+        let exhaustedFirst = firstOutcome.updatedLeftTeam[0].battleBuffs.filter { $0.buffId == BuffCatalogID.exhaustedBattle }
+        let exhaustedSecond = secondOutcome.updatedLeftTeam[0].battleBuffs.filter { $0.buffId == BuffCatalogID.exhaustedBattle }
+        XCTAssertEqual(exhaustedFirst.count, 1, "First round applies one Exhausted")
+        XCTAssertEqual(exhaustedSecond.count, 1, "Second round at EP=0 must not duplicate Exhausted")
+    }
+
+    func testExhaustedNotApplied_WhenDefenderIsDead() async {
+        // Dead combatants don't get further debuffs — Exhausted is purely a
+        // gameplay hint for the next round, which dead combatants don't have.
+        let left = makeCombatant(currentHP: 10, currentEP: 100)
+        let right = makeCombatant(currentEP: 1000)
+        let round = makeRound(leftIds: [left.id], rightIds: [right.id])
+
+        let executor = MockExecutor()
+        executor.damageToPlayer = 100      // kills left
+        executor.epSpentByPlayer = 200     // left ends at 0 EP too
+
+        let outcome = await withDependencies {
+            $0.combatRoundExecutor = executor
+            $0.botAI = FixedBotAI()
+            $0.buffsRepository = ElfBuffsRepository(
+                buffsData: BuffsData(version: "1.0-test", buffs: [exhaustedBattleBuffCatalog()])
+            )
+        } operation: {
+            let runner = DefaultBattleRoundRunner()
+            return await runner.runRound(
+                leftTeam: [left], rightTeam: [right],
+                round: round, heroSelection: nil
+            )
+        }
+
+        XCTAssertEqual(outcome.updatedLeftTeam[0].currentHP, 0)
+        XCTAssertEqual(outcome.updatedLeftTeam[0].currentEP, 0)
+        XCTAssertFalse(
+            outcome.updatedLeftTeam[0].battleBuffs.contains { $0.buffId == BuffCatalogID.exhaustedBattle },
+            "Dead combatant must not receive Exhausted"
+        )
+    }
 }

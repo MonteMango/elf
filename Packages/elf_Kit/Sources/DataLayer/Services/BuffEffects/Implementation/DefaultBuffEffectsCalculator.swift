@@ -22,21 +22,24 @@ public final class DefaultBuffEffectsCalculator: BuffEffectsCalculator {
 
         var flatSum = HeroAttributes.zero
         var percentSum: Double = 0
+        var percentByAttribute = AttributePercentSum()
 
         for applied in buffs {
             accumulate(buffId: applied.buffId, stacks: applied.stacks,
-                       flatSum: &flatSum, percentSum: &percentSum)
+                       flatSum: &flatSum, percentSum: &percentSum,
+                       percentByAttribute: &percentByAttribute)
         }
 
         let afterFlat = base + flatSum
-        return applyPercent(percentSum, to: afterFlat)
+        return applyPercent(percentSum, perAttribute: percentByAttribute, to: afterFlat)
     }
 
     private func accumulate(
         buffId: UUID,
         stacks: Int,
         flatSum: inout HeroAttributes,
-        percentSum: inout Double
+        percentSum: inout Double,
+        percentByAttribute: inout AttributePercentSum
     ) {
         guard let buff = buffsRepository.getById(id: buffId) else { return }
         let stacks = max(1, stacks)
@@ -59,17 +62,28 @@ public final class DefaultBuffEffectsCalculator: BuffEffectsCalculator {
                 }
             case .combatAttributesPercent(let value):
                 percentSum += value * Double(stacks)
+            case .combatAttributesPercentDelta(let delta):
+                let multiplier = Double(stacks)
+                if let value = delta.strength { percentByAttribute.strength += value * multiplier }
+                if let value = delta.agility { percentByAttribute.agility += value * multiplier }
+                if let value = delta.power { percentByAttribute.power += value * multiplier }
+                if let value = delta.instinct { percentByAttribute.instinct += value * multiplier }
+                if let value = delta.endurance { percentByAttribute.endurance += value * multiplier }
             }
         }
     }
 
     /// Apply the combined percent multiplier to combat attributes only.
     /// HP/MP intentionally left untouched in iteration 1 — see protocol doc.
-    private func applyPercent(_ percent: Double, to attributes: HeroAttributes) -> HeroAttributes {
-        guard percent != 0 else { return attributes }
-        let multiplier = max(0, 1.0 + percent)
+    private func applyPercent(
+        _ globalPercent: Double,
+        perAttribute: AttributePercentSum,
+        to attributes: HeroAttributes
+    ) -> HeroAttributes {
+        guard globalPercent != 0 || perAttribute.hasAny else { return attributes }
 
-        func scale(_ attr: Attribute) -> Attribute {
+        func scale(_ attr: Attribute, perAttrPercent: Double) -> Attribute {
+            let multiplier = max(0, 1.0 + globalPercent + perAttrPercent)
             let scaled = Double(attr.value) * multiplier
             return Attribute(Int16(max(0, Int(scaled.rounded(.down)))))
         }
@@ -77,11 +91,23 @@ public final class DefaultBuffEffectsCalculator: BuffEffectsCalculator {
         return HeroAttributes(
             hitPoints: attributes.hitPoints,
             manaPoints: attributes.manaPoints,
-            agility: scale(attributes.agility),
-            strength: scale(attributes.strength),
-            power: scale(attributes.power),
-            instinct: scale(attributes.instinct),
-            endurance: scale(attributes.endurance)
+            agility: scale(attributes.agility, perAttrPercent: perAttribute.agility),
+            strength: scale(attributes.strength, perAttrPercent: perAttribute.strength),
+            power: scale(attributes.power, perAttrPercent: perAttribute.power),
+            instinct: scale(attributes.instinct, perAttrPercent: perAttribute.instinct),
+            endurance: scale(attributes.endurance, perAttrPercent: perAttribute.endurance)
         )
+    }
+
+    private struct AttributePercentSum {
+        var strength: Double = 0
+        var agility: Double = 0
+        var power: Double = 0
+        var instinct: Double = 0
+        var endurance: Double = 0
+
+        var hasAny: Bool {
+            strength != 0 || agility != 0 || power != 0 || instinct != 0 || endurance != 0
+        }
     }
 }

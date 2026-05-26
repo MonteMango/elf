@@ -118,7 +118,18 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
     // MARK: - Private Helpers
 
     /// Resolves a body part that was both attacked and defended for one strike.
-    /// Mutates `defenderRemainingEP` in place when the block is paid for.
+    /// Mutates `defenderRemainingEP` in place when EP is paid for the block.
+    ///
+    /// Branching rules (defender's EP vs the strike's `blockCost`):
+    ///   - `blockCost <= 0`         → fall through to undefended (treated as
+    ///     a free strike — current behavior).
+    ///   - `EP >= blockCost`        → full block; pay `blockCost`.
+    ///   - `0 < EP < blockCost`     → full block; pay the remainder, EP → 0.
+    ///     The defender will be `Exhausted` at end of round (runner hook).
+    ///   - `EP == 0` + Exhausted    → weak block; pay no EP, take half the
+    ///     would-be damage (`exhaustedBlockDamageMultiplier`).
+    ///   - `EP == 0` + no Exhausted → fall through to undefended (defender
+    ///     has no resource to put a guard up).
     private func resolveDefendedAttack(
         bodyPart: BodyPart,
         profile: AttackProfile,
@@ -129,26 +140,68 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         attackerEff: HeroAttributes,
         defenderEff: HeroAttributes
     ) -> PointStatus {
-        // Insufficient EP → block input is accepted but provides no
-        // protection. Resolve as if the part were not blocked.
-        guard blockCost > 0 && defenderRemainingEP >= blockCost else {
+        if blockCost <= 0 {
             return resolveUndefendedAttack(
-                bodyPart: bodyPart,
-                isAttacked: true,
-                isDefended: true,
-                profile: profile,
-                attacker: attacker,
-                defender: defender,
-                attackerEff: attackerEff,
-                defenderEff: defenderEff
+                bodyPart: bodyPart, isAttacked: true, isDefended: true,
+                profile: profile, attacker: attacker, defender: defender,
+                attackerEff: attackerEff, defenderEff: defenderEff
             )
         }
 
-        // EP is committed up-front. A block that catches a crit reduces the
-        // crit multiplier to 1.0× (normal hit damage), but EP is still spent
-        // — the defender pays for the protection that downgraded the crit.
-        defenderRemainingEP -= blockCost
+        if defenderRemainingEP >= blockCost {
+            defenderRemainingEP -= blockCost
+            return resolveSuccessfulBlock(
+                bodyPart: bodyPart, profile: profile, spentEP: blockCost,
+                attacker: attacker, defender: defender,
+                attackerEff: attackerEff, defenderEff: defenderEff
+            )
+        }
 
+        if defenderRemainingEP > 0 {
+            // Drain whatever EP is left — the block still lands at full
+            // effectiveness; the defender will be `Exhausted` next round.
+            let spent = defenderRemainingEP
+            defenderRemainingEP = 0
+            return resolveSuccessfulBlock(
+                bodyPart: bodyPart, profile: profile, spentEP: spent,
+                attacker: attacker, defender: defender,
+                attackerEff: attackerEff, defenderEff: defenderEff
+            )
+        }
+
+        // EP == 0 here. Exhausted defenders still get a guard up at half
+        // effectiveness; non-Exhausted have nothing left to spend.
+        let isExhausted = defender.battleBuffs.contains { $0.buffId == BuffCatalogID.exhaustedBattle }
+        if isExhausted {
+            return resolveWeakBlock(
+                bodyPart: bodyPart, profile: profile,
+                attacker: attacker, defender: defender,
+                attackerEff: attackerEff, defenderEff: defenderEff
+            )
+        }
+
+        return resolveUndefendedAttack(
+            bodyPart: bodyPart, isAttacked: true, isDefended: true,
+            profile: profile, attacker: attacker, defender: defender,
+            attackerEff: attackerEff, defenderEff: defenderEff
+        )
+    }
+
+    /// Successful-block resolution: rolls the crit check, scales a crit
+    /// hit by a multiplier rolled from `blockedCritMultiplierWeights` (so
+    /// the crit still shows up in stats but its damage scaling sits in a
+    /// downgraded distribution — most often 1.0×–1.25×, never 2.0×+), and
+    /// otherwise returns a clean `.blocked`. EP has already been committed
+    /// by the caller.
+    private func resolveSuccessfulBlock(
+        bodyPart: BodyPart,
+        profile: AttackProfile,
+        spentEP: Int,
+        attacker: CombatantSnapshot,
+        defender: CombatantSnapshot,
+        attackerEff: HeroAttributes,
+        defenderEff: HeroAttributes
+    ) -> PointStatus {
         let critResult = critService.calculateCrit(
             power: attackerEff.power.value,
             instinct: defenderEff.instinct.value
@@ -162,44 +215,35 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         )
 
         if critResult.success {
-            let (strengthDamage, attackDamage, defenderArmor) = calculateDamageComponents(
+            let (strengthDamage, attackDamage, enduranceReduction, defenderArmor) = calculateDamageComponents(
                 profile: profile,
                 attackerEff: attackerEff,
+                defenderEff: defenderEff,
                 defender: defender,
                 bodyPart: bodyPart
             )
 
-            // Crit succeeded against a blocked part: damage is scaled by
-            // `blockedCritMultiplier` (default `1.0` = normal-hit damage)
-            // instead of the rolled multiplier. The `PointStatus.critHit`
-            // case is kept so UI still renders the crit indicator and
-            // statistics still record it as a crit success — only the
-            // damage scaling is suppressed.
-            let blockedCritMultiplier = GameMechanicsConstants.blockedCritMultiplier
+            let blockedMultiplier = critService.selectBlockedCritMultiplier()
             let finalStatus = PointStatus.critHit(
                 weaponDamage: attackDamage,
                 strengthDamage: strengthDamage,
+                enduranceReduction: enduranceReduction,
                 defenderArmor: defenderArmor,
-                multiplier: blockedCritMultiplier,
-                epSpent: blockCost
+                multiplier: blockedMultiplier,
+                epSpent: spentEP
             )
 
             logBodyPartResult(
-                attacker: attacker,
-                defender: defender,
-                bodyPart: bodyPart,
-                isAttacked: true,
-                isDefended: true,
-                strengthDamage: strengthDamage,
-                attackDamage: attackDamage,
-                defenderArmor: defenderArmor,
-                multiplier: blockedCritMultiplier,
-                finalStatus: finalStatus
+                attacker: attacker, defender: defender, bodyPart: bodyPart,
+                isAttacked: true, isDefended: true,
+                strengthDamage: strengthDamage, attackDamage: attackDamage,
+                enduranceReduction: enduranceReduction, defenderArmor: defenderArmor,
+                multiplier: blockedMultiplier, finalStatus: finalStatus
             )
             return finalStatus
         }
 
-        let finalStatus = PointStatus.blocked(wasCrit: false, epSpent: blockCost)
+        let finalStatus = PointStatus.blocked(wasCrit: false, epSpent: spentEP)
         debugLogger.logBodyPartCalculation(
             attacker: attacker.name,
             defender: defender.name,
@@ -209,6 +253,86 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
             baseDamage: nil,
             armor: nil,
             finalDamage: nil,
+            finalStatus: finalStatus
+        )
+        return finalStatus
+    }
+
+    /// Weak-block path: Exhausted defender at 0 EP. No dodge roll (the
+    /// defender chose to block), no EP cost (none to spend).
+    ///
+    /// Asymmetric crit handling — by design:
+    ///   - No crit → full damage chain × `exhaustedBlockDamageMultiplier`
+    ///     (defender takes a fraction of post-armor damage).
+    ///   - Crit succeeded → use `selectBlockedCritMultiplier()` so the crit
+    ///     scaling is downgraded, but DO NOT also apply
+    ///     `exhaustedBlockDamageMultiplier`. The downgraded multiplier is
+    ///     the entire penalty against the attacker on this path; stacking
+    ///     the halver on top would double-dip.
+    /// Pre-reduction components are preserved on `PointStatus.weakBlocked`
+    /// for logs/stats; `multiplier` is the value actually applied (rolled
+    /// blocked-crit multiplier, or `1.0` for no-crit).
+    private func resolveWeakBlock(
+        bodyPart: BodyPart,
+        profile: AttackProfile,
+        attacker: CombatantSnapshot,
+        defender: CombatantSnapshot,
+        attackerEff: HeroAttributes,
+        defenderEff: HeroAttributes
+    ) -> PointStatus {
+        let critResult = critService.calculateCrit(
+            power: attackerEff.power.value,
+            instinct: defenderEff.instinct.value
+        )
+
+        debugLogger.logCritCalculation(
+            attacker: attacker.name,
+            result: critResult,
+            power: attackerEff.power.value,
+            instinct: defenderEff.instinct.value
+        )
+
+        let (strengthDamage, attackDamage, enduranceReduction, defenderArmor) = calculateDamageComponents(
+            profile: profile,
+            attackerEff: attackerEff,
+            defenderEff: defenderEff,
+            defender: defender,
+            bodyPart: bodyPart
+        )
+
+        let finalDamage: Int
+        let appliedMultiplier: Double
+
+        if critResult.success {
+            appliedMultiplier = critService.selectBlockedCritMultiplier()
+            let amplifiedWeapon = Int(Double(attackDamage) * appliedMultiplier)
+            finalDamage = max(0, amplifiedWeapon + strengthDamage - enduranceReduction - defenderArmor)
+        } else {
+            appliedMultiplier = 1.0
+            let postArmorDamage = max(0, attackDamage + strengthDamage - enduranceReduction - defenderArmor)
+            let halved = Double(postArmorDamage) * GameMechanicsConstants.exhaustedBlockDamageMultiplier
+            finalDamage = Int(halved.rounded(.down))
+        }
+
+        let finalStatus = PointStatus.weakBlocked(
+            weaponDamage: attackDamage,
+            strengthDamage: strengthDamage,
+            enduranceReduction: enduranceReduction,
+            defenderArmor: defenderArmor,
+            multiplier: appliedMultiplier,
+            finalDamage: finalDamage,
+            wasCrit: critResult.success
+        )
+
+        debugLogger.logBodyPartCalculation(
+            attacker: attacker.name,
+            defender: defender.name,
+            bodyPart: bodyPart,
+            isAttacked: true,
+            isDefended: true,
+            baseDamage: finalDamage,
+            armor: defenderArmor,
+            finalDamage: finalDamage,
             finalStatus: finalStatus
         )
         return finalStatus
@@ -270,9 +394,10 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
             instinct: defenderEff.instinct.value
         )
 
-        let (strengthDamage, attackDamage, defenderArmor) = calculateDamageComponents(
+        let (strengthDamage, attackDamage, enduranceReduction, defenderArmor) = calculateDamageComponents(
             profile: profile,
             attackerEff: attackerEff,
+            defenderEff: defenderEff,
             defender: defender,
             bodyPart: bodyPart
         )
@@ -281,6 +406,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
             let finalStatus = PointStatus.critHit(
                 weaponDamage: attackDamage,
                 strengthDamage: strengthDamage,
+                enduranceReduction: enduranceReduction,
                 defenderArmor: defenderArmor,
                 multiplier: critResult.selectedMultiplier,
                 epSpent: 0
@@ -294,6 +420,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
                 isDefended: isDefended,
                 strengthDamage: strengthDamage,
                 attackDamage: attackDamage,
+                enduranceReduction: enduranceReduction,
                 defenderArmor: defenderArmor,
                 multiplier: critResult.selectedMultiplier,
                 finalStatus: finalStatus
@@ -304,6 +431,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         let finalStatus = PointStatus.hit(
             weaponDamage: attackDamage,
             strengthDamage: strengthDamage,
+            enduranceReduction: enduranceReduction,
             defenderArmor: defenderArmor
         )
 
@@ -315,6 +443,7 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
             isDefended: isDefended,
             strengthDamage: strengthDamage,
             attackDamage: attackDamage,
+            enduranceReduction: enduranceReduction,
             defenderArmor: defenderArmor,
             multiplier: nil,
             finalStatus: finalStatus
@@ -325,9 +454,10 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
     private func calculateDamageComponents(
         profile: AttackProfile,
         attackerEff: HeroAttributes,
+        defenderEff: HeroAttributes,
         defender: CombatantSnapshot,
         bodyPart: BodyPart
-    ) -> (strengthDamage: Int, attackDamage: Int, defenderArmor: Int) {
+    ) -> (strengthDamage: Int, attackDamage: Int, enduranceReduction: Int, defenderArmor: Int) {
         // Get strength-based damage
         let strengthDamage = damageService.getRandomStrengthDamage(attackerEff.strength.value)
 
@@ -341,10 +471,14 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
             attackDamage = 0
         }
 
+        // Defender's effective Endurance reduces incoming damage —
+        // defensive mirror of Strength.
+        let enduranceReduction = damageService.getRandomEnduranceDamageReduction(defenderEff.endurance.value)
+
         // Get defender's armor for this body part
         let defenderArmor = defender.armorValues[bodyPart] ?? 0
 
-        return (Int(strengthDamage), attackDamage, defenderArmor)
+        return (Int(strengthDamage), attackDamage, Int(enduranceReduction), defenderArmor)
     }
 
     private func logBodyPartResult(
@@ -355,16 +489,22 @@ public final class ElfSnapshotCombatCalculator: SnapshotCombatCalculator {
         isDefended: Bool,
         strengthDamage: Int,
         attackDamage: Int,
+        enduranceReduction: Int,
         defenderArmor: Int,
         multiplier: Double?,
         finalStatus: PointStatus
     ) {
-        let baseDamage = strengthDamage + attackDamage
+        // Mirror the production damage formula: only the weapon swing scales
+        // with the crit multiplier; Strength / Endurance / Armor are flat.
+        let baseDamage: Int
         let finalDamage: Int
 
         if let mult = multiplier {
-            finalDamage = max(0, Int(Double(baseDamage) * mult) - defenderArmor)
+            let amplifiedWeapon = Int(Double(attackDamage) * mult)
+            baseDamage = amplifiedWeapon + strengthDamage - enduranceReduction
+            finalDamage = max(0, baseDamage - defenderArmor)
         } else {
+            baseDamage = attackDamage + strengthDamage - enduranceReduction
             finalDamage = max(0, baseDamage - defenderArmor)
         }
 

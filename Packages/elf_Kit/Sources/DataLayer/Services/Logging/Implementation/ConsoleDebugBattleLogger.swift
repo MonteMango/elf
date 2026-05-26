@@ -21,13 +21,16 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
 
     private let categories: Set<DebugBattleLogCategory>
     private let buffEffectsCalculator: any BuffEffectsCalculator
+    private let pointStatusFormatter: any PointStatusFormatter
 
     /// Initialize logger with specific categories to log
     /// - Parameter categories: Set of categories to enable logging for
     public init(categories: Set<DebugBattleLogCategory>) {
         @Dependency(\.buffEffectsCalculator) var buffEffectsCalculator
+        @Dependency(\.pointStatusFormatter) var pointStatusFormatter
         self.categories = categories
         self.buffEffectsCalculator = buffEffectsCalculator
+        self.pointStatusFormatter = pointStatusFormatter
     }
 
     public func logRoundStart(
@@ -343,21 +346,6 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
     }
 
     private func formatPointStatus(_ status: PointStatus) -> String {
-        switch status {
-        case .blocked(_, let epSpent):
-            return "🛡️ BLOCKED (-\(epSpent) EP)"
-        case .hit(let weaponDamage, let strengthDamage, let defenderArmor):
-            let totalDamage = max(0, weaponDamage + strengthDamage - defenderArmor)
-            return "💥 HIT (\(totalDamage) damage: weapon=\(weaponDamage) str=\(strengthDamage) armor=\(defenderArmor))"
-        case .critHit(let weaponDamage, let strengthDamage, let defenderArmor, let multiplier, let epSpent):
-            let baseDamage = weaponDamage + strengthDamage - defenderArmor
-            let totalDamage = max(0, Int(Double(baseDamage) * multiplier))
-            let epSuffix = epSpent > 0 ? " -\(epSpent) EP" : ""
-            return "💥💥 CRIT HIT (\(totalDamage) damage: weapon=\(weaponDamage) str=\(strengthDamage) armor=\(defenderArmor) x\(multiplier)\(epSuffix))"
-        case .dodged:
-            return "💨 DODGED"
-        case .nothing:
-            return "➖ Nothing"
-        }
+        pointStatusFormatter.debugLine(for: status)
     }
 }

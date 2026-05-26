@@ -5,13 +5,32 @@
             "id": "BD000000-0000-4000-A000-000000000001",
             "title": "Exhausted",
             "imageName": "buff_exhausted",
-            "description": "All combat attributes are reduced by 30%.",
+            "description": "Strength and Endurance are reduced by 30%.",
             "polarity": "negative",
             "scope": "global",
             "durationDays": 3,
             "stackingRule": "refresh",
             "effects": [
-                { "type": "combatAttributesPercent", "value": -0.30 }
+                {
+                    "type": "combatAttributesPercentDelta",
+                    "value": { "strength": -0.30, "endurance": -0.30 }
+                }
+            ]
+        },
+        {
+            "id": "BD000000-0000-4000-A000-000000000002",
+            "title": "Exhausted",
+            "imageName": "buff_exhausted",
+            "description": "Strength and Endurance are reduced by 30%. Can still block at half effectiveness.",
+            "polarity": "negative",
+            "scope": "battle",
+            "durationDays": null,
+            "stackingRule": "ignore",
+            "effects": [
+                {
+                    "type": "combatAttributesPercentDelta",
+                    "value": { "strength": -0.30, "endurance": -0.30 }
+                }
             ]
         }
     ]
