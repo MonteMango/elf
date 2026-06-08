@@ -11,21 +11,33 @@ public final class ElfEnduranceService: EnduranceService {
 
     public init() {}
 
-    public func calculateBlockCost(baseCost: Int, defenderEndurance: Int) -> Int {
+    public func calculateBlockCost(baseCost: Int, defenderEndurance: Int, attackerStrength: Int) -> Int {
         guard baseCost > 0 else { return 0 }
 
         let pool = GameMechanicsConstants.startingEP
         let endurance = max(0, defenderEndurance)
-        let blocksPerPoint = GameMechanicsConstants.blocksPerEndurancePoint
-        // Canonical formula:
-        //     cost = pool / (pool/baseCost + endurance * blocksPerPoint)
-        // With the default `blocksPerPoint = 0.5`, every +2 Endurance grants
-        // exactly +1 effective block regardless of weapon.
-        let denom = Double(pool) / Double(baseCost) + Double(endurance) * blocksPerPoint
-        let raw = Int((Double(pool) / denom).rounded())
-        // Clamp to ≥1: extreme endurance values would otherwise round the cost
-        // to 0, which the calculator's `blockCost > 0` guard treats as "no
-        // cost ⇒ no protection". We prefer "blocks always cost at least 1".
+        let strength = max(0, attackerStrength)
+        let blocksPerEndPoint = GameMechanicsConstants.blocksPerEndurancePoint
+        let blocksLostPerStrPoint = GameMechanicsConstants.blocksLostPerAttackerStrength
+
+        // Canonical formula, both modifiers in the same "blocks" abstraction:
+        //   cost = pool / (pool/baseCost
+        //                  + endurance × blocksPerEndurancePoint        // adds blocks
+        //                  − attackerStrength × blocksLostPerAttackerStrength) // burns blocks
+        //
+        // With defaults (blocksPerEnd = 0.3, blocksLostPerStr = 0.1):
+        // - +2 Endurance grants ~+0.6 effective block.
+        // - +10 attacker Strength burns ~1 effective block from the defender.
+        let denom = Double(pool) / Double(baseCost)
+                  + Double(endurance) * blocksPerEndPoint
+                  - Double(strength) * blocksLostPerStrPoint
+
+        // Floor the denominator at 1.0 so block cost can't go infinite or
+        // negative when an attacker out-strengths the defender's Endurance
+        // budget completely. Mirrors the "blocks always cost at least 1"
+        // floor we keep on the final cost.
+        let safeDenom = max(1.0, denom)
+        let raw = Int((Double(pool) / safeDenom).rounded())
         return max(1, raw)
     }
 }

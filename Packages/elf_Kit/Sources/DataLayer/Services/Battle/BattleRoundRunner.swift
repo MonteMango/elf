@@ -5,7 +5,7 @@
 //  Created by Vitalii Lytvynov
 //
 
-import Foundation
+import Dependencies
 
 /// Runs a single battle round across all duel pairs of a `BattleRound`,
 /// returning new team snapshots and per-pair detail.
@@ -27,10 +27,32 @@ public protocol BattleRoundRunner: Sendable {
     ///     the hero (`heroSelection.combatantId`) is paired in `round`, that
     ///     pair uses the supplied selection; every other pair uses bot AI.
     ///     Pass `nil` for fully-auto rounds.
+    ///   - generator: Per-battle random source, threaded down to every roll.
+    func runRound(
+        leftTeam: [CombatantSnapshot],
+        rightTeam: [CombatantSnapshot],
+        round: BattleRound,
+        heroSelection: HeroSelection?,
+        using generator: WithRandomNumberGenerator
+    ) async -> RoundOutcome
+}
+
+public extension BattleRoundRunner {
+    /// Convenience: resolves `\.withRandomNumberGenerator` once and delegates.
+    /// Used by the real-game flow (one battle at a time) and unit tests.
     func runRound(
         leftTeam: [CombatantSnapshot],
         rightTeam: [CombatantSnapshot],
         round: BattleRound,
         heroSelection: HeroSelection?
-    ) async -> RoundOutcome
+    ) async -> RoundOutcome {
+        @Dependency(\.withRandomNumberGenerator) var generator
+        return await runRound(
+            leftTeam: leftTeam,
+            rightTeam: rightTeam,
+            round: round,
+            heroSelection: heroSelection,
+            using: generator
+        )
+    }
 }

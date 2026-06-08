@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov on 02.12.25.
 //
 
+import Dependencies
 import XCTest
 @testable import elf_Kit
 
@@ -18,6 +19,19 @@ final class ElfRandomBotAITests: XCTestCase {
     // MARK: - Test Helpers
 
     private let botAI = ElfRandomBotAI()
+
+    /// The `selectAttackPoints(count:)` / `selectDefensePoints(count:)`
+    /// convenience overloads resolve `\.withRandomNumberGenerator`; seed it
+    /// so the strict test value doesn't report.
+    override func invokeTest() {
+        withDependencies {
+            $0.withRandomNumberGenerator = WithRandomNumberGenerator(
+                SeededRandomNumberGenerator(seed: 0xE1F)
+            )
+        } operation: {
+            super.invokeTest()
+        }
+    }
 
     // MARK: - Attack Points Tests
 

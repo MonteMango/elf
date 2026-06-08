@@ -6,38 +6,38 @@
 //
 
 import Dependencies
-import Foundation
 
-/// Default implementation of dodge calculation service
-///
-/// Uses triangular distribution where minimum has highest probability:
-/// 1. **Stage 1**: Select dodge chance from triangular distribution
-/// 2. **Stage 2**: Roll to check dodge success (with auto-fail/success edge cases)
+/// Default `DodgeService` implementation. Selects a chance from the
+/// peak+linear-tail distribution via `WeightedSamplingService`, then resolves
+/// success via shared `ChanceRollService` (handles 0 / 100 edge cases).
 public final class ElfDodgeService: DodgeService {
 
     private let distributionStrategy: any DodgeDistributionStrategy
-
-    // MARK: - Initialization
+    private let weightedSampling: any WeightedSamplingService
+    private let chanceRoll: any ChanceRollService
 
     public init() {
         @Dependency(\.dodgeDistributionStrategy) var distributionStrategy
+        @Dependency(\.weightedSamplingService) var weightedSampling
+        @Dependency(\.chanceRollService) var chanceRoll
         self.distributionStrategy = distributionStrategy
+        self.weightedSampling = weightedSampling
+        self.chanceRoll = chanceRoll
     }
 
-    // MARK: - DodgeService
-
-    public func calculateDodge(agility: Int16, instinct: Int16) -> DodgeCalculationResult {
-        // Get distribution
+    public func calculateDodge(agility: Int16, instinct: Int16, attackerLevel: Int, using generator: WithRandomNumberGenerator) -> DodgeCalculationResult {
         let distribution = distributionStrategy.distribution(
             agility: agility,
-            instinct: instinct
+            instinct: instinct,
+            attackerLevel: attackerLevel
         )
+        let selectedChance = weightedSampling.sample(
+            values: distribution.rangeValues,
+            weights: distribution.rangeWeights,
+            using: generator
+        ) ?? distribution.minimumChance
 
-        // STAGE 1: Select dodge chance from triangular distribution
-        let selectedChance = selectDodgeChance(from: distribution)
-
-        // STAGE 2: Check dodge success with selected chance
-        let (stage2Roll, success) = checkDodgeSuccess(chance: selectedChance)
+        let (stage2Roll, success) = chanceRoll.resolve(chance: selectedChance, using: generator)
 
         return DodgeCalculationResult(
             distribution: distribution,
@@ -45,63 +45,5 @@ public final class ElfDodgeService: DodgeService {
             stage2Roll: stage2Roll,
             success: success
         )
-    }
-
-    // MARK: - Private Methods
-
-    /// Selects a dodge chance from the distribution using weighted random selection
-    ///
-    /// Uses triangular distribution where minimum has highest weight.
-    ///
-    /// - Parameter distribution: The dodge distribution
-    /// - Returns: Selected dodge chance
-    private func selectDodgeChance(from distribution: DodgeDistribution) -> Int16 {
-        // Use weighted random selection
-        let totalWeight = distribution.rangeWeights.reduce(0, +)
-
-        guard totalWeight > 0 else {
-            return distribution.minimumChance
-        }
-
-        let weightedRoll = Int.random(in: 0..<totalWeight)
-
-        var cumulativeWeight = 0
-        for (index, weight) in distribution.rangeWeights.enumerated() {
-            cumulativeWeight += weight
-            if weightedRoll < cumulativeWeight {
-                return distribution.rangeValues[index]
-            }
-        }
-
-        // Fallback (should never reach)
-        return distribution.rangeValues.last ?? distribution.minimumChance
-    }
-
-    /// Checks if dodge succeeds with the selected chance
-    ///
-    /// **Logic**:
-    /// - Chance <= 0: Auto-fail (no roll needed)
-    /// - Chance >= 100: Auto-success (no roll needed)
-    /// - Otherwise: Roll 1-100, succeed if roll <= chance
-    ///
-    /// - Parameter chance: The dodge chance selected in stage 1
-    /// - Returns: Tuple of (stage2Roll, success). Roll is nil for auto-fail/success cases.
-    private func checkDodgeSuccess(chance: Int16) -> (roll: Int?, success: Bool) {
-        let chanceInt = Int(chance)
-
-        // Auto-fail for zero or negative chances
-        if chanceInt <= 0 {
-            return (nil, false)
-        }
-
-        // Auto-success for 100+ chances
-        if chanceInt >= 100 {
-            return (nil, true)
-        }
-
-        // Normal roll: 1-100, succeed if roll <= chance
-        let roll = Int.random(in: 1...100)
-        let success = roll <= chanceInt
-        return (roll, success)
     }
 }

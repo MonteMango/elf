@@ -5,35 +5,24 @@
 //  Created by Vitalii Lytvynov on 10.07.25.
 //
 
-import Foundation
+import Dependencies
 
-public final class ElfAttributeRandomizer: AttributeRandomizer {
-    private let weightedAttributes: [(String, Double)]  // имя + вес
-    private let totalWeight: Double
+/// Uniform random pick across the five `RandomAttributeKind` cases.
+/// Used by `ElfAttributeService` to roll the +4 random points granted per
+/// level. Randomness flows through `\.withRandomNumberGenerator` so the
+/// roll is seedable in tests / deterministic sweeps.
+public struct ElfAttributeRandomizer: AttributeRandomizer {
+
+    private let withRandomNumberGenerator: WithRandomNumberGenerator
 
     public init() {
-        self.weightedAttributes = [
-            ("agility", 0.20),
-            ("strength", 0.20),
-            ("power", 0.20),
-            ("instinct", 0.20),
-            ("endurance", 0.20)
-        ]
-        self.totalWeight = weightedAttributes.map { $0.1 }.reduce(0, +)
+        @Dependency(\.withRandomNumberGenerator) var withRandomNumberGenerator
+        self.withRandomNumberGenerator = withRandomNumberGenerator
     }
 
-    public func nextAttribute() -> String {
-        let r = Double.random(in: 0..<totalWeight)
-        var cumulative: Double = 0
-
-        for (attribute, weight) in weightedAttributes {
-            cumulative += weight
-            if r < cumulative {
-                return attribute
-            }
+    public func nextAttribute() -> RandomAttributeKind {
+        withRandomNumberGenerator { generator in
+            RandomAttributeKind.allCases.randomElement(using: &generator) ?? .strength
         }
-
-        // fallback (should be impossible, but for safety return last or default)
-        return weightedAttributes.last?.0 ?? "strength"
     }
 }

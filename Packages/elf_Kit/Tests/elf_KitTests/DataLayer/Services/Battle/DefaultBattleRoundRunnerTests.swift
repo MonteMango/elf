@@ -67,7 +67,8 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
             playerAttackPoints: Set<BodyPart>,
             playerDefensePoints: Set<BodyPart>,
             botAttackPoints: Set<BodyPart>,
-            botDefensePoints: Set<BodyPart>
+            botDefensePoints: Set<BodyPart>,
+            using generator: WithRandomNumberGenerator
         ) -> CombatRoundResult {
             lock.withLock {
                 _captures.append(Capture(
@@ -106,11 +107,11 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
             set { lock.withLock { _defenseChoice = newValue } }
         }
 
-        func selectAttackPoints(count: Int) -> Set<BodyPart> {
+        func selectAttackPoints(count: Int, using generator: WithRandomNumberGenerator) -> Set<BodyPart> {
             lock.withLock { _attackChoice }
         }
 
-        func selectDefensePoints(count: Int) -> Set<BodyPart> {
+        func selectDefensePoints(count: Int, using generator: WithRandomNumberGenerator) -> Set<BodyPart> {
             lock.withLock { _defenseChoice }
         }
     }
@@ -167,6 +168,21 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
             DuelPair(leftCombatantId: left, rightCombatantId: right)
         }
         return BattleRound(roundNumber: roundNumber, duelPairs: pairs)
+    }
+
+    // MARK: - Setup
+
+    /// `runRound`'s convenience overload resolves `\.withRandomNumberGenerator`;
+    /// seed it so the strict test value doesn't report (MockExecutor ignores
+    /// the generator, but the overload still resolves it).
+    override func invokeTest() {
+        withDependencies {
+            $0.withRandomNumberGenerator = WithRandomNumberGenerator(
+                SeededRandomNumberGenerator(seed: 0xE1F)
+            )
+        } operation: {
+            super.invokeTest()
+        }
     }
 
     // MARK: - Tests

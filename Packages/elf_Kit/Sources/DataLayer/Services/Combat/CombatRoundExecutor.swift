@@ -5,7 +5,7 @@
 //  Created by Vitalii Lytvynov on 08.12.25.
 //
 
-import Foundation
+import Dependencies
 
 // MARK: - CombatRoundExecutor
 
@@ -21,6 +21,7 @@ public protocol CombatRoundExecutor: Sendable {
     ///   - playerDefensePoints: Body parts player is defending
     ///   - botAttackPoints: Body parts bot/monster is attacking
     ///   - botDefensePoints: Body parts bot/monster is defending
+    ///   - generator: Per-battle random source, threaded from the battle boundary.
     /// - Returns: Combat round result with damage calculations
     func executeRound(
         playerSnapshot: CombatantSnapshot,
@@ -28,6 +29,30 @@ public protocol CombatRoundExecutor: Sendable {
         playerAttackPoints: Set<BodyPart>,
         playerDefensePoints: Set<BodyPart>,
         botAttackPoints: Set<BodyPart>,
-        botDefensePoints: Set<BodyPart>
+        botDefensePoints: Set<BodyPart>,
+        using generator: WithRandomNumberGenerator
     ) -> CombatRoundResult
+}
+
+public extension CombatRoundExecutor {
+    /// Convenience: resolves `\.withRandomNumberGenerator` once and delegates.
+    func executeRound(
+        playerSnapshot: CombatantSnapshot,
+        botSnapshot: CombatantSnapshot,
+        playerAttackPoints: Set<BodyPart>,
+        playerDefensePoints: Set<BodyPart>,
+        botAttackPoints: Set<BodyPart>,
+        botDefensePoints: Set<BodyPart>
+    ) -> CombatRoundResult {
+        @Dependency(\.withRandomNumberGenerator) var generator
+        return executeRound(
+            playerSnapshot: playerSnapshot,
+            botSnapshot: botSnapshot,
+            playerAttackPoints: playerAttackPoints,
+            playerDefensePoints: playerDefensePoints,
+            botAttackPoints: botAttackPoints,
+            botDefensePoints: botDefensePoints,
+            using: generator
+        )
+    }
 }

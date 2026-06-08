@@ -8,7 +8,10 @@
 import Foundation
 
 public enum PointStatus: Sendable, Equatable {
-    case blocked(wasCrit: Bool, epSpent: Int)
+    /// A successful block. A crit that lands on a blocked part is emitted as
+    /// `.critHit` (with `epSpent > 0`), not `.blocked` — so `.blocked` is
+    /// always a non-crit block and carries no `wasCrit` flag.
+    case blocked(epSpent: Int)
     case hit(weaponDamage: Int, strengthDamage: Int, enduranceReduction: Int, defenderArmor: Int)
     case critHit(weaponDamage: Int, strengthDamage: Int, enduranceReduction: Int, defenderArmor: Int, multiplier: Double, epSpent: Int)
     case dodged(wasCrit: Bool)
@@ -24,7 +27,7 @@ public enum PointStatus: Sendable, Equatable {
     /// EP cost incurred by the defender for this point's resolution.
     public var epSpentValue: Int {
         switch self {
-        case .blocked(_, let epSpent): epSpent
+        case .blocked(let epSpent): epSpent
         case .critHit(_, _, _, _, _, let epSpent): epSpent
         case .hit, .dodged, .nothing, .weakBlocked: 0
         }

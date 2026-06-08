@@ -175,6 +175,13 @@ public final class GameSession {
 
     // MARK: - Buffs
 
+    // NOTE: The buff catalog currently ships no global-scope buffs (the
+    // global `Exhausted` variant was retired 2026-06; only the battle-scoped
+    // one remains), so these two entry points have no valid `buffId` to
+    // receive yet. Kept deliberately: global buffs (activities, potions,
+    // day-scoped effects) are planned — this is the chokepoint they'll
+    // arrive through. Do not remove as "dead code".
+
     /// Applies a global-scope buff to the player respecting the buff's
     /// `stackingRule`. Scope is enforced by `BuffApplicationService.applyAsGlobal`.
     public func applyGlobalBuffToPlayer(buffId: UUID) {

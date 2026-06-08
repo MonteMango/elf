@@ -3,14 +3,269 @@
 Single source of truth for character attributes, fight styles, and the combat
 math that consumes them. Combat resolution flow lives in `game-design.md` —
 this doc focuses on the **stats** themselves: what each one does, how each
-fight style scales them per level, and how the planned **Endurance / EP**
-system fits in.
+fight style scales them per level, and how the **Endurance / EP** system fits in.
 
 > **Status legend** — sections marked **(current)** describe shipped
 > behaviour. Sections marked **(planned)** describe agreed design that is
 > not yet in code. When implementing, prefer reading the source under
 > `Packages/elf_Kit/Sources/DataLayer/Services/{Attributes,Crit,Dodge,Combat}`
 > over relying on this doc — code wins on conflicts, then update this doc.
+
+> **Balance trail:** all simulation snapshots, decision logs and tuning
+> experiments live under `.claude/docs/game-balance/`. Read the
+> `README.md` there for the index. Source of truth for "what's the live
+> state right now" = the **Current State** section below + the actual
+> constants in
+> `Packages/elf_Kit/Sources/DataLayer/Services/Constants/GameMechanicsConstants.swift`.
+
+---
+
+## Current State (Session 2 — as of 2026-06-01)
+
+This section overrides anything below it. The legacy sections under
+"Combat Math (current)", "Secondary attribute mechanics", and the
+distribution-table values are kept as historical reference but were
+**superseded by the Session 2 refactors documented here**.
+
+### Live constants (verify against `GameMechanicsConstants.swift`)
+
+| Constant | Value | Purpose |
+|----------|------:|---------|
+| `dodgeIntuitionSuppressionBaseMultiplier` | `0.8` | Base for level-scaled multiplier |
+| `dodgeIntuitionSuppressionPerLevelDelta` | `0.04` | `mult = 0.8 + 0.04 × attackerLevel` (L12 = 1.28) |
+| `critIntuitionSuppressionBaseMultiplier` | `0.8` | Base for level-scaled multiplier |
+| `critIntuitionSuppressionPerLevelDelta` | `0.024` | `mult = 0.8 + 0.024 × attackerLevel` (L12 = 1.088) |
+| `critPeakWeight` / `dodgePeakWeight` | `0.6` | Peak share of stage-1 distribution |
+| `critPeakPosition` / `dodgePeakPosition` | `0.0` | Peak at the low end of the rolled range |
+| `critMultiplierValues` | `[0.75, 1.00, 1.25, 1.5, 2.0, 3.0]` | Unblocked crit multipliers |
+| `critMultiplierWeights` | `[0, 10, 25, 35, 20, 10]` | mean ≈ **1.6375×** — applied to blocked AND unblocked crits (`blockedCritMultiplierWeights` removed; blocked crits are taxed in EP instead) |
+| `exhaustedBlockDamageMultiplier` | `0.6` | weak block soaks 40 % of post-armour damage |
+| `startingEP` | `2400` | EP pool every combatant starts with |
+| `blocksPerEndurancePoint` | `0.3` | each Endurance point grants 0.3 effective blocks |
+| `blocksLostPerAttackerStrength` | `0.1` | each attacker Strength point burns 0.1 blocks |
+| `intuitionReductionCoefficient` | `0.12` | `mean reduction = sqrt(int) × 0.12` (≈ 20 % of strength damage) |
+| `enduranceReductionCoefficient` | `0.18` | `mean reduction = sqrt(end) × 0.18` (≈ 30 % of strength damage) |
+| `critEPCostBonusRatio` | `1.0` | crit adds a flat EP tax (`baseCost × (mult − 1) × ratio`) to the block cost |
+
+### Strength damage curve (Session 2)
+
+The hand-tuned 52-row `predefinedDistributions` table was replaced with a
+single sqrt formula:
+
+```
+mean_damage = sqrt(strength) × 0.6
+```
+
+Distribution shape per stat value: `[floor(mean), ceil(mean)]` with
+weights summing to 10 (`ceilWeight = round(fraction × 10)`). Narrow
+two-value distribution, predictable variance.
+
+Worked examples:
+
+| str | sqrt(str) × 0.6 | Range | Weights | Mean |
+|----:|----------------:|-------|---------|-----:|
+| 3 (L3) | 1.04 | 1 | [1] | 1.0 |
+| 6 (L6) | 1.47 | 1–2 | [5, 5] | 1.5 |
+| 9 (L9) | 1.80 | 1–2 | [2, 8] | 1.8 |
+| 12 (L12) | 2.08 | 2–3 | [9, 1] | 2.1 |
+| 24 | 2.94 | 2–3 | [1, 9] | 2.9 |
+| 48 | 4.16 | 4–5 | [8, 2] | 4.2 |
+| 100 | 6.00 | 6 | [1] | 6.0 |
+
+**Diminishing returns** baked in: doubling strength multiplies mean
+damage by `√2 ≈ 1.41×` (not 2×). Implemented in
+`ElfStrengthDamageDistributionStrategy`.
+
+### Damage reduction (Session 2 — Option C + Option A)
+
+Damage reduction has two independent contributors, both rolled per strike
+and summed:
+
+```
+intReduction = sqrt(intuition)  × 0.12   // 20 % of strength damage
+endReduction = sqrt(endurance) × 0.18    // 30 % of strength damage
+total_reduction_per_strike = intReduction_roll + endReduction_roll
+```
+
+Each contributor uses the same shape as the strength damage curve
+(`[floor, ceil]` weights summing to 10). The historical 52-row hand-tuned
+endurance table was **removed**.
+
+Worked examples at L12:
+
+| Defender stat | int | end | per-strike reduction (mean) |
+|---------------|----:|----:|----------------------------:|
+| def (1str + 2int + 3end) | 24 | 36 | `sqrt(24)·0.12 + sqrt(36)·0.18 = 0.59 + 1.08 = 1.67` |
+| crit (1str + 4pow + 1int) | 12 | 0 | `sqrt(12)·0.12 = 0.42` |
+| dodge (1str + 4agi + 1int) | 12 | 0 | `sqrt(12)·0.12 = 0.42` |
+
+Per-fight contribution at L12 (def): ≈ 10–18 effective HP absorbed
+(depends on incoming damage).
+
+### Block cost formula (Session 2)
+
+```
+denom = pool/baseCost
+      + defenderEndurance × blocksPerEndurancePoint   //  +blocks
+      − attackerStrength × blocksLostPerAttackerStrength //  −blocks
+blockCost = pool / max(1, denom)
+```
+
+With `pool = 2400`, `baseCost = 400` (Recruit's Spear, 2-handed),
+`blocksPerEndurancePoint = 0.3`, `blocksLostPerAttackerStrength = 0.1`:
+
+| Defender | endurance | denom @ L12 (att str 12) | blockCost | blocks per pool |
+|----------|----------:|-------------------------:|----------:|----------------:|
+| def | 36 | `6 + 10.8 − 1.2 = 15.6` | **154 EP** | **15.6 blocks** |
+| dodge/crit (no random) | 0 | `6 + 0 − 1.2 = 4.8` | **500 EP** | **4.8 blocks** |
+
+Endurance defines tank-class survival; classes with `endurance = 0` exhaust
+quickly and rely on random rolls for survival in random-play scenarios.
+
+### Dodge / Crit chance (Session 2 — dynamic suppression)
+
+Both chance rolls use a peak+linear-tail distribution but the **intuition
+suppression multiplier is now level-dependent**:
+
+```
+dodgeMultiplier(attackerLevel) = 0.8 + 0.04 × attackerLevel
+critMultiplier(attackerLevel)  = 0.8 + 0.024 × attackerLevel
+
+dodge_min = defenderAgility − round(attackerInstinct × dodgeMultiplier)
+dodge_max = min(100, defenderAgility)
+
+crit_min  = attackerPower  − round(defenderInstinct × critMultiplier)
+crit_max  = min(100, attackerPower)
+```
+
+| Level | dodge mult | crit mult |
+|------:|-----------:|----------:|
+| L1 | 0.84 | 0.824 |
+| L3 | 0.92 | 0.872 |
+| L6 | 1.04 | 0.944 |
+| L9 | 1.16 | 1.016 |
+| L12 | **1.28** | **1.088** |
+
+Low-level dodgers / criters are barely suppressed (helps `dodge>crit` and
+`crit>def` at L3). High-level intuition crushes them harder
+(helps `def>dodge` at L12 + caps `crit>def` overshoot).
+
+Service signatures took the `attackerLevel: Int` argument added in
+Session 2:
+- `DodgeService.calculateDodge(agility:instinct:attackerLevel:)`
+- `CritService.calculateCrit(power:instinct:attackerLevel:)`
+
+### Combat resolution flow (Session 2 — dodge-first)
+
+Per body part, in order:
+
+1. **Dodge roll** runs first, regardless of whether the defender blocked
+   this body part. A successful dodge cancels the attack outright
+   (no EP spent, no damage).
+2. If dodge failed and the body part is **blocked** with EP available,
+   crit is rolled. On a crit, a flat EP tax is added to the block cost
+   (`baseCost × (critMultiplier − 1) × critEPCostBonusRatio`) and the
+   crit lands at its **full rolled multiplier** (same
+   `critMultiplierWeights`, mean 1.6375×) → `.critHit`; no crit →
+   `.blocked`. If EP only partially suffices → block lands at full
+   effectiveness, EP → 0, next round the defender is `Exhausted`.
+3. If dodge failed and the body part is **blocked but defender has
+   0 EP** and is already Exhausted → weak-block path, no EP cost.
+   No-crit branch: damage = post-armour ×
+   `exhaustedBlockDamageMultiplier` (0.6). Crit branch: full multiplier;
+   the 0.6 is NOT applied on top (no double-dip).
+4. If dodge failed and the body part is **not blocked** → normal hit
+   chain (crit roll → crit hit at full multiplier mean 1.6375× or normal
+   hit).
+
+Strength damage and reduction are computed in
+`ElfSnapshotCombatCalculator.calculateDamageComponents`:
+
+```
+strengthDamage   = sqrt(strength) × 0.6   (rolled)
+intReduction    = sqrt(intuition) × 0.12 (rolled)
+endReduction    = sqrt(endurance) × 0.18 (rolled)
+attackDamage    = profile.minimumAttack...maximumAttack  (weapon)
+final = max(0, attackDamage + strengthDamage − intReduction − endReduction − armor)
+```
+
+### Crit EP amplification (Session 2)
+
+When a crit lands on a defended body part, a flat **crit tax** is added
+on top of the normal (endurance- and attacker-strength-adjusted) block
+cost:
+
+```
+critEPTax       = profile.epBlockCost × (multiplier − 1) × critEPCostBonusRatio
+actualBlockCost = max(1, blockCost + critEPTax)
+```
+
+Algebraically identical to the earlier "flat-reduction" formulation
+(amplify baseCost, subtract the flat endurance saving). High-Endurance
+defenders still save the same flat EP amount from their endurance, but
+the crit tax doesn't shrink with it — so def actually feels the bite
+when a crit lands. When attacker strength pushes `blockCost` above
+`epBlockCost`, the tax still adds on top (no accidental discount).
+
+### Exhausted debuff (Session 2 — universal −10 %)
+
+Battle-scoped `Exhausted` buff fires the moment a combatant ends a round
+at 0 EP. Effect was changed from `str −30 %, end −30 %` to `−10 % on
+ALL five combat attributes` (str, agi, pow, int, end) — the asymmetry
+intentionally punishes the always-Exhausted classes (crit/dodge run out
+of EP 60–87 % of the time at L12) more than the rarely-Exhausted def
+(2–9 % at L12).
+
+`Buffs.json` schema unchanged; only the `value` dictionary on the
+battle-scope entry was updated.
+
+### Fight style attribute allocations (still 6 points / level)
+
+| Style | str | agi | pow | int | end | HP | Mana |
+|-------|----:|----:|----:|----:|----:|----|------|
+| **crit** | 1×L | 0 | 4×L | 1×L | 0 | 80 + 5×L | 20 |
+| **dodge** | 1×L | 4×L | 0 | 1×L | 0 | 80 + 5×L | 20 |
+| **def** | 1×L | 0 | 0 | 2×L | 3×L | 80 + 5×L | 20 |
+
+Per-style identity constraints (unchanged from Round-39):
+- crit — no agility, no endurance
+- dodge — no power, no endurance
+- def — no agility, no power
+
+### Random attribute pool (real-play noise)
+
+On top of fight-style points, every level rolls **+4 random points**
+distributed across the 5 combat stats via
+`ElfAttributeRandomizer.nextAttribute()` (uniform 20 % chance per stat).
+At L12 the expected per-stat random gain is ~9.6, but with significant
+variance (σ ≈ 2.8). Critically — this **adds endurance to crit/dodge**,
+softening the structural `end = 0` weakness their class allocations
+otherwise have.
+
+### Removed mechanics (no longer in code)
+
+| Removed | Replaced with |
+|---------|---------------|
+| `intuitionEffectRatioOfStrength` (intuition → effective strength) | Removed; intuition no longer contributes to offensive damage |
+| Two-tier "Intuition → endurance reduction" gate (def_endurance==0 + power≥12 path) | Replaced by sqrt-curve `intReduction` + `endReduction` (independent rolls) |
+| `enduranceReductionRatioOfStrength` + `enduranceReductionDistributionDesignRatio` ratio-scaling | Replaced; the strategy now applies `sqrt × coefficient` directly |
+| `intuitionDamageReductionMultiplier` | Replaced; intuition reduction coefficient lives in `intuitionReductionCoefficient` directly |
+| 52-row hand-tuned strength damage table | `sqrt(str) × 0.6` formula |
+| 52-row hand-tuned endurance reduction table | `sqrt(stat) × coefficient` formula |
+| `blockedCritMultiplierWeights` + `CritService.selectBlockedCritMultiplier()` | Removed; blocked crits land at the full rolled multiplier — the block's compensation is the flat EP tax (`critEPCostBonusRatio`), not a damage downgrade |
+| Global-scope `Exhausted` buff (`BuffCatalogID.exhaustedGlobal`, 3-day) | Removed from the catalog; only the battle-scoped variant remains. `GameSession.applyGlobalBuff*` entry points kept for planned global buffs |
+
+### Open / known issues (see `.claude/docs/game-balance/balance-task-2026-05-26.md`)
+
+- **`all-AGI for dodge` exploit (95 %+ wins in matrix)** — needs a hard
+  cap on dodge probability or a sqrt curve on agi.
+- **L3 `dodge>crit` inversion persists** — single suppression multipliers
+  can't help dodge enough at low intuition values (rounding floor).
+- **L12 random `def>dodge` inversion** (dodge wins ~61 % vs target def
+  60–70 %) — closing gap but not yet fixed.
+- **L12 random `crit>def` overshoot** (~75 % vs target ≤ 70 %).
+- **`all-END for def` (~10 %)** — pure-END investment is anti-synergistic
+  with def's existing endurance allocation (sqrt diminishing).
 
 ---
 
@@ -25,18 +280,13 @@ combat. The numeric type is `Attribute` (a typed wrapper, not raw `Int16`)
 
 | Attribute       | Role                                                                    |
 |-----------------|-------------------------------------------------------------------------|
-| **Strength**    | Adds to per-attack damage (rolled via `DamageService`).                  |
+| **Strength**    | Adds to per-attack damage (sqrt curve); pressures the defender's block economy (`blocksLostPerAttackerStrength`). |
 | **Agility**     | Dodge chance.                                                            |
-| **Power**       | Critical-hit chance. Crits land through blocks but a blocked crit deals only normal-hit damage (multiplier forced to `1.0×`). |
-| **Intuition**   | Suppresses opponent's dodge chance and crit chance.                      |
+| **Power**       | Critical-hit chance. Crits land through blocks at the **full rolled multiplier**; the defender pays a flat EP tax for blocking a crit (see "Crit EP amplification"). |
+| **Intuition**   | Suppresses opponent's dodge chance and crit chance; contributes sqrt-curve damage reduction. |
+| **Endurance**   | EP-efficient blocking (`blocksPerEndurancePoint`) + sqrt-curve damage reduction. |
 | **Hit Points**  | Health pool. 0 HP = defeat.                                              |
 | **Mana Points** | Resource for abilities (not yet used).                                   |
-
-### Planned stat
-
-| Attribute       | Role                                                                    |
-|-----------------|-------------------------------------------------------------------------|
-| **Endurance**   | Reduces EP cost paid per successful block (see *Endurance / EP* below). |
 
 Endurance is a **global, equal-rank attribute** — equipment and crystals
 can grant it like any other stat. It is not exclusive to the def style.
@@ -64,13 +314,23 @@ success path in stage 2) is not reachable through levelling alone.
 
 ---
 
-## Combat Math (current)
+## Combat Math (LEGACY — superseded by "Current State" above)
+
+> ⚠️ **Session 2 (2026-05-27 → 2026-06-07) replaced most of the math below.**
+> The current resolution flow is **dodge-first** (not block-then-dodge),
+> blocked crits land at the **full rolled multiplier** (the downgraded
+> `blockedCritMultiplierWeights` distribution and the "blocked-crit mean <
+> unblocked-crit mean" invariant were dropped — blocked crits pay a flat
+> **EP tax** via `critEPCostBonusRatio` instead), and intuition suppression
+> is **level-scaled**. See the "Current State" section at the top of this
+> doc for live formulas. This section retained for trail/context only.
 
 Resolution per body part (see `ElfSnapshotCombatCalculator`):
 
 | Situation                | Rolls performed                                                                            |
 |--------------------------|--------------------------------------------------------------------------------------------|
-| Attacked **and** blocked | Crit roll only. On success → `.critHit` with multiplier forced to `1.0×` (normal-hit damage, but UI/stats still mark it as a crit); on fail → `.blocked`. EP is spent in both branches. |
+| Attacked **and** blocked | Crit roll only. On success → `.critHit` with multiplier rolled from `blockedCritMultiplierWeights` (mean **1.85×** — block downgrades crit damage but doesn't fully cancel it); on fail → `.blocked`. EP is spent in both branches. |
+| Attacked **and** blocked **+ Exhausted defender** | Weak-block path. Crit branch: multiplier from `blockedCritMultiplierWeights` (no extra penalty); no-crit branch: post-armor damage × `exhaustedBlockDamageMultiplier` (0.6 — block soaks 40%). No EP cost (defender has none to spend). |
 | Attacked, **not** blocked| Dodge roll first. If dodged → done. Otherwise crit roll → crit hit (full multiplier) or normal hit. |
 | Not attacked             | Nothing.                                                                                   |
 
@@ -113,8 +373,22 @@ The peak share no longer depends on `rangeSize`. (Old integer-tent
 weighting gave the peak only `2/(N+1)` ≈ 7.7% in this case.)
 
 **Crit multiplier distribution** — values `[0.75, 1.00, 1.25, 1.50, 2.00, 3.00]`,
-weights `[0, 5, 15, 40, 30, 10]` → `E[multiplier | crit] = 1.74×`. So a
-successful crit adds **+0.74×** of base damage on average.
+weights `[0, 15, 30, 40, 10, 5]` → `E[multiplier | crit] = 1.475×` for
+unblocked crits.
+
+Blocked crits use a separate downgraded distribution
+`blockedCritMultiplierWeights = [5, 30, 40, 20, 5, 0]` → `E[multiplier
+| blocked crit] = 1.2375×`.
+
+**Invariant: `blocked-crit mean < unblocked-crit mean`** — damage that
+passes through a block must always be less than damage from an unblocked
+crit. Earlier balance iterations (2026-05-26 rounds 14-33) ran blocked-
+crit mean at 1.74-1.95× to muscle the `crit > def` edge into the 60-70 %
+L12 target, but that violated the invariant: blocked crits were dealing
+*more* damage on average than unblocked ones, which is illogical from
+a game-design standpoint. The fix relies on crit's `strength 2×lvl`
+allocation (added in step 34) to keep the `crit > def` edge in the
+target band without inverting the block-mitigation relationship.
 
 **Important nuance** — when `instinct == 0` on the opponent side, the
 distribution range collapses to a single value equal to the actor's stat.
@@ -127,11 +401,119 @@ Implementations:
 - `ElfCritService.calculateCrit(power:instinct:defenderAgility:)`
 - `ElfSnapshotCombatCalculator.calculatePointStatus(...)`
 
+### Secondary attribute mechanics (LEGACY — REMOVED in Session 2)
+
+> ⚠️ **Both mechanics described in this subsection have been replaced.**
+> The two-tier `Intuition → endurance reduction` gate is gone — damage
+> reduction now uses the **sqrt curve formula** with independent
+> contributions from INT and END (see "Current State" → "Damage reduction").
+> The `blocksLostPerAttackerStrength` mechanic is still active, but the
+> default value is now **0.1** (was 0.2). Retained for historical context.
+
+#### Intuition → endurance reduction (LEGACY two-tier gate — REMOVED)
+
+The defender gets a flat bonus to `enduranceReduction` per hit when
+**all three core conditions** hold:
+
+1. `defenderEndurance == 0` — rules out the def style (Endurance
+   already mitigates; doubling up made def crit-immune in sim step 9).
+2. `defenderInstinct >= 3` — L3+ for dodge (where the edge starts
+   widening).
+3. **Attacker is "dangerous"** — see the two tiers below.
+
+**Two-tier attacker classification:**
+
+| Attacker profile           | Threshold                  | Bonus |
+|----------------------------|----------------------------|------:|
+| Crit-style (`power ≥ 12`)  | always (L3+ via power)     | scaling: `max(1, min(2, round(int/6)))` → +1 at L3-L6, +2 at L9-L12 |
+| Heavy-strength (`str ≥ 10`)| L10+ for str=1×lvl styles  | flat **+1** |
+| Neither                    | —                          | 0 |
+
+**Why two tiers:**
+- Crit attacks burst-damage via multipliers; needs more mitigation
+  (scaling bonus, up to +2).
+- Heavy-strength attacks land every swing but lack crit's burst, so a
+  milder flat +1 suffices.
+- Threshold `str ≥ 10` (not 6) prevents over-nerfing `def > dodge` at
+  L6-L9 where small absolute weapon damage makes flat −1 endRed a
+  large % cut. Sim step 41 with threshold 6 collapsed L9 def_vs_dodge
+  def from 64.7 → 49.4.
+
+Implemented in `ElfSnapshotCombatCalculator.calculateDamageComponents`.
+
+#### Strength → blocks lost (offensive pressure on blockers)
+
+Attacker's Strength burns "effective blocks" from the defender, mirror
+of how Endurance grants them. Both modifiers live in the same "blocks"
+abstraction (same units, same formula):
+
+```
+cost = pool / max(1, pool/baseCost
+                  + endurance × blocksPerEndurancePoint        // +blocks
+                  − attackerStrength × blocksLostPerStrength)  // −blocks
+```
+
+With defaults:
+- `blocksPerEndurancePoint = 0.4` → +2 Endurance grants ~+0.8 block.
+- `blocksLostPerAttackerStrength = 0.2` → +5 attacker Strength burns ~1 block.
+
+At L12 an attacker with Strength = 12 (any style except crit) burns
+2.4 effective blocks from the defender; crit (Strength = 24) burns
+4.8 — substantially more pressure, which is what makes
+`def vs crit` matchups bleed EP faster than `def vs dodge`.
+
+**Why blocks-based (not flat EP):** earlier flat-additive variant
+(`epCostPerAttackerStrength: Int = 10` adding +120 EP per block at L12)
+gave tighter EP-reserve compression but pulled defender into Exhausted
+state often, which the `exhaustedBlockDamageMultiplier` mitigation
+softened — eroding the `crit > def` edge. The blocks-based form is
+conceptually cleaner (same units as Endurance, easier to reason about)
+at the cost of a higher defender EP reserve at L12.
+
+Implemented in `ElfEnduranceService.calculateBlockCost(baseCost:defenderEndurance:attackerStrength:)`.
+
+### Exhausted debuff (LEGACY — value changed in Session 2)
+
+> ⚠️ **Current Exhausted = −10 % on ALL five combat attributes** (str, agi,
+> pow, int, end). The `str −30 %, end −30 %` variant described below was
+> the **prior** value; sim showed it barely touched dodge's AGI and
+> crit's POW (their identity stats), so it was widened to all stats to
+> actually punish exhausted crit/dodge. See "Current State" above.
+
+The battle-scoped `Exhausted` buff (`BD000000-0000-4000-A000-000000000002`)
+defines what happens when a combatant runs out of EP mid-fight. By
+design the effects on this buff are **balancer-tunable** — sim runs
+during `balance-task-2026-05-26.md` explored several variants:
+
+| Variant tried           | Effect on triangle |
+|-------------------------|--------------------|
+| `str -30%, end -30%` (current) | original; minor late-game softening |
+| `str -1.0` (zero strength) | small effect — Exhausted activates too late in fight |
+| `power -0.5 / -0.8 / -1.0` | mostly nerfs crit; `-1.0` flipped `crit > def` to def-favoured |
+| `endurance -1.0` | further weakens defender's late-game block window |
+
+**Verdict from sims:** modifying Exhausted is a weak lever for win-rate
+tuning because the debuff fires only when EP is fully drained — usually
+in the last 1-3 rounds of an 18-23-round fight, after most damage has
+already been dealt. The default `str -30%, end -30%` is kept.
+
+Future tuning can extend `Buffs.json` for the battle-scope Exhausted
+entry with any per-attribute percent delta (the schema accepts
+`strength`, `agility`, `power`, `instinct`, `endurance`). Just remember
+the timing constraint: anything you change here only affects the tail
+of the fight.
+
 ---
 
 ## Per-Point Value
 
-Empirical coefficients derived from the actual code (distribution
+> ⚠️ **Numbers below predate Session 2.** The dodge/crit tables assume the
+> old fixed suppression (no level scaling) and old peak parameters;
+> strength uses the removed hand-tuned table; endurance assumes
+> `blocksPerEndurancePoint = 0.5` (now **0.3**). Shapes and rules of thumb
+> remain directionally useful; recompute before relying on exact values.
+
+Empirical coefficients derived from the code as of Round-39 (distribution
 strategies + damage tables). Use these instead of the naive 1:1
 intuitions ("1 agility = 1% dodge"); the real numbers are conditional on
 the opponent's intuition.
@@ -162,9 +544,15 @@ Same shape, but with peak `0.2` (more aggressive instinct cut):
 Rule of thumb: **1 power ≈ 1% crit** vs zero-intuition opponent;
 **~0.5%** with comparable intuition.
 
-### Strength → mean damage (per attack)
+### Strength → mean damage (LEGACY hand-tuned table — REPLACED by sqrt curve)
 
-From `ElfStrengthDamageDistributionStrategy.predefinedDistributions`:
+> ⚠️ **Current formula: `mean = sqrt(strength) × 0.6`.** The 52-row
+> `predefinedDistributions` hand-tuned table was removed in Session 2.
+> The values below are kept for trail context but DO NOT match the live
+> values. See "Current State" → "Strength damage curve" above for the
+> active table.
+
+From the LEGACY `ElfStrengthDamageDistributionStrategy.predefinedDistributions`:
 
 | Strength | Mean damage |
 |---|---|
@@ -185,13 +573,14 @@ gains most of its weight from equipment, not levels.
 
 **1 endurance = `blocksPerEndurancePoint` extra effective blocks**
 (universal across weapons by the rule). The constant lives in
-`GameMechanicsConstants.blocksPerEndurancePoint` and defaults to `0.5`
-(canonical "+2 Endurance = +1 block"); tune it down (e.g. `0.4`) to make
-Endurance scale slower, or up (`1.0`) to make every point grant a full
-block. For a typical-damage hit at lvl 12 (~5-10 base damage), one block
-saves roughly that much HP, so **1 endurance ≈ 2.5-5 HP saved per
-battle** at the default — but only for a hero who actually allocates
-block points.
+`GameMechanicsConstants.blocksPerEndurancePoint` and is currently `0.3`
+(historical default was `0.5`, the canonical "+2 Endurance = +1 block");
+tune it down to make Endurance scale slower, or up (`1.0`) to make every
+point grant a full block. Endurance additionally grants sqrt-curve damage
+reduction (`sqrt(end) × 0.18` per strike — see "Damage reduction" in
+Current State). For a typical-damage hit at lvl 12 (~5-10 base damage),
+one block saves roughly that much HP — but only for a hero who actually
+allocates block points.
 
 ### Per-point HP-equivalent (rough, lvl 12, both heroes with equal intuition)
 
@@ -230,7 +619,7 @@ minimum, peak weight 0.6):
 | Edge | Mechanism | Effective rate |
 |------|-----------|----------------|
 | **dodge > crit** | dodge defender (agility 48) vs crit's intuition 12; range 36-48 peak at 36 (60%) | **~37% dodge** |
-| **crit > def**   | crit attacker (power 48) vs def's intuition 24; range 24-48 peak at 24 (60%) | **~28% crit lands** (on blocked parts: damage reduced to normal hit; on unblocked: full multiplier) |
+| **crit > def**   | crit attacker (power 48) vs def's intuition 24; range 24-48 peak at 24 (60%) | **~28% crit lands** (full multiplier whether blocked or not; a blocked crit additionally costs the defender the flat EP tax) |
 | **def > dodge**  | dodge attacker (agility 48) vs def's intuition 24; range 24-48 peak at 24 (60%) | **~28% dodge** (down from ~37% baseline) |
 
 The peak-weight model concentrates roll outcomes near the minimum, so
@@ -240,6 +629,13 @@ by win-rate simulation — see Open Balance Flags.
 ---
 
 ## Open Balance Flags
+
+> ⚠️ **Архив Round-39 (2026-05-24 → 2026-05-26).** Замеры и конфигурации
+> ниже сняты ДО Session 2: старые crit-веса `[0,15,30,40,10,5]`,
+> `blockedCrit`-механика (удалена), `startingEP = 2000` (сейчас 2400),
+> ручные таблицы урона (заменены sqrt-кривыми). Актуальные свипы — в
+> `.claude/docs/game-balance/` (Session 2 snapshots); актуальные открытые
+> вопросы — в "Open / known issues" секции Current State выше.
 
 Известные или предполагаемые проблемы. Решать симуляцией, не интуицией.
 
@@ -501,13 +897,53 @@ log (`NSLog`, тег `ELFBAL`) использование EP, число бло�
 
 ### Per-level scaling
 
-#### Current (in code)
+#### Round-39 allocation (superseded — see "Fight style attribute allocations" in Current State)
+
+> Session 2 reverted crit to the canonical `str 1×L + pow 4×L + int 1×L`
+> (the step-34 `str 2×L / int 0` experiment below was superseded by the
+> level-scaled intuition suppression doing the `crit > def` work instead).
 
 | Style    | strength | agility | power   | intuition | endurance | hit points |
 |----------|----------|---------|---------|-----------|-----------|------------|
-| `crit`   | +1×lvl   | 0       | +4×lvl  | +1×lvl    | 0         | 80 + 5×lvl |
+| `crit`   | +2×lvl   | 0       | +4×lvl  | 0         | 0         | 80 + 5×lvl |
 | `dodge`  | +1×lvl   | +4×lvl  | 0       | +1×lvl    | 0         | 80 + 5×lvl |
 | `def`    | +1×lvl   | 0       | 0       | +2×lvl    | +3×lvl    | 80 + 5×lvl |
+
+#### Hard rule: **exactly 6 stat points per level, per style**
+
+Each fight style allocates **6 stat points** at every level
+(`strength + agility + power + intuition + endurance == 6`). HP and
+Mana sit outside this budget and follow shared, **per-style-immutable**
+scaling: HP = `80 + 5×lvl`, Mana = 20 flat. Per-style HP/Mana scaling
+is forbidden by design.
+
+When rebalancing a style, **any point removed from one stat must be
+added to another** combat attribute — the 6-point invariant is
+load-bearing for relative power between styles.
+
+#### Per-style identity constraints (2026-05-26)
+
+| Style | Forbidden stats     | Why                                          |
+|-------|---------------------|----------------------------------------------|
+| crit  | agility             | Agility is dodge's identity. Crit has 0.    |
+| dodge | power               | Power is crit's identity. Dodge has 0.      |
+| def   | agility, power      | Def neither dodges nor crits — it absorbs.  |
+
+#### Worked example: crit's allocation
+
+The canonical crit allocation `str 1, pow 4, int 1, end 0, agi 0 = 6`
+ran into a balance constraint during the `balance-task-2026-05-26.md`
+tuning. Zeroing `intuition` was the cleanest asymmetric `dodge > crit`
+lever (sim step 3 added +10 pp dodge rate at L12), but the 6th point
+then needed a home that:
+- Satisfies the no-agility identity constraint.
+- Doesn't break a different triangle edge.
+
+Sim experiments tested every alternative:
+- `end 1×L` (sim step 19) — crit longevity over-buff, win rate vs def → 77 %, vs dodge → 51 %.
+- `pow 5×L` (sim step 28) — crit chance vs def jumped from 27 % to 40 %, win rate → 78 %.
+- `mana scaling +1×L` (sim step 30) — works for balance but violates the "no per-style HP/Mana scaling" design rule.
+- `str 2×L` (sim step 34, **final choice**) — raises crit's per-hit damage; combined with the logical fix (blocked-crit < unblocked-crit) lands `crit > def` cleanly in target.
 
 Notes:
 - All styles share the same `+5 HP/level` scaling. Battles are longer
@@ -528,12 +964,13 @@ A soft rock-paper-scissors. The intent is **slight** advantage (~60 / 10 /
 - **dodge > crit** — A successful dodge cancels the attack. Crit's
   multiplier is never applied; power investment yields zero return on that
   swing.
-- **crit > def** — Crit lands even on blocked parts, so def cannot
-  fully cancel an attacker's swing the way dodge can. The def hero has no
-  power and no agility, so cannot suppress crits or roll its own. EP
-  still drains on blocked crits (see below), but the crit's damage is
-  capped at the normal-hit value via `blockedCritMultiplier` — the block
-  cancels the multiplier bonus, not the swing itself.
+- **crit > def** — Crit lands even on blocked parts at the **full rolled
+  multiplier**, so def cannot fully cancel an attacker's swing the way
+  dodge can. The def hero has no power and no agility, so cannot suppress
+  crits (beyond intuition) or roll its own. On top of the damage, a
+  blocked crit charges the defender a flat **EP tax**
+  (`baseCost × (mult − 1) × critEPCostBonusRatio`) — crits drain def's
+  block economy faster, accelerating Exhaustion.
 - **def > dodge** — High intuition trims the dodge hero's dodge chance, and
   Endurance lets def absorb the trickle of unblocked hits longer than
   dodge can keep offence going. Without Endurance this edge is the weakest
@@ -541,7 +978,18 @@ A soft rock-paper-scissors. The intent is **slight** advantage (~60 / 10 /
 
 ---
 
-## Endurance & EP (planned)
+## Endurance & EP (LEGACY original design plan — implemented & since rebalanced)
+
+> ⚠️ **This is the original design plan, kept as archive.** The system is
+> implemented; several values and rules have since changed:
+> `startingEP` **2400** (plan said 2000), `blocksPerEndurancePoint` **0.3**
+> (plan said 0.5), attacker Strength now burns blocks
+> (`blocksLostPerAttackerStrength = 0.1`), blocked crits keep the **full
+> multiplier** + pay the EP tax (no `blockedCritMultiplier` damage cap),
+> dodge rolls on **all** attacked parts (blocking no longer disables the
+> dodge roll), and an Exhausted defender at 0 EP gets a **weak block**
+> (0.6 of damage passes) instead of "no protection". See "Current State"
+> at the top of this doc for the live rules.
 
 ### Goal
 

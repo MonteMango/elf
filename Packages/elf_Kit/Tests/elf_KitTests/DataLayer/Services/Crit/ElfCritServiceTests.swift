@@ -9,26 +9,54 @@ import Dependencies
 import XCTest
 @testable import elf_Kit
 
-/// Tests for ElfCritService
+/// Tests for `ElfCritService`.
 ///
 /// **Algorithm**:
-/// **Stage 1**: Select crit chance from the peak+linear-tail distribution
-/// **Stage 2**: Check crit success (roll 1-100, succeed if roll <= chance)
-/// **Stage 3**: Select damage multiplier from the fixed multiplier distribution
+/// - Stage 1: Select crit chance from the peak+linear-tail distribution.
+/// - Stage 2: Check crit success (roll 1-100, succeed if roll ≤ chance).
+/// - Stage 3: Select damage multiplier from the fixed multiplier distribution.
+///
+/// `selectBlockedCritMultiplier` is **removed** — blocked crits now use the
+/// same multiplier distribution and pay an EP tax via
+/// `GameMechanicsConstants.critEPCostBonusRatio` (asserted in
+/// `ElfSnapshotCombatCalculatorTests.testBlock_CritAmplifiesEPCost`).
 final class ElfCritServiceTests: XCTestCase {
 
-    /// Wire the real stateless strategy + distribution so every test can exercise
-    /// `ElfCritService` without each one spelling out `withDependencies`.
-    override func invokeTest() {
-        withDependencies {
-            $0.critDistributionStrategy = ElfCritDistributionStrategy()
-            $0.critMultiplierDistribution = CritMultiplierDistribution()
-        } operation: {
-            super.invokeTest()
-        }
+    /// Level at which `min = power − instinct` semantics roughly hold. At L=0
+    /// the multiplier collapses to the base (`0.8`), so a literal min from
+    /// `power − instinct` is **not** correct — use `expectedSuppression(...)`.
+    private static let testLevel: Int = 0
+
+    private static func expectedSuppression(instinct: Int16, level: Int = ElfCritServiceTests.testLevel) -> Int16 {
+        let mult = PeakLinearTailDistribution.multiplier(
+            base: GameMechanicsConstants.critIntuitionSuppressionBaseMultiplier,
+            perLevel: GameMechanicsConstants.critIntuitionSuppressionPerLevelDelta,
+            attackerLevel: level
+        )
+        return Int16((Double(instinct) * mult).rounded())
     }
 
-    // MARK: - Test Helpers
+    /// Seeds the generator so `calculateCrit`'s convenience overload (which
+    /// resolves `\.withRandomNumberGenerator` at call time) is deterministic.
+    /// The inner scope wires the distribution + sampling/chance services the
+    /// service-under-test pulls; kept nested so the seed is already current
+    /// when those are resolved.
+    override func invokeTest() {
+        withDependencies {
+            $0.withRandomNumberGenerator = WithRandomNumberGenerator(
+                SeededRandomNumberGenerator(seed: 0xE1F)
+            )
+        } operation: {
+            withDependencies {
+                $0.critDistributionStrategy = ElfCritDistributionStrategy()
+                $0.critMultiplierDistribution = CritMultiplierDistribution()
+                $0.weightedSamplingService = ElfWeightedSamplingService()
+                $0.chanceRollService = ElfChanceRollService()
+            } operation: {
+                super.invokeTest()
+            }
+        }
+    }
 
     private func makeService() -> ElfCritService {
         ElfCritService()
@@ -37,302 +65,191 @@ final class ElfCritServiceTests: XCTestCase {
     // MARK: - Stage 1: Distribution Selection Tests
 
     func testStage1_SelectedChanceWithinDistributionRange() async {
-        // Given
         let service = makeService()
-
-        // When: Run multiple times to verify selected chance is within range
+        let expectedMin = Int16(30) - Self.expectedSuppression(instinct: 10)
         for _ in 0..<100 {
-            let result = service.calculateCrit(power: 30, instinct: 10)
-
-            // Then: Selected chance should be within [20, 30] (power - instinct to power)
-            XCTAssertGreaterThanOrEqual(result.selectedChance, 20)
+            let result = service.calculateCrit(power: 30, instinct: 10, attackerLevel: Self.testLevel)
+            XCTAssertGreaterThanOrEqual(result.selectedChance, expectedMin)
             XCTAssertLessThanOrEqual(result.selectedChance, 30)
         }
     }
 
     func testStage1_NegativeMinimumDistribution() async {
-        // Given
         let service = makeService()
-
-        // When
-        let result = service.calculateCrit(power: 5, instinct: 15)
-
-        // Then: Selected chance can be negative (range: -10 to 5)
-        XCTAssertGreaterThanOrEqual(result.selectedChance, -10)
+        let result = service.calculateCrit(power: 5, instinct: 15, attackerLevel: Self.testLevel)
+        let expectedMin = Int16(5) - Self.expectedSuppression(instinct: 15)
+        XCTAssertGreaterThanOrEqual(result.selectedChance, expectedMin)
         XCTAssertLessThanOrEqual(result.selectedChance, 5)
     }
 
     // MARK: - Stage 2: Success Check Tests
 
     func testStage2_NegativeChance_AlwaysFails() async {
-        // Given
         let service = makeService()
         var autoFailCount = 0
-
-        // When: Run many times with low power/high instinct to get negative chances
         for _ in 0..<200 {
-            let result = service.calculateCrit(power: 5, instinct: 20)
+            let result = service.calculateCrit(power: 5, instinct: 20, attackerLevel: Self.testLevel)
             if result.selectedChance <= 0 {
                 XCTAssertFalse(result.success, "Negative or zero chance should always fail")
-                XCTAssertNil(result.stage2Roll, "No roll needed for auto-fail")
+                XCTAssertNil(result.stage2Roll)
                 autoFailCount += 1
             }
         }
-
-        // Then: Should have some auto-fail cases
-        XCTAssertGreaterThan(autoFailCount, 0, "Should have some negative chance selections")
+        XCTAssertGreaterThan(autoFailCount, 0, "Should have some auto-fail cases")
     }
 
     func testStage2_100PlusChance_AlwaysSucceeds() async {
-        // Given
         let service = makeService()
-
-        // When: Power much higher than instinct, min >= 100
-        let result = service.calculateCrit(power: 150, instinct: 10)
-
-        // Then: 140+ chance should always succeed
-        XCTAssertTrue(result.success, "100+ chance should always succeed")
-        XCTAssertNil(result.stage2Roll, "No roll needed for auto-success")
+        let result = service.calculateCrit(power: 150, instinct: 10, attackerLevel: Self.testLevel)
+        XCTAssertTrue(result.success)
+        XCTAssertNil(result.stage2Roll)
         XCTAssertGreaterThanOrEqual(result.selectedChance, 100)
     }
 
-    func testStage2_ExactlyZeroChance_Fails() async {
-        // Given
-        let service = makeService()
-        var zeroChanceFound = false
-
-        // When: Run many times to find a zero chance
-        for _ in 0..<500 {
-            let result = service.calculateCrit(power: 10, instinct: 10)
-            if result.selectedChance == 0 {
-                XCTAssertFalse(result.success, "Zero chance should fail")
-                XCTAssertNil(result.stage2Roll, "No roll for zero chance")
-                zeroChanceFound = true
-                break
-            }
-        }
-
-        // Verify zero chance was found at least once (or skip if not - probabilistic)
-        if !zeroChanceFound {
-            // This is acceptable - just means we didn't get lucky
-        }
-    }
-
     func testStage2_NormalRoll_RollIsBetween1And100() async {
-        // Given
         let service = makeService()
-
-        // When: Get a result with normal roll (chance between 1-99)
         var normalRollFound = false
         for _ in 0..<100 {
-            let result = service.calculateCrit(power: 50, instinct: 10)
+            let result = service.calculateCrit(power: 50, instinct: 10, attackerLevel: Self.testLevel)
             if let roll = result.stage2Roll {
                 XCTAssertGreaterThanOrEqual(roll, 1)
                 XCTAssertLessThanOrEqual(roll, 100)
                 normalRollFound = true
             }
         }
-
         XCTAssertTrue(normalRollFound, "Should have at least one normal roll")
     }
 
     // MARK: - Stage 3: Multiplier Selection Tests
 
     func testStage3_CritFailed_MultiplierIs1() async {
-        // Given
         let service = makeService()
-
-        // When: Find a failed crit
         var failedCritFound = false
         for _ in 0..<100 {
-            let result = service.calculateCrit(power: 10, instinct: 20)
+            let result = service.calculateCrit(power: 10, instinct: 20, attackerLevel: Self.testLevel)
             if !result.success {
-                XCTAssertEqual(result.selectedMultiplier, 1.0, "Failed crit should have 1.0 multiplier")
-                XCTAssertNil(result.multiplierRoll, "No multiplier roll for failed crit")
+                XCTAssertEqual(result.selectedMultiplier, 1.0)
                 failedCritFound = true
                 break
             }
         }
-
         XCTAssertTrue(failedCritFound, "Should find at least one failed crit")
     }
 
     func testStage3_CritSucceeded_MultiplierIsValid() async {
-        // Given
         let service = makeService()
-        let validMultipliers: Set<Double> = [0.75, 1.00, 1.25, 1.5, 2.0, 3.0]
+        let validMultipliers: Set<Double> = Set(GameMechanicsConstants.critMultiplierValues)
 
-        // When: Find a successful crit
         var successfulCritFound = false
         for _ in 0..<100 {
-            let result = service.calculateCrit(power: 80, instinct: 10)
+            let result = service.calculateCrit(power: 80, instinct: 10, attackerLevel: Self.testLevel)
             if result.success {
                 XCTAssertTrue(validMultipliers.contains(result.selectedMultiplier),
-                             "Multiplier \(result.selectedMultiplier) should be in valid set")
-                XCTAssertNotNil(result.multiplierRoll, "Successful crit should have multiplier roll")
+                              "Multiplier \(result.selectedMultiplier) should be in valid set")
                 successfulCritFound = true
                 break
             }
         }
-
         XCTAssertTrue(successfulCritFound, "Should find at least one successful crit")
     }
 
     // MARK: - Result Structure Tests
 
     func testResultStructure_ContainsAllFields() async {
-        // Given
         let service = makeService()
+        let result = service.calculateCrit(power: 40, instinct: 15, attackerLevel: Self.testLevel)
 
-        // When
-        let result = service.calculateCrit(power: 40, instinct: 15)
-
-        // Then: All fields should be populated
         XCTAssertNotNil(result.distribution)
         XCTAssertTrue(result.distribution.hasRange)
         XCTAssertGreaterThanOrEqual(result.selectedChance, result.distribution.minimumChance)
         XCTAssertLessThanOrEqual(result.selectedChance, result.distribution.maximumChance)
-
-        // Multiplier distribution should be populated
-        XCTAssertFalse(result.multiplierDistribution.values.isEmpty)
     }
 
     // MARK: - Statistical Tests
 
     func testStatistical_CritSuccessRate_CorrelatesWithPower() async {
-        // Given
         let service = makeService()
         let iterations = 500
 
-        // When: Compare success rates for different power levels
         var lowPowerSuccesses = 0
         var highPowerSuccesses = 0
-
         for _ in 0..<iterations {
-            let lowResult = service.calculateCrit(power: 20, instinct: 15)
-            let highResult = service.calculateCrit(power: 60, instinct: 15)
-
+            let lowResult = service.calculateCrit(power: 20, instinct: 15, attackerLevel: Self.testLevel)
+            let highResult = service.calculateCrit(power: 60, instinct: 15, attackerLevel: Self.testLevel)
             if lowResult.success { lowPowerSuccesses += 1 }
             if highResult.success { highPowerSuccesses += 1 }
         }
-
-        // Then: Higher power should have more successes
         XCTAssertGreaterThan(highPowerSuccesses, lowPowerSuccesses,
-                            "Higher power should result in more crit successes")
+                             "Higher power should result in more crit successes")
     }
 
     func testStatistical_MultiplierVariety() async {
-        // Given
         let service = makeService()
         var multipliersFound: Set<Double> = []
-
-        // When: Run many crits to collect different multipliers
         for _ in 0..<1000 {
-            let result = service.calculateCrit(power: 80, instinct: 10)
+            let result = service.calculateCrit(power: 80, instinct: 10, attackerLevel: Self.testLevel)
             if result.success {
                 multipliersFound.insert(result.selectedMultiplier)
             }
         }
-
-        // Then: Should find multiple different multiplier values
-        XCTAssertGreaterThan(multipliersFound.count, 1,
-                            "Should select different multipliers over multiple runs")
+        XCTAssertGreaterThan(multipliersFound.count, 1)
     }
 
     // MARK: - Edge Cases
 
     func testEdgeCase_ZeroPower() async {
-        // Given
         let service = makeService()
-
-        // When
-        let result = service.calculateCrit(power: 0, instinct: 10)
-
-        // Then: Distribution min = -10, max = 0
-        XCTAssertEqual(result.distribution.minimumChance, -10)
+        let result = service.calculateCrit(power: 0, instinct: 10, attackerLevel: Self.testLevel)
+        let expectedMin = Int16(0) - Self.expectedSuppression(instinct: 10)
+        XCTAssertEqual(result.distribution.minimumChance, expectedMin)
         XCTAssertEqual(result.distribution.maximumChance, 0)
         XCTAssertFalse(result.success, "Zero or negative power should always fail crit")
     }
 
     func testEdgeCase_ZeroInstinct() async {
-        // Given
         let service = makeService()
-
-        // When
-        let result = service.calculateCrit(power: 50, instinct: 0)
-
-        // Then: Distribution min = max = 50
+        let result = service.calculateCrit(power: 50, instinct: 0, attackerLevel: Self.testLevel)
         XCTAssertEqual(result.distribution.minimumChance, 50)
         XCTAssertEqual(result.distribution.maximumChance, 50)
         XCTAssertEqual(result.selectedChance, 50)
     }
 
     func testEdgeCase_AllZeros() async {
-        // Given
         let service = makeService()
-
-        // When
-        let result = service.calculateCrit(power: 0, instinct: 0)
-
-        // Then: min = max = 0, should always fail
+        let result = service.calculateCrit(power: 0, instinct: 0, attackerLevel: Self.testLevel)
         XCTAssertEqual(result.distribution.minimumChance, 0)
         XCTAssertEqual(result.distribution.maximumChance, 0)
         XCTAssertFalse(result.success)
     }
 
     func testEdgeCase_VeryHighValues() async {
-        // Given
         let service = makeService()
-
-        // When
-        let result = service.calculateCrit(power: 200, instinct: 50)
-
-        // Then: max capped at 100, min = 150
-        XCTAssertEqual(result.distribution.maximumChance, 100)
-        XCTAssertEqual(result.distribution.minimumChance, 150)
-        XCTAssertTrue(result.success, "150+ chance should always succeed")
+        let result = service.calculateCrit(power: 200, instinct: 50, attackerLevel: Self.testLevel)
+        let expectedMin = Int16(200) - Self.expectedSuppression(instinct: 50)
+        XCTAssertEqual(result.distribution.maximumChance, 100, "Maximum capped at 100")
+        XCTAssertEqual(result.distribution.minimumChance, expectedMin)
+        XCTAssertTrue(result.success, "100+ chance should always succeed")
     }
 
-    // MARK: - selectBlockedCritMultiplier
+    // MARK: - Crit-multiplier distribution mean
 
-    /// Defaults from `GameMechanicsConstants.blockedCritMultiplierWeights`
-    /// `[5, 50, 40, 5, 0, 0]` paired with values `[0.75, 1.00, 1.25, 1.5, 2.0, 3.0]`.
-    /// Bands with weight 0 (2.0×, 3.0×) must never be picked; every other
-    /// band must appear at least once over a large enough sample.
-    func testBlockedCritMultiplier_StaysWithinDistributionTail() async {
-        let service = makeService()
-        var picked: Set<Double> = []
-        var max: Double = 0
+    /// Pins the canonical mean of `critMultiplierWeights` so a future tuning
+    /// pass doesn't silently inflate or deflate crit damage. Mean is
+    /// computed as `Σ (value × weight) / Σ weight` on the constant arrays
+    /// — no RNG, so the assertion is deterministic.
+    func testCritMultiplierDistribution_MeanMatchesWeightedExpectation() async {
+        let values = GameMechanicsConstants.critMultiplierValues
+        let weights = GameMechanicsConstants.critMultiplierWeights
+        XCTAssertEqual(values.count, weights.count, "values/weights length mismatch")
 
-        for _ in 0..<5000 {
-            let m = service.selectBlockedCritMultiplier()
-            picked.insert(m)
-            if m > max { max = m }
-        }
+        let totalWeight = weights.reduce(0, +)
+        XCTAssertGreaterThan(totalWeight, 0)
 
-        XCTAssertFalse(picked.contains(2.0), "blocked-crit multiplier must never roll 2.0× (weight 0)")
-        XCTAssertFalse(picked.contains(3.0), "blocked-crit multiplier must never roll 3.0× (weight 0)")
-        XCTAssertLessThanOrEqual(max, 1.5, "blocked-crit multiplier capped at 1.5× by weights")
-        // With 5/50/40/5 weights over 5000 rolls, the 5-weight bands appear
-        // with very high probability (~99.9%).
-        XCTAssertTrue(picked.contains(0.75))
-        XCTAssertTrue(picked.contains(1.0))
-        XCTAssertTrue(picked.contains(1.25))
-        XCTAssertTrue(picked.contains(1.5))
-    }
-
-    /// Pins the canonical mean of the blocked-crit distribution. If weights
-    /// are retuned this test will fail loudly — that's the point: any change
-    /// here has direct combat-balance consequences and should be intentional.
-    func testBlockedCritMultiplier_MeanMatchesWeightedExpectation() async {
-        let service = makeService()
-        let trials = 20_000
-        var total: Double = 0
-        for _ in 0..<trials {
-            total += service.selectBlockedCritMultiplier()
-        }
-        let mean = total / Double(trials)
-        // Expected: 0.05·0.75 + 0.5·1.0 + 0.4·1.25 + 0.05·1.5 = 1.1125
-        XCTAssertEqual(mean, 1.1125, accuracy: 0.02, "Mean must match weights·values dot product within stochastic tolerance")
+        let weightedSum = zip(values, weights).reduce(0.0) { $0 + $1.0 * Double($1.1) }
+        let mean = weightedSum / Double(totalWeight)
+        // Current weights [0, 10, 25, 35, 20, 10] paired with
+        // [0.75, 1.00, 1.25, 1.5, 2.0, 3.0] → mean ≈ 1.6375×.
+        XCTAssertEqual(mean, 1.6375, accuracy: 0.001,
+                       "Crit multiplier mean drift — confirm balance intent before changing weights")
     }
 }

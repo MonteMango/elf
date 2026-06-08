@@ -12,15 +12,18 @@ public final class ElfDamageService: DamageService {
 
     private let itemsRepository: any ItemsRepository
     private let strengthDistributionStrategy: any StrengthDamageDistributionStrategy
-    private let enduranceDistributionStrategy: any EnduranceDamageReductionDistributionStrategy
+    private let damageReductionDistributionStrategy: any DamageReductionDistributionStrategy
+    private let weightedSampling: any WeightedSamplingService
 
     public init() {
         @Dependency(\.itemsRepository) var itemsRepository
         @Dependency(\.strengthDamageDistributionStrategy) var strengthDistributionStrategy
-        @Dependency(\.enduranceDamageReductionDistributionStrategy) var enduranceDistributionStrategy
+        @Dependency(\.damageReductionDistributionStrategy) var damageReductionDistributionStrategy
+        @Dependency(\.weightedSamplingService) var weightedSampling
         self.itemsRepository = itemsRepository
         self.strengthDistributionStrategy = strengthDistributionStrategy
-        self.enduranceDistributionStrategy = enduranceDistributionStrategy
+        self.damageReductionDistributionStrategy = damageReductionDistributionStrategy
+        self.weightedSampling = weightedSampling
     }
 
     public func getWeaponDamage(weaponId: UUID?) -> (minDmg: Int16, maxDmg: Int16)? {
@@ -39,34 +42,16 @@ public final class ElfDamageService: DamageService {
         return (minDmg: weapon.minimumAttackPoint, maxDmg: weapon.maximumAttackPoint)
     }
 
-    public func getRandomStrengthDamage(_ strengthAttribute: Int16) -> Int16 {
-        weightedRoll(from: strengthDistributionStrategy.distribution(for: strengthAttribute))
+    public func getRandomStrengthDamage(_ strengthAttribute: Int16, using generator: WithRandomNumberGenerator) -> Int16 {
+        weightedRoll(from: strengthDistributionStrategy.distribution(for: strengthAttribute), using: generator)
     }
 
-    public func getRandomEnduranceDamageReduction(_ enduranceAttribute: Int16) -> Int16 {
-        weightedRoll(from: enduranceDistributionStrategy.distribution(for: enduranceAttribute))
+    public func getRandomDamageReduction(stat: Int16, coefficient: Double, using generator: WithRandomNumberGenerator) -> Int16 {
+        weightedRoll(from: damageReductionDistributionStrategy.distribution(for: stat, coefficient: coefficient), using: generator)
     }
 
-    private func weightedRoll(from distribution: DamageDistribution) -> Int16 {
-        let totalWeight = distribution.weights.reduce(0, +)
-
-        // If total weight is 0, return 0 (edge case)
-        guard totalWeight > 0 else {
-            return 0
-        }
-
-        let randomValue = Int.random(in: 0..<totalWeight)
-
-        var cumulativeWeight = 0
-        for (index, weight) in distribution.weights.enumerated() {
-            cumulativeWeight += weight
-            if randomValue < cumulativeWeight {
-                return distribution.values[index]
-            }
-        }
-
-        // Fallback (should never reach here)
-        return distribution.values.last ?? 0
+    private func weightedRoll(from distribution: DamageDistribution, using generator: WithRandomNumberGenerator) -> Int16 {
+        weightedSampling.sample(values: distribution.values, weights: distribution.weights, using: generator) ?? 0
     }
 
     public func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) -> Int {

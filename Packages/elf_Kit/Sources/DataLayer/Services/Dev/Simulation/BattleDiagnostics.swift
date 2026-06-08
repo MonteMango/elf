@@ -35,8 +35,17 @@ public struct BattleDiagnostics: Sendable {
     /// our results (irrespective of whether final damage was 0).
     public var totalEnduranceReduction: Int = 0
     public var battlesWithBlockFailure: Int = 0
-    public var firstFailRounds: [Int] = []
-    public var firstFailPercents: [Double] = []
+    /// One entry per battle where a block failed: round number it happened in
+    /// + percent of total battle length at that point. Replaces the earlier
+    /// `firstFailRounds: [Int]` / `firstFailPercents: [Double]` parallel
+    /// arrays (kept as one tuple to make the invariant "same index = same
+    /// failure" enforced by the type).
+    public var firstFailures: [BlockFailure] = []
+
+    public struct BlockFailure: Sendable {
+        public let round: Int
+        public let percent: Double
+    }
 
     public init() {}
 
@@ -82,7 +91,11 @@ public struct BattleDiagnostics: Sendable {
                     damageReceived += status.damageTakenValue
                     enduranceReduction += status.enduranceReductionValue
                     if case .blocked = status { blocksUsed += 1 }
-                    if case .critHit(_, _, _, _, _, let ep) = status, ep > 0 { blocksUsed += 1 }
+                    // Crit-on-block path: defender DID spend EP to block
+                    // (just the block was punched through by the crit roll).
+                    // Use the existing `epSpentValue` accessor instead of a
+                    // brittle positional pattern.
+                    if case .critHit = status, status.epSpentValue > 0 { blocksUsed += 1 }
                     if case .weakBlocked = status { weakBlocksUsed += 1 }
                     if firstFailRound == nil && isBlockFailure(part: part, status: status, defenseSet: defenseSet) {
                         firstFailRound = round.roundNumber
@@ -103,23 +116,28 @@ public struct BattleDiagnostics: Sendable {
             }
             if let failRound = firstFailRound {
                 diag.battlesWithBlockFailure += 1
-                diag.firstFailRounds.append(failRound)
-                diag.firstFailPercents.append(Double(failRound) / Double(totalRounds))
+                diag.firstFailures.append(BlockFailure(
+                    round: failRound,
+                    percent: Double(failRound) / Double(totalRounds)
+                ))
             }
         }
         return diag
     }
 
     // A defended-and-attacked body part whose result spent 0 EP means the block
-    // check fell through to the undefended path because currentEP < blockCost.
-    // `.nothing` is the "not attacked" sentinel and `.weakBlocked` is the
-    // Exhausted-still-blocked path — neither counts as a failure.
+    // check fell through because currentEP < blockCost (EP-shortfall failure).
+    // `.nothing` is the "not attacked" sentinel; `.weakBlocked` is the
+    // Exhausted-still-blocked path; `.blocked` is a clean block — none count
+    // as failures. After the dodge-first refactor `.dodged` can also land on
+    // a defended part (dodge succeeded before block was tried) — that's NOT
+    // a block failure either, the attack was cancelled by dodge.
     private static func isBlockFailure(part: BodyPart, status: PointStatus, defenseSet: Set<BodyPart>) -> Bool {
         guard defenseSet.contains(part) else { return false }
         switch status {
-        case .nothing, .weakBlocked, .blocked:
+        case .nothing, .weakBlocked, .blocked, .dodged:
             return false
-        case .hit, .critHit, .dodged:
+        case .hit, .critHit:
             return status.epSpentValue == 0
         }
     }

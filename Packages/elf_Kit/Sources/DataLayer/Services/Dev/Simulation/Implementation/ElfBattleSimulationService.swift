@@ -30,7 +30,7 @@ public final class ElfBattleSimulationService: BattleSimulationService {
 
     // MARK: - BattleSimulationService
 
-    public func runSingleBattle(_ battle: Battle) async -> BattleResult {
+    public func runSingleBattle(_ battle: Battle, using generator: WithRandomNumberGenerator) async -> BattleResult {
         guard let bot1Snapshot = battle.leftTeam.first else {
             fatalError("Battle must have bot1 in left team")
         }
@@ -43,21 +43,16 @@ public final class ElfBattleSimulationService: BattleSimulationService {
         var currentRound = 1
         var roundHistory: [AutoBattleRoundResult] = []
 
-        // Statistics accumulators
-        var bot1CritAttempts = 0
-        var bot1CritSuccesses = 0
-        var bot1CritMultipliers: [Double: Int] = [:]
-        var bot2CritAttempts = 0
-        var bot2CritSuccesses = 0
-        var bot2CritMultipliers: [Double: Int] = [:]
-        var bot1CritBlockBreaks = 0
-        var bot2CritBlockBreaks = 0
-        var bot1CritsDodged = 0
-        var bot2CritsDodged = 0
-        var bot1DodgeAttempts = 0
-        var bot1DodgeSuccesses = 0
-        var bot2DodgeAttempts = 0
-        var bot2DodgeSuccesses = 0
+        // Statistics accumulators, one per side. Each accumulator collects
+        // that side's OWN actions across both roles: offensive counters
+        // (crit*, strength damage) fill when the side attacks — it's passed
+        // as `attackerStats` — and defensive counters (dodge*) fill when the
+        // same side defends — it's passed as `defenderStats`. So
+        // `bot1Stats.dodgeAttempts` are bot1's own dodges, matching the
+        // legacy `bot1DodgeAttempts` projection into `BattleStatistics`.
+        // See the `BattleStatisticsAccumulator` doc header for the contract.
+        var bot1Stats = BattleStatisticsAccumulator()
+        var bot2Stats = BattleStatisticsAccumulator()
         var bot1DamagePerRound: [Int: Int] = [:]
         var bot2DamagePerRound: [Int: Int] = [:]
         var bot1StrengthDamagePerRound: [Int: Int] = [:]
@@ -76,7 +71,8 @@ public final class ElfBattleSimulationService: BattleSimulationService {
                 leftTeam: leftTeam,
                 rightTeam: rightTeam,
                 round: synthRound,
-                heroSelection: nil
+                heroSelection: nil,
+                using: generator
             )
             leftTeam = outcome.updatedLeftTeam
             rightTeam = outcome.updatedRightTeam
@@ -87,35 +83,21 @@ public final class ElfBattleSimulationService: BattleSimulationService {
             let bot2DamageTaken = pair.rightOldHP - pair.rightNewHP
 
             // Bot2 as attacker, bot1 as defender (damage taken by bot1).
-            var bot2StrengthDamageThisRound = 0
-            statisticsParser.parseStatistics(
+            let bot2StrengthDamageThisRound = statisticsParser.parseStatistics(
                 attackingPoints: pair.rightAttack,
                 defendingPoints: pair.leftDefense,
                 results: pair.result.playerResults,
-                attackerCritAttempts: &bot2CritAttempts,
-                attackerCritSuccesses: &bot2CritSuccesses,
-                attackerCritMultipliers: &bot2CritMultipliers,
-                attackerCritBlockBreaks: &bot2CritBlockBreaks,
-                attackerCritsDodged: &bot2CritsDodged,
-                defenderDodgeAttempts: &bot1DodgeAttempts,
-                defenderDodgeSuccesses: &bot1DodgeSuccesses,
-                attackerStrengthDamage: &bot2StrengthDamageThisRound
+                attackerStats: &bot2Stats,
+                defenderStats: &bot1Stats
             )
 
             // Bot1 as attacker, bot2 as defender (damage taken by bot2).
-            var bot1StrengthDamageThisRound = 0
-            statisticsParser.parseStatistics(
+            let bot1StrengthDamageThisRound = statisticsParser.parseStatistics(
                 attackingPoints: pair.leftAttack,
                 defendingPoints: pair.rightDefense,
                 results: pair.result.botResults,
-                attackerCritAttempts: &bot1CritAttempts,
-                attackerCritSuccesses: &bot1CritSuccesses,
-                attackerCritMultipliers: &bot1CritMultipliers,
-                attackerCritBlockBreaks: &bot1CritBlockBreaks,
-                attackerCritsDodged: &bot1CritsDodged,
-                defenderDodgeAttempts: &bot2DodgeAttempts,
-                defenderDodgeSuccesses: &bot2DodgeSuccesses,
-                attackerStrengthDamage: &bot1StrengthDamageThisRound
+                attackerStats: &bot1Stats,
+                defenderStats: &bot2Stats
             )
 
             bot1DamagePerRound[currentRound] = bot2DamageTaken
@@ -152,20 +134,20 @@ public final class ElfBattleSimulationService: BattleSimulationService {
         let bot2HP = rightTeam[0].currentHP
 
         let statistics = BattleStatistics(
-            bot1CritAttempts: bot1CritAttempts,
-            bot1CritSuccesses: bot1CritSuccesses,
-            bot1CritMultipliers: bot1CritMultipliers,
-            bot2CritAttempts: bot2CritAttempts,
-            bot2CritSuccesses: bot2CritSuccesses,
-            bot2CritMultipliers: bot2CritMultipliers,
-            bot1CritBlockBreaks: bot1CritBlockBreaks,
-            bot2CritBlockBreaks: bot2CritBlockBreaks,
-            bot1CritsDodged: bot1CritsDodged,
-            bot2CritsDodged: bot2CritsDodged,
-            bot1DodgeAttempts: bot1DodgeAttempts,
-            bot1DodgeSuccesses: bot1DodgeSuccesses,
-            bot2DodgeAttempts: bot2DodgeAttempts,
-            bot2DodgeSuccesses: bot2DodgeSuccesses,
+            bot1CritAttempts: bot1Stats.critAttempts,
+            bot1CritSuccesses: bot1Stats.critSuccesses,
+            bot1CritMultipliers: bot1Stats.critMultipliers,
+            bot2CritAttempts: bot2Stats.critAttempts,
+            bot2CritSuccesses: bot2Stats.critSuccesses,
+            bot2CritMultipliers: bot2Stats.critMultipliers,
+            bot1CritBlockBreaks: bot1Stats.critBlockBreaks,
+            bot2CritBlockBreaks: bot2Stats.critBlockBreaks,
+            bot1CritsDodged: bot1Stats.critsDodged,
+            bot2CritsDodged: bot2Stats.critsDodged,
+            bot1DodgeAttempts: bot1Stats.dodgeAttempts,
+            bot1DodgeSuccesses: bot1Stats.dodgeSuccesses,
+            bot2DodgeAttempts: bot2Stats.dodgeAttempts,
+            bot2DodgeSuccesses: bot2Stats.dodgeSuccesses,
             bot1TotalDamage: bot1DamagePerRound.values.reduce(0, +),
             bot2TotalDamage: bot2DamagePerRound.values.reduce(0, +),
             bot1DamagePerRound: bot1DamagePerRound,

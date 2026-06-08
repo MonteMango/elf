@@ -15,15 +15,9 @@ import Foundation
 /// silently no-op'ing at runtime.
 public enum BuffCatalogID {
 
-    /// Global Exhausted debuff applied outside combat (e.g. activities). Has
-    /// a multi-day expiry; persists across battles.
-    public static let exhaustedGlobal: UUID = mustParse("BD000000-0000-4000-A000-000000000001")
-
     /// Battle-scoped Exhausted debuff auto-applied at end of a combat round
-    /// when a combatant's EP reaches 0. Vanishes with the battle snapshot.
-    /// Distinct from `exhaustedGlobal` so the runner can call
-    /// `BuffApplicationService.applyAsBattle` without triggering the scope
-    /// assertion (see `DefaultBuffApplicationService`).
+    /// when a combatant's EP reaches 0. Vanishes with the battle snapshot
+    /// — never persists outside combat.
     public static let exhaustedBattle: UUID = mustParse("BD000000-0000-4000-A000-000000000002")
 
     private static func mustParse(_ string: String) -> UUID {

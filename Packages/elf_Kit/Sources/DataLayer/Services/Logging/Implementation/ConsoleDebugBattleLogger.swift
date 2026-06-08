@@ -141,12 +141,9 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         }
 
         if result.success {
+            @Dependency(\.critMultiplierDistribution) var multDist
             print("    Stage 3 (Multiplier Selection):")
-            let multDist = result.multiplierDistribution
             print("      Available: \(multDist.values) with weights \(multDist.weights)")
-            if let multRoll = result.multiplierRoll {
-                print("      Roll: \(multRoll)/\(multDist.totalWeight)")
-            }
             print("      → Selected: x\(result.selectedMultiplier)")
         } else {
             print("    Stage 3: Skipped (crit failed, multiplier = 1.0)")

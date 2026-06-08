@@ -82,6 +82,14 @@ public final class ElfHuntService: HuntService {
 
     /// Generic method to roll an amount based on chance distribution
     /// The chances array should sum to 1.0 (100%)
+    ///
+    /// RNG boundary note: this uses the bare system RNG on purpose. The
+    /// seedable `\.withRandomNumberGenerator` path + `WeightedSamplingService`
+    /// cover the **combat** determinism work (per-battle reproducible sweeps);
+    /// world-gen / activity rolls (hunt, gathering, NPC generation, house
+    /// assignment) are intentionally **off** that determinism path and stay on
+    /// `Double.random` / `Int.random`. Don't migrate this to the combat
+    /// sampler without a deliberate decision to make world-gen reproducible.
     private func rollAmount(from chances: [ChanceAmount]) -> Int {
         guard !chances.isEmpty else { return 0 }
 

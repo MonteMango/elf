@@ -40,17 +40,10 @@ public struct CritCalculationResult: Sendable {
 
     // MARK: - Stage 3: Select Damage Multiplier
 
-    /// The fixed multiplier distribution used to roll stage 3.
-    public let multiplierDistribution: CritMultiplierDistribution
-
-    /// Random roll used to select multiplier in stage 3
-    /// `nil` if crit failed (success = false)
-    /// Range depends on totalWeight
-    public let multiplierRoll: Int?
-
     /// The final damage multiplier
     /// - `1.0` if crit failed
-    /// - `0.75 / 1.00 / 1.25 / 1.5 / 2.0 / 3.0` if crit succeeded (selected from `multiplierDistribution`)
+    /// - `0.75 / 1.00 / 1.25 / 1.5 / 2.0 / 3.0` if crit succeeded (selected
+    ///   from the fixed `\.critMultiplierDistribution`)
     public let selectedMultiplier: Double
 
     // MARK: - Initialization
@@ -60,16 +53,12 @@ public struct CritCalculationResult: Sendable {
         selectedChance: Int16,
         stage2Roll: Int?,
         success: Bool,
-        multiplierDistribution: CritMultiplierDistribution,
-        multiplierRoll: Int?,
         selectedMultiplier: Double
     ) {
         self.distribution = distribution
         self.selectedChance = selectedChance
         self.stage2Roll = stage2Roll
         self.success = success
-        self.multiplierDistribution = multiplierDistribution
-        self.multiplierRoll = multiplierRoll
         self.selectedMultiplier = selectedMultiplier
     }
 }

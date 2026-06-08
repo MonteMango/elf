@@ -244,7 +244,7 @@ struct HeroDisplayView: View {
         HeroDisplayView(
             display: monsterDisplay,
             roundResults: [
-                .head: .blocked(wasCrit: false, epSpent: 200),
+                .head: .blocked(epSpent: 200),
                 .body: .hit(weaponDamage: 8, strengthDamage: 5, enduranceReduction: 0, defenderArmor: 3),
                 .leftHand: .nothing,
                 .rightHand: .critHit(weaponDamage: 12, strengthDamage: 8, enduranceReduction: 0, defenderArmor: 0, multiplier: 2.0, epSpent: 200),
@@ -257,7 +257,7 @@ struct HeroDisplayView: View {
             display: elfDisplay,
             roundResults: [
                 .head: .hit(weaponDamage: 4, strengthDamage: 3, enduranceReduction: 0, defenderArmor: 2),
-                .body: .blocked(wasCrit: false, epSpent: 200),
+                .body: .blocked(epSpent: 200),
                 .leftHand: .dodged(wasCrit: true),
                 .rightHand: .critHit(weaponDamage: 15, strengthDamage: 10, enduranceReduction: 0, defenderArmor: 0, multiplier: 1.5, epSpent: 0),
                 .legs: .nothing

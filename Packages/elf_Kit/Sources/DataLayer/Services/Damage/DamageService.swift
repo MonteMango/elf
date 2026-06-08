@@ -15,6 +15,6 @@ import Foundation
 /// - Weapon-based damage calculation
 /// - Total damage aggregation
 public protocol DamageService: StrengthDamageCalculator,
-                               EnduranceDamageReductionCalculator,
+                               DamageReductionCalculator,
                                WeaponDamageCalculator,
                                TotalDamageCalculator {}

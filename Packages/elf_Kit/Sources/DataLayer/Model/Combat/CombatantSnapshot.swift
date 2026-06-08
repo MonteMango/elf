@@ -179,4 +179,11 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
     public var isAlive: Bool {
         currentHP > 0
     }
+
+    /// Whether the combatant carries the battle-scoped Exhausted debuff.
+    /// Applied by `DefaultBattleRoundRunner` when EP first reaches 0; checked
+    /// by `ElfSnapshotCombatCalculator` to branch into the weak-block path.
+    public var isExhausted: Bool {
+        battleBuffs.contains { $0.buffId == BuffCatalogID.exhaustedBattle }
+    }
 }

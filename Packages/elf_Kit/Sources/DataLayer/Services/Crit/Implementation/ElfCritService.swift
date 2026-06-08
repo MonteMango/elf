@@ -6,49 +6,47 @@
 //
 
 import Dependencies
-import Foundation
 
-/// Default implementation of crit calculation service.
-///
-/// Uses the peak+linear-tail distribution (configurable peak position +
-/// peak weight):
-/// 1. **Stage 1**: Select crit chance from the distribution
-/// 2. **Stage 2**: Roll to check crit success (with auto-fail/success edge cases)
-/// 3. **Stage 3**: Select damage multiplier from the fixed distribution
-///    (defender stats no longer skew it)
+/// Default `CritService` implementation. Three stages:
+/// 1. Select crit chance from the peak+linear-tail distribution.
+/// 2. Resolve success via `ChanceRollService` (auto-fail/auto-success edges).
+/// 3. If success, pick a damage multiplier from the fixed distribution.
 public final class ElfCritService: CritService {
 
     private let distributionStrategy: any CritDistributionStrategy
     private let multiplierDistribution: CritMultiplierDistribution
-
-    // MARK: - Initialization
+    private let weightedSampling: any WeightedSamplingService
+    private let chanceRoll: any ChanceRollService
 
     public init() {
         @Dependency(\.critDistributionStrategy) var distributionStrategy
         @Dependency(\.critMultiplierDistribution) var multiplierDistribution
+        @Dependency(\.weightedSamplingService) var weightedSampling
+        @Dependency(\.chanceRollService) var chanceRoll
         self.distributionStrategy = distributionStrategy
         self.multiplierDistribution = multiplierDistribution
+        self.weightedSampling = weightedSampling
+        self.chanceRoll = chanceRoll
     }
 
-    // MARK: - CritService
-
-    public func calculateCrit(power: Int16, instinct: Int16) -> CritCalculationResult {
-        // Get distribution
+    public func calculateCrit(power: Int16, instinct: Int16, attackerLevel: Int, using generator: WithRandomNumberGenerator) -> CritCalculationResult {
         let distribution = distributionStrategy.distribution(
             power: power,
-            instinct: instinct
+            instinct: instinct,
+            attackerLevel: attackerLevel
         )
+        let selectedChance = weightedSampling.sample(
+            values: distribution.rangeValues,
+            weights: distribution.rangeWeights,
+            using: generator
+        ) ?? distribution.minimumChance
 
-        // STAGE 1: Select crit chance from stage-1 distribution
-        let selectedChance = selectCritChance(from: distribution)
+        let (stage2Roll, success) = chanceRoll.resolve(chance: selectedChance, using: generator)
 
-        // STAGE 2: Check crit success with selected chance
-        let (stage2Roll, success) = checkCritSuccess(chance: selectedChance)
-
-        // STAGE 3: Select multiplier from the fixed distribution (only if crit succeeded)
-        let (multiplierRoll, selectedMultiplier) = selectMultiplier(
+        let selectedMultiplier = selectMultiplier(
             critSuccess: success,
-            from: multiplierDistribution
+            from: multiplierDistribution,
+            using: generator
         )
 
         return CritCalculationResult(
@@ -56,114 +54,22 @@ public final class ElfCritService: CritService {
             selectedChance: selectedChance,
             stage2Roll: stage2Roll,
             success: success,
-            multiplierDistribution: multiplierDistribution,
-            multiplierRoll: multiplierRoll,
             selectedMultiplier: selectedMultiplier
         )
     }
 
-    public func selectBlockedCritMultiplier() -> Double {
-        // Reuse the same values array as the regular distribution; only
-        // weights differ. Defender's block downgrades the multiplier
-        // distribution toward 1.0×, closing the 2.0× / 3.0× tail.
-        let blocked = CritMultiplierDistribution(
-            values: GameMechanicsConstants.critMultiplierValues,
-            weights: GameMechanicsConstants.blockedCritMultiplierWeights
-        )
-        let (_, multiplier) = selectMultiplier(critSuccess: true, from: blocked)
-        return multiplier
-    }
-
-    // MARK: - Private Methods
-
-    /// Selects a crit chance from the distribution using weighted random selection
-    ///
-    /// Uses triangular distribution where minimum has highest weight.
-    ///
-    /// - Parameter distribution: The crit distribution
-    /// - Returns: Selected crit chance
-    private func selectCritChance(from distribution: CritDistribution) -> Int16 {
-        // Use weighted random selection
-        let totalWeight = distribution.rangeWeights.reduce(0, +)
-
-        guard totalWeight > 0 else {
-            return distribution.minimumChance
-        }
-
-        let weightedRoll = Int.random(in: 0..<totalWeight)
-
-        var cumulativeWeight = 0
-        for (index, weight) in distribution.rangeWeights.enumerated() {
-            cumulativeWeight += weight
-            if weightedRoll < cumulativeWeight {
-                return distribution.rangeValues[index]
-            }
-        }
-
-        // Fallback (should never reach)
-        return distribution.rangeValues.last ?? distribution.minimumChance
-    }
-
-    /// Checks if crit succeeds with the selected chance
-    ///
-    /// **Logic**:
-    /// - Chance <= 0: Auto-fail (no roll needed)
-    /// - Chance >= 100: Auto-success (no roll needed)
-    /// - Otherwise: Roll 1-100, succeed if roll <= chance
-    ///
-    /// - Parameter chance: The crit chance selected in stage 1
-    /// - Returns: Tuple of (stage2Roll, success). Roll is nil for auto-fail/success cases.
-    private func checkCritSuccess(chance: Int16) -> (roll: Int?, success: Bool) {
-        let chanceInt = Int(chance)
-
-        // Auto-fail for zero or negative chances
-        if chanceInt <= 0 {
-            return (nil, false)
-        }
-
-        // Auto-success for 100+ chances
-        if chanceInt >= 100 {
-            return (nil, true)
-        }
-
-        // Normal roll: 1-100, succeed if roll <= chance
-        let roll = Int.random(in: 1...100)
-        let success = roll <= chanceInt
-        return (roll, success)
-    }
-
-    /// Selects damage multiplier from the given distribution if crit succeeded
-    ///
-    /// Uses weighted random selection from the adjusted distribution.
-    /// If crit failed, returns (nil, 1.0)
-    ///
-    /// - Parameters:
-    ///   - critSuccess: Whether the crit succeeded in stage 2
-    ///   - distribution: The (possibly adjusted) multiplier distribution to select from
-    /// - Returns: Tuple of (multiplierRoll, selectedMultiplier). Roll is nil if crit failed.
-    private func selectMultiplier(critSuccess: Bool, from distribution: CritMultiplierDistribution) -> (roll: Int?, multiplier: Double) {
-        guard critSuccess else {
-            return (nil, 1.0)
-        }
-
-        // Use weighted random selection from adjusted distribution
-        let totalWeight = distribution.totalWeight
-
-        guard totalWeight > 0 else {
-            return (nil, 1.0)
-        }
-
-        let roll = Int.random(in: 0..<totalWeight)
-
-        var cumulativeWeight = 0
-        for (index, weight) in distribution.weights.enumerated() {
-            cumulativeWeight += weight
-            if roll < cumulativeWeight {
-                return (roll, distribution.values[index])
-            }
-        }
-
-        // Fallback (should never reach)
-        return (roll, distribution.values.last ?? 1.0)
+    /// Picks a damage multiplier. Returns `1.0` on crit failure or empty
+    /// distribution; otherwise a weighted sample from the distribution.
+    private func selectMultiplier(
+        critSuccess: Bool,
+        from distribution: CritMultiplierDistribution,
+        using generator: WithRandomNumberGenerator
+    ) -> Double {
+        guard critSuccess else { return 1.0 }
+        return weightedSampling.sample(
+            values: distribution.values,
+            weights: distribution.weights,
+            using: generator
+        ) ?? 1.0
     }
 }

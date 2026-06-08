@@ -5,39 +5,30 @@
 //  Created by Vitalii Lytvynov on 21.11.25.
 //
 
-import Foundation
-
-/// Service for parsing combat results into battle statistics
+/// Service for parsing combat results into per-side battle statistics.
 ///
-/// Extracts crit, dodge, and damage statistics from PointStatus results.
-/// Used by AutoBattleViewModel and MultiBattleViewModel to collect statistics.
+/// Extracts crit, dodge, and strength-damage counters from `PointStatus`
+/// results. Used by `AutoBattleViewModel` and `ElfBattleSimulationService`.
 public protocol BattleStatisticsParser: Sendable {
 
-    /// Parse combat results to extract statistics for crits, dodges, and strength damage
+    /// Parses one combat round, updating both sides' accumulators.
     ///
     /// - Parameters:
-    ///   - attackingPoints: Set of body parts being attacked
-    ///   - defendingPoints: Set of body parts being defended
-    ///   - results: Combat results for each body part
-    ///   - attackerCritAttempts: Counter for attacker's crit attempts
-    ///   - attackerCritSuccesses: Counter for attacker's successful crits
-    ///   - attackerCritMultipliers: Dictionary of crit multiplier counts
-    ///   - attackerCritBlockBreaks: Counter for crits that broke blocks
-    ///   - attackerCritsDodged: Counter for crits that were dodged
-    ///   - defenderDodgeAttempts: Counter for defender's dodge attempts
-    ///   - defenderDodgeSuccesses: Counter for defender's successful dodges
-    ///   - attackerStrengthDamage: Counter for attacker's strength damage
+    ///   - attackingPoints: body parts the attacker targets this round
+    ///   - defendingPoints: body parts the defender blocked this round
+    ///   - results: per-body-part outcome from the calculator
+    ///   - attackerStats: accumulates offensive counters (crit*, strength damage)
+    ///   - defenderStats: accumulates defensive counters (dodge*)
+    /// - Returns: the attacker's strength damage **for this round only** (the
+    ///   delta added to `attackerStats.strengthDamage` by this call), so
+    ///   callers can record per-round strength damage without snapshotting
+    ///   the cumulative accumulator around the call.
+    @discardableResult
     func parseStatistics(
         attackingPoints: Set<BodyPart>,
         defendingPoints: Set<BodyPart>,
         results: [BodyPart: PointStatus],
-        attackerCritAttempts: inout Int,
-        attackerCritSuccesses: inout Int,
-        attackerCritMultipliers: inout [Double: Int],
-        attackerCritBlockBreaks: inout Int,
-        attackerCritsDodged: inout Int,
-        defenderDodgeAttempts: inout Int,
-        defenderDodgeSuccesses: inout Int,
-        attackerStrengthDamage: inout Int
-    )
+        attackerStats: inout BattleStatisticsAccumulator,
+        defenderStats: inout BattleStatisticsAccumulator
+    ) -> Int
 }

@@ -5,7 +5,7 @@
 //  Created by Vitalii Lytvynov on 04.05.25.
 //
 
-import Foundation
+import Dependencies
 
 public final class ElfRandomBotAI: BotAIService {
 
@@ -15,11 +15,13 @@ public final class ElfRandomBotAI: BotAIService {
 
     // MARK: - BotAIService
 
-    public func selectAttackPoints(count: Int) -> Set<BodyPart> {
-        Set(allBodyParts.shuffled().prefix(count))
+    public func selectAttackPoints(count: Int, using generator: WithRandomNumberGenerator) -> Set<BodyPart> {
+        let shuffled = generator { allBodyParts.shuffled(using: &$0) }
+        return Set(shuffled.prefix(count))
     }
 
-    public func selectDefensePoints(count: Int) -> Set<BodyPart> {
-        Set(allBodyParts.shuffled().prefix(count))
+    public func selectDefensePoints(count: Int, using generator: WithRandomNumberGenerator) -> Set<BodyPart> {
+        let shuffled = generator { allBodyParts.shuffled(using: &$0) }
+        return Set(shuffled.prefix(count))
     }
 }

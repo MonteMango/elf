@@ -44,41 +44,6 @@ final class ElfWeaponValidatorTests: XCTestCase {
         )
     }
 
-    // MARK: - Fake Repository
-
-    final class FakeItemsRepository: ItemsRepository {
-        nonisolated(unsafe) var items: [UUID: Item] = [:]
-        nonisolated(unsafe) var heroItems: HeroItems
-
-        init() {
-            // Create empty HeroItems for testing
-            self.heroItems = HeroItems(
-                version: "1.0.0-test",
-                helmets: [],
-                gloves: [],
-                shoes: [],
-                upperBodies: [],
-                bottomBodies: [],
-                robes: [],
-                weapons: [],
-                shields: [],
-                rings: [],
-                necklaces: [],
-                earrings: []
-            )
-        }
-
-        func getHeroItem(_ id: UUID) -> Item? {
-            return items[id]
-        }
-
-        func getItems(for type: HeroItemType) -> [Item] {
-            return []
-        }
-
-        func armorSlot(for itemId: UUID) -> ArmorSlot? { nil }
-    }
-
     // MARK: - Category A: Basic Operations
 
     func testUnequipWeaponClearsSlot() async throws {

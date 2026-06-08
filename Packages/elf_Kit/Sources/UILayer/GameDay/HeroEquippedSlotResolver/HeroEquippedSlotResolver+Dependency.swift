@@ -16,5 +16,4 @@ extension DependencyValues {
 
 private enum HeroEquippedSlotResolverKey: DependencyKey {
     static var liveValue: any HeroEquippedSlotResolver { DefaultHeroEquippedSlotResolver() }
-    static var testValue: any HeroEquippedSlotResolver { liveValue }
 }

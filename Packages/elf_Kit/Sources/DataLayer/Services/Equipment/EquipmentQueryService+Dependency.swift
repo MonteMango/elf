@@ -16,5 +16,4 @@ extension DependencyValues {
 
 private enum EquipmentQueryServiceKey: DependencyKey {
     static var liveValue: any EquipmentQueryService { ElfEquipmentQueryService() }
-    static var testValue: any EquipmentQueryService { liveValue }
 }

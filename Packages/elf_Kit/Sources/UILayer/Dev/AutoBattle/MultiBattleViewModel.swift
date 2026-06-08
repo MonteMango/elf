@@ -281,9 +281,9 @@ public final class MultiBattleViewModel {
         NSLog("ELFBAL   Battles w/ block-fail (soft):%d  (%.1f%% of battles)",
               diag.battlesWithBlockFailure,
               Double(diag.battlesWithBlockFailure) / n * 100)
-        if !diag.firstFailRounds.isEmpty {
-            let avgRound = Double(diag.firstFailRounds.reduce(0, +)) / Double(diag.firstFailRounds.count)
-            let avgPct = diag.firstFailPercents.reduce(0, +) / Double(diag.firstFailPercents.count) * 100
+        if !diag.firstFailures.isEmpty {
+            let avgRound = Double(diag.firstFailures.map(\.round).reduce(0, +)) / Double(diag.firstFailures.count)
+            let avgPct = diag.firstFailures.map(\.percent).reduce(0, +) / Double(diag.firstFailures.count) * 100
             NSLog("ELFBAL   Avg round of first fail:    %.1f", avgRound)
             NSLog("ELFBAL   Avg %% through battle at fail: %.1f%%  (round / total rounds)", avgPct)
         }

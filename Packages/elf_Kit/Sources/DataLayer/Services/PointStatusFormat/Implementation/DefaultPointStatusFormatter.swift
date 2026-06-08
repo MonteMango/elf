@@ -30,7 +30,7 @@ public final class DefaultPointStatusFormatter: PointStatusFormatter {
 
     public func debugLine(for status: PointStatus) -> String {
         switch status {
-        case .blocked(_, let epSpent):
+        case .blocked(let epSpent):
             return "🛡️ BLOCKED (-\(epSpent) EP)"
         case .hit(let weaponDamage, let strengthDamage, let enduranceReduction, let defenderArmor):
             return "💥 HIT (\(status.damageTakenValue) damage: weapon=\(weaponDamage) str=\(strengthDamage) end_red=\(enduranceReduction) armor=\(defenderArmor))"

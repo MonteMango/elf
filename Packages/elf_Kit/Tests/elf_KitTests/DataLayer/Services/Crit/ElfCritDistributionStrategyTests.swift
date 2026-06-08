@@ -8,184 +8,164 @@
 import XCTest
 @testable import elf_Kit
 
-/// Tests for ElfCritDistributionStrategy
+/// Tests for `ElfCritDistributionStrategy`.
 ///
-/// Distribution uses tent-shaped weights with configurable peak position via `GameMechanicsConstants.critPeakPosition`:
-/// - Minimum = power - instinct (can be negative)
-/// - Maximum = min(power, 100) (capped at 100)
+/// Crit suppression by defender's intuition is level-scaled:
+/// `mult = critIntuitionSuppressionBaseMultiplier + critIntuitionSuppressionPerLevelDelta × attackerLevel`.
+/// Tests use `attackerLevel: 0` so the multiplier collapses to the base
+/// value (currently `0.8`); literal min assertions are computed via
+/// `expectedSuppression(...)` instead of hard-coding `power − instinct`.
 final class ElfCritDistributionStrategyTests: XCTestCase {
+
+    private static let testLevel: Int = 0
+
+    private static func expectedSuppression(instinct: Int16, level: Int = ElfCritDistributionStrategyTests.testLevel) -> Int16 {
+        let mult = PeakLinearTailDistribution.multiplier(
+            base: GameMechanicsConstants.critIntuitionSuppressionBaseMultiplier,
+            perLevel: GameMechanicsConstants.critIntuitionSuppressionPerLevelDelta,
+            attackerLevel: level
+        )
+        return Int16((Double(instinct) * mult).rounded())
+    }
 
     // MARK: - Standard Cases
 
     func testDistribution_StandardCase_30Power10Instinct() async {
-        // Given
         let strategy = ElfCritDistributionStrategy()
+        let distribution = strategy.distribution(power: 30, instinct: 10, attackerLevel: Self.testLevel)
 
-        // When
-        let distribution = await strategy.distribution(power: 30, instinct: 10)
-
-        // Then
-        XCTAssertEqual(distribution.minimumChance, 20, "Minimum should be power - instinct")
-        XCTAssertEqual(distribution.maximumChance, 30, "Maximum should be power")
-        XCTAssertEqual(distribution.rangeValues.count, 11, "Range should have 11 values (20-30)")
-        XCTAssertEqual(distribution.rangeValues.first, 20, "Range should start at minimum")
-        XCTAssertEqual(distribution.rangeValues.last, 30, "Range should end at maximum")
+        let expectedMin = Int16(30) - Self.expectedSuppression(instinct: 10)
+        XCTAssertEqual(distribution.minimumChance, expectedMin)
+        XCTAssertEqual(distribution.maximumChance, 30)
+        XCTAssertEqual(distribution.rangeValues.count, Int(30 - expectedMin) + 1)
+        XCTAssertEqual(distribution.rangeValues.first, expectedMin)
+        XCTAssertEqual(distribution.rangeValues.last, 30)
         XCTAssertTrue(distribution.hasRange)
     }
 
     func testDistribution_NegativeMinimum_10Power20Instinct() async {
-        // Given
         let strategy = ElfCritDistributionStrategy()
+        let distribution = strategy.distribution(power: 10, instinct: 20, attackerLevel: Self.testLevel)
 
-        // When
-        let distribution = await strategy.distribution(power: 10, instinct: 20)
-
-        // Then
-        XCTAssertEqual(distribution.minimumChance, -10, "Minimum can be negative")
-        XCTAssertEqual(distribution.maximumChance, 10, "Maximum should be power")
-        XCTAssertEqual(distribution.rangeValues.count, 21, "Range: -10 to 10")
-        XCTAssertEqual(distribution.rangeValues.first, -10, "Range starts at minimum")
-        XCTAssertEqual(distribution.rangeValues.last, 10, "Range ends at maximum")
+        let expectedMin = Int16(10) - Self.expectedSuppression(instinct: 20)
+        XCTAssertEqual(distribution.minimumChance, expectedMin)
+        XCTAssertEqual(distribution.maximumChance, 10)
+        XCTAssertEqual(distribution.rangeValues.count, Int(10 - expectedMin) + 1)
+        XCTAssertEqual(distribution.rangeValues.first, expectedMin)
+        XCTAssertEqual(distribution.rangeValues.last, 10)
     }
 
     func testDistribution_PowerCappedAt100_150Power10Instinct() async {
-        // Given
         let strategy = ElfCritDistributionStrategy()
+        let distribution = strategy.distribution(power: 150, instinct: 10, attackerLevel: Self.testLevel)
 
-        // When
-        let distribution = await strategy.distribution(power: 150, instinct: 10)
-
-        // Then
-        XCTAssertEqual(distribution.minimumChance, 140, "Minimum = power - instinct")
+        let expectedMin = Int16(150) - Self.expectedSuppression(instinct: 10)
+        XCTAssertEqual(distribution.minimumChance, expectedMin)
         XCTAssertEqual(distribution.maximumChance, 100, "Maximum capped at 100")
-        // When minimum >= maximum, only one value (minimum) is returned
+        // When minimum >= maximum, only one value (minimum) is returned.
         XCTAssertEqual(distribution.rangeValues.count, 1)
-        XCTAssertEqual(distribution.rangeValues.first, 140)
+        XCTAssertEqual(distribution.rangeValues.first, expectedMin)
     }
 
     func testDistribution_ZeroDifference_20Power20Instinct() async {
-        // Given
         let strategy = ElfCritDistributionStrategy()
+        let distribution = strategy.distribution(power: 20, instinct: 20, attackerLevel: Self.testLevel)
 
-        // When
-        let distribution = await strategy.distribution(power: 20, instinct: 20)
-
-        // Then
-        XCTAssertEqual(distribution.minimumChance, 0, "Minimum = 0 when power equals instinct")
-        XCTAssertEqual(distribution.maximumChance, 20, "Maximum = power")
-        XCTAssertEqual(distribution.rangeValues.count, 21, "Range: 0-20")
-        XCTAssertEqual(distribution.rangeValues, Array(0...20).map { Int16($0) })
+        let expectedMin = Int16(20) - Self.expectedSuppression(instinct: 20)
+        XCTAssertEqual(distribution.minimumChance, expectedMin)
+        XCTAssertEqual(distribution.maximumChance, 20)
+        XCTAssertEqual(distribution.rangeValues.first, expectedMin)
+        XCTAssertEqual(distribution.rangeValues.last, 20)
     }
 
     func testDistribution_ZeroPower_0Power0Instinct() async {
-        // Given
         let strategy = ElfCritDistributionStrategy()
+        let distribution = strategy.distribution(power: 0, instinct: 0, attackerLevel: Self.testLevel)
 
-        // When
-        let distribution = await strategy.distribution(power: 0, instinct: 0)
-
-        // Then
         XCTAssertEqual(distribution.minimumChance, 0)
         XCTAssertEqual(distribution.maximumChance, 0)
-        XCTAssertEqual(distribution.rangeValues.count, 1, "Single value when min >= max")
+        XCTAssertEqual(distribution.rangeValues.count, 1)
         XCTAssertEqual(distribution.rangeValues.first, 0)
         XCTAssertEqual(distribution.rangeWeights.first, 1)
     }
 
     func testDistribution_ZeroPower_0Power10Instinct() async {
-        // Given
         let strategy = ElfCritDistributionStrategy()
+        let distribution = strategy.distribution(power: 0, instinct: 10, attackerLevel: Self.testLevel)
 
-        // When
-        let distribution = await strategy.distribution(power: 0, instinct: 10)
-
-        // Then
-        XCTAssertEqual(distribution.minimumChance, -10, "Negative minimum")
-        XCTAssertEqual(distribution.maximumChance, 0, "Maximum = power = 0")
-        XCTAssertEqual(distribution.rangeValues.count, 11, "Range: -10 to 0")
-        XCTAssertEqual(distribution.rangeValues.first, -10)
+        let expectedMin = Int16(0) - Self.expectedSuppression(instinct: 10)
+        XCTAssertEqual(distribution.minimumChance, expectedMin)
+        XCTAssertEqual(distribution.maximumChance, 0)
+        XCTAssertEqual(distribution.rangeValues.first, expectedMin)
         XCTAssertEqual(distribution.rangeValues.last, 0)
     }
 
     // MARK: - Edge Cases
 
     func testDistribution_MinEqualsMax_50Power0Instinct() async {
-        // Given
         let strategy = ElfCritDistributionStrategy()
+        let distribution = strategy.distribution(power: 50, instinct: 0, attackerLevel: Self.testLevel)
 
-        // When
-        let distribution = await strategy.distribution(power: 50, instinct: 0)
-
-        // Then
         XCTAssertEqual(distribution.minimumChance, 50)
         XCTAssertEqual(distribution.maximumChance, 50)
-        XCTAssertEqual(distribution.rangeValues.count, 1, "Single value when min == max")
+        XCTAssertEqual(distribution.rangeValues.count, 1)
         XCTAssertEqual(distribution.rangeValues.first, 50)
         XCTAssertTrue(distribution.hasRange)
     }
 
     func testDistribution_LargeNegativeMinimum_5Power100Instinct() async {
-        // Given
         let strategy = ElfCritDistributionStrategy()
+        let distribution = strategy.distribution(power: 5, instinct: 100, attackerLevel: Self.testLevel)
 
-        // When
-        let distribution = await strategy.distribution(power: 5, instinct: 100)
-
-        // Then
-        XCTAssertEqual(distribution.minimumChance, -95, "Large negative minimum")
-        XCTAssertEqual(distribution.maximumChance, 5, "Maximum = power")
-        XCTAssertEqual(distribution.rangeValues.count, 101, "Range: -95 to 5")
-        XCTAssertEqual(distribution.rangeValues.first, -95)
+        let expectedMin = Int16(5) - Self.expectedSuppression(instinct: 100)
+        XCTAssertEqual(distribution.minimumChance, expectedMin)
+        XCTAssertEqual(distribution.maximumChance, 5)
+        XCTAssertEqual(distribution.rangeValues.first, expectedMin)
         XCTAssertEqual(distribution.rangeValues.last, 5)
     }
 
     func testDistribution_100Power0Instinct() async {
-        // Given
         let strategy = ElfCritDistributionStrategy()
+        let distribution = strategy.distribution(power: 100, instinct: 0, attackerLevel: Self.testLevel)
 
-        // When
-        let distribution = await strategy.distribution(power: 100, instinct: 0)
-
-        // Then
         XCTAssertEqual(distribution.minimumChance, 100)
         XCTAssertEqual(distribution.maximumChance, 100)
         XCTAssertEqual(distribution.rangeValues.count, 1)
         XCTAssertEqual(distribution.rangeValues.first, 100)
     }
 
-    // MARK: - Tent Distribution Weight Tests
+    // MARK: - Level scaling
+
+    /// Higher attacker level → multiplier grows → defender's intuition suppresses
+    /// crit harder → lower minimum.
+    func testDistribution_LevelScalesSuppression() async {
+        let strategy = ElfCritDistributionStrategy()
+        let low = strategy.distribution(power: 40, instinct: 20, attackerLevel: 1)
+        let high = strategy.distribution(power: 40, instinct: 20, attackerLevel: 12)
+        XCTAssertGreaterThan(low.minimumChance, high.minimumChance,
+                             "Higher-level intuition must suppress crit harder (lower minimum)")
+    }
+
+    // MARK: - Peak + linear-tail shape
 
     func testDistribution_PeakDominatesWithConfiguredShare() async {
-        // Given
         let strategy = ElfCritDistributionStrategy()
+        let distribution = strategy.distribution(power: 30, instinct: 10, attackerLevel: Self.testLevel)
 
-        // When
-        let distribution = await strategy.distribution(power: 30, instinct: 10) // Range: 20-30
+        XCTAssertGreaterThan(distribution.rangeWeights.count, 1)
 
-        // Then
-        XCTAssertEqual(distribution.rangeWeights.count, 11)
-
-        // Peak should appear at the configured position.
         let expectedPeakIndex = Int(round(GameMechanicsConstants.critPeakPosition * Double(distribution.rangeValues.count - 1)))
-        let maxWeight = distribution.rangeWeights.max()!
-        XCTAssertEqual(
-            distribution.rangeWeights[expectedPeakIndex],
-            maxWeight,
-            "Peak must land at index derived from critPeakPosition"
-        )
+        guard let maxWeight = distribution.rangeWeights.max() else {
+            XCTFail("Weights array must not be empty")
+            return
+        }
+        XCTAssertEqual(distribution.rangeWeights[expectedPeakIndex], maxWeight,
+                       "Peak must land at index derived from critPeakPosition")
 
-        // Peak weight should claim ≈ `critPeakWeight` of total mass. Small
-        // integer-rounding drift is tolerated.
         let totalSum = distribution.rangeWeights.reduce(0, +)
         let actualShare = Double(maxWeight) / Double(totalSum)
-        XCTAssertEqual(
-            actualShare,
-            GameMechanicsConstants.critPeakWeight,
-            accuracy: 0.05,
-            "Peak should claim ≈ \(GameMechanicsConstants.critPeakWeight) of total mass"
-        )
+        XCTAssertEqual(actualShare, GameMechanicsConstants.critPeakWeight, accuracy: 0.05)
 
-        // Tail must not grow toward the edges.
         for i in stride(from: expectedPeakIndex - 1, through: 0, by: -1) where i + 1 != expectedPeakIndex {
             XCTAssertLessThanOrEqual(distribution.rangeWeights[i], distribution.rangeWeights[i + 1])
         }
@@ -195,29 +175,19 @@ final class ElfCritDistributionStrategyTests: XCTestCase {
     }
 
     func testDistribution_AllWeightsPositive() async {
-        // Given
         let strategy = ElfCritDistributionStrategy()
-
-        // When
-        let distribution = await strategy.distribution(power: 50, instinct: 20)
-
-        // Then: All weights should be positive (at least 1)
+        let distribution = strategy.distribution(power: 50, instinct: 20, attackerLevel: Self.testLevel)
         for weight in distribution.rangeWeights {
             XCTAssertGreaterThanOrEqual(weight, 1, "All weights should be at least 1")
         }
     }
 
-    // MARK: - Computed Properties Tests
+    // MARK: - Computed Properties
 
     func testDistribution_HasRange_ReturnsTrue() async {
-        // Given
         let strategy = ElfCritDistributionStrategy()
-
-        // When
-        let distribution = await strategy.distribution(power: 20, instinct: 10)
-
-        // Then
+        let distribution = strategy.distribution(power: 20, instinct: 10, attackerLevel: Self.testLevel)
         XCTAssertTrue(distribution.hasRange)
-        XCTAssertEqual(distribution.rangeValues.count, 11)
+        XCTAssertGreaterThan(distribution.rangeValues.count, 1)
     }
 }

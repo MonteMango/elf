@@ -20,48 +20,15 @@ final class ElfAttributeServiceTests: XCTestCase {
 
     // MARK: - Фейковые зависимости
 
-    final class FakeItemsRepository: ItemsRepository {
-        nonisolated(unsafe) var items: [UUID: Item] = [:]
-        nonisolated(unsafe) var heroItems: HeroItems
-
-        init() {
-            // Create empty HeroItems for testing
-            self.heroItems = HeroItems(
-                version: "1.0.0-test",
-                helmets: [],
-                gloves: [],
-                shoes: [],
-                upperBodies: [],
-                bottomBodies: [],
-                robes: [],
-                weapons: [],
-                shields: [],
-                rings: [],
-                necklaces: [],
-                earrings: []
-            )
-        }
-
-        func getHeroItem(_ id: UUID) -> Item? {
-            return items[id]
-        }
-
-        func getItems(for type: HeroItemType) -> [Item] {
-            return []
-        }
-
-        func armorSlot(for itemId: UUID) -> ArmorSlot? { nil }
-    }
-
     final class FixedRandomizer: AttributeRandomizer, @unchecked Sendable {
-        private var queue: [String]
+        private var queue: [RandomAttributeKind]
         private var index = 0
 
-        init(queue: [String]) {
+        init(queue: [RandomAttributeKind]) {
             self.queue = queue
         }
 
-        func nextAttribute() -> String {
+        func nextAttribute() -> RandomAttributeKind {
             defer { index += 1 }
             return queue[index % queue.count]
         }
@@ -81,6 +48,19 @@ final class ElfAttributeServiceTests: XCTestCase {
         let manaPoints: Int16?
     }
 
+    // MARK: - Setup
+
+    /// `ElfAttributeService.init` pulls `\.attributeRandomizer` even for the
+    /// fight-style tests that never roll. Provide a deterministic default;
+    /// the random-pool tests override it with their own queue.
+    override func invokeTest() {
+        withDependencies {
+            $0.attributeRandomizer = FixedRandomizer(queue: [.strength])
+        } operation: {
+            super.invokeTest()
+        }
+    }
+
     // MARK: - Тесты
 
     func testFightStyleCritAttributesLevel10() async {
@@ -91,13 +71,13 @@ final class ElfAttributeServiceTests: XCTestCase {
             return service.getAllFightStyleAttributes(for: .crit, at: 10)
         }
 
-        XCTAssertEqual(result.hitPoints, 130)  // 80 + 5 * level
-        XCTAssertEqual(result.manaPoints, 20)
-        XCTAssertEqual(result.instinct, 10)   // 1 * level
+        XCTAssertEqual(result.hitPoints, 130)  // 80 + 5 * level (shared, not per-style)
+        XCTAssertEqual(result.manaPoints, 20)  // shared fixed, not per-style
+        XCTAssertEqual(result.instinct, 10)   // 1 * level (canonical original allocation)
         XCTAssertEqual(result.power, 40)      // 4 * level
-        XCTAssertEqual(result.agility, 0)
+        XCTAssertEqual(result.agility, 0)     // crit has no agility (dodge's identity)
         XCTAssertEqual(result.strength, 10)   // 1 * level
-        XCTAssertEqual(result.endurance, 0)
+        XCTAssertEqual(result.endurance, 0)   // no endurance — over-buffs longevity (sim step 19)
     }
 
     func testFightStyleDodgeAttributesLevel10() async {
@@ -137,7 +117,7 @@ final class ElfAttributeServiceTests: XCTestCase {
     func testRandomLevelAttributesAreDeterministic() async {
         let result = withDependencies {
             $0.itemsRepository = FakeItemsRepository()
-            $0.attributeRandomizer = FixedRandomizer(queue: ["agility", "strength", "endurance", "power"])
+            $0.attributeRandomizer = FixedRandomizer(queue: [.agility, .strength, .endurance, .power])
         } operation: {
             let service = ElfAttributeService()
             return service.getRandomLevelAttributes()
@@ -156,7 +136,7 @@ final class ElfAttributeServiceTests: XCTestCase {
     func testAllRandomLevelAttributesSumsCorrectly() async {
         let result = withDependencies {
             $0.itemsRepository = FakeItemsRepository()
-            $0.attributeRandomizer = FixedRandomizer(queue: ["agility", "strength", "power", "instinct", "endurance"])
+            $0.attributeRandomizer = FixedRandomizer(queue: [.agility, .strength, .power, .instinct, .endurance])
         } operation: {
             let service = ElfAttributeService()
             return service.getAllRandomLevelAttributes(for: 2)
@@ -167,24 +147,6 @@ final class ElfAttributeServiceTests: XCTestCase {
         XCTAssertEqual(totalPoints, 8, "Total points should be 8 (2 levels * 4 points per level)")
 
         // Verify no HP/MP were assigned (queue doesn't contain hitPoints/manaPoints)
-        XCTAssertEqual(result.hitPoints, 0)
-        XCTAssertEqual(result.manaPoints, 0)
-    }
-
-    func testAllRandomAttributesSumsWithWrongAttributeCorrectly() async {
-        let result = withDependencies {
-            $0.itemsRepository = FakeItemsRepository()
-            $0.attributeRandomizer = FixedRandomizer(queue: ["unknown"])
-        } operation: {
-            let service = ElfAttributeService()
-            return service.getAllRandomLevelAttributes(for: 1)
-        }
-
-        XCTAssertEqual(result.agility, 0)
-        XCTAssertEqual(result.strength, 0)
-        XCTAssertEqual(result.power, 0)
-        XCTAssertEqual(result.instinct, 0)
-        XCTAssertEqual(result.endurance, 0)
         XCTAssertEqual(result.hitPoints, 0)
         XCTAssertEqual(result.manaPoints, 0)
     }

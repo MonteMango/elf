@@ -5,7 +5,7 @@
 //  Created by Vitalii Lytvynov on 11.07.25.
 //
 
-public struct DamageDistribution: Equatable {
+public struct DamageDistribution: Equatable, Sendable {
     public let values: [Int16]
     public let weights: [Int]
 

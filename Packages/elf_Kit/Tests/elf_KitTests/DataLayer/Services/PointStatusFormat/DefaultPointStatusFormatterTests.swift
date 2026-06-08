@@ -53,8 +53,8 @@ final class DefaultPointStatusFormatterTests: XCTestCase {
     }
 
     func testShortLabel_Blocked_ReturnsBlock() {
-        XCTAssertEqual(formatter.shortLabel(for: .blocked(wasCrit: false, epSpent: 200)), "block")
-        XCTAssertEqual(formatter.shortLabel(for: .blocked(wasCrit: true, epSpent: 200)), "block")
+        XCTAssertEqual(formatter.shortLabel(for: .blocked(epSpent: 200)), "block")
+        XCTAssertEqual(formatter.shortLabel(for: .blocked(epSpent: 200)), "block")
     }
 
     func testShortLabel_WeakBlocked_NoCrit_ReturnsWeakAndFinalDamage() {
@@ -80,7 +80,7 @@ final class DefaultPointStatusFormatterTests: XCTestCase {
     // MARK: - debugLine
 
     func testDebugLine_Blocked_IncludesEPSpent() {
-        let line = formatter.debugLine(for: .blocked(wasCrit: false, epSpent: 250))
+        let line = formatter.debugLine(for: .blocked(epSpent: 250))
         XCTAssertTrue(line.contains("BLOCKED"))
         XCTAssertTrue(line.contains("-250 EP"))
     }

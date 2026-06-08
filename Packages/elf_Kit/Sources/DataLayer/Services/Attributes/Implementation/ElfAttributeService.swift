@@ -28,6 +28,12 @@ public final class ElfAttributeService: AttributeService {
 
         switch fightStyle {
         case .crit:
+            // 6-point budget per level: str 1 + pow 4 + int 1 + end 0 + agi 0.
+            // Canonical original allocation. Per design constraint, crit has
+            // NO agility (agility is dodge's identity) and NO endurance.
+            // Intuition stays at 1×level — partially suppresses opponent
+            // dodge/crit chance and drives crit's own damage reduction via
+            // `the sqrt reduction curve`.
             return HeroAttributes(
                 hitPoints: hitPoints,
                 manaPoints: 20,
@@ -39,6 +45,11 @@ public final class ElfAttributeService: AttributeService {
             )
 
         case .def:
+            // 6-point budget per level: str 1 + int 2 + end 3 + pow 0 + agi 0.
+            // Endurance load-bears blocks economy (via blocksPerEndurancePoint).
+            // Intuition load-bears damage reduction (via
+            // the sqrt reduction curve) and suppresses opponent
+            // dodge/crit. Zero power, zero agility — def fights via attrition.
             return HeroAttributes(
                 hitPoints: hitPoints,
                 manaPoints: 20,
@@ -50,6 +61,11 @@ public final class ElfAttributeService: AttributeService {
             )
 
         case .dodge:
+            // 6-point budget per level: str 1 + agi 4 + int 1 + pow 0 + end 0.
+            // Intuition kept at 1×level — partially suppresses crit's chance
+            // when dodge faces an attacker with power (today only relevant in
+            // dodge-vs-crit; in dodge-vs-def the def has 0 power so dodge's
+            // intuition does nothing). Agility load-bears the dodge identity.
             return HeroAttributes(
                 hitPoints: hitPoints,
                 manaPoints: 20,
@@ -64,33 +80,9 @@ public final class ElfAttributeService: AttributeService {
 
     public func getRandomLevelAttributes() -> HeroAttributes {
         var attributes = HeroAttributes()
-        var pointsAssigned = 0
-
-        while pointsAssigned < 4 {
-            let attribute = randomizer.nextAttribute()
-
-            switch attribute {
-            case "hitPoints":
-                attributes.hitPoints += 3
-            case "manaPoints":
-                attributes.manaPoints += 3
-            case "agility":
-                attributes.agility += 1
-            case "strength":
-                attributes.strength += 1
-            case "power":
-                attributes.power += 1
-            case "instinct":
-                attributes.instinct += 1
-            case "endurance":
-                attributes.endurance += 1
-            default:
-                break
-            }
-
-            pointsAssigned += 1
+        for _ in 0..<4 {
+            attributes[keyPath: randomizer.nextAttribute().statKeyPath] += 1
         }
-
         return attributes
     }
 

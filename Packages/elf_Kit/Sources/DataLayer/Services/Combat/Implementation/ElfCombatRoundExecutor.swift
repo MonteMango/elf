@@ -32,20 +32,23 @@ public final class ElfCombatRoundExecutor: CombatRoundExecutor {
         playerAttackPoints: Set<BodyPart>,
         playerDefensePoints: Set<BodyPart>,
         botAttackPoints: Set<BodyPart>,
-        botDefensePoints: Set<BodyPart>
+        botDefensePoints: Set<BodyPart>,
+        using generator: WithRandomNumberGenerator
     ) -> CombatRoundResult {
         let playerResults = snapshotCombatCalculator.calculatePointStatus(
             attackingPoints: botAttackPoints,
             defendingPoints: playerDefensePoints,
             attacker: botSnapshot,
-            defender: playerSnapshot
+            defender: playerSnapshot,
+            using: generator
         )
 
         let botResults = snapshotCombatCalculator.calculatePointStatus(
             attackingPoints: playerAttackPoints,
             defendingPoints: botDefensePoints,
             attacker: playerSnapshot,
-            defender: botSnapshot
+            defender: botSnapshot,
+            using: generator
         )
 
         let playerDamageTaken = damageService.calculateTotalDamage(from: playerResults)

@@ -5,7 +5,7 @@
 //  Created by Vitalii Lytvynov on 21.11.25.
 //
 
-import Foundation
+import Dependencies
 
 /// Service for simulating battles between bots
 ///
@@ -19,7 +19,18 @@ public protocol BattleSimulationService: Sendable {
     /// via `BattleRoundRunner`. Callers (`MultiBattleViewModel`) already
     /// invoke this from an async context.
     ///
-    /// - Parameter battle: The battle configuration with both teams.
+    /// - Parameters:
+    ///   - battle: The battle configuration with both teams.
+    ///   - generator: Per-battle random source. Sweeps pass a distinct seeded
+    ///     generator per battle for contention-free, reproducible runs.
     /// - Returns: Complete battle result including winner, rounds, and statistics.
-    func runSingleBattle(_ battle: Battle) async -> BattleResult
+    func runSingleBattle(_ battle: Battle, using generator: WithRandomNumberGenerator) async -> BattleResult
+}
+
+public extension BattleSimulationService {
+    /// Convenience: resolves `\.withRandomNumberGenerator` once and delegates.
+    func runSingleBattle(_ battle: Battle) async -> BattleResult {
+        @Dependency(\.withRandomNumberGenerator) var generator
+        return await runSingleBattle(battle, using: generator)
+    }
 }

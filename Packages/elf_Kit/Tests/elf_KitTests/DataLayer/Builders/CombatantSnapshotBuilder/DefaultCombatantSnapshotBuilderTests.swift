@@ -45,6 +45,9 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
 
         withDependencies {
             $0.armorService = mockArmor
+            // Default for tests that don't care about buff math; the two
+            // buff-specific tests override with `PlusForty` locally.
+            $0.buffEffectsCalculator = PassthroughBuffEffectsCalculator()
         } operation: {
             self.builder = DefaultCombatantSnapshotBuilder()
             super.invokeTest()

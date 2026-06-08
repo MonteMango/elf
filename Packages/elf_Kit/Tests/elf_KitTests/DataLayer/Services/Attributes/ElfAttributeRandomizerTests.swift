@@ -5,23 +5,36 @@
 //  Created by Vitalii Lytvynov on 12.07.25.
 //
 
+import Dependencies
 import XCTest
 @testable import elf_Kit
 
 final class ElfAttributeRandomizerTests: XCTestCase {
+
+    /// `ElfAttributeRandomizer.init` captures `\.withRandomNumberGenerator`;
+    /// seed it so the distribution tests are deterministic.
+    override func invokeTest() {
+        withDependencies {
+            $0.withRandomNumberGenerator = WithRandomNumberGenerator(
+                SeededRandomNumberGenerator(seed: 0xE1F)
+            )
+        } operation: {
+            super.invokeTest()
+        }
+    }
+
     func testReturnedAttributesAreValid() {
         let randomizer = ElfAttributeRandomizer()
-        let allowedAttributes: Set<String> = ["agility", "strength", "power", "instinct", "endurance"]
-
+        let allowed = Set(RandomAttributeKind.allCases)
         for _ in 0..<100 {
             let attr = randomizer.nextAttribute()
-            XCTAssertTrue(allowedAttributes.contains(attr), "Unexpected attribute: \(attr)")
+            XCTAssertTrue(allowed.contains(attr), "Unexpected attribute: \(attr)")
         }
     }
 
     func testRandomDistributionRoughlyMatchesWeights() {
         let randomizer = ElfAttributeRandomizer()
-        var counts: [String: Int] = [:]
+        var counts: [RandomAttributeKind: Int] = [:]
 
         let iterations = 10_000
         for _ in 0..<iterations {
@@ -29,28 +42,20 @@ final class ElfAttributeRandomizerTests: XCTestCase {
             counts[attr, default: 0] += 1
         }
 
-        let expectedDistribution: [String: Double] = [
-            "agility": 0.20,
-            "strength": 0.20,
-            "power": 0.20,
-            "instinct": 0.20,
-            "endurance": 0.20
-        ]
-
-        for (attr, expectedRatio) in expectedDistribution {
-            let actualRatio = Double(counts[attr, default: 0]) / Double(iterations)
-            XCTAssertTrue(abs(actualRatio - expectedRatio) < 0.03, "\(attr): expected ~\(expectedRatio), got \(actualRatio)")
+        // Uniform — each of the 5 kinds should land at ~20%.
+        for kind in RandomAttributeKind.allCases {
+            let actualRatio = Double(counts[kind, default: 0]) / Double(iterations)
+            XCTAssertEqual(actualRatio, 0.2, accuracy: 0.03,
+                           "\(kind): expected ~0.2, got \(actualRatio)")
         }
     }
 
     func testReturnsDifferentValuesOverTime() {
         let randomizer = ElfAttributeRandomizer()
-        var seenAttributes = Set<String>()
-
+        var seen = Set<RandomAttributeKind>()
         for _ in 0..<100 {
-            seenAttributes.insert(randomizer.nextAttribute())
+            seen.insert(randomizer.nextAttribute())
         }
-
-        XCTAssertTrue(seenAttributes.count > 1, "Randomizer returned only one unique value over 100 iterations")
+        XCTAssertGreaterThan(seen.count, 1, "Randomizer returned only one unique value over 100 iterations")
     }
 }

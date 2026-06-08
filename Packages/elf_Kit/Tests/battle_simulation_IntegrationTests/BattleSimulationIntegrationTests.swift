@@ -66,6 +66,45 @@ final class BattleSimulationIntegrationTests: XCTestCase {
         }
     }
 
+    /// Acceptance gate for the per-battle RNG threading: the same seeded
+    /// generator must reproduce a battle byte-for-byte (proves the generator
+    /// reaches every roll site), and a different seed must (almost surely)
+    /// diverge (proves the seed actually drives the rolls).
+    func testPerBattleSeed_IsReproducibleAndSeedDependent() async {
+        await withDependencies {
+            $0.context = .live
+        } operation: {
+            @Dependency(\.attributeService)        var attributeService
+            @Dependency(\.itemsRepository)         var itemsRepository
+            @Dependency(\.snapshotBuilder)         var snapshotBuilder
+            @Dependency(\.battleSimulationService) var simService
+
+            let h1 = makeSnapshot(
+                style: .crit, level: 12, name: "H1",
+                attributeService: attributeService, itemsRepository: itemsRepository, builder: snapshotBuilder
+            )
+            let h2 = makeSnapshot(
+                style: .def, level: 12, name: "H2",
+                attributeService: attributeService, itemsRepository: itemsRepository, builder: snapshotBuilder
+            )
+            let battle = Battle(leftTeam: [h1], rightTeam: [h2])
+
+            func fingerprint(seed: UInt64) async -> [Int] {
+                let gen = WithRandomNumberGenerator(SeededRandomNumberGenerator(seed: seed))
+                let r = await simService.runSingleBattle(battle, using: gen)
+                let winnerCode: Int = { switch r.winner { case .left: return 0; case .right: return 1; case .draw: return 2 } }()
+                return [winnerCode, r.totalRounds, r.statistics.bot1TotalDamage, r.statistics.bot2TotalDamage]
+            }
+
+            let a = await fingerprint(seed: 42)
+            let b = await fingerprint(seed: 42)
+            XCTAssertEqual(a, b, "Same seed must reproduce the battle exactly")
+
+            let c = await fingerprint(seed: 99)
+            XCTAssertNotEqual(a, c, "Different seed should (almost surely) diverge")
+        }
+    }
+
     func testStyleTriangleSweep() async {
         // swift-dependencies normally blocks live implementations in tests.
         // For this integration test we explicitly run inside `.live` context
@@ -76,6 +115,49 @@ final class BattleSimulationIntegrationTests: XCTestCase {
             $0.context = .live
         } operation: {
             await runSweep()
+        }
+    }
+
+    /// Random-attributes variant of `testStyleTriangleSweep`. Instead of one
+    /// pristine snapshot per matchup, each individual battle gets fresh
+    /// random-level-attribute rolls (`getAllRandomLevelAttributes` =
+    /// `+4 points × level` distributed across agi/str/pow/int/end) for both
+    /// heroes. Closer to real-play variability — players don't all have
+    /// identical stat profiles at a given level.
+    func testStyleTriangleSweepWithRandomAttributes() async {
+        await withDependencies {
+            $0.context = .live
+        } operation: {
+            await runRandomSweep()
+        }
+    }
+
+    /// Attribute-value probe — **not** a triangle test. Builds "champion"
+    /// elves that each dump an equal stat budget into a single attribute (or
+    /// a 2-stat combo), all sharing the same HP and weapon, then runs a full
+    /// round-robin duel matrix. The point is to isolate *how much raw combat
+    /// value each attribute point is worth*, surface dead/over-powered stats,
+    /// and flag any "goat" stat-stacking build. Pure analysis — drives no
+    /// balance change on its own.
+    func testAttributeValueMatrix() async {
+        await withDependencies {
+            $0.context = .live
+        } operation: {
+            await runAttributeMatrix()
+        }
+    }
+
+    /// "If the player could choose where to spend the +4/level random pool,
+    /// what's the best strategy per fight style?" Builds each style with
+    /// 7 distinct strategies for the bonus pool (all-into-one-stat, STR+END
+    /// combo, random baseline), pits each variant against the other two
+    /// classes built with the random baseline, and prints a per-class
+    /// strategy ranking.
+    func testAttributeStrategiesPerClass() async {
+        await withDependencies {
+            $0.context = .live
+        } operation: {
+            await runStrategyTest()
         }
     }
 
@@ -115,6 +197,37 @@ final class BattleSimulationIntegrationTests: XCTestCase {
         printSummary(rows: rows, totalElapsed: totalElapsed)
     }
 
+    private func runRandomSweep() async {
+        @Dependency(\.attributeService)        var attributeService
+        @Dependency(\.itemsRepository)         var itemsRepository
+        @Dependency(\.snapshotBuilder)         var snapshotBuilder
+        @Dependency(\.battleSimulationService) var simService
+
+        var rows: [SweepRow] = []
+        let sweepStart = Date()
+        for level in levels {
+            for matchup in matchups {
+                let configStart = Date()
+                let results = await runRandomBattles(
+                    count: battleCount,
+                    level: level,
+                    matchup: matchup,
+                    attributeService: attributeService,
+                    itemsRepository: itemsRepository,
+                    builder: snapshotBuilder,
+                    service: simService
+                )
+                let row = aggregate(level: level, matchup: matchup, results: results)
+                rows.append(row)
+                let elapsed = Date().timeIntervalSince(configStart)
+                print(String(format: "  • L%d %@ done — %.1fs (%d battles, random attrs)",
+                             level, matchup.name, elapsed, results.count))
+            }
+        }
+        let totalElapsed = Date().timeIntervalSince(sweepStart)
+        printSummary(rows: rows, totalElapsed: totalElapsed)
+    }
+
     // MARK: - Hero construction
 
     private func makeSnapshot(
@@ -142,6 +255,32 @@ final class BattleSimulationIntegrationTests: XCTestCase {
         )
     }
 
+    private func makeRandomSnapshot(
+        style: FightStyle,
+        level: Int,
+        name: String,
+        attributeService: any AttributeService,
+        itemsRepository: any ItemsRepository,
+        builder: any CombatantSnapshotBuilder
+    ) -> CombatantSnapshot {
+        let fightStyleAttrs = attributeService.getAllFightStyleAttributes(for: style, at: Int16(level))
+        // includeRandomAttributes = on → ~4 points × level distributed across
+        // agi/str/pow/int/end via the live `attributeRandomizer`. Each call
+        // returns a fresh roll, so per-battle invocation gives 30 000 distinct
+        // random profiles per matchup.
+        let randomLevelAttrs = attributeService.getAllRandomLevelAttributes(for: Int16(level))
+        let equipped = HeroConfigurationState(level: level).makeEquipped(itemsRepository: itemsRepository)
+        return builder.buildSnapshot(
+            name: name,
+            imageName: "",
+            level: level,
+            fightStyleAttributes: fightStyleAttrs,
+            randomLevelAttributes: randomLevelAttrs,
+            equipped: equipped,
+            globalBuffs: []
+        )
+    }
+
     // MARK: - Parallel battle runner (mirrors MultiBattleViewModel.runAllBattles)
 
     private func runBattles(
@@ -157,8 +296,13 @@ final class BattleSimulationIntegrationTests: XCTestCase {
             let endIndex = min(startIndex + batchSize, count)
             let battlesInBatch = endIndex - startIndex
             let batchResults = await withTaskGroup(of: BattleResult.self) { group in
-                for _ in 0..<battlesInBatch {
-                    group.addTask { await service.runSingleBattle(battle) }
+                for i in 0..<battlesInBatch {
+                    // Per-battle seeded generator: distinct lock per battle
+                    // (no cross-battle contention) + reproducible by index.
+                    let gen = WithRandomNumberGenerator(
+                        SeededRandomNumberGenerator(seed: UInt64(startIndex + i))
+                    )
+                    group.addTask { await service.runSingleBattle(battle, using: gen) }
                 }
                 var results: [BattleResult] = []
                 results.reserveCapacity(battlesInBatch)
@@ -170,6 +314,436 @@ final class BattleSimulationIntegrationTests: XCTestCase {
             allResults.append(contentsOf: batchResults)
         }
         return allResults
+    }
+
+    /// Random-attributes variant: re-rolls fresh random-level attributes (and
+    /// rebuilds snapshots) per battle so each draw is sampled from a distinct
+    /// stat profile. Significantly more snapshot work but still inexpensive
+    /// compared to running the battle itself.
+    private func runRandomBattles(
+        count: Int,
+        level: Int,
+        matchup: Matchup,
+        attributeService: any AttributeService,
+        itemsRepository: any ItemsRepository,
+        builder: any CombatantSnapshotBuilder,
+        service: any BattleSimulationService
+    ) async -> [BattleResult] {
+        var allResults: [BattleResult] = []
+        allResults.reserveCapacity(count)
+        let numberOfBatches = (count + batchSize - 1) / batchSize
+        for batchIndex in 0..<numberOfBatches {
+            let startIndex = batchIndex * batchSize
+            let endIndex = min(startIndex + batchSize, count)
+            let battlesInBatch = endIndex - startIndex
+            let batchResults = await withTaskGroup(of: BattleResult.self) { group in
+                for i in 0..<battlesInBatch {
+                    let h1 = makeRandomSnapshot(
+                        style: matchup.h1, level: level, name: "H1",
+                        attributeService: attributeService,
+                        itemsRepository: itemsRepository,
+                        builder: builder
+                    )
+                    let h2 = makeRandomSnapshot(
+                        style: matchup.h2, level: level, name: "H2",
+                        attributeService: attributeService,
+                        itemsRepository: itemsRepository,
+                        builder: builder
+                    )
+                    let battle = Battle(leftTeam: [h1], rightTeam: [h2])
+                    let gen = WithRandomNumberGenerator(
+                        SeededRandomNumberGenerator(seed: UInt64(startIndex + i))
+                    )
+                    group.addTask { await service.runSingleBattle(battle, using: gen) }
+                }
+                var results: [BattleResult] = []
+                results.reserveCapacity(battlesInBatch)
+                for await result in group {
+                    results.append(result)
+                }
+                return results
+            }
+            allResults.append(contentsOf: batchResults)
+        }
+        return allResults
+    }
+
+    // MARK: - Attribute-value duel matrix
+
+    private func runAttributeMatrix() async {
+        @Dependency(\.itemsRepository)         var itemsRepository
+        @Dependency(\.snapshotBuilder)         var snapshotBuilder
+        @Dependency(\.battleSimulationService) var simService
+
+        // Equal budget into each champion so the matrix reads as "what is N
+        // points of stat X (or X+Y) worth in a fight". 48 ≈ a single L12
+        // stat maxed out (dodge's agi is 4×12). HP fixed at the L12 baseline
+        // (80 + 5×12) so HP isn't a hidden variable. Combos split 24+24.
+        let budget: Int16 = 48
+        let half = budget / 2
+        let fifth = budget / 5
+        let hp: Int16 = 140
+        let level = 12
+        let matrixBattles = 10_000
+
+        let champions: [(name: String, attrs: HeroAttributes)] = [
+            ("STR",     champ(hp: hp, str: budget)),
+            ("AGI",     champ(hp: hp, agi: budget)),
+            ("POW",     champ(hp: hp, pow: budget)),
+            ("INT",     champ(hp: hp, int: budget)),
+            ("END",     champ(hp: hp, end: budget)),
+            ("BAL",     champ(hp: hp, str: fifth, agi: fifth, pow: fifth, int: fifth, end: fifth)),
+            ("STR+END", champ(hp: hp, str: half, end: half)),
+            ("POW+END", champ(hp: hp, pow: half, end: half)),
+            ("AGI+INT", champ(hp: hp, agi: half, int: half)),
+            ("POW+AGI", champ(hp: hp, agi: half, pow: half)),
+        ]
+
+        let equipped = HeroConfigurationState(level: level).makeEquipped(itemsRepository: itemsRepository)
+        var snapshots: [(name: String, snap: CombatantSnapshot)] = []
+        for champion in champions {
+            let snap = snapshotBuilder.buildSnapshot(
+                name: champion.name,
+                imageName: "",
+                level: level,
+                fightStyleAttributes: champion.attrs,
+                randomLevelAttributes: HeroAttributes(),
+                equipped: equipped,
+                globalBuffs: []
+            )
+            snapshots.append((champion.name, snap))
+        }
+
+        var rows: [MatrixRow] = []
+        let start = Date()
+        for i in 0..<snapshots.count {
+            for j in (i + 1)..<snapshots.count {
+                let a = snapshots[i]
+                let b = snapshots[j]
+                let battle = Battle(leftTeam: [a.snap], rightTeam: [b.snap])
+                let results = await runBattles(count: matrixBattles, battle: battle, service: simService)
+                var aWins = 0
+                var bWins = 0
+                var draws = 0
+                var totalRounds = 0
+                for r in results {
+                    switch r.winner {
+                    case .left:  aWins += 1
+                    case .right: bWins += 1
+                    case .draw:  draws += 1
+                    }
+                    totalRounds += r.totalRounds
+                }
+                let n = Double(max(results.count, 1))
+                rows.append(MatrixRow(
+                    a: a.name, b: b.name,
+                    aWinPct: Double(aWins) / n * 100,
+                    bWinPct: Double(bWins) / n * 100,
+                    drawPct: Double(draws) / n * 100,
+                    avgRounds: Double(totalRounds) / n
+                ))
+                print(String(format: "  • %@ vs %@ done (%d battles)", a.name, b.name, results.count))
+            }
+        }
+        printAttributeMatrix(
+            champions: champions.map { $0.name },
+            rows: rows,
+            budget: budget,
+            elapsed: Date().timeIntervalSince(start)
+        )
+    }
+
+    private func champ(
+        hp: Int16,
+        str: Int16 = 0,
+        agi: Int16 = 0,
+        pow: Int16 = 0,
+        int: Int16 = 0,
+        end: Int16 = 0
+    ) -> HeroAttributes {
+        HeroAttributes(
+            hitPoints: Attribute(hp),
+            manaPoints: 20,
+            agility: Attribute(agi),
+            strength: Attribute(str),
+            power: Attribute(pow),
+            instinct: Attribute(int),
+            endurance: Attribute(end)
+        )
+    }
+
+    private func printAttributeMatrix(
+        champions: [String],
+        rows: [MatrixRow],
+        budget: Int16,
+        elapsed: TimeInterval
+    ) {
+        let line = String(repeating: "=", count: 90)
+        print()
+        print(line)
+        print(" Attribute-Value Duel Matrix — budget \(budget)/champion, HP 140, L12, Recruit's Spear")
+        print(String(format: " %d pairs, wall clock %.1fs", rows.count, elapsed))
+        print(line)
+        print()
+        // Per-pair detail. "net" = A win% − B win% (draws split shown separately).
+        print(padRight("Matchup", 22)
+              + padRight("A win%", 9)
+              + padRight("B win%", 9)
+              + padRight("draw%", 9)
+              + padRight("net(A−B)", 10)
+              + "avgRnd")
+        print(String(repeating: "-", count: 90))
+        for row in rows {
+            let net = row.aWinPct - row.bWinPct
+            print(padRight("\(row.a) vs \(row.b)", 22)
+                  + padRight(String(format: "%5.1f", row.aWinPct), 9)
+                  + padRight(String(format: "%5.1f", row.bWinPct), 9)
+                  + padRight(String(format: "%5.1f", row.drawPct), 9)
+                  + padRight(String(format: "%+5.1f", net), 10)
+                  + String(format: "%.1f", row.avgRounds))
+        }
+
+        // Power ranking: each champion's mean draw-split win rate across all
+        // its matches. High = strong stat, ~50 = balanced, low = weak/dead.
+        var scoreSum: [String: Double] = [:]
+        var matchCount: [String: Int] = [:]
+        for row in rows {
+            scoreSum[row.a, default: 0] += row.aWinPct + row.drawPct / 2
+            scoreSum[row.b, default: 0] += row.bWinPct + row.drawPct / 2
+            matchCount[row.a, default: 0] += 1
+            matchCount[row.b, default: 0] += 1
+        }
+        print()
+        print(" Power ranking (mean draw-split win% across all opponents):")
+        print(String(repeating: "-", count: 90))
+        let ranking = champions
+            .map { (name: $0, score: scoreSum[$0, default: 0] / Double(max(matchCount[$0, default: 1], 1))) }
+            .sorted { $0.score > $1.score }
+        for (rank, entry) in ranking.enumerated() {
+            print(String(format: "  %2d. %@  %5.1f%%", rank + 1, padRight(entry.name, 10), entry.score))
+        }
+        print(line)
+    }
+
+    // MARK: - Strategy choice test
+
+    /// One bonus-pool allocation strategy: 4 points per level distributed
+    /// across the 5 combat stats. Weights must sum to 4 — the strategy is
+    /// applied multiplicatively by level (e.g., `str: 4` → +48 strength at L12).
+    private struct AttrStrategy {
+        let name: String
+        let agi: Int16
+        let str: Int16
+        let pow: Int16
+        let int: Int16
+        let end: Int16
+        /// Treat as `random` rolls instead of a fixed split. Used for the
+        /// baseline + the opponent in every match.
+        let isRandom: Bool
+    }
+
+    private func runStrategyTest() async {
+        @Dependency(\.attributeService)        var attributeService
+        @Dependency(\.itemsRepository)         var itemsRepository
+        @Dependency(\.snapshotBuilder)         var snapshotBuilder
+        @Dependency(\.battleSimulationService) var simService
+
+        let level = 12
+        let battlesPerCell = 5_000
+
+        // Strategies that any class can adopt. "core" is class-specific and
+        // resolved later.
+        let strategies: [AttrStrategy] = [
+            AttrStrategy(name: "random",   agi: 0, str: 0, pow: 0, int: 0, end: 0, isRandom: true),
+            AttrStrategy(name: "all-STR",  agi: 0, str: 4, pow: 0, int: 0, end: 0, isRandom: false),
+            AttrStrategy(name: "all-AGI",  agi: 4, str: 0, pow: 0, int: 0, end: 0, isRandom: false),
+            AttrStrategy(name: "all-POW",  agi: 0, str: 0, pow: 4, int: 0, end: 0, isRandom: false),
+            AttrStrategy(name: "all-INT",  agi: 0, str: 0, pow: 0, int: 4, end: 0, isRandom: false),
+            AttrStrategy(name: "all-END",  agi: 0, str: 0, pow: 0, int: 0, end: 4, isRandom: false),
+            AttrStrategy(name: "STR+END",  agi: 0, str: 2, pow: 0, int: 0, end: 2, isRandom: false),
+        ]
+
+        let allStyles: [FightStyle] = [.def, .crit, .dodge]
+        let randomBaseline = strategies[0]
+
+        // Output: per fight style, table of strategy -> winrate vs each opponent class (with random baseline).
+        var allRows: [StrategyRow] = []
+        let start = Date()
+        for style in allStyles {
+            for strategy in strategies {
+                for opponent in allStyles where opponent != style {
+                    let results = await runStrategyBattles(
+                        count: battlesPerCell,
+                        selfStyle: style, selfStrategy: strategy,
+                        oppStyle: opponent, oppStrategy: randomBaseline,
+                        level: level,
+                        attributeService: attributeService,
+                        itemsRepository: itemsRepository,
+                        builder: snapshotBuilder,
+                        service: simService
+                    )
+                    var sWins = 0, oWins = 0, draws = 0
+                    for r in results {
+                        switch r.winner {
+                        case .left:  sWins += 1
+                        case .right: oWins += 1
+                        case .draw:  draws  += 1
+                        }
+                    }
+                    let n = Double(max(results.count, 1))
+                    allRows.append(StrategyRow(
+                        style: style, strategy: strategy.name, opponent: opponent,
+                        selfWinPct: Double(sWins) / n * 100,
+                        opponentWinPct: Double(oWins) / n * 100,
+                        drawPct: Double(draws) / n * 100
+                    ))
+                    print(String(format: "  • %@/%@ vs %@-random done (%d battles)",
+                                 styleName(style), strategy.name, styleName(opponent), results.count))
+                }
+            }
+        }
+        printStrategyReport(rows: allRows, elapsed: Date().timeIntervalSince(start), level: level)
+    }
+
+    /// Each battle re-rolls fresh random attrs for whichever side is marked
+    /// `isRandom = true`. Fixed-strategy sides reuse the same snapshot.
+    private func runStrategyBattles(
+        count: Int,
+        selfStyle: FightStyle, selfStrategy: AttrStrategy,
+        oppStyle: FightStyle, oppStrategy: AttrStrategy,
+        level: Int,
+        attributeService: any AttributeService,
+        itemsRepository: any ItemsRepository,
+        builder: any CombatantSnapshotBuilder,
+        service: any BattleSimulationService
+    ) async -> [BattleResult] {
+        let equipped = HeroConfigurationState(level: level).makeEquipped(itemsRepository: itemsRepository)
+        // Pre-build snapshots for fixed strategies.
+        let selfFixedSnap = selfStrategy.isRandom ? nil : makeStrategySnapshot(
+            style: selfStyle, strategy: selfStrategy, level: level,
+            attributeService: attributeService, equipped: equipped, builder: builder, name: "S"
+        )
+        let oppFixedSnap = oppStrategy.isRandom ? nil : makeStrategySnapshot(
+            style: oppStyle, strategy: oppStrategy, level: level,
+            attributeService: attributeService, equipped: equipped, builder: builder, name: "O"
+        )
+
+        var allResults: [BattleResult] = []
+        allResults.reserveCapacity(count)
+        let batches = (count + batchSize - 1) / batchSize
+        for batchIdx in 0..<batches {
+            let startIdx = batchIdx * batchSize
+            let endIdx = min(startIdx + batchSize, count)
+            let n = endIdx - startIdx
+            let batchResults = await withTaskGroup(of: BattleResult.self) { group in
+                for i in 0..<n {
+                    let s = selfFixedSnap ?? makeRandomSnapshot(
+                        style: selfStyle, level: level, name: "S",
+                        attributeService: attributeService,
+                        itemsRepository: itemsRepository, builder: builder
+                    )
+                    let o = oppFixedSnap ?? makeRandomSnapshot(
+                        style: oppStyle, level: level, name: "O",
+                        attributeService: attributeService,
+                        itemsRepository: itemsRepository, builder: builder
+                    )
+                    let battle = Battle(leftTeam: [s], rightTeam: [o])
+                    let gen = WithRandomNumberGenerator(
+                        SeededRandomNumberGenerator(seed: UInt64(startIdx + i))
+                    )
+                    group.addTask { await service.runSingleBattle(battle, using: gen) }
+                }
+                var results: [BattleResult] = []
+                results.reserveCapacity(n)
+                for await r in group { results.append(r) }
+                return results
+            }
+            allResults.append(contentsOf: batchResults)
+        }
+        return allResults
+    }
+
+    private func makeStrategySnapshot(
+        style: FightStyle, strategy: AttrStrategy, level: Int,
+        attributeService: any AttributeService,
+        equipped: EquippedItems,
+        builder: any CombatantSnapshotBuilder,
+        name: String
+    ) -> CombatantSnapshot {
+        let fightStyleAttrs = attributeService.getAllFightStyleAttributes(for: style, at: Int16(level))
+        let lv = Int16(level)
+        let bonusAttrs = HeroAttributes(
+            hitPoints: Attribute(0), manaPoints: Attribute(0),
+            agility: Attribute(strategy.agi * lv),
+            strength: Attribute(strategy.str * lv),
+            power: Attribute(strategy.pow * lv),
+            instinct: Attribute(strategy.int * lv),
+            endurance: Attribute(strategy.end * lv)
+        )
+        return builder.buildSnapshot(
+            name: name, imageName: "", level: level,
+            fightStyleAttributes: fightStyleAttrs,
+            randomLevelAttributes: bonusAttrs,
+            equipped: equipped, globalBuffs: []
+        )
+    }
+
+    private func printStrategyReport(rows: [StrategyRow], elapsed: TimeInterval, level: Int) {
+        let line = String(repeating: "=", count: 90)
+        print()
+        print(line)
+        print(" Attribute Strategy Choice — L\(level), 5 000 battles/cell")
+        print(String(format: " %d cells, wall clock %.1fs", rows.count, elapsed))
+        print(line)
+        for style in [FightStyle.def, .crit, .dodge] {
+            let styleRows = rows.filter { $0.style == style }
+            print()
+            print(" === \(styleName(style).uppercased()) — strategy vs random opponents ===")
+            print(padRight("Strategy", 12)
+                  + padRight("vs def", 10)
+                  + padRight("vs crit", 10)
+                  + padRight("vs dodge", 10)
+                  + padRight("avg", 10)
+                  + padRight("draw-split avg", 10))
+            print(String(repeating: "-", count: 70))
+
+            let strategies = Array(Set(styleRows.map { $0.strategy }))
+            let ordered = ["random", "all-STR", "all-AGI", "all-POW", "all-INT", "all-END", "STR+END"]
+            let sortedStrategies = ordered.filter { strategies.contains($0) }
+            var summaryEntries: [(String, Double)] = []
+            for strategy in sortedStrategies {
+                var winVsDef = "—", winVsCrit = "—", winVsDodge = "—"
+                var winSum = 0.0, drawSplitSum = 0.0, opponentCount = 0
+                for opp in [FightStyle.def, .crit, .dodge] where opp != style {
+                    if let row = styleRows.first(where: { $0.strategy == strategy && $0.opponent == opp }) {
+                        let w = String(format: "%5.1f%%", row.selfWinPct)
+                        winSum += row.selfWinPct
+                        drawSplitSum += row.selfWinPct + row.drawPct / 2
+                        opponentCount += 1
+                        switch opp {
+                        case .def:   winVsDef = w
+                        case .crit:  winVsCrit = w
+                        case .dodge: winVsDodge = w
+                        }
+                    }
+                }
+                let avgWin = opponentCount > 0 ? winSum / Double(opponentCount) : 0
+                let drawSplitAvg = opponentCount > 0 ? drawSplitSum / Double(opponentCount) : 0
+                summaryEntries.append((strategy, drawSplitAvg))
+                print(padRight(strategy, 12)
+                      + padRight(winVsDef, 10)
+                      + padRight(winVsCrit, 10)
+                      + padRight(winVsDodge, 10)
+                      + padRight(String(format: "%5.1f%%", avgWin), 10)
+                      + String(format: "%5.1f%%", drawSplitAvg))
+            }
+            print()
+            print(" Best strategies for \(styleName(style)):")
+            for (rank, entry) in summaryEntries.sorted(by: { $0.1 > $1.1 }).enumerated() {
+                print(String(format: "   %d. %@  %5.1f%%", rank + 1, padRight(entry.0, 12), entry.1))
+            }
+        }
+        print(line)
     }
 
     // MARK: - Aggregation
@@ -395,6 +969,24 @@ final class BattleSimulationIntegrationTests: XCTestCase {
         let name: String
         let h1: FightStyle
         let h2: FightStyle
+    }
+
+    private struct StrategyRow {
+        let style: FightStyle
+        let strategy: String
+        let opponent: FightStyle
+        let selfWinPct: Double
+        let opponentWinPct: Double
+        let drawPct: Double
+    }
+
+    private struct MatrixRow {
+        let a: String
+        let b: String
+        let aWinPct: Double
+        let bWinPct: Double
+        let drawPct: Double
+        let avgRounds: Double
     }
 
     private struct SweepRow {

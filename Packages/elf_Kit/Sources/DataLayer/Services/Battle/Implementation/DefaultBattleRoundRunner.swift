@@ -52,19 +52,22 @@ public final class DefaultBattleRoundRunner: BattleRoundRunner {
         leftTeam: [CombatantSnapshot],
         rightTeam: [CombatantSnapshot],
         round: BattleRound,
-        heroSelection: HeroSelection?
+        heroSelection: HeroSelection?,
+        using generator: WithRandomNumberGenerator
     ) async -> RoundOutcome {
         let inputs = buildPairInputs(
             leftTeam: leftTeam,
             rightTeam: rightTeam,
             round: round,
-            heroSelection: heroSelection
+            heroSelection: heroSelection,
+            using: generator
         )
 
-        // Capture the Sendable executor into a local before the group so
-        // child task closures don't capture `self` — they only need the
-        // executor.
+        // Capture the Sendable executor + generator into locals before the
+        // group so child task closures don't capture `self` — they only need
+        // the executor and the per-battle generator.
         let executor = combatRoundExecutor
+        let generator = generator
 
         let computed = await withTaskGroup(
             of: (PairInput, CombatRoundResult).self
@@ -77,7 +80,8 @@ public final class DefaultBattleRoundRunner: BattleRoundRunner {
                         playerAttackPoints: input.leftAttack,
                         playerDefensePoints: input.leftDefense,
                         botAttackPoints: input.rightAttack,
-                        botDefensePoints: input.rightDefense
+                        botDefensePoints: input.rightDefense,
+                        using: generator
                     )
                     return (input, result)
                 }
@@ -109,8 +113,9 @@ public final class DefaultBattleRoundRunner: BattleRoundRunner {
             // End-of-round Exhausted application: any combatant who ends
             // the round at 0 EP and still alive picks up the battle-scoped
             // `Exhausted` debuff so next round's strikes feel its bite
-            // (Strength/Endurance −30 %, and they can only "weak block" at
-            // half effectiveness). `applyAsBattle` is idempotent here —
+            // (−10 % on all five combat attributes, and blocks downgrade to
+            // "weak blocks" that let `exhaustedBlockDamageMultiplier` = 60 %
+            // of the damage through). `applyAsBattle` is idempotent here —
             // catalog `stackingRule == .ignore`.
             updatedLeft[input.leftIdx].battleBuffs = applyExhaustedIfNeeded(
                 snapshot: updatedLeft[input.leftIdx]
@@ -160,7 +165,8 @@ public final class DefaultBattleRoundRunner: BattleRoundRunner {
         leftTeam: [CombatantSnapshot],
         rightTeam: [CombatantSnapshot],
         round: BattleRound,
-        heroSelection: HeroSelection?
+        heroSelection: HeroSelection?,
+        using generator: WithRandomNumberGenerator
     ) -> [PairInput] {
         var inputs: [PairInput] = []
         inputs.reserveCapacity(round.duelPairs.count)
@@ -181,11 +187,11 @@ public final class DefaultBattleRoundRunner: BattleRoundRunner {
                 leftAttack = hero.attackPoints
                 leftDefense = hero.defensePoints
             } else {
-                leftAttack = botAI.selectAttackPoints(count: left.attackPoints)
-                leftDefense = botAI.selectDefensePoints(count: left.defensePoints)
+                leftAttack = botAI.selectAttackPoints(count: left.attackPoints, using: generator)
+                leftDefense = botAI.selectDefensePoints(count: left.defensePoints, using: generator)
             }
-            let rightAttack = botAI.selectAttackPoints(count: right.attackPoints)
-            let rightDefense = botAI.selectDefensePoints(count: right.defensePoints)
+            let rightAttack = botAI.selectAttackPoints(count: right.attackPoints, using: generator)
+            let rightDefense = botAI.selectDefensePoints(count: right.defensePoints, using: generator)
 
             inputs.append(PairInput(
                 index: index,

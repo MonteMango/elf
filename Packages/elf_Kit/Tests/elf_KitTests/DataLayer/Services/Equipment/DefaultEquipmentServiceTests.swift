@@ -15,16 +15,6 @@ import XCTest
 @MainActor
 final class DefaultEquipmentServiceTests: XCTestCase {
 
-    // MARK: - Fakes
-
-    final class FakeItemsRepository: ItemsRepository {
-        nonisolated(unsafe) var items: [UUID: Item] = [:]
-
-        func getHeroItem(_ id: UUID) -> Item? { items[id] }
-        func getItems(for type: HeroItemType) -> [Item] { [] }
-        func armorSlot(for itemId: UUID) -> ArmorSlot? { nil }
-    }
-
     // MARK: - Fixture Builders
 
     private func makeWeaponItem(id: UUID = UUID(), handUse: WeaponHandUse) -> WeaponItem {

@@ -5,7 +5,7 @@
 //  Created by Vitalii Lytvynov on 19.11.25.
 //
 
-import Foundation
+import Dependencies
 
 /// Service for calculating critical hit success and multiplier.
 ///
@@ -31,15 +31,16 @@ public protocol CritService: Sendable {
     /// - Parameters:
     ///   - power: Attacker's total power attribute
     ///   - instinct: Defender's total instinct attribute
+    ///   - attackerLevel: Attacker's character level (scales suppression).
+    ///   - generator: Per-battle random source, threaded from the battle boundary.
     /// - Returns: Complete calculation result including distribution, rolls, success, and multiplier
-    func calculateCrit(power: Int16, instinct: Int16) -> CritCalculationResult
+    func calculateCrit(power: Int16, instinct: Int16, attackerLevel: Int, using generator: WithRandomNumberGenerator) -> CritCalculationResult
+}
 
-    /// Rolls the damage multiplier for a crit that landed on a defender
-    /// who successfully blocked. Uses the weighted distribution paired
-    /// with `GameMechanicsConstants.blockedCritMultiplierWeights` (most
-    /// mass on 1.0×, some on 1.25×, rare 0.75× / 1.5×, no 2.0× / 3.0×).
-    /// Invoked from `ElfSnapshotCombatCalculator` after a successful
-    /// block + crit-roll so the calculator can scale `PointStatus.critHit`
-    /// by the rolled value instead of a constant.
-    func selectBlockedCritMultiplier() -> Double
+public extension CritService {
+    /// Convenience: resolves `\.withRandomNumberGenerator` once and delegates.
+    func calculateCrit(power: Int16, instinct: Int16, attackerLevel: Int) -> CritCalculationResult {
+        @Dependency(\.withRandomNumberGenerator) var generator
+        return calculateCrit(power: power, instinct: instinct, attackerLevel: attackerLevel, using: generator)
+    }
 }

@@ -16,5 +16,4 @@ extension DependencyValues {
 
 private enum BattleRoundRunnerKey: DependencyKey {
     static var liveValue: any BattleRoundRunner { DefaultBattleRoundRunner() }
-    static var testValue: any BattleRoundRunner { liveValue }
 }

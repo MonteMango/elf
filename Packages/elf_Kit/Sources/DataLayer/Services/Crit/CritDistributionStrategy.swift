@@ -11,26 +11,29 @@ import Foundation
 ///
 /// Implementations should create a `CritDistribution` based on hero attributes,
 /// determining:
-/// - Minimum crit chance (power - instinct)
+/// - Minimum crit chance (`power − round(instinct × multiplier)`)
 /// - Maximum crit chance (power, cap at 100)
-/// - Range values and their triangular weights
+/// - Range values and their peak+linear-tail weights
 public protocol CritDistributionStrategy: Sendable {
 
     /// Creates a crit distribution based on attacker's power and defender's instinct
     ///
     /// **Formula**:
-    /// - Minimum = power - instinct (can be negative)
-    /// - Maximum = power (cap at 100)
+    /// - Minimum = `power − round(instinct × multiplier)` (can be negative)
+    /// - Maximum = `min(100, power)`
     /// - Range = minimum...maximum (inclusive)
     ///
-    /// **Triangular distribution**:
-    /// - Minimum has highest weight
-    /// - Maximum has lowest weight
-    /// - Weights: [n, n-1, n-2, ..., 2, 1]
+    /// **Peak + linear-tail distribution** (shape lives in
+    /// `PeakLinearTailDistribution`): one bucket gets the configured share
+    /// of probability mass (`GameMechanicsConstants.critPeakWeight`), the
+    /// remaining mass spreads with a linear falloff from the peak toward
+    /// both edges. Peak location is set by `critPeakPosition`.
     ///
     /// - Parameters:
     ///   - power: Attacker's total power attribute
     ///   - instinct: Defender's total instinct attribute
-    /// - Returns: Distribution with minimum, maximum, range values, and triangular weights
-    func distribution(power: Int16, instinct: Int16) -> CritDistribution
+    ///   - attackerLevel: Attacker's character level. Scales the intuition
+    ///     suppression multiplier — `base + perLevel × attackerLevel`.
+    /// - Returns: Distribution with minimum, maximum, range values, and peak+linear-tail weights
+    func distribution(power: Int16, instinct: Int16, attackerLevel: Int) -> CritDistribution
 }
