@@ -7,14 +7,6 @@
 
 import Foundation
 
-/// Identifies which game data repository a material originates from.
-public enum MaterialSource: String, Codable, Sendable, Hashable {
-    case monster
-    case fish
-    case herb
-    case ore
-}
-
 /// Represents a stackable material in the inventory.
 /// Materials are identified by their UUID and source repository.
 public struct InventoryMaterial: Sendable, Equatable, Codable, Identifiable, Hashable {

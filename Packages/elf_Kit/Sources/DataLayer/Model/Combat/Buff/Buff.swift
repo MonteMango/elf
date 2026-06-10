@@ -48,26 +48,3 @@ public struct Buff: Sendable, Identifiable, Codable, Hashable {
         self.effects = effects
     }
 }
-
-/// Whether the buff is helpful (`positive`) or harmful (`negative`).
-public enum BuffPolarity: String, Codable, Sendable, Hashable {
-    case positive
-    case negative
-}
-
-/// Where the buff lives. `.global` persists on the elf across battles; `.battle`
-/// exists only inside one `Battle` and is discarded with the snapshot.
-public enum BuffScope: String, Codable, Sendable, Hashable {
-    case battle
-    case global
-}
-
-/// How re-applying the same buff to an already-affected elf is handled.
-/// - `.refresh`: keep one instance, reset its `appliedOnDay`.
-/// - `.stack`: increment the existing instance's `stacks` (effects sum additively).
-/// - `.ignore`: do nothing if already applied.
-public enum BuffStackingRule: String, Codable, Sendable, Hashable {
-    case refresh
-    case stack
-    case ignore
-}
