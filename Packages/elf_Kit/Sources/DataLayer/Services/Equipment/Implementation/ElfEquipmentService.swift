@@ -1,5 +1,5 @@
 //
-//  DefaultEquipmentService.swift
+//  ElfEquipmentService.swift
 //  elf_Kit
 //
 //  Created by Vitalii Lytvynov on 03.01.26.
@@ -9,43 +9,43 @@ import Dependencies
 import Foundation
 
 /// Default implementation of `EquipmentService`.
-/// Reads inventory directly from `store.player.inventory` and writes back via
-/// `store.player.equipped = …`, which the settable computed accessor on
-/// `GameStore` flows into `houses[…].members[…]`. `@Observable` invalidates
-/// SwiftUI observers reading any chain through `houses`.
-@MainActor
-public final class DefaultEquipmentService: EquipmentService {
+///
+/// Stateless, pure transforms over `EquippedItems`. Each method reads from the
+/// supplied `equipped` (and `inventory` where a lookup is needed) and returns a
+/// new `EquippedItems`; the caller (`GameSession`) writes the result back into
+/// `state.player.equipped`, which `@Observable` propagates to SwiftUI.
+public final class ElfEquipmentService: EquipmentService {
 
-    // MARK: - Dependencies (snapshotted at init)
+    // MARK: - Dependencies
 
-    private let store: GameStore
-    private let itemsRepository: any ItemsRepository
+    // Resolved lazily on purpose: `itemsRepository` has a `fatalError` live
+    // value (it is bootstrapped from async-loaded game data) and is only needed
+    // by `equipArmor`. A stored `@Dependency` captures the context at init but
+    // defers the read to first use, so constructing the service — e.g. when
+    // `GameSession` resolves it at init — never forces the repository unless an
+    // armor slot is actually touched.
+    @Dependency(\.itemsRepository) private var itemsRepository
 
     // MARK: - Initialization
 
-    public init(store: GameStore) {
-        @Dependency(\.itemsRepository) var itemsRepository
-        self.itemsRepository = itemsRepository
-
-        self.store = store
-    }
+    public init() {}
 
     // MARK: - Weapon
 
-    public func equipWeapon(id: OwnedItemID) {
-        guard let weapon = store.player.inventory.weapons.first(where: { $0.id == id }),
-              let weaponItem = weapon.item as? WeaponItem else { return }
+    public func equipWeapon(id: OwnedItemID, in equipped: EquippedItems, inventory: ElfInventory) -> EquippedItems {
+        guard let weapon = inventory.weapons.first(where: { $0.id == id }),
+              let weaponItem = weapon.item as? WeaponItem else { return equipped }
 
-        var equipped = store.player.equipped
+        var equipped = equipped
         let currentConfig = equipped.weapons
 
         switch weaponItem.handUse {
         case .both:
-            guard let twoHanded = ElfTwoHandedWeaponItem(weapon: weapon) else { return }
+            guard let twoHanded = ElfTwoHandedWeaponItem(weapon: weapon) else { return equipped }
             equipped.weapons = .twoHanded(weapon: twoHanded)
 
         case .oneHand:
-            guard let oneHanded = ElfOneHandedWeaponItem(weapon: weapon) else { return }
+            guard let oneHanded = ElfOneHandedWeaponItem(weapon: weapon) else { return equipped }
             switch currentConfig {
             case .oneHanded(let existingPrimary):
                 // Player already has a one-hander: equipping another one-hander auto-promotes
@@ -59,16 +59,16 @@ public final class DefaultEquipmentService: EquipmentService {
                 equipped.weapons = .oneHanded(weapon: oneHanded)
             }
         }
-        store.player.equipped = equipped
+        return equipped
     }
 
-    public func equipOffhandWeapon(id: OwnedItemID) {
-        guard let weapon = store.player.inventory.weapons.first(where: { $0.id == id }),
+    public func equipOffhandWeapon(id: OwnedItemID, in equipped: EquippedItems, inventory: ElfInventory) -> EquippedItems {
+        guard let weapon = inventory.weapons.first(where: { $0.id == id }),
               let weaponItem = weapon.item as? WeaponItem,
               weaponItem.handUse == .oneHand,
-              let oneHanded = ElfOneHandedWeaponItem(weapon: weapon) else { return }
+              let oneHanded = ElfOneHandedWeaponItem(weapon: weapon) else { return equipped }
 
-        var equipped = store.player.equipped
+        var equipped = equipped
         switch equipped.weapons {
         case .oneHanded(let primary), .dualWield(let primary, _):
             equipped.weapons = .dualWield(primary: primary, secondary: oneHanded)
@@ -79,27 +79,27 @@ public final class DefaultEquipmentService: EquipmentService {
             // weapon becomes the sole one-hander — preserves "at least one weapon equipped".
             equipped.weapons = .oneHanded(weapon: oneHanded)
         }
-        store.player.equipped = equipped
+        return equipped
     }
 
-    public func unequipWeapon(id: OwnedItemID) {
-        var equipped = store.player.equipped
-        guard case .dualWield(let primary, let secondary) = equipped.weapons else { return }
+    public func unequipWeapon(id: OwnedItemID, in equipped: EquippedItems) -> EquippedItems {
+        var equipped = equipped
+        guard case .dualWield(let primary, let secondary) = equipped.weapons else { return equipped }
 
         if primary.id == id {
             equipped.weapons = .oneHanded(weapon: secondary)
         } else {
             equipped.weapons = .oneHanded(weapon: primary)
         }
-        store.player.equipped = equipped
+        return equipped
     }
 
     // MARK: - Shield
 
-    public func equipShield(id: OwnedItemID) {
-        guard let shield = store.player.inventory.shields.first(where: { $0.id == id }) else { return }
+    public func equipShield(id: OwnedItemID, in equipped: EquippedItems, inventory: ElfInventory) -> EquippedItems {
+        guard let shield = inventory.shields.first(where: { $0.id == id }) else { return equipped }
 
-        var equipped = store.player.equipped
+        var equipped = equipped
         switch equipped.weapons {
         case .oneHanded(let weapon), .oneHandedWithShield(let weapon, _):
             equipped.weapons = .oneHandedWithShield(weapon: weapon, shield: shield)
@@ -109,65 +109,60 @@ public final class DefaultEquipmentService: EquipmentService {
         case .twoHanded:
             // No one-handed primary to pair with: the type system forbids `.oneHandedWithShield`
             // without a one-handed weapon. Player must first swap the two-hander for a one-hander.
-            return
+            return equipped
         }
-        store.player.equipped = equipped
+        return equipped
     }
 
-    public func unequipShield() {
-        var equipped = store.player.equipped
-        guard case .oneHandedWithShield(let weapon, _) = equipped.weapons else { return }
+    public func unequipShield(in equipped: EquippedItems) -> EquippedItems {
+        var equipped = equipped
+        guard case .oneHandedWithShield(let weapon, _) = equipped.weapons else { return equipped }
         equipped.weapons = .oneHanded(weapon: weapon)
-        store.player.equipped = equipped
+        return equipped
     }
 
     // MARK: - Armor
 
-    public func equipArmor(id: OwnedItemID) {
-        let inventory = store.player.inventory
-
+    public func equipArmor(id: OwnedItemID, in equipped: EquippedItems, inventory: ElfInventory) -> EquippedItems {
         if let robe = inventory.robes.first(where: { $0.id == id }) {
-            var equipped = store.player.equipped
+            var equipped = equipped
             equipped.shirt = robe
-            store.player.equipped = equipped
-            return
+            return equipped
         }
 
         guard let armor = inventory.armor.first(where: { $0.id == id }),
               let defenseItem = armor.item as? DefenseItem,
-              let slot = itemsRepository.armorSlot(for: defenseItem.id) else { return }
+              let slot = itemsRepository.armorSlot(for: defenseItem.id) else { return equipped }
 
-        var equipped = store.player.equipped
-        Self.setArmor(armor, slot: slot, on: &equipped)
-        store.player.equipped = equipped
+        var equipped = equipped
+        setArmor(armor, slot: slot, on: &equipped)
+        return equipped
     }
 
-    public func unequipArmor(id: OwnedItemID) {
-        var equipped = store.player.equipped
+    public func unequipArmor(id: OwnedItemID, in equipped: EquippedItems) -> EquippedItems {
+        var equipped = equipped
         if equipped.shirt?.id == id {
             equipped.shirt = nil
         } else if equipped.helmet?.id == id {
-            Self.setArmor(nil, slot: .helmet, on: &equipped)
+            setArmor(nil, slot: .helmet, on: &equipped)
         } else if equipped.gloves?.id == id {
-            Self.setArmor(nil, slot: .gloves, on: &equipped)
+            setArmor(nil, slot: .gloves, on: &equipped)
         } else if equipped.shoes?.id == id {
-            Self.setArmor(nil, slot: .shoes, on: &equipped)
+            setArmor(nil, slot: .shoes, on: &equipped)
         } else if equipped.upperBody?.id == id {
-            Self.setArmor(nil, slot: .upperBody, on: &equipped)
+            setArmor(nil, slot: .upperBody, on: &equipped)
         } else if equipped.bottomBody?.id == id {
-            Self.setArmor(nil, slot: .bottomBody, on: &equipped)
-        } else {
-            return
+            setArmor(nil, slot: .bottomBody, on: &equipped)
         }
-        store.player.equipped = equipped
+        return equipped
     }
 
     // MARK: - Jewelry
 
-    public func equipJewelry(id: OwnedItemID) {
-        guard let jewelry = store.player.inventory.jewelry.first(where: { $0.id == id }) else { return }
+    public func equipJewelry(id: OwnedItemID, in equipped: EquippedItems, inventory: ElfInventory) -> EquippedItems {
+        guard let jewelry = inventory.jewelry.first(where: { $0.id == id }) else { return equipped }
 
-        var equipped = store.player.equipped
+        var equipped = equipped
         if equipped.ring == nil {
             equipped.ring = jewelry
         } else if equipped.necklace == nil {
@@ -177,26 +172,24 @@ public final class DefaultEquipmentService: EquipmentService {
         } else {
             equipped.ring = jewelry
         }
-        store.player.equipped = equipped
+        return equipped
     }
 
-    public func unequipJewelry(id: OwnedItemID) {
-        var equipped = store.player.equipped
+    public func unequipJewelry(id: OwnedItemID, in equipped: EquippedItems) -> EquippedItems {
+        var equipped = equipped
         if equipped.ring?.id == id {
             equipped.ring = nil
         } else if equipped.necklace?.id == id {
             equipped.necklace = nil
         } else if equipped.earrings?.id == id {
             equipped.earrings = nil
-        } else {
-            return
         }
-        store.player.equipped = equipped
+        return equipped
     }
 
     // MARK: - Private Helpers
 
-    private static func setArmor(_ armor: ElfDefenseItem?, slot: ArmorSlot, on equipped: inout EquippedItems) {
+    private func setArmor(_ armor: ElfDefenseItem?, slot: ArmorSlot, on equipped: inout EquippedItems) {
         switch slot {
         case .helmet:
             equipped.helmet = armor

@@ -15,7 +15,6 @@ public final class InventoryViewModel {
     // MARK: - Dependencies (snapshotted at init)
 
     let session: GameSession
-    let equipmentService: any EquipmentService
     let materialRepository: any Repository<Material>
     let fishRepository: any Repository<Fish>
     let herbRepository: any Repository<Herb>
@@ -97,7 +96,6 @@ public final class InventoryViewModel {
         self.equipmentQueryService = equipmentQueryService
 
         self.session = session
-        self.equipmentService = DefaultEquipmentService(store: session.state)
     }
 
     // MARK: - Actions

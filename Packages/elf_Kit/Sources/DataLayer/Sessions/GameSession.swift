@@ -220,11 +220,80 @@ public final class GameSession {
         return true
     }
 
+    // MARK: - Equipment
+
+    // Resolved lazily at point of use (not snapshotted in `init`): the equip
+    // methods are the only place it is needed, so most `GameSession` tests never
+    // touch it. That lets the dependency stay without a `testValue` — a test that
+    // exercises an equip path without wiring it fails loudly ("no test
+    // implementation") instead of silently using a stub.
+    private var equipmentService: any EquipmentService {
+        @Dependency(\.equipmentService) var equipmentService
+        return equipmentService
+    }
+
+    // Each method reads the player's current `equipped` (+ `inventory` where a
+    // lookup is needed), delegates the pure transform to `equipmentService`, and
+    // writes the result back — `@Observable` on `houses` then invalidates any
+    // SwiftUI view reading the equipped chain. No-op transforms write back an
+    // unchanged value (harmless).
+
+    public func equipWeapon(id: OwnedItemID) {
+        let player = state.player
+        state.player.equipped = equipmentService.equipWeapon(
+            id: id, in: player.equipped, inventory: player.inventory
+        )
+    }
+
+    public func equipOffhandWeapon(id: OwnedItemID) {
+        let player = state.player
+        state.player.equipped = equipmentService.equipOffhandWeapon(
+            id: id, in: player.equipped, inventory: player.inventory
+        )
+    }
+
+    public func unequipWeapon(id: OwnedItemID) {
+        state.player.equipped = equipmentService.unequipWeapon(id: id, in: state.player.equipped)
+    }
+
+    public func equipShield(id: OwnedItemID) {
+        let player = state.player
+        state.player.equipped = equipmentService.equipShield(
+            id: id, in: player.equipped, inventory: player.inventory
+        )
+    }
+
+    public func unequipShield() {
+        state.player.equipped = equipmentService.unequipShield(in: state.player.equipped)
+    }
+
+    public func equipArmor(id: OwnedItemID) {
+        let player = state.player
+        state.player.equipped = equipmentService.equipArmor(
+            id: id, in: player.equipped, inventory: player.inventory
+        )
+    }
+
+    public func unequipArmor(id: OwnedItemID) {
+        state.player.equipped = equipmentService.unequipArmor(id: id, in: state.player.equipped)
+    }
+
+    public func equipJewelry(id: OwnedItemID) {
+        let player = state.player
+        state.player.equipped = equipmentService.equipJewelry(
+            id: id, in: player.equipped, inventory: player.inventory
+        )
+    }
+
+    public func unequipJewelry(id: OwnedItemID) {
+        state.player.equipped = equipmentService.unequipJewelry(id: id, in: state.player.equipped)
+    }
+
     // MARK: - Persistence
 
+    // TODO: [persistence/P0] Coalesce/debounce rapid save() calls.
     /// Saves the active game state. Snapshots the store on the main thread,
     /// then offloads disk I/O to the repository (background actor).
-    // TODO: [persistence/P0] Coalesce/debounce rapid save() calls.
     public func save() async throws {
         let snap = state.snapshot()
         let time = state.playTime

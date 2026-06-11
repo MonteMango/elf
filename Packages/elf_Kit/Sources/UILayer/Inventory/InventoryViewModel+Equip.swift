@@ -17,23 +17,23 @@ extension InventoryViewModel {
             // Shields sub-tab carries off-hand intent: any one-handed weapon tapped here
             // goes into the off-hand slot, forming a dual-wield. Other tabs go to main hand.
             if selectedWeaponSubcategory == .shields {
-                equipmentService.equipOffhandWeapon(id: OwnedItemID(rawValue: item.id))
+                session.equipOffhandWeapon(id: OwnedItemID(rawValue: item.id))
             } else {
-                equipmentService.equipWeapon(id: OwnedItemID(rawValue: item.id))
+                session.equipWeapon(id: OwnedItemID(rawValue: item.id))
             }
-        case .shield:  equipmentService.equipShield(id: OwnedItemID(rawValue: item.id))
-        case .armor:   equipmentService.equipArmor(id: OwnedItemID(rawValue: item.id))
-        case .jewelry: equipmentService.equipJewelry(id: OwnedItemID(rawValue: item.id))
+        case .shield:  session.equipShield(id: OwnedItemID(rawValue: item.id))
+        case .armor:   session.equipArmor(id: OwnedItemID(rawValue: item.id))
+        case .jewelry: session.equipJewelry(id: OwnedItemID(rawValue: item.id))
         default:       break
         }
     }
 
     func unequipItem(_ item: InventoryItemDisplay) {
         switch item.itemDetails {
-        case .weapon:  equipmentService.unequipWeapon(id: OwnedItemID(rawValue: item.id))
-        case .shield:  equipmentService.unequipShield()
-        case .armor:   equipmentService.unequipArmor(id: OwnedItemID(rawValue: item.id))
-        case .jewelry: equipmentService.unequipJewelry(id: OwnedItemID(rawValue: item.id))
+        case .weapon:  session.unequipWeapon(id: OwnedItemID(rawValue: item.id))
+        case .shield:  session.unequipShield()
+        case .armor:   session.unequipArmor(id: OwnedItemID(rawValue: item.id))
+        case .jewelry: session.unequipJewelry(id: OwnedItemID(rawValue: item.id))
         default:       break
         }
     }
