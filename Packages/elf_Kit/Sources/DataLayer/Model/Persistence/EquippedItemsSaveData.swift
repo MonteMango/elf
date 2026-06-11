@@ -10,7 +10,7 @@ import Foundation
 // MARK: - Default Weapon Constants
 
 /// Default weapon ID (Recruit's Spear) used when no weapon is available
-private let defaultWeaponId = UUID(uuidString: "dfbd2742-5470-4f97-84ea-fb17b5f3a6d2")!
+private let defaultWeaponId = ItemID(rawValue: UUID(uuidString: "dfbd2742-5470-4f97-84ea-fb17b5f3a6d2")!)
 
 /// Creates the default weapon configuration using the repository
 private func createDefaultWeaponConfig(using repository: ItemsRepository) -> WeaponConfiguration {

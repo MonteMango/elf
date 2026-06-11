@@ -15,7 +15,7 @@ final class ElfArmorServiceTests: XCTestCase {
     // MARK: - Фейковый предмет, соответствующий протоколам
     
     struct TestItem: Item, HasPhysicalDefense {
-        let id: UUID
+        let id: ItemID
         let title: String
         let tier: Int16
 
@@ -32,7 +32,7 @@ final class ElfArmorServiceTests: XCTestCase {
         let protectParts: [BodyPart]
 
         init(
-            id: UUID = UUID(),
+            id: ItemID = ItemID(),
             title: String,
             tier: Int16,
             physicalDefensePoint: Int16,
@@ -66,7 +66,7 @@ final class ElfArmorServiceTests: XCTestCase {
     // MARK: - Тесты
     
     func testSingleItemReturnsCorrectArmor() async throws {
-        let id = UUID()
+        let id = ItemID()
         let item = TestItem(
             id: id,
             title: "Helmet",
@@ -93,8 +93,8 @@ final class ElfArmorServiceTests: XCTestCase {
     }
 
     func testMultipleItemsAddArmorTogether() async throws {
-        let id1 = UUID()
-        let id2 = UUID()
+        let id1 = ItemID()
+        let id2 = ItemID()
 
         let item1 = TestItem(
             id: id1,
@@ -132,7 +132,7 @@ final class ElfArmorServiceTests: XCTestCase {
 
     func testNonDefensiveItemIsIgnored() async throws {
         struct NonDefenseItem: Item {
-            let id: UUID
+            let id: ItemID
             let title: String
             let tier: Int16
 
@@ -146,7 +146,7 @@ final class ElfArmorServiceTests: XCTestCase {
             var manaPoints: Int16? = nil
         }
 
-        let id = UUID()
+        let id = ItemID()
         let item = NonDefenseItem(id: id, title: "Ring", tier: 1)
 
         let repository = FakeItemsRepository()
@@ -163,7 +163,7 @@ final class ElfArmorServiceTests: XCTestCase {
     }
 
     func testMissingItemIsIgnored() async throws {
-        let id = UUID() // не добавлен в items
+        let id = ItemID() // не добавлен в items
 
         let repository = FakeItemsRepository()
 

@@ -10,24 +10,24 @@ import Foundation
 /// Static dungeon definition loaded from `Dungeons.json`. Per-run state
 /// (alive members, current room) lives separately and references this by `id`.
 public struct Dungeon: Codable, Sendable, Identifiable, Equatable, Hashable {
-    public let id: UUID
+    public let id: DungeonID
     public let title: String
     public let description: String
     public let type: DungeonType
     public let world: WorldType
     public let backgroundImageName: String
     /// Entry rooms. `onePath`/`splitPath`: one entry. `randomPath`: 16 stage-1 rooms.
-    public let entryRoomIds: [UUID]
+    public let entryRoomIds: [DungeonRoomID]
     public let rooms: [DungeonRoom]
 
     public init(
-        id: UUID,
+        id: DungeonID,
         title: String,
         description: String,
         type: DungeonType,
         world: WorldType,
         backgroundImageName: String,
-        entryRoomIds: [UUID],
+        entryRoomIds: [DungeonRoomID],
         rooms: [DungeonRoom]
     ) {
         self.id = id
@@ -40,7 +40,7 @@ public struct Dungeon: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.rooms = rooms
     }
 
-    public func room(id: UUID) -> DungeonRoom? {
+    public func room(id: DungeonRoomID) -> DungeonRoom? {
         rooms.first { $0.id == id }
     }
 }

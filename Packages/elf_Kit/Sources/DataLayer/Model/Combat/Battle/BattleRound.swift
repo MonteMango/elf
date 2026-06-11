@@ -19,17 +19,17 @@ public struct BattleRound: Sendable, Identifiable, Hashable {
     public let duelPairs: [DuelPair]
 
     /// IDs of left team combatants waiting without a pair (when teams are unequal)
-    public let waitingLeftIds: [UUID]
+    public let waitingLeftIds: [CombatantID]
 
     /// IDs of right team combatants waiting without a pair (when teams are unequal)
-    public let waitingRightIds: [UUID]
+    public let waitingRightIds: [CombatantID]
 
     public init(
         id: UUID = UUID(),
         roundNumber: Int,
         duelPairs: [DuelPair],
-        waitingLeftIds: [UUID] = [],
-        waitingRightIds: [UUID] = []
+        waitingLeftIds: [CombatantID] = [],
+        waitingRightIds: [CombatantID] = []
     ) {
         self.id = id
         self.roundNumber = roundNumber

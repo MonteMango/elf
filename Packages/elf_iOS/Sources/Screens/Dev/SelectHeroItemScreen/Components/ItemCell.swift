@@ -18,7 +18,7 @@ internal struct ItemCell: View {
         let _ = Self._printChanges()
         #endif
         // Item image
-        Image("card_\(item.id.uuidString.lowercased())")
+        Image("card_\(item.id.rawValue.uuidString.lowercased())")
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(width: 150, height: 240)
@@ -59,7 +59,7 @@ internal struct ItemCell: View {
 
 #Preview("Selected") {
     struct MockItem: Item {
-        let id: UUID
+        let id: ItemID
         let title: String
         let tier: Int16
         var isUnique: Bool?
@@ -73,7 +73,7 @@ internal struct ItemCell: View {
     }
 
     let mockItem = MockItem(
-        id: UUID(),
+        id: ItemID(),
         title: "Dragon Helmet",
         tier: 3,
         strength: 15,
@@ -87,7 +87,7 @@ internal struct ItemCell: View {
 
 #Preview("Not Selected") {
     struct MockItem: Item {
-        let id: UUID
+        let id: ItemID
         let title: String
         let tier: Int16
         var isUnique: Bool?
@@ -101,7 +101,7 @@ internal struct ItemCell: View {
     }
 
     let mockItem = MockItem(
-        id: UUID(),
+        id: ItemID(),
         title: "Legendary Helmet",
         tier: 4,
         isUnique: true,

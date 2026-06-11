@@ -11,10 +11,10 @@ import Foundation
 // Thread-safe: All stored properties are immutable (let) after initialization.
 // `id` is UUID (value type), `item` is Item protocol but implementations are reference-immutable.
 public final class ElfJewelryItem: ElfItem, Hashable, Equatable, @unchecked Sendable {
-    public let id: UUID
+    public let id: OwnedItemID
     public let item: Item
 
-    public init(id: UUID, item: Item) {
+    public init(id: OwnedItemID, item: Item) {
         self.id = id
         self.item = item
     }

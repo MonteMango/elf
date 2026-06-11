@@ -8,20 +8,19 @@
 import Foundation
 
 /// Represents a stackable material in the inventory.
-/// Materials are identified by their UUID and source repository.
+/// Identified by a type-safe `MaterialRef` (fish / herb / ore / monster-drop).
 public struct InventoryMaterial: Sendable, Equatable, Codable, Identifiable, Hashable {
-    /// Material ID (UUID from the corresponding source repository)
-    public let id: UUID
-
-    /// Which repository this material comes from
-    public let source: MaterialSource
+    /// Type-safe reference to the source catalog entry.
+    public let ref: MaterialRef
 
     /// Quantity of this material (stackable)
     public var quantity: Int
 
-    public init(id: UUID, source: MaterialSource, quantity: Int = 1) {
-        self.id = id
-        self.source = source
+    /// `Identifiable` by the (unique-per-stack) material reference.
+    public var id: MaterialRef { ref }
+
+    public init(ref: MaterialRef, quantity: Int = 1) {
+        self.ref = ref
         self.quantity = quantity
     }
 }

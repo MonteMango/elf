@@ -13,7 +13,7 @@ import Foundation
 /// tests that need to seed it. Replaces the per-file copies that had to be
 /// hand-edited in lockstep whenever the protocol changed.
 final class FakeItemsRepository: ItemsRepository, @unchecked Sendable {
-    nonisolated(unsafe) var items: [UUID: Item] = [:]
+    nonisolated(unsafe) var items: [ItemID: Item] = [:]
     nonisolated(unsafe) var heroItems: HeroItems = HeroItems(
         version: "1.0.0-test",
         helmets: [], gloves: [], shoes: [],
@@ -22,7 +22,7 @@ final class FakeItemsRepository: ItemsRepository, @unchecked Sendable {
         rings: [], necklaces: [], earrings: []
     )
 
-    func getHeroItem(_ id: UUID) -> Item? { items[id] }
+    func getHeroItem(_ id: ItemID) -> Item? { items[id] }
     func getItems(for type: HeroItemType) -> [Item] { [] }
-    func armorSlot(for itemId: UUID) -> ArmorSlot? { nil }
+    func armorSlot(for itemId: ItemID) -> ArmorSlot? { nil }
 }

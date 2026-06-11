@@ -22,9 +22,9 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
     /// down which slots contribute to armor calculation.
     final class MockArmorService: ArmorService, @unchecked Sendable {
         nonisolated(unsafe) var armorToReturn: [BodyPart: Int16] = [:]
-        nonisolated(unsafe) var lastRequestedIds: [UUID] = []
+        nonisolated(unsafe) var lastRequestedIds: [ItemID] = []
 
-        func getAllItemsArmor(for itemIds: [UUID]) -> [BodyPart: Int16] {
+        func getAllItemsArmor(for itemIds: [ItemID]) -> [BodyPart: Int16] {
             lastRequestedIds = itemIds
             return armorToReturn
         }
@@ -113,7 +113,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
     func testBuildSnapshot_FromMonster_SetsCorrectValues() {
         // Given
         let monster = Monster(
-            id: UUID(),
+            id: MonsterID(),
             title: "Goblin",
             imageName: "monster_goblin",
             expReward: [ChanceAmount(amount: 10, chance: 1.0)],
@@ -155,7 +155,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
     func testBuildSnapshot_FromMonster_MapsArmorCorrectly() {
         // Given
         let monster = Monster(
-            id: UUID(),
+            id: MonsterID(),
             title: "Test",
             imageName: "",
             expReward: [],
@@ -189,7 +189,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
 
     func testBuildSnapshot_FromMonster_PreservesSourceId() {
         // Given
-        let monsterId = UUID()
+        let monsterId = MonsterID()
         let monster = Monster(
             id: monsterId,
             title: "Test",
@@ -212,7 +212,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
         let snapshot = builder.buildSnapshot(from: monster, globalBuffs: [])
 
         // Then
-        XCTAssertEqual(snapshot.sourceId, monsterId)
+        XCTAssertEqual(snapshot.source, .monster(monsterId))
     }
 
     // MARK: - Elf Snapshot Tests
@@ -317,7 +317,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
         let elfWeapon = ElfWeaponItem(weaponItem: weapon)
         let oneHanded = try XCTUnwrap(ElfOneHandedWeaponItem(weapon: elfWeapon))
         let shieldBase = try makeShieldItem()
-        let shield = ElfShieldItem(id: shieldBase.id, item: shieldBase)
+        let shield = ElfShieldItem(id: OwnedItemID(), item: shieldBase)
         let equipped = EquippedItems(weapons: .oneHandedWithShield(weapon: oneHanded, shield: shield))
 
         // When
@@ -397,7 +397,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
         let elfWeapon = ElfWeaponItem(weaponItem: weapon)
         let oneHanded = try XCTUnwrap(ElfOneHandedWeaponItem(weapon: elfWeapon))
         let shieldBase = try makeShieldItem()
-        let shield = ElfShieldItem(id: shieldBase.id, item: shieldBase)
+        let shield = ElfShieldItem(id: OwnedItemID(), item: shieldBase)
         let equipped = EquippedItems(weapons: .oneHandedWithShield(weapon: oneHanded, shield: shield))
 
         // When
@@ -409,7 +409,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             "Primary weapon must not be sent to armor service"
         )
         XCTAssertTrue(
-            mockArmorService.lastRequestedIds.contains(shield.id),
+            mockArmorService.lastRequestedIds.contains(shield.item.id),
             "Shield must reach the armor service"
         )
     }
@@ -533,7 +533,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
         }
 
         let monster = Monster(
-            id: UUID(),
+            id: MonsterID(),
             title: "Boss",
             imageName: "boss",
             expReward: [],
@@ -549,7 +549,7 @@ final class DefaultCombatantSnapshotBuilderTests: XCTestCase {
             partsProtection: PartsProtection(head: 0, left: 0, center: 0, right: 0, legs: 0),
             drops: MonsterDrops(weapons: [], armor: [], materials: [])
         )
-        let preApplied = AppliedBuff(buffId: UUID(), appliedOnDay: 1)
+        let preApplied = AppliedBuff(buffId: BuffID(), appliedOnDay: 1)
 
         let snapshot: CombatantSnapshot = withDependencies {
             $0.armorService = mockArmorService

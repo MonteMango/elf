@@ -10,10 +10,10 @@ import Foundation
 /// DTO for saving jewelry items to disk.
 public struct JewelrySaveData: Codable, Sendable, Equatable {
     /// Unique instance ID
-    public let id: UUID
+    public let id: OwnedItemID
 
     /// Base item ID from HeroItems.json
-    public let itemId: UUID
+    public let itemId: ItemID
 
     /// Create from ElfJewelryItem
     public init(from jewelry: ElfJewelryItem) {

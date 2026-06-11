@@ -51,7 +51,7 @@ final class ElfCombatRoundExecutorTests: XCTestCase {
     final class StubDamageService: DamageService, @unchecked Sendable {
         func getRandomStrengthDamage(_ strengthAttribute: Int16, using generator: WithRandomNumberGenerator) -> Int16 { 0 }
         func getRandomDamageReduction(stat: Int16, coefficient: Double, using generator: WithRandomNumberGenerator) -> Int16 { 0 }
-        func getWeaponDamage(weaponId: UUID?) -> (minDmg: Int16, maxDmg: Int16)? { nil }
+        func getWeaponDamage(weaponId: ItemID?) -> (minDmg: Int16, maxDmg: Int16)? { nil }
         func calculateTotalDamage(from pointStatus: [BodyPart: PointStatus]) -> Int {
             pointStatus.values.reduce(0) { $0 + $1.damageTakenValue }
         }
@@ -61,8 +61,8 @@ final class ElfCombatRoundExecutorTests: XCTestCase {
 
     private func snapshot(named name: String) -> CombatantSnapshot {
         CombatantSnapshot(
-            id: UUID(),
-            sourceId: UUID(),
+            id: CombatantID(),
+            source: .synthetic,
             name: name,
             imageName: "",
             combatantType: .elf,

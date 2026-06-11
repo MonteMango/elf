@@ -9,12 +9,12 @@ import Foundation
 
 /// Represents a single game day
 public struct GameDay: Sendable, Identifiable, Equatable, Codable {
-    public let id: UUID
+    public let id: GameDayID
     public let dayNumber: Int
     public let dayType: DayType
 
     public init(
-        id: UUID = UUID(),
+        id: GameDayID = GameDayID(),
         dayNumber: Int,
         dayType: DayType
     ) {

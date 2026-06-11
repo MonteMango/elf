@@ -242,7 +242,7 @@ internal struct BattleFightScreen: View {
     @Previewable @State var coordinator: AppCoordinator?
 
     let elfA = CombatantSnapshot(
-        sourceId: UUID(),
+        source: .synthetic,
         name: "Player Elf",
         imageName: "elf_player",
         combatantType: .elf,
@@ -267,7 +267,7 @@ internal struct BattleFightScreen: View {
     )
 
     let elfB = CombatantSnapshot(
-        sourceId: UUID(),
+        source: .synthetic,
         name: "Elf B",
         imageName: "elf_player",
         combatantType: .elf,
@@ -286,7 +286,7 @@ internal struct BattleFightScreen: View {
     )
 
     let elfC = CombatantSnapshot(
-        sourceId: UUID(),
+        source: .synthetic,
         name: "Elf C",
         imageName: "elf_player",
         combatantType: .elf,
@@ -305,7 +305,7 @@ internal struct BattleFightScreen: View {
     )
 
     let goblinD = CombatantSnapshot(
-        sourceId: UUID(),
+        source: .synthetic,
         name: "Goblin D",
         imageName: "monster_goblin",
         combatantType: .monster,
@@ -324,7 +324,7 @@ internal struct BattleFightScreen: View {
     )
 
     let goblinE = CombatantSnapshot(
-        sourceId: UUID(),
+        source: .synthetic,
         name: "Goblin E",
         imageName: "monster_goblin",
         combatantType: .monster,

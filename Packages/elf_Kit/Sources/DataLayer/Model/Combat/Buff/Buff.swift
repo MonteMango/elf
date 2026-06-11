@@ -14,7 +14,7 @@ import Foundation
 /// (.battle scope), each carrying an ID-Reference (`buffId`) back to this type.
 public struct Buff: Sendable, Identifiable, Codable, Hashable {
 
-    public let id: UUID
+    public let id: BuffID
     public let title: String
     public let imageName: String
     public let description: String
@@ -27,7 +27,7 @@ public struct Buff: Sendable, Identifiable, Codable, Hashable {
     public let effects: [BuffEffect]
 
     public init(
-        id: UUID,
+        id: BuffID,
         title: String,
         imageName: String,
         description: String,

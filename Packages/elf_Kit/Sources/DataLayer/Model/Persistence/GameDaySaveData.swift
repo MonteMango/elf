@@ -8,7 +8,7 @@
 import Foundation
 
 public struct GameDaySaveData: Codable, Sendable {
-    public let id: UUID
+    public let id: GameDayID
     public let dayNumber: Int
     public let dayType: DayType
 

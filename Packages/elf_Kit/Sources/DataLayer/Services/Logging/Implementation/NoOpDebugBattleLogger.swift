@@ -64,7 +64,7 @@ public struct NoOpDebugBattleLogger: DebugBattleLogger {
         roundNumber: Int,
         leftTeam: [CombatantSnapshot],
         rightTeam: [CombatantSnapshot],
-        playerCombatantId: UUID?,
+        playerCombatantId: CombatantID?,
         battleRound: BattleRound?
     ) {}
 }

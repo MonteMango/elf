@@ -31,8 +31,8 @@ public struct PairResult: Sendable {
     public let rightNewHP: Int
     public let isHeroPair: Bool
 
-    public var leftCombatantId: UUID { leftSnapshot.id }
-    public var rightCombatantId: UUID { rightSnapshot.id }
+    public var leftCombatantId: CombatantID { leftSnapshot.id }
+    public var rightCombatantId: CombatantID { rightSnapshot.id }
 
     public init(
         pair: DuelPair,

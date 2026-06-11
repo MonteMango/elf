@@ -54,16 +54,16 @@ public final class ElfInventoryService: InventoryService {
     public func addCraftedItem(_ item: Item, to inventory: ElfInventory) -> ElfInventory {
         switch item {
         case let weapon as WeaponItem:
-            let elfWeapon = ElfWeaponItem(id: UUID(), item: weapon, enchantLevel: 0)
+            let elfWeapon = ElfWeaponItem(id: OwnedItemID(), item: weapon, enchantLevel: 0)
             return addWeapon(elfWeapon, to: inventory)
         case let defense as DefenseItem:
-            let elfArmor = ElfDefenseItem(id: UUID(), item: defense)
+            let elfArmor = ElfDefenseItem(id: OwnedItemID(), item: defense)
             return addArmor(elfArmor, to: inventory)
         case let shield as ShieldItem:
-            let elfShield = ElfShieldItem(id: UUID(), item: shield)
+            let elfShield = ElfShieldItem(id: OwnedItemID(), item: shield)
             return addShield(elfShield, to: inventory)
         case let robe as RobeItem:
-            let elfRobe = ElfRobeItem(id: UUID(), item: robe)
+            let elfRobe = ElfRobeItem(id: OwnedItemID(), item: robe)
             return addRobe(elfRobe, to: inventory)
         default:
             return inventory
@@ -77,10 +77,13 @@ public final class ElfInventoryService: InventoryService {
 
         var newInventory = inventory
 
-        if let index = newInventory.materials.firstIndex(where: { $0.id == id }) {
+        let ref = MaterialRef(id: id, source: source)
+        // Dedup by underlying id only (source-blind), matching the craft layer
+        // (`DefaultCraftService`) and pre-migration behavior.
+        if let index = newInventory.materials.firstIndex(where: { $0.ref.rawValue == ref.rawValue }) {
             newInventory.materials[index].quantity += quantity
         } else {
-            newInventory.materials.append(InventoryMaterial(id: id, source: source, quantity: quantity))
+            newInventory.materials.append(InventoryMaterial(ref: ref, quantity: quantity))
         }
 
         return newInventory
@@ -93,11 +96,11 @@ public final class ElfInventoryService: InventoryService {
         // buffer is uniquely owned, so subsequent iterations mutate in-place.
         var newInventory = inventory
         for addition in materials where addition.quantity > 0 {
-            if let index = newInventory.materials.firstIndex(where: { $0.id == addition.id }) {
+            if let index = newInventory.materials.firstIndex(where: { $0.ref.rawValue == addition.ref.rawValue }) {
                 newInventory.materials[index].quantity += addition.quantity
             } else {
                 newInventory.materials.append(
-                    InventoryMaterial(id: addition.id, source: addition.source, quantity: addition.quantity)
+                    InventoryMaterial(ref: addition.ref, quantity: addition.quantity)
                 )
             }
         }

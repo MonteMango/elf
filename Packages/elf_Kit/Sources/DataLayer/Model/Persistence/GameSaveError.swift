@@ -20,7 +20,7 @@ enum GameSaveError: Error, LocalizedError {
     case fileReadFailed(Error)
     case encodingFailed(Error)
     case decodingFailed(Error)
-    case missingItemData(itemId: UUID, itemType: String)
+    case missingItemData(itemId: ItemID, itemType: String)
 
     public var errorDescription: String? {
         switch self {

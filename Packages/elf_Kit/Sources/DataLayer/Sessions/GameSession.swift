@@ -126,7 +126,7 @@ public final class GameSession {
     /// Adds hunt rewards (drops) to the player's inventory.
     public func addDropsToPlayerInventory(rewards: HuntRewards) {
         let additions = rewards.materials.map {
-            MaterialAddition(id: $0.id, source: .monster, quantity: $0.amount)
+            MaterialAddition(ref: .monster($0.id), quantity: $0.amount)
         }
         var inventory = inventoryService.addMaterials(additions, to: state.player.inventory)
         if let weapon = rewards.weapon {
@@ -141,7 +141,7 @@ public final class GameSession {
     /// Adds caught fish to the player's inventory as materials.
     public func addFishToInventory(_ fish: [Fish]) {
         let additions = fish.map {
-            MaterialAddition(id: $0.id.rawValue, source: .fish, quantity: 1)
+            MaterialAddition(ref: .fish($0.id), quantity: 1)
         }
         state.player.inventory = inventoryService.addMaterials(additions, to: state.player.inventory)
     }
@@ -149,7 +149,7 @@ public final class GameSession {
     /// Adds gathered herbs to the player's inventory as materials.
     public func addHerbsToInventory(_ herbs: [Herb]) {
         let additions = herbs.map {
-            MaterialAddition(id: $0.id.rawValue, source: .herb, quantity: 1)
+            MaterialAddition(ref: .herb($0.id), quantity: 1)
         }
         state.player.inventory = inventoryService.addMaterials(additions, to: state.player.inventory)
     }
@@ -157,7 +157,7 @@ public final class GameSession {
     /// Adds mined ores to the player's inventory as materials.
     public func addOresToInventory(_ ores: [Ore]) {
         let additions = ores.map {
-            MaterialAddition(id: $0.id.rawValue, source: .ore, quantity: 1)
+            MaterialAddition(ref: .ore($0.id), quantity: 1)
         }
         state.player.inventory = inventoryService.addMaterials(additions, to: state.player.inventory)
     }
@@ -184,7 +184,7 @@ public final class GameSession {
 
     /// Applies a global-scope buff to the player respecting the buff's
     /// `stackingRule`. Scope is enforced by `BuffApplicationService.applyAsGlobal`.
-    public func applyGlobalBuffToPlayer(buffId: UUID) {
+    public func applyGlobalBuffToPlayer(buffId: BuffID) {
         state.player.globalBuffs = buffApplicationService.applyAsGlobal(
             buffId: buffId,
             to: state.player.globalBuffs,
@@ -193,7 +193,7 @@ public final class GameSession {
     }
 
     /// Applies a global-scope buff to a specific elf in the roster.
-    public func applyGlobalBuff(buffId: UUID, toElfAt houseIndex: Int, memberIndex: Int) {
+    public func applyGlobalBuff(buffId: BuffID, toElfAt houseIndex: Int, memberIndex: Int) {
         guard houseIndex >= 0, houseIndex < state.houses.count,
               memberIndex >= 0, memberIndex < state.houses[houseIndex].members.count else {
             return
@@ -235,7 +235,7 @@ public final class GameSession {
     // MARK: - Dungeon Session Lifecycle
 
     @discardableResult
-    public func startDungeonSession(dungeonId: UUID, allyIds: [UUID]) -> DungeonSession {
+    public func startDungeonSession(dungeonId: DungeonID, allyIds: [ElfID]) -> DungeonSession {
         let session = DungeonSession(
             gameStore: state,
             dungeonId: dungeonId,

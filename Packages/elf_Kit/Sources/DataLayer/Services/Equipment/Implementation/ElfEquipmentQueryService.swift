@@ -18,7 +18,7 @@ public final class ElfEquipmentQueryService: EquipmentQueryService {
 
     // MARK: - Item Checks
 
-    public func isItemEquipped(_ itemId: UUID, in equipped: EquippedItems) -> Bool {
+    public func isItemEquipped(_ itemId: OwnedItemID, in equipped: EquippedItems) -> Bool {
         allItemIds(from: equipped.weapons).contains(itemId)
             || equipped.helmet?.id == itemId
             || equipped.gloves?.id == itemId
@@ -33,7 +33,7 @@ public final class ElfEquipmentQueryService: EquipmentQueryService {
 
     // MARK: - Slot Queries
 
-    public func equippedItemId(for slot: HeroItemType, in equipped: EquippedItems) -> UUID? {
+    public func equippedItemId(for slot: HeroItemType, in equipped: EquippedItems) -> OwnedItemID? {
         switch slot {
         case .weapons: return equipped.weapons.weapon.id
         // Shield slot is physically shared with off-hand weapon in dual-wield:
@@ -51,8 +51,8 @@ public final class ElfEquipmentQueryService: EquipmentQueryService {
         }
     }
 
-    public func equippedBaseItemIds(from equipped: EquippedItems) -> [HeroItemType: UUID] {
-        var result: [HeroItemType: UUID] = [:]
+    public func equippedBaseItemIds(from equipped: EquippedItems) -> [HeroItemType: ItemID] {
+        var result: [HeroItemType: ItemID] = [:]
         result[.weapons] = equipped.weapons.weapon.item.id
         if let shield = equipped.weapons.shield {
             result[.shields] = shield.item.id
@@ -74,7 +74,7 @@ public final class ElfEquipmentQueryService: EquipmentQueryService {
 
     // MARK: - Weapon Configuration Queries (private helpers)
 
-    private func allItemIds(from weapons: WeaponConfiguration) -> Set<UUID> {
+    private func allItemIds(from weapons: WeaponConfiguration) -> Set<OwnedItemID> {
         switch weapons {
         case .oneHanded(let weapon):
             return [weapon.id]

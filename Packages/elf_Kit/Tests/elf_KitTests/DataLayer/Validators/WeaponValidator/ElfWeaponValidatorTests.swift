@@ -15,7 +15,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
     // MARK: - Test Helpers
 
     private func makeWeaponItem(
-        id: UUID = UUID(),
+        id: ItemID = ItemID(),
         title: String = "Test Weapon",
         tier: Int16 = 1,
         handUse: WeaponHandUse,
@@ -24,7 +24,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         epBlockCost: Int16 = 0
     ) throws -> WeaponItem {
         try TestFixtures.weaponItem(
-            id: id, title: title, tier: tier,
+            id: id.rawValue, title: title, tier: tier,
             handUse: handUse,
             minimumAttackPoint: minimumAttackPoint,
             maximumAttackPoint: maximumAttackPoint,
@@ -33,13 +33,13 @@ final class ElfWeaponValidatorTests: XCTestCase {
     }
 
     private func makeShieldItem(
-        id: UUID = UUID(),
+        id: ItemID = ItemID(),
         title: String = "Test Shield",
         tier: Int16 = 1,
         physicalDefensePoint: Int16 = 10
     ) throws -> ShieldItem {
         try TestFixtures.shieldItem(
-            id: id, title: title, tier: tier,
+            id: id.rawValue, title: title, tier: tier,
             physicalDefensePoint: physicalDefensePoint
         )
     }
@@ -48,7 +48,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testUnequipWeaponClearsSlot() async throws {
         // given
-        let weaponId = UUID()
+        let weaponId = ItemID()
         let weapon = try makeWeaponItem(id: weaponId, title: "Sword", handUse: .oneHand)
 
         let repository = FakeItemsRepository()
@@ -59,7 +59,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: weaponId,
             .shields: nil
         ]
@@ -77,7 +77,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testUnequipShieldClearsSlot() async throws {
         // given
-        let shieldId = UUID()
+        let shieldId = ItemID()
         let shield = try makeShieldItem(id: shieldId, title: "Shield")
 
         let repository = FakeItemsRepository()
@@ -88,7 +88,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: shieldId
         ]
@@ -106,7 +106,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testInvalidItemIdReturnsCurrentState() async throws {
         // given
-        let invalidId = UUID()
+        let invalidId = ItemID()
         let repository = FakeItemsRepository()
         // Don't add item to repository
 
@@ -115,7 +115,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: nil
         ]
@@ -136,8 +136,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testTwoHandedWeaponClearsShield() async throws {
         // given
-        let twoHandedId = UUID()
-        let shieldId = UUID()
+        let twoHandedId = ItemID()
+        let shieldId = ItemID()
 
         let twoHandedWeapon = try makeWeaponItem(
             id: twoHandedId,
@@ -155,7 +155,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: shieldId
         ]
@@ -174,8 +174,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testTwoHandedWeaponClearsSecondaryWeapon() async throws {
         // given
-        let twoHandedId = UUID()
-        let secondaryId = UUID()
+        let twoHandedId = ItemID()
+        let secondaryId = ItemID()
 
         let twoHandedWeapon = try makeWeaponItem(
             id: twoHandedId,
@@ -197,7 +197,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: secondaryId
         ]
@@ -216,7 +216,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testTwoHandedWeaponWithEmptyShields() async throws {
         // given
-        let twoHandedId = UUID()
+        let twoHandedId = ItemID()
         let twoHandedWeapon = try makeWeaponItem(
             id: twoHandedId,
             title: "Great Hammer",
@@ -231,7 +231,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: nil
         ]
@@ -250,7 +250,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testTwoHandedWeaponWithEmptySlots() async throws {
         // given
-        let twoHandedId = UUID()
+        let twoHandedId = ItemID()
         let twoHandedWeapon = try makeWeaponItem(
             id: twoHandedId,
             title: "Spear",
@@ -265,7 +265,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [:]
+        let currentItems: [HeroItemType: ItemID?] = [:]
 
         // when
         let result = await validator.validateAndResolve(
@@ -281,8 +281,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testTwoHandedWeaponReplacesExistingTwoHanded() async throws {
         // given
-        let firstTwoHandedId = UUID()
-        let secondTwoHandedId = UUID()
+        let firstTwoHandedId = ItemID()
+        let secondTwoHandedId = ItemID()
 
         let firstTwoHanded = try makeWeaponItem(
             id: firstTwoHandedId,
@@ -304,7 +304,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: firstTwoHandedId,
             .shields: nil
         ]
@@ -323,8 +323,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testTwoHandedWeaponReplacesExistingPrimary() async throws {
         // given
-        let primaryId = UUID()
-        let twoHandedId = UUID()
+        let primaryId = ItemID()
+        let twoHandedId = ItemID()
 
         let primaryWeapon = try makeWeaponItem(
             id: primaryId,
@@ -346,7 +346,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: primaryId,
             .shields: nil
         ]
@@ -367,8 +367,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testPrimaryWeaponWithShield() async throws {
         // given
-        let primaryId = UUID()
-        let shieldId = UUID()
+        let primaryId = ItemID()
+        let shieldId = ItemID()
 
         let primaryWeapon = try makeWeaponItem(
             id: primaryId,
@@ -386,7 +386,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: shieldId
         ]
@@ -405,7 +405,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testPrimaryWeaponWithEmptyShields() async throws {
         // given
-        let primaryId = UUID()
+        let primaryId = ItemID()
         let primaryWeapon = try makeWeaponItem(
             id: primaryId,
             title: "Axe",
@@ -420,7 +420,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: nil
         ]
@@ -439,7 +439,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testPrimaryWeaponWithEmptySlots() async throws {
         // given
-        let primaryId = UUID()
+        let primaryId = ItemID()
         let primaryWeapon = try makeWeaponItem(
             id: primaryId,
             title: "Club",
@@ -454,7 +454,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [:]
+        let currentItems: [HeroItemType: ItemID?] = [:]
 
         // when
         let result = await validator.validateAndResolve(
@@ -470,8 +470,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testPrimaryWeaponReplacesExistingPrimary() async throws {
         // given
-        let firstPrimaryId = UUID()
-        let secondPrimaryId = UUID()
+        let firstPrimaryId = ItemID()
+        let secondPrimaryId = ItemID()
 
         let firstPrimary = try makeWeaponItem(
             id: firstPrimaryId,
@@ -493,7 +493,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: firstPrimaryId,
             .shields: nil
         ]
@@ -512,8 +512,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testPrimaryWeaponReplacesExistingTwoHanded() async throws {
         // given
-        let twoHandedId = UUID()
-        let primaryId = UUID()
+        let twoHandedId = ItemID()
+        let primaryId = ItemID()
 
         let twoHandedWeapon = try makeWeaponItem(
             id: twoHandedId,
@@ -535,7 +535,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: twoHandedId,
             .shields: nil
         ]
@@ -554,8 +554,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testPrimaryWeaponReplacesExistingSecondary() async throws {
         // given
-        let secondaryId = UUID()
-        let primaryId = UUID()
+        let secondaryId = ItemID()
+        let primaryId = ItemID()
 
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
@@ -577,7 +577,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: secondaryId,
             .shields: nil
         ]
@@ -598,8 +598,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testSecondaryWeaponWithShield() async throws {
         // given
-        let secondaryId = UUID()
-        let shieldId = UUID()
+        let secondaryId = ItemID()
+        let shieldId = ItemID()
 
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
@@ -617,7 +617,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: shieldId
         ]
@@ -636,8 +636,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testSecondaryWeaponDualWield() async throws {
         // given
-        let firstSecondaryId = UUID()
-        let secondSecondaryId = UUID()
+        let firstSecondaryId = ItemID()
+        let secondSecondaryId = ItemID()
 
         let firstSecondary = try makeWeaponItem(
             id: firstSecondaryId,
@@ -659,7 +659,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: secondSecondaryId
         ]
@@ -678,7 +678,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testSecondaryWeaponWithEmptyShields() async throws {
         // given
-        let secondaryId = UUID()
+        let secondaryId = ItemID()
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Short Sword",
@@ -693,7 +693,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: nil
         ]
@@ -712,7 +712,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testSecondaryWeaponWithEmptySlots() async throws {
         // given
-        let secondaryId = UUID()
+        let secondaryId = ItemID()
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Knife",
@@ -727,7 +727,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [:]
+        let currentItems: [HeroItemType: ItemID?] = [:]
 
         // when
         let result = await validator.validateAndResolve(
@@ -743,8 +743,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testSecondaryWeaponReplacesExistingPrimary() async throws {
         // given
-        let primaryId = UUID()
-        let secondaryId = UUID()
+        let primaryId = ItemID()
+        let secondaryId = ItemID()
 
         let primaryWeapon = try makeWeaponItem(
             id: primaryId,
@@ -766,7 +766,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: primaryId,
             .shields: nil
         ]
@@ -785,8 +785,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testSecondaryWeaponReplacesExistingTwoHanded() async throws {
         // given
-        let twoHandedId = UUID()
-        let secondaryId = UUID()
+        let twoHandedId = ItemID()
+        let secondaryId = ItemID()
 
         let twoHandedWeapon = try makeWeaponItem(
             id: twoHandedId,
@@ -808,7 +808,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: twoHandedId,
             .shields: nil
         ]
@@ -829,8 +829,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testShieldWithPrimaryWeapon() async throws {
         // given
-        let primaryId = UUID()
-        let shieldId = UUID()
+        let primaryId = ItemID()
+        let shieldId = ItemID()
 
         let primaryWeapon = try makeWeaponItem(
             id: primaryId,
@@ -848,7 +848,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: primaryId,
             .shields: nil
         ]
@@ -867,8 +867,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testShieldWithSecondaryWeapon() async throws {
         // given
-        let secondaryId = UUID()
-        let shieldId = UUID()
+        let secondaryId = ItemID()
+        let shieldId = ItemID()
 
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
@@ -886,7 +886,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: secondaryId,
             .shields: nil
         ]
@@ -905,8 +905,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testShieldClearsTwoHandedWeapon() async throws {
         // given
-        let twoHandedId = UUID()
-        let shieldId = UUID()
+        let twoHandedId = ItemID()
+        let shieldId = ItemID()
 
         let twoHandedWeapon = try makeWeaponItem(
             id: twoHandedId,
@@ -924,7 +924,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: twoHandedId,
             .shields: nil
         ]
@@ -943,7 +943,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testShieldWithEmptyWeapons() async throws {
         // given
-        let shieldId = UUID()
+        let shieldId = ItemID()
         let shield = try makeShieldItem(id: shieldId, title: "Shield")
 
         let repository = FakeItemsRepository()
@@ -954,7 +954,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: nil
         ]
@@ -973,8 +973,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testShieldReplacesExistingShield() async throws {
         // given
-        let firstShieldId = UUID()
-        let secondShieldId = UUID()
+        let firstShieldId = ItemID()
+        let secondShieldId = ItemID()
 
         let firstShield = try makeShieldItem(id: firstShieldId, title: "Wooden Shield")
         let secondShield = try makeShieldItem(id: secondShieldId, title: "Iron Shield")
@@ -988,7 +988,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: firstShieldId
         ]
@@ -1007,8 +1007,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testShieldReplacesSecondaryWeapon() async throws {
         // given
-        let secondaryId = UUID()
-        let shieldId = UUID()
+        let secondaryId = ItemID()
+        let shieldId = ItemID()
 
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
@@ -1026,7 +1026,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: secondaryId
         ]
@@ -1047,8 +1047,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testSecondaryInShieldsWithSecondaryInWeapons() async throws {
         // given
-        let weaponSecondaryId = UUID()
-        let shieldSecondaryId = UUID()
+        let weaponSecondaryId = ItemID()
+        let shieldSecondaryId = ItemID()
 
         let weaponSecondary = try makeWeaponItem(
             id: weaponSecondaryId,
@@ -1070,7 +1070,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: weaponSecondaryId,
             .shields: nil
         ]
@@ -1089,8 +1089,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testSecondaryInShieldsClearsTwoHandedWeapon() async throws {
         // given
-        let twoHandedId = UUID()
-        let secondaryId = UUID()
+        let twoHandedId = ItemID()
+        let secondaryId = ItemID()
 
         let twoHandedWeapon = try makeWeaponItem(
             id: twoHandedId,
@@ -1112,7 +1112,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: twoHandedId,
             .shields: nil
         ]
@@ -1131,7 +1131,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testSecondaryInShieldsWithEmptyWeapons() async throws {
         // given
-        let secondaryId = UUID()
+        let secondaryId = ItemID()
         let secondaryWeapon = try makeWeaponItem(
             id: secondaryId,
             title: "Dagger",
@@ -1146,7 +1146,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: nil
         ]
@@ -1165,7 +1165,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testTwoHandedInShieldsClearsBothSlots() async throws {
         // given
-        let twoHandedId = UUID()
+        let twoHandedId = ItemID()
         let twoHandedWeapon = try makeWeaponItem(
             id: twoHandedId,
             title: "Great Sword",
@@ -1180,7 +1180,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: nil
         ]
@@ -1199,8 +1199,8 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testSecondaryInShieldsReplacesExistingShield() async throws {
         // given
-        let shieldId = UUID()
-        let secondaryId = UUID()
+        let shieldId = ItemID()
+        let secondaryId = ItemID()
 
         let shield = try makeShieldItem(id: shieldId, title: "Shield")
         let secondaryWeapon = try makeWeaponItem(
@@ -1218,7 +1218,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: shieldId
         ]
@@ -1239,7 +1239,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
 
     func testOtherSlotsPassThrough() async throws {
         // given
-        let helmetId = UUID()
+        let helmetId = ItemID()
         let repository = FakeItemsRepository()
         // Not adding item to repository for this pass-through test
 
@@ -1248,7 +1248,7 @@ final class ElfWeaponValidatorTests: XCTestCase {
         } operation: {
             ElfWeaponValidator()
         }
-        let currentItems: [HeroItemType: UUID?] = [
+        let currentItems: [HeroItemType: ItemID?] = [
             .weapons: nil,
             .shields: nil
         ]

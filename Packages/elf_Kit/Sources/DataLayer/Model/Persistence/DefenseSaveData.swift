@@ -10,10 +10,10 @@ import Foundation
 /// DTO for saving defense items (armor) to disk.
 public struct DefenseSaveData: Codable, Sendable, Equatable {
     /// Unique instance ID
-    public let id: UUID
+    public let id: OwnedItemID
 
     /// Base item ID from HeroItems.json
-    public let itemId: UUID
+    public let itemId: ItemID
 
     /// Create from ElfDefenseItem
     public init(from defense: ElfDefenseItem) {

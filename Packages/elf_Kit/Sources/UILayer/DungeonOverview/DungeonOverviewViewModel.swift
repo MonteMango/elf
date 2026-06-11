@@ -58,7 +58,7 @@ public final class DungeonOverviewViewModel {
         guard let dungeon else { return [] }
 
         var result: [DungeonMonsterDisplay] = []
-        var seenMonsterIds: Set<UUID> = []
+        var seenMonsterIds: Set<MonsterID> = []
 
         let firstCombat = dungeon.rooms.first { room in
             if case .combat = room.kind { return true } else { return false }
@@ -108,22 +108,22 @@ public final class DungeonOverviewViewModel {
         for monster in allMonsters {
             for drop in monster.drops.weapons {
                 guard let uuid = UUID(uuidString: drop.id),
-                      let item = itemsRepository.getHeroItem(uuid) else { continue }
+                      let item = itemsRepository.getHeroItem(ItemID(rawValue: uuid)) else { continue }
                 appendIfNew(DungeonDropDisplay(id: drop.id, imageName: drop.id, tier: Int(item.tier)))
             }
         }
         for monster in allMonsters {
             for drop in monster.drops.armor {
                 guard let uuid = UUID(uuidString: drop.id),
-                      let item = itemsRepository.getHeroItem(uuid) else { continue }
+                      let item = itemsRepository.getHeroItem(ItemID(rawValue: uuid)) else { continue }
                 appendIfNew(DungeonDropDisplay(id: drop.id, imageName: drop.id, tier: Int(item.tier)))
             }
         }
         for monster in allMonsters {
             for drop in monster.drops.materials {
                 appendIfNew(DungeonDropDisplay(
-                    id: drop.id.uuidString,
-                    imageName: drop.id.uuidString.lowercased(),
+                    id: drop.id.rawValue.uuidString,
+                    imageName: drop.id.rawValue.uuidString.lowercased(),
                     tier: 4
                 ))
             }
@@ -139,7 +139,7 @@ public final class DungeonOverviewViewModel {
         let player = session.gameStore.player
         var rows: [DungeonSquadMemberDisplay] = [
             DungeonSquadMemberDisplay(
-                id: player.id,
+                id: player.id.rawValue,
                 name: player.name,
                 imageName: player.imageName,
                 level: progressionService.calculateLevel(currentExp: player.currentExp),
@@ -154,7 +154,7 @@ public final class DungeonOverviewViewModel {
         for id in session.allyIds {
             guard let elf = elfById[id] else { continue }
             rows.append(DungeonSquadMemberDisplay(
-                id: elf.id,
+                id: elf.id.rawValue,
                 name: elf.name,
                 imageName: elf.imageName,
                 level: progressionService.calculateLevel(currentExp: elf.currentExp),
@@ -176,12 +176,12 @@ public final class DungeonOverviewViewModel {
             DungeonRoomNodeDisplay(id: "entrance", kind: .entrance)
         ]
 
-        var visited: Set<UUID> = []
-        var currentId: UUID? = entryId
+        var visited: Set<DungeonRoomID> = []
+        var currentId: DungeonRoomID? = entryId
         while let id = currentId, !visited.contains(id), nodes.count <= dungeon.rooms.count {
             visited.insert(id)
             guard let room = dungeon.room(id: id) else { break }
-            nodes.append(DungeonRoomNodeDisplay(id: id.uuidString, kind: nodeKind(for: room.kind)))
+            nodes.append(DungeonRoomNodeDisplay(id: id.rawValue.uuidString, kind: nodeKind(for: room.kind)))
             currentId = room.nextRoomIds.first
         }
         return nodes
@@ -195,7 +195,7 @@ public final class DungeonOverviewViewModel {
     }
 
     private func displayData(_ monster: Monster) -> DungeonMonsterDisplay {
-        DungeonMonsterDisplay(id: monster.id, title: monster.title, imageName: monster.imageName)
+        DungeonMonsterDisplay(id: monster.id.rawValue, title: monster.title, imageName: monster.imageName)
     }
 
     private func nodeKind(for kind: DungeonRoomKind) -> DungeonNodeKind {

@@ -47,7 +47,7 @@ final class DefaultBattleResultCalculatorTests: XCTestCase {
 
     private func makeMonster() -> Monster {
         Monster(
-            id: UUID(),
+            id: MonsterID(),
             title: "Test Monster",
             imageName: "",
             expReward: [ChanceAmount(amount: 50, chance: 1.0)],

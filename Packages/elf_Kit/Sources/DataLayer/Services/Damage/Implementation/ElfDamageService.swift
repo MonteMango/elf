@@ -26,7 +26,7 @@ public final class ElfDamageService: DamageService {
         self.weightedSampling = weightedSampling
     }
 
-    public func getWeaponDamage(weaponId: UUID?) -> (minDmg: Int16, maxDmg: Int16)? {
+    public func getWeaponDamage(weaponId: ItemID?) -> (minDmg: Int16, maxDmg: Int16)? {
         // No weapon equipped
         guard let weaponId = weaponId else {
             return (minDmg: 0, maxDmg: 0)

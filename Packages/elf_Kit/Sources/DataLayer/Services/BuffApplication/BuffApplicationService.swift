@@ -28,7 +28,7 @@ public protocol BuffApplicationService: Sendable {
     ///   - buffs: Existing global-buff collection (typically `ElfInfo.globalBuffs`).
     ///   - currentDay: Day number recorded on the new/refreshed buff.
     func applyAsGlobal(
-        buffId: UUID,
+        buffId: BuffID,
         to buffs: [AppliedBuff],
         currentDay: Int
     ) -> [AppliedBuff]
@@ -45,7 +45,7 @@ public protocol BuffApplicationService: Sendable {
     ///     buff with `scope == .battle`.
     ///   - buffs: Existing battle-buff collection (typically `CombatantSnapshot.battleBuffs`).
     func applyAsBattle(
-        buffId: UUID,
+        buffId: BuffID,
         to buffs: [AppliedBuff]
     ) -> [AppliedBuff]
 }

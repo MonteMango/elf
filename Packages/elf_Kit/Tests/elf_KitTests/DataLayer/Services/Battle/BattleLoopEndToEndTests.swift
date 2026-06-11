@@ -51,7 +51,7 @@ final class BattleLoopEndToEndTests: XCTestCase {
         weapon: ClosedRange<Int>
     ) -> CombatantSnapshot {
         CombatantSnapshot(
-            sourceId: UUID(),
+            source: .synthetic,
             name: name,
             imageName: "",
             combatantType: .elf,

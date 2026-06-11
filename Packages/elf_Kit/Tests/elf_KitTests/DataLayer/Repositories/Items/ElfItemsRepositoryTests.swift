@@ -130,7 +130,7 @@ final class ElfItemsRepositoryTests: XCTestCase {
         """
         let repository = await makeRepository(loader: FakeDataLoader(mode: .valid, customJSON: json))
 
-        let found = await repository.getHeroItem(weaponID)
+        let found = await repository.getHeroItem(ItemID(rawValue: weaponID))
         XCTAssertNotNil(found)
         XCTAssertEqual(found?.title, "Sword of Truth")
     }

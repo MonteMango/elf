@@ -12,23 +12,23 @@ public struct ManualBattleRoundLog: Sendable {
     public let roundNumber: Int
 
     /// Actions made by each combatant (key = CombatantSnapshot.id)
-    public var action: [UUID: BattleRoundAction]
+    public var action: [CombatantID: BattleRoundAction]
 
     /// The opponents for current round (could be different in next round)
-    public var duels: [(UUID, UUID)]
+    public var duels: [(CombatantID, CombatantID)]
 
     /// Pre calculation for calculation results (key = CombatantSnapshot.id)
-    public var calculatedPreResults: [UUID: BattleRoundCalculatedPreResult]
+    public var calculatedPreResults: [CombatantID: BattleRoundCalculatedPreResult]
 
     /// The result of the round (key = CombatantSnapshot.id)
-    public var results: [UUID: BattleRoundResult]
+    public var results: [CombatantID: BattleRoundResult]
 
     public init(
         roundNumber: Int,
-        action: [UUID: BattleRoundAction],
-        duels: [(UUID, UUID)],
-        calculatedPreResults: [UUID: BattleRoundCalculatedPreResult],
-        results: [UUID: BattleRoundResult]
+        action: [CombatantID: BattleRoundAction],
+        duels: [(CombatantID, CombatantID)],
+        calculatedPreResults: [CombatantID: BattleRoundCalculatedPreResult],
+        results: [CombatantID: BattleRoundResult]
     ) {
         self.roundNumber = roundNumber
         self.action = action

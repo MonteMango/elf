@@ -30,8 +30,8 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
 
     // MARK: - Starter Equipment IDs
 
-    private let defaultRobeId = UUID(uuidString: "55f10623-d3d9-4021-85c6-f52e08058e13")
-    private let defaultWeaponId = UUID(uuidString: "dfbd2742-5470-4f97-84ea-fb17b5f3a6d2")
+    private let defaultRobeId = UUID(uuidString: "55f10623-d3d9-4021-85c6-f52e08058e13").map(ItemID.init(rawValue:))
+    private let defaultWeaponId = UUID(uuidString: "dfbd2742-5470-4f97-84ea-fb17b5f3a6d2").map(ItemID.init(rawValue:))
 
     // MARK: - Initialization
 
@@ -93,7 +93,7 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
 
         // New characters start at level 1 (currentExp = 0)
         return ElfInfo(
-            id: character.id,
+            id: ElfID(rawValue: character.id.rawValue),
             name: character.name,
             imageName: character.appearance.imageName,
             fightStyle: character.fightStyle,

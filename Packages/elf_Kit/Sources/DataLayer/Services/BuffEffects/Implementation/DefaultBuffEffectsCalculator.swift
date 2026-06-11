@@ -35,7 +35,7 @@ public final class DefaultBuffEffectsCalculator: BuffEffectsCalculator {
     }
 
     private func accumulate(
-        buffId: UUID,
+        buffId: BuffID,
         stacks: Int,
         flatSum: inout HeroAttributes,
         percentSum: inout Double,

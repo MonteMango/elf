@@ -8,14 +8,14 @@
 import Foundation
 
 public struct Material: Codable, Sendable, Identifiable, Hashable {
-    public let id: UUID
+    public let id: MaterialID
     public let title: String
     public let imageName: String
     public let category: MaterialSubcategory
     public let description: String
 
     public init(
-        id: UUID,
+        id: MaterialID,
         title: String,
         imageName: String,
         category: MaterialSubcategory = .monsters,
@@ -40,7 +40,7 @@ public struct Material: Codable, Sendable, Identifiable, Hashable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
+        id = try container.decode(MaterialID.self, forKey: .id)
         title = try container.decode(String.self, forKey: .title)
         imageName = try container.decode(String.self, forKey: .imageName)
         // Default to .monsters for backward compatibility with existing JSON

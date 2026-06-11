@@ -18,7 +18,7 @@ public struct Game: Sendable, Equatable {
     // MARK: - Properties
 
     /// Unique game identifier
-    public let id: UUID
+    public let id: GameID
 
     /// All houses in the tournament (exactly 8)
     public var houses: [House]
@@ -47,7 +47,7 @@ public struct Game: Sendable, Equatable {
     // MARK: - Initialization
 
     public init(
-        id: UUID = UUID(),
+        id: GameID = GameID(),
         houses: [House],
         gameState: GameState,
         playerHouseIndex: Int,

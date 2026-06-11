@@ -15,7 +15,7 @@ public struct ElfOneHandedWeaponItem: Sendable, Hashable {
 
     public let weapon: ElfWeaponItem
 
-    public var id: UUID { weapon.id }
+    public var id: OwnedItemID { weapon.id }
 
     /// Fails when the weapon cannot be resolved to `WeaponItem`, or when its `handUse` is `.both`.
     public init?(weapon: ElfWeaponItem) {

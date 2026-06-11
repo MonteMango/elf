@@ -50,7 +50,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
     }
 
     private func makeShield(id: UUID = UUID()) -> ElfShieldItem {
-        ElfShieldItem(id: UUID(), item: makeShieldItem(id: id))
+        ElfShieldItem(id: OwnedItemID(), item: makeShieldItem(id: id))
     }
 
     private func makeElf(
@@ -118,7 +118,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
         let (newWeapon, _) = makeOneHanded()
 
         let repository = FakeItemsRepository()
-        repository.items[newWeapon.id] = newWeapon.item
+        repository.items[newWeapon.item.id] = newWeapon.item
         let (service, store) = makeService(
             equipped: EquippedItems(weapons: .oneHanded(weapon: existingWrap)),
             inventoryWeapons: [existing, newWeapon],
@@ -140,7 +140,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
         let (newWeapon, _) = makeOneHanded()
 
         let repository = FakeItemsRepository()
-        repository.items[newWeapon.id] = newWeapon.item
+        repository.items[newWeapon.item.id] = newWeapon.item
         let (service, store) = makeService(
             equipped: EquippedItems(weapons: .oneHandedWithShield(weapon: existingWrap, shield: shield)),
             inventoryWeapons: [existing, newWeapon],
@@ -162,7 +162,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
         let (newSecondary, _) = makeOneHanded()
 
         let repository = FakeItemsRepository()
-        repository.items[newSecondary.id] = newSecondary.item
+        repository.items[newSecondary.item.id] = newSecondary.item
         let (service, store) = makeService(
             equipped: EquippedItems(weapons: .dualWield(primary: primaryWrap, secondary: oldSecondaryWrap)),
             inventoryWeapons: [primary, oldSecondary, newSecondary],
@@ -183,7 +183,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
         let (newWeapon, _) = makeOneHanded()
 
         let repository = FakeItemsRepository()
-        repository.items[newWeapon.id] = newWeapon.item
+        repository.items[newWeapon.item.id] = newWeapon.item
         let (service, store) = makeService(
             equipped: EquippedItems(weapons: .twoHanded(weapon: existingWrap)),
             inventoryWeapons: [existing, newWeapon],
@@ -203,7 +203,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
         let (twoHandedInput, _) = makeTwoHanded()
 
         let repository = FakeItemsRepository()
-        repository.items[twoHandedInput.id] = twoHandedInput.item
+        repository.items[twoHandedInput.item.id] = twoHandedInput.item
         let (service, store) = makeService(
             equipped: EquippedItems(weapons: .oneHanded(weapon: existingWrap)),
             inventoryWeapons: [existing, twoHandedInput],
@@ -225,7 +225,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
         let (newWeapon, _) = makeOneHanded()
 
         let repository = FakeItemsRepository()
-        repository.items[newWeapon.id] = newWeapon.item
+        repository.items[newWeapon.item.id] = newWeapon.item
         let (service, store) = makeService(
             equipped: EquippedItems(weapons: .oneHanded(weapon: existingWrap)),
             inventoryWeapons: [existing, newWeapon],
@@ -247,7 +247,7 @@ final class DefaultEquipmentServiceTests: XCTestCase {
         let (newPrimary, _) = makeOneHanded()
 
         let repository = FakeItemsRepository()
-        repository.items[newPrimary.id] = newPrimary.item
+        repository.items[newPrimary.item.id] = newPrimary.item
         let (service, store) = makeService(
             equipped: EquippedItems(weapons: .dualWield(primary: oldPrimaryWrap, secondary: secondaryWrap)),
             inventoryWeapons: [oldPrimary, secondary, newPrimary],

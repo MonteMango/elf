@@ -8,7 +8,7 @@
 import Foundation
 
 public struct Monster: Codable, Sendable, Identifiable, Hashable {
-    public let id: UUID
+    public let id: MonsterID
     public let title: String
     public let imageName: String
 
@@ -39,7 +39,7 @@ public struct Monster: Codable, Sendable, Identifiable, Hashable {
     public let drops: MonsterDrops
 
     public init(
-        id: UUID,
+        id: MonsterID,
         title: String,
         imageName: String,
         expReward: [ChanceAmount],

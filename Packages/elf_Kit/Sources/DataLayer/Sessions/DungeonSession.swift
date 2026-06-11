@@ -32,12 +32,12 @@ public final class DungeonSession {
 
     // MARK: - Inputs (stable for the lifetime of the run)
 
-    public let dungeonId: UUID
-    public let allyIds: [UUID]
+    public let dungeonId: DungeonID
+    public let allyIds: [ElfID]
 
     // MARK: - Initialization
 
-    public init(gameStore: GameStore, dungeonId: UUID, allyIds: [UUID]) {
+    public init(gameStore: GameStore, dungeonId: DungeonID, allyIds: [ElfID]) {
         @Dependency(\.dungeonRepository) var dungeonRepository
         self.dungeonRepository = dungeonRepository
         self.gameStore = gameStore

@@ -97,12 +97,12 @@ final class GameSession_CraftTests: XCTestCase {
     }
 
     private func makeRecipe(
-        resultItemId: UUID = UUID(),
+        resultItemId: ItemID = ItemID(),
         ingredientId: UUID,
         amount: Int
     ) -> Recipe {
         Recipe(
-            id: UUID(),
+            id: RecipeID(),
             resultItemId: resultItemId,
             category: .weapon,
             ingredients: [
@@ -117,7 +117,7 @@ final class GameSession_CraftTests: XCTestCase {
         // Given
         let materialId = UUID()
         var inventory = ElfInventory()
-        inventory.materials.append(InventoryMaterial(id: materialId, source: .monster, quantity: 5))
+        inventory.materials.append(InventoryMaterial(ref: .monster(MaterialID(rawValue: materialId)), quantity: 5))
         let (session, store) = makeSession(inventory: inventory)
 
         let item = makeWeaponItem()
@@ -128,7 +128,7 @@ final class GameSession_CraftTests: XCTestCase {
 
         // Then
         XCTAssertTrue(result)
-        XCTAssertEqual(store.player.inventory.materials.first(where: { $0.id == materialId })?.quantity, 2)
+        XCTAssertEqual(store.player.inventory.materials.first(where: { $0.ref.rawValue == materialId })?.quantity, 2)
         XCTAssertEqual(store.player.inventory.weapons.count, 1)
     }
 
@@ -136,7 +136,7 @@ final class GameSession_CraftTests: XCTestCase {
         // Given
         let materialId = UUID()
         var inventory = ElfInventory()
-        inventory.materials.append(InventoryMaterial(id: materialId, source: .monster, quantity: 3))
+        inventory.materials.append(InventoryMaterial(ref: .monster(MaterialID(rawValue: materialId)), quantity: 3))
         let (session, store) = makeSession(inventory: inventory)
 
         let item = makeWeaponItem()
@@ -147,7 +147,7 @@ final class GameSession_CraftTests: XCTestCase {
 
         // Then
         XCTAssertTrue(result)
-        XCTAssertNil(store.player.inventory.materials.first(where: { $0.id == materialId }))
+        XCTAssertNil(store.player.inventory.materials.first(where: { $0.ref.rawValue == materialId }))
         XCTAssertEqual(store.player.inventory.weapons.count, 1)
     }
 
@@ -157,7 +157,7 @@ final class GameSession_CraftTests: XCTestCase {
         // Given
         let materialId = UUID()
         var inventory = ElfInventory()
-        inventory.materials.append(InventoryMaterial(id: materialId, source: .monster, quantity: 2))
+        inventory.materials.append(InventoryMaterial(ref: .monster(MaterialID(rawValue: materialId)), quantity: 2))
         let (session, store) = makeSession(inventory: inventory)
 
         let item = makeWeaponItem()
@@ -168,7 +168,7 @@ final class GameSession_CraftTests: XCTestCase {
 
         // Then
         XCTAssertFalse(result)
-        XCTAssertEqual(store.player.inventory.materials.first(where: { $0.id == materialId })?.quantity, 2)
+        XCTAssertEqual(store.player.inventory.materials.first(where: { $0.ref.rawValue == materialId })?.quantity, 2)
         XCTAssertEqual(store.player.inventory.weapons.count, 0)
     }
 

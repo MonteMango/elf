@@ -11,7 +11,7 @@ import elf_SwiftUI
 extension GameDay {
     var calendarDayData: CalendarDayData {
         CalendarDayData(
-            id: id,
+            id: id.rawValue,
             dayNumber: dayNumber,
             backgroundColor: ElfColors.Calendar.dayColor(for: dayType.rawValue)
         )

@@ -100,7 +100,7 @@ public final class QuestViewModel {
 
     /// Looks up an item across all repositories (materials, ores, herbs) by UUID.
     private func lookupItem(by itemId: UUID) -> (title: String, imageName: String) {
-        if let material = materialRepository.getById(id: itemId) {
+        if let material = materialRepository.getById(id: MaterialID(rawValue: itemId)) {
             return (material.title, material.imageName)
         }
         if let ore = oreRepository.getById(id: OreID(rawValue: itemId)) {

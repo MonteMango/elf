@@ -8,7 +8,7 @@
 import Foundation
 
 public struct ElfSaveData: Codable, Sendable {
-    public let id: UUID
+    public let id: ElfID
     public let name: String
     public let imageName: String
     public let fightStyle: FightStyle

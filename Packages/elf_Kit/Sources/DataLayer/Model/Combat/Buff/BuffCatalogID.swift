@@ -18,12 +18,12 @@ public enum BuffCatalogID {
     /// Battle-scoped Exhausted debuff auto-applied at end of a combat round
     /// when a combatant's EP reaches 0. Vanishes with the battle snapshot
     /// — never persists outside combat.
-    public static let exhaustedBattle: UUID = mustParse("BD000000-0000-4000-A000-000000000002")
+    public static let exhaustedBattle: BuffID = mustParse("BD000000-0000-4000-A000-000000000002")
 
-    private static func mustParse(_ string: String) -> UUID {
+    private static func mustParse(_ string: String) -> BuffID {
         guard let id = UUID(uuidString: string) else {
             fatalError("Invalid UUID literal in BuffCatalogID: \(string)")
         }
-        return id
+        return BuffID(rawValue: id)
     }
 }

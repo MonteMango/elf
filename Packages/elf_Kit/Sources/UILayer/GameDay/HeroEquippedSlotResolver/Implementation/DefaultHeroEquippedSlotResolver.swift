@@ -24,10 +24,10 @@ public struct DefaultHeroEquippedSlotResolver: HeroEquippedSlotResolver {
 
     public func resolve(equipped: EquippedItems) -> [HeroItemType: HeroEquippedSlot] {
         let baseIds = equipmentQueryService.equippedBaseItemIds(from: equipped)
-        var result: [HeroItemType: HeroEquippedSlot] = baseIds.mapValues { uuid in
-            let candidateName = uuid.uuidString.lowercased()
+        var result: [HeroItemType: HeroEquippedSlot] = baseIds.mapValues { itemId in
+            let candidateName = itemId.rawValue.uuidString.lowercased()
             let resolvedName = UIImage(named: candidateName) != nil ? candidateName : nil
-            return HeroEquippedSlot(id: uuid, imageName: resolvedName)
+            return HeroEquippedSlot(id: itemId.rawValue, imageName: resolvedName)
         }
 
         // Two-handed weapons occupy both hands but live in a single enum case,

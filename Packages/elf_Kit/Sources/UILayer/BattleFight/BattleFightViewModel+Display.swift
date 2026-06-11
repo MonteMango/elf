@@ -38,7 +38,7 @@ extension BattleFightViewModel {
     }
 
     private static func makeCell(from snapshot: CombatantSnapshot) -> CombatantCellState {
-        CombatantCellState(id: snapshot.id, imageName: snapshot.imageName, isAlive: snapshot.isAlive)
+        CombatantCellState(id: snapshot.id.rawValue, imageName: snapshot.imageName, isAlive: snapshot.isAlive)
     }
 
     /// Builds a `HeroDisplayState` from a source snapshot, optionally overriding
@@ -53,7 +53,7 @@ extension BattleFightViewModel {
         let effSource = liveVitals ?? source
         let effective = buffEffectsCalculator.effectiveAttributes(of: effSource)
         return HeroDisplayState(
-            id: source.id,
+            id: source.id.rawValue,
             name: source.name,
             level: source.level,
             imageName: source.imageName,
@@ -92,7 +92,7 @@ extension BattleFightViewModel {
                 daysRemaining = nil
             }
             return BuffBadgeViewState(
-                id: applied.id,
+                id: applied.id.rawValue,
                 title: buff.title,
                 imageName: buff.imageName,
                 polarity: buff.polarity,

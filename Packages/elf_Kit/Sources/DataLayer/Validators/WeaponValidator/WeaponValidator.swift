@@ -17,8 +17,8 @@ public protocol WeaponValidator: Sendable {
     ///   - currentItems: Currently equipped items
     /// - Returns: Updated items dictionary with conflicts resolved
     func validateAndResolve(
-        selecting itemId: UUID?,
+        selecting itemId: ItemID?,
         for slot: HeroItemType,
-        currentItems: [HeroItemType: UUID?]
-    ) async -> [HeroItemType: UUID?]
+        currentItems: [HeroItemType: ItemID?]
+    ) async -> [HeroItemType: ItemID?]
 }

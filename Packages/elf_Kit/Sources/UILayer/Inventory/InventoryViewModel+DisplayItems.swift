@@ -53,7 +53,7 @@ extension InventoryViewModel {
 
         guard let weaponItem = weapon.item as? WeaponItem else {
             return InventoryItemDisplay(
-                id: weapon.id,
+                id: weapon.id.rawValue,
                 title: "Unknown Weapon",
                 imageName: "weapon_unknown",
                 isEquipped: isEquipped,
@@ -70,9 +70,9 @@ extension InventoryViewModel {
         }
 
         return InventoryItemDisplay(
-            id: weapon.id,
+            id: weapon.id.rawValue,
             title: weaponItem.title,
-            imageName: weaponItem.id.uuidString.lowercased(),
+            imageName: weaponItem.id.rawValue.uuidString.lowercased(),
             isEquipped: isEquipped,
             canUnequip: canUnequip,
             category: .weapons,
@@ -98,7 +98,7 @@ extension InventoryViewModel {
 
         guard let shieldItem = shield.item as? ShieldItem else {
             return InventoryItemDisplay(
-                id: shield.id,
+                id: shield.id.rawValue,
                 title: "Unknown Shield",
                 imageName: "shield_unknown",
                 isEquipped: isEquipped,
@@ -109,9 +109,9 @@ extension InventoryViewModel {
         }
 
         return InventoryItemDisplay(
-            id: shield.id,
+            id: shield.id.rawValue,
             title: shieldItem.title,
-            imageName: shieldItem.id.uuidString.lowercased(),
+            imageName: shieldItem.id.rawValue.uuidString.lowercased(),
             isEquipped: isEquipped,
             canUnequip: isEquipped,
             category: .weapons,
@@ -131,7 +131,7 @@ extension InventoryViewModel {
 
         guard let defenseItem = armor.item as? DefenseItem else {
             return InventoryItemDisplay(
-                id: armor.id,
+                id: armor.id.rawValue,
                 title: "Unknown Armor",
                 imageName: "armor_unknown",
                 isEquipped: isEquipped,
@@ -142,9 +142,9 @@ extension InventoryViewModel {
         }
 
         return InventoryItemDisplay(
-            id: armor.id,
+            id: armor.id.rawValue,
             title: defenseItem.title,
-            imageName: defenseItem.id.uuidString.lowercased(),
+            imageName: defenseItem.id.rawValue.uuidString.lowercased(),
             isEquipped: isEquipped,
             canUnequip: isEquipped,
             category: .armor,
@@ -166,7 +166,7 @@ extension InventoryViewModel {
 
         guard let robeItem = robe.item as? RobeItem else {
             return InventoryItemDisplay(
-                id: robe.id,
+                id: robe.id.rawValue,
                 title: "Unknown Robe",
                 imageName: "robe_unknown",
                 isEquipped: isEquipped,
@@ -177,9 +177,9 @@ extension InventoryViewModel {
         }
 
         return InventoryItemDisplay(
-            id: robe.id,
+            id: robe.id.rawValue,
             title: robeItem.title,
-            imageName: robeItem.id.uuidString.lowercased(),
+            imageName: robeItem.id.rawValue.uuidString.lowercased(),
             isEquipped: isEquipped,
             canUnequip: isEquipped,
             category: .armor,
@@ -201,7 +201,7 @@ extension InventoryViewModel {
 
         guard let jewelryItem = jewelry.item as? JewelryItem else {
             return InventoryItemDisplay(
-                id: jewelry.id,
+                id: jewelry.id.rawValue,
                 title: "Unknown Jewelry",
                 imageName: "jewelry_unknown",
                 isEquipped: isEquipped,
@@ -212,9 +212,9 @@ extension InventoryViewModel {
         }
 
         return InventoryItemDisplay(
-            id: jewelry.id,
+            id: jewelry.id.rawValue,
             title: jewelryItem.title,
-            imageName: jewelryItem.id.uuidString.lowercased(),
+            imageName: jewelryItem.id.rawValue.uuidString.lowercased(),
             isEquipped: isEquipped,
             canUnequip: isEquipped,
             category: .armor,
@@ -232,11 +232,11 @@ extension InventoryViewModel {
     }
 
     private func buildMaterialDisplayItem(_ material: InventoryMaterial) -> InventoryItemDisplay? {
-        switch material.source {
-        case .monster:
-            guard let data = materialRepository.getById(id: material.id) else { return nil }
+        switch material.ref {
+        case .monster(let materialId):
+            guard let data = materialRepository.getById(id: materialId) else { return nil }
             return InventoryItemDisplay(
-                id: material.id,
+                id: material.ref.rawValue,
                 title: data.title,
                 imageName: data.imageName,
                 quantity: material.quantity,
@@ -247,10 +247,10 @@ extension InventoryViewModel {
                 ))
             )
 
-        case .fish:
-            guard let data = fishRepository.getById(id: FishID(rawValue: material.id)) else { return nil }
+        case .fish(let fishId):
+            guard let data = fishRepository.getById(id: fishId) else { return nil }
             return InventoryItemDisplay(
-                id: material.id,
+                id: material.ref.rawValue,
                 title: data.title,
                 imageName: data.imageName,
                 quantity: material.quantity,
@@ -261,10 +261,10 @@ extension InventoryViewModel {
                 ))
             )
 
-        case .herb:
-            guard let data = herbRepository.getById(id: HerbID(rawValue: material.id)) else { return nil }
+        case .herb(let herbId):
+            guard let data = herbRepository.getById(id: herbId) else { return nil }
             return InventoryItemDisplay(
-                id: material.id,
+                id: material.ref.rawValue,
                 title: data.title,
                 imageName: data.imageName,
                 quantity: material.quantity,
@@ -275,10 +275,10 @@ extension InventoryViewModel {
                 ))
             )
 
-        case .ore:
-            guard let data = oreRepository.getById(id: OreID(rawValue: material.id)) else { return nil }
+        case .ore(let oreId):
+            guard let data = oreRepository.getById(id: oreId) else { return nil }
             return InventoryItemDisplay(
-                id: material.id,
+                id: material.ref.rawValue,
                 title: data.title,
                 imageName: data.imageName,
                 quantity: material.quantity,

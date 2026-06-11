@@ -13,15 +13,15 @@ public struct DuelPair: Sendable, Identifiable, Hashable {
     public let id: UUID
 
     /// ID of the combatant from the left team
-    public let leftCombatantId: UUID
+    public let leftCombatantId: CombatantID
 
     /// ID of the combatant from the right team
-    public let rightCombatantId: UUID
+    public let rightCombatantId: CombatantID
 
     public init(
         id: UUID = UUID(),
-        leftCombatantId: UUID,
-        rightCombatantId: UUID
+        leftCombatantId: CombatantID,
+        rightCombatantId: CombatantID
     ) {
         self.id = id
         self.leftCombatantId = leftCombatantId

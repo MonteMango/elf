@@ -9,7 +9,7 @@ import Foundation
 
 /// Represents a player's created character
 public struct PlayerCharacter: Sendable, Identifiable {
-    public let id: UUID
+    public let id: PlayerCharacterID
     public let name: String
     public let appearance: CharacterAppearance
     public let fightStyle: FightStyle
@@ -35,7 +35,7 @@ public struct PlayerCharacter: Sendable, Identifiable {
     }
 
     public init(
-        id: UUID = UUID(),
+        id: PlayerCharacterID = PlayerCharacterID(),
         name: String,
         appearance: CharacterAppearance,
         fightStyle: FightStyle,

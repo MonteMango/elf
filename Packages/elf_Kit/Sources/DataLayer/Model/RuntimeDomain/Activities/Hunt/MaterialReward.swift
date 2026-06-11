@@ -9,10 +9,10 @@ import Foundation
 
 /// A material drop with its quantity
 public struct MaterialReward: Sendable, Equatable, Hashable {
-    public let id: UUID
+    public let id: MaterialID
     public let amount: Int
 
-    public init(id: UUID, amount: Int) {
+    public init(id: MaterialID, amount: Int) {
         self.id = id
         self.amount = amount
     }

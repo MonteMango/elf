@@ -52,7 +52,7 @@ public final class QuestListViewModel {
         rewards.map { reward in
             switch reward {
             case .item(let itemId, let amount):
-                let name = materialRepository.getById(id: itemId)?.title ?? "Unknown"
+                let name = materialRepository.getById(id: MaterialID(rawValue: itemId))?.title ?? "Unknown"
                 return "\(amount)x \(name)"
             }
         }.joined(separator: ", ")

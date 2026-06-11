@@ -46,7 +46,7 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
             return damageReductionToReturn
         }
 
-        func getWeaponDamage(weaponId: UUID?) -> (minDmg: Int16, maxDmg: Int16)? {
+        func getWeaponDamage(weaponId: ItemID?) -> (minDmg: Int16, maxDmg: Int16)? {
             (weaponDamageToReturn, weaponDamageToReturn)
         }
 
@@ -135,8 +135,8 @@ final class ElfSnapshotCombatCalculatorTests: XCTestCase {
         battleBuffs: [AppliedBuff] = []
     ) -> CombatantSnapshot {
         CombatantSnapshot(
-            id: UUID(),
-            sourceId: UUID(),
+            id: CombatantID(),
+            source: .synthetic,
             name: "Test",
             imageName: "",
             combatantType: .elf,

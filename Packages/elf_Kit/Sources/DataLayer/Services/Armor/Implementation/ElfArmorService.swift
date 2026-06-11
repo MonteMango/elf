@@ -17,7 +17,7 @@ public final class ElfArmorService: ArmorService {
         self.itemsRepository = itemsRepository
     }
 
-    public func getAllItemsArmor(for itemIds: [UUID]) -> [BodyPart: Int16] {
+    public func getAllItemsArmor(for itemIds: [ItemID]) -> [BodyPart: Int16] {
         var armorPoints: [BodyPart: Int16] = [
                .head: 0,
                .leftHand: 0,

@@ -11,10 +11,10 @@ import Foundation
 /// Stores instance ID, base item ID, and enchantment level.
 public struct WeaponSaveData: Sendable, Equatable, Codable {
     /// Unique instance ID
-    public let id: UUID
+    public let id: OwnedItemID
 
     /// Base item ID from HeroItems (weapons)
-    public let itemId: UUID
+    public let itemId: ItemID
 
     /// Enchantment level of this weapon instance
     public let enchantLevel: Int

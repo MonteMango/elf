@@ -11,10 +11,10 @@ import Foundation
 /// Stores instance ID and base item ID.
 public struct RobeSaveData: Sendable, Equatable, Codable {
     /// Unique instance ID
-    public let id: UUID
+    public let id: OwnedItemID
 
     /// Base item ID from HeroItems (robes)
-    public let itemId: UUID
+    public let itemId: ItemID
 
     /// Create from ElfRobeItem
     public init(from elfRobe: ElfRobeItem) {

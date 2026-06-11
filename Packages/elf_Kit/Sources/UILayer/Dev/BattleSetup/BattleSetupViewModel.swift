@@ -238,12 +238,12 @@ public final class BattleSetupViewModel {
                 let currentState = state(for: heroType)
                 let currentItems = currentState.selectedItems
                 let validatedItems = await self.weaponValidator.validateAndResolve(
-                    selecting: selectedItemId,
+                    selecting: selectedItemId.map(ItemID.init(rawValue:)),
                     for: itemType,
-                    currentItems: currentItems
+                    currentItems: currentItems.mapValues { $0.map(ItemID.init(rawValue:)) }
                 )
 
-                currentState.selectedItems = validatedItems
+                currentState.selectedItems = validatedItems.mapValues { $0.map(\.rawValue) }
                 scheduleEquipmentUpdate(for: heroType)
             }
         } else {
@@ -362,7 +362,7 @@ public final class BattleSetupViewModel {
                 }
 
                 // Extract item IDs
-                let itemIds = currentItems.values.compactMap { $0 }
+                let itemIds = currentItems.values.compactMap { $0 }.map(ItemID.init(rawValue:))
                 let primaryWeaponId = currentItems[.weapons] ?? nil
                 let secondaryWeaponId = currentItems[.shields] ?? nil
 
@@ -372,11 +372,11 @@ public final class BattleSetupViewModel {
                 var twoHandedWeaponId: UUID?
                 let isTwoHanded: Bool
                 if let weaponId = primaryWeaponId,
-                   let item = itemsRepository.getHeroItem(weaponId),
+                   let item = itemsRepository.getHeroItem(ItemID(rawValue: weaponId)),
                    let weapon = item as? WeaponItem,
                    weapon.handUse == .both {
                     isTwoHanded = true
-                    twoHandedWeaponId = weapon.id
+                    twoHandedWeaponId = weapon.id.rawValue
                 } else {
                     isTwoHanded = false
                 }
@@ -384,11 +384,11 @@ public final class BattleSetupViewModel {
                 let rightHandDamage: (minDmg: Int16, maxDmg: Int16)?
                 let leftHandDamage: (minDmg: Int16, maxDmg: Int16)?
                 if isTwoHanded {
-                    rightHandDamage = damageService.getWeaponDamage(weaponId: primaryWeaponId)
+                    rightHandDamage = damageService.getWeaponDamage(weaponId: primaryWeaponId.map(ItemID.init(rawValue:)))
                     leftHandDamage = (minDmg: 0, maxDmg: 0)
                 } else {
-                    rightHandDamage = damageService.getWeaponDamage(weaponId: primaryWeaponId)
-                    leftHandDamage = damageService.getWeaponDamage(weaponId: secondaryWeaponId)
+                    rightHandDamage = damageService.getWeaponDamage(weaponId: primaryWeaponId.map(ItemID.init(rawValue:)))
+                    leftHandDamage = damageService.getWeaponDamage(weaponId: secondaryWeaponId.map(ItemID.init(rawValue:)))
                 }
 
                 // Final validation before updating UI

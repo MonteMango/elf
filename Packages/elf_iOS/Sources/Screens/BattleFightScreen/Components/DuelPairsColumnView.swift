@@ -16,11 +16,11 @@ struct DuelPairsColumnView: View {
     let battleRound: BattleRound
     let leftCells: [CombatantCellState]
     let rightCells: [CombatantCellState]
-    let playerCombatantId: UUID?
+    let playerCombatantId: CombatantID?
 
     /// Returns the cell descriptor matching the given combatant id, across both teams.
-    private func cell(for id: UUID) -> CombatantCellState? {
-        leftCells.first { $0.id == id } ?? rightCells.first { $0.id == id }
+    private func cell(for id: CombatantID) -> CombatantCellState? {
+        leftCells.first { $0.id == id.rawValue } ?? rightCells.first { $0.id == id.rawValue }
     }
 
     /// Pair containing the player on the left side, if present in this round.
@@ -52,13 +52,13 @@ struct DuelPairsColumnView: View {
     /// Hero is alive somewhere in the left team but has no pair this round → render alone.
     private var isHeroWaiting: Bool {
         guard let playerId = playerCombatantId,
-              let player = leftCells.first(where: { $0.id == playerId }),
+              let player = leftCells.first(where: { $0.id == playerId.rawValue }),
               player.isAlive
         else { return false }
         return heroPair == nil
     }
 
-    private var waitingLeftIdsForDisplay: [UUID] {
+    private var waitingLeftIdsForDisplay: [CombatantID] {
         guard isHeroWaiting, let playerId = playerCombatantId else {
             return battleRound.waitingLeftIds
         }
@@ -158,10 +158,10 @@ struct DuelPairsColumnView: View {
     let battleRound = BattleRound(
         roundNumber: 1,
         duelPairs: [
-            DuelPair(leftCombatantId: leftCells[0].id, rightCombatantId: rightCells[0].id),
-            DuelPair(leftCombatantId: leftCells[1].id, rightCombatantId: rightCells[1].id)
+            DuelPair(leftCombatantId: CombatantID(rawValue: leftCells[0].id), rightCombatantId: CombatantID(rawValue: rightCells[0].id)),
+            DuelPair(leftCombatantId: CombatantID(rawValue: leftCells[1].id), rightCombatantId: CombatantID(rawValue: rightCells[1].id))
         ],
-        waitingLeftIds: [leftCells[2].id],
+        waitingLeftIds: [CombatantID(rawValue: leftCells[2].id)],
         waitingRightIds: []
     )
 
@@ -169,7 +169,7 @@ struct DuelPairsColumnView: View {
         battleRound: battleRound,
         leftCells: leftCells,
         rightCells: rightCells,
-        playerCombatantId: leftCells[0].id
+        playerCombatantId: CombatantID(rawValue: leftCells[0].id)
     )
     .padding()
     .background(Color.yellow)

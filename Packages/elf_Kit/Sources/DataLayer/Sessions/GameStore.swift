@@ -28,7 +28,7 @@ public final class GameStore {
 
     // MARK: - Stable identity
 
-    public let gameId: UUID
+    public let gameId: GameID
     public let playerHouseIndex: Int
     public let playerMemberIndex: Int
 

@@ -124,7 +124,7 @@ public protocol DebugBattleLogger: Sendable {
         roundNumber: Int,
         leftTeam: [CombatantSnapshot],
         rightTeam: [CombatantSnapshot],
-        playerCombatantId: UUID?,
+        playerCombatantId: CombatantID?,
         battleRound: BattleRound?
     )
 }

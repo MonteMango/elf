@@ -119,7 +119,7 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
     // MARK: - Helpers
 
     private func makeCombatant(
-        id: UUID = UUID(),
+        id: CombatantID = CombatantID(),
         name: String = "C",
         currentHP: Int = 100,
         maxHP: Int = 100,
@@ -135,7 +135,7 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
         )
         return CombatantSnapshot(
             id: id,
-            sourceId: UUID(),
+            source: .synthetic,
             name: name,
             imageName: "img",
             combatantType: .elf,
@@ -160,8 +160,8 @@ final class DefaultBattleRoundRunnerTests: XCTestCase {
     }
 
     private func makeRound(
-        leftIds: [UUID],
-        rightIds: [UUID],
+        leftIds: [CombatantID],
+        rightIds: [CombatantID],
         roundNumber: Int = 1
     ) -> BattleRound {
         let pairs = zip(leftIds, rightIds).map { left, right in

@@ -10,7 +10,7 @@ import Foundation
 public final class ElfDungeonRepository: DungeonRepository {
 
     private let items: [Dungeon]
-    private let lookup: [UUID: Dungeon]
+    private let lookup: [DungeonID: Dungeon]
 
     public init(dungeonsData: DungeonsData) {
         self.items = dungeonsData.dungeons
@@ -19,7 +19,7 @@ public final class ElfDungeonRepository: DungeonRepository {
 
     public func getAll() -> [Dungeon] { items }
 
-    public func getById(id: UUID) -> Dungeon? { lookup[id] }
+    public func getById(id: DungeonID) -> Dungeon? { lookup[id] }
 
     public func randomDungeon() -> Dungeon? { items.randomElement() }
 }

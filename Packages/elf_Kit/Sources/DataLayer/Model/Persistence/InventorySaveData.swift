@@ -77,7 +77,7 @@ public struct InventorySaveData: Sendable, Equatable, Codable {
 
         // Restore materials in a single pass
         let materialAdditions = materials.map {
-            MaterialAddition(id: $0.id, source: $0.source, quantity: $0.quantity)
+            MaterialAddition(ref: $0.ref, quantity: $0.quantity)
         }
         inventory = inventoryService.addMaterials(materialAdditions, to: inventory)
 

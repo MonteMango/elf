@@ -223,7 +223,7 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
         roundNumber: Int,
         leftTeam: [CombatantSnapshot],
         rightTeam: [CombatantSnapshot],
-        playerCombatantId: UUID?,
+        playerCombatantId: CombatantID?,
         battleRound: BattleRound?
     ) {
         guard categories.contains(.roundState) else { return }
@@ -232,13 +232,13 @@ public final class ConsoleDebugBattleLogger: DebugBattleLogger {
             .map { snapshot in
                 let heroMark = snapshot.id == playerCombatantId ? " ← HERO" : ""
                 let effMax = buffEffectsCalculator.effectiveAttributes(of: snapshot).hitPoints.intValue
-                return "  - \(snapshot.name) [id=\(snapshot.id.uuidString.prefix(8))] HP \(snapshot.currentHP)/\(effMax)\(heroMark)"
+                return "  - \(snapshot.name) [id=\(snapshot.id.rawValue.uuidString.prefix(8))] HP \(snapshot.currentHP)/\(effMax)\(heroMark)"
             }
             .joined(separator: "\n")
         let enemies = rightTeam
             .map { snapshot in
                 let effMax = buffEffectsCalculator.effectiveAttributes(of: snapshot).hitPoints.intValue
-                return "  - \(snapshot.name) [id=\(snapshot.id.uuidString.prefix(8))] HP \(snapshot.currentHP)/\(effMax)"
+                return "  - \(snapshot.name) [id=\(snapshot.id.rawValue.uuidString.prefix(8))] HP \(snapshot.currentHP)/\(effMax)"
             }
             .joined(separator: "\n")
 

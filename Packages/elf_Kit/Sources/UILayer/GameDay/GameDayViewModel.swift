@@ -78,7 +78,7 @@ public final class GameDayViewModel {
     /// through the route so reopening `DungeonOverviewScreen` with the same parameters
     /// shows the same squad. Returns `nil` if AP is insufficient or the dungeon pool is empty.
     /// Note: AP is **not** spent here — that happens when the run actually starts (follow-up PR).
-    public func prepareDungeonRun() -> (dungeonId: UUID, allyIds: [UUID])? {
+    public func prepareDungeonRun() -> (dungeonId: DungeonID, allyIds: [ElfID])? {
         guard session.state.actionPoints.current >= dungeonCost else { return nil }
         guard let dungeon = dungeonRepository.randomDungeon() else { return nil }
 
@@ -125,7 +125,7 @@ public final class GameDayViewModel {
     private func missingWeapons() -> [Item] {
         let allWeapons = itemsRepository.getItems(for: .weapons).compactMap { $0 as? WeaponItem }
         let existingCountByItemId = session.state.player.inventory.weapons
-            .reduce(into: [UUID: Int]()) { counts, weapon in counts[weapon.item.id, default: 0] += 1 }
+            .reduce(into: [ItemID: Int]()) { counts, weapon in counts[weapon.item.id, default: 0] += 1 }
 
         var toAdd: [Item] = []
         for weapon in allWeapons {
@@ -168,7 +168,7 @@ public final class GameDayViewModel {
     /// Called when an equipment slot is tapped
     public func onEquipmentSlotTapped(_ slotType: HeroItemType) {
         let itemId = equipmentQueryService.equippedItemId(for: slotType, in: session.state.player.equipped)
-        pendingInventoryItemId = itemId
+        pendingInventoryItemId = itemId?.rawValue
         isInventoryVisible = true
     }
 
@@ -215,7 +215,7 @@ public final class GameDayViewModel {
 
         // Pre-resolve UI equipment maps for every elf-side combatant. Keyed by
         // snapshot id; monsters carry no entry (consumer falls back to [:]).
-        var equipmentMap: [UUID: [HeroItemType: HeroEquippedSlot]] = [
+        var equipmentMap: [CombatantID: [HeroItemType: HeroEquippedSlot]] = [
             heroSnapshot.id: equippedSlotResolver.resolve(equipped: player.equipped)
         ]
         for (snapshot, ally) in zip(allySnapshots, allies) {

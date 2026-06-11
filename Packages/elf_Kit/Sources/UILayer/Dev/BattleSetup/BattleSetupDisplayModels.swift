@@ -64,7 +64,7 @@ extension HeroConfigurationState {
     /// `DefaultElfInfoFactory` for new heroes. Mirrored here so the Dev
     /// BattleSetup screen can fall back to it when the user hasn't picked
     /// a weapon, instead of disabling the "Start Battle" button.
-    private static let defaultWeaponId = UUID(uuidString: "dfbd2742-5470-4f97-84ea-fb17b5f3a6d2")
+    private static let defaultWeaponId = UUID(uuidString: "dfbd2742-5470-4f97-84ea-fb17b5f3a6d2").map(ItemID.init(rawValue:))
 
     /// Materialise a type-safe `EquippedItems` from the in-flux dict
     /// configuration. Falls back to Recruit's Spear when no weapon is
@@ -118,7 +118,7 @@ extension HeroConfigurationState {
     /// selected (or the selected UUID can't be resolved).
     private func resolvePrimaryWeapon(itemsRepository: any ItemsRepository) -> ElfWeaponItem {
         if let selectedId = selectedItems[.weapons] ?? nil,
-           let item = itemsRepository.getHeroItem(selectedId) as? WeaponItem {
+           let item = itemsRepository.getHeroItem(ItemID(rawValue: selectedId)) as? WeaponItem {
             return ElfWeaponItem(weaponItem: item)
         }
 
@@ -136,12 +136,12 @@ extension HeroConfigurationState {
         itemsRepository: any ItemsRepository
     ) -> WeaponConfiguration {
         guard let shieldSlotId = selectedItems[.shields] ?? nil,
-              let shieldSlotItem = itemsRepository.getHeroItem(shieldSlotId) else {
+              let shieldSlotItem = itemsRepository.getHeroItem(ItemID(rawValue: shieldSlotId)) else {
             return .oneHanded(weapon: primary)
         }
 
         if let shieldBase = shieldSlotItem as? ShieldItem {
-            let shield = ElfShieldItem(id: shieldSlotId, item: shieldBase)
+            let shield = ElfShieldItem(id: OwnedItemID(rawValue: shieldSlotId), item: shieldBase)
             return .oneHandedWithShield(weapon: primary, shield: shield)
         }
 
@@ -162,20 +162,20 @@ extension HeroConfigurationState {
         itemsRepository: any ItemsRepository
     ) -> ElfDefenseItem? {
         guard let id = selectedItems[slot] ?? nil,
-              let item = itemsRepository.getHeroItem(id),
+              let item = itemsRepository.getHeroItem(ItemID(rawValue: id)),
               item is DefenseItem else {
             return nil
         }
-        return ElfDefenseItem(id: id, item: item)
+        return ElfDefenseItem(id: OwnedItemID(rawValue: id), item: item)
     }
 
     private func resolveRobeItem(itemsRepository: any ItemsRepository) -> ElfRobeItem? {
         guard let id = selectedItems[.shirt] ?? nil,
-              let item = itemsRepository.getHeroItem(id),
+              let item = itemsRepository.getHeroItem(ItemID(rawValue: id)),
               item is RobeItem else {
             return nil
         }
-        return ElfRobeItem(id: id, item: item)
+        return ElfRobeItem(id: OwnedItemID(rawValue: id), item: item)
     }
 
     private func resolveJewelryItem(
@@ -183,11 +183,11 @@ extension HeroConfigurationState {
         itemsRepository: any ItemsRepository
     ) -> ElfJewelryItem? {
         guard let id = selectedItems[slot] ?? nil,
-              let item = itemsRepository.getHeroItem(id),
+              let item = itemsRepository.getHeroItem(ItemID(rawValue: id)),
               item is JewelryItem else {
             return nil
         }
-        return ElfJewelryItem(id: id, item: item)
+        return ElfJewelryItem(id: OwnedItemID(rawValue: id), item: item)
     }
 }
 

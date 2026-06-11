@@ -17,7 +17,7 @@ public final class DefaultCraftService: CraftService {
 
     public func getMissingIngredients(recipe: Recipe, inventory: ElfInventory) -> [MissingIngredient] {
         recipe.ingredients.compactMap { ingredient in
-            let available = inventory.materials.first(where: { $0.id == ingredient.itemId })?.quantity ?? 0
+            let available = inventory.materials.first(where: { $0.ref.rawValue == ingredient.itemId })?.quantity ?? 0
             guard available < ingredient.amount else { return nil }
             return MissingIngredient(
                 itemId: ingredient.itemId,
@@ -36,7 +36,7 @@ public final class DefaultCraftService: CraftService {
 
         var newInventory = inventory
         for (itemId, totalAmount) in requiredAmounts {
-            if let index = newInventory.materials.firstIndex(where: { $0.id == itemId }) {
+            if let index = newInventory.materials.firstIndex(where: { $0.ref.rawValue == itemId }) {
                 newInventory.materials[index].quantity -= totalAmount
                 if newInventory.materials[index].quantity <= 0 {
                     newInventory.materials.remove(at: index)

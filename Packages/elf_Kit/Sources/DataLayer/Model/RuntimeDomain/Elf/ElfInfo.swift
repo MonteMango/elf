@@ -13,7 +13,7 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
 
     // MARK: - Identity
 
-    public let id: UUID
+    public let id: ElfID
 
     // MARK: - Basic Info
 
@@ -71,7 +71,7 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
     // MARK: - Initialization
 
     public init(
-        id: UUID = UUID(),
+        id: ElfID = ElfID(),
         name: String,
         imageName: String,
         fightStyle: FightStyle,

@@ -8,7 +8,7 @@
 import Foundation
 
 public struct HouseSaveData: Codable, Sendable {
-    public let id: UUID
+    public let id: HouseID
     public let name: String
     public let logoImageName: String
     public let isEliminated: Bool

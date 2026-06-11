@@ -35,7 +35,7 @@ final class ElfAttributeServiceTests: XCTestCase {
     }
 
     struct TestItem: Item {
-        let id: UUID
+        let id: ItemID
         let title: String
         let tier: Int16
         let isUnique: Bool?
@@ -152,8 +152,8 @@ final class ElfAttributeServiceTests: XCTestCase {
     }
 
     func testItemsAttributesAggregation() async {
-        let id1 = UUID()
-        let id2 = UUID()
+        let id1 = ItemID()
+        let id2 = ItemID()
 
         let item1 = TestItem(id: id1, title: "Ring", tier: 1, isUnique: nil,
                              strength: 1, agility: nil, power: 2,

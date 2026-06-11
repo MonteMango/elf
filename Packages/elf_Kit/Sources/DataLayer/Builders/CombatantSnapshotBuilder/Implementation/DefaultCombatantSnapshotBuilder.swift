@@ -32,6 +32,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
         // (reputation perk, training bonus, …) added there flow into combat
         // automatically — no second formula to update.
         buildElfSnapshot(
+            source: .elf(elf.id),
             name: elf.name,
             imageName: elf.imageName,
             level: level,
@@ -56,6 +57,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
         // synthetic path is dev-only and acceptable to maintain manually.
         let totalAttributes = fightStyleAttributes + randomLevelAttributes + equipped.attributes
         return buildElfSnapshot(
+            source: .synthetic,
             name: name,
             imageName: imageName,
             level: level,
@@ -70,6 +72,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
     /// armor lookup all derive from `equipped` regardless of how `totalAttributes`
     /// was computed by the caller.
     private func buildElfSnapshot(
+        source: CombatantSource,
         name: String,
         imageName: String,
         level: Int,
@@ -95,7 +98,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
         let armorValues = armorValuesInt16.mapValues { Int($0) }
 
         return CombatantSnapshot(
-            sourceId: UUID(),
+            source: source,
             name: name,
             imageName: imageName,
             combatantType: .elf,
@@ -144,7 +147,7 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
         let effective = buffEffectsCalculator.apply(buffs: globalBuffs, to: baseHeroAttributes)
 
         return CombatantSnapshot(
-            sourceId: monster.id,
+            source: .monster(monster.id),
             name: monster.title,
             imageName: monster.imageName,
             combatantType: .monster,
@@ -220,8 +223,8 @@ public final class DefaultCombatantSnapshotBuilder: CombatantSnapshotBuilder {
     /// Uses `item.id` (the JSON-defined base item id) rather than the
     /// wrapper's per-instance `id`, because `ArmorService` looks values up
     /// in `ItemsRepository` keyed by base id.
-    private func collectArmorRelevantIds(equipped: EquippedItems) -> [UUID] {
-        var ids: [UUID] = []
+    private func collectArmorRelevantIds(equipped: EquippedItems) -> [ItemID] {
+        var ids: [ItemID] = []
         if let id = equipped.helmet?.item.id { ids.append(id) }
         if let id = equipped.gloves?.item.id { ids.append(id) }
         if let id = equipped.shoes?.item.id { ids.append(id) }

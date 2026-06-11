@@ -51,10 +51,10 @@ internal struct SelectHeroItemScreen: View {
                     ForEach(viewModel.availableItems, id: \.id) { item in
                         ItemCell(
                             item: item,
-                            isSelected: viewModel.selectedItemId == item.id
+                            isSelected: viewModel.selectedItemId == item.id.rawValue
                         )
                         .onTapGesture {
-                            viewModel.selectItem(item.id)
+                            viewModel.selectItem(item.id.rawValue)
                         }
                     }
                 }

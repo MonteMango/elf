@@ -11,12 +11,12 @@ public final class ElfRecipeRepository: RecipeRepository {
 
     private let recipesData: RecipesData
     private let items: [Recipe]
-    private let lookup: [UUID: Recipe]
+    private let lookup: [RecipeID: Recipe]
 
     public init(recipesData: RecipesData) {
         self.recipesData = recipesData
 
-        var lookup: [UUID: Recipe] = [:]
+        var lookup: [RecipeID: Recipe] = [:]
         for recipe in recipesData.weapons { lookup[recipe.id] = recipe }
         for recipe in recipesData.armor { lookup[recipe.id] = recipe }
 
@@ -26,7 +26,7 @@ public final class ElfRecipeRepository: RecipeRepository {
 
     public func getAll() -> [Recipe] { items }
 
-    public func getById(id: UUID) -> Recipe? { lookup[id] }
+    public func getById(id: RecipeID) -> Recipe? { lookup[id] }
 
     public func recipes(for category: RecipeCategory) -> [Recipe] {
         switch category {

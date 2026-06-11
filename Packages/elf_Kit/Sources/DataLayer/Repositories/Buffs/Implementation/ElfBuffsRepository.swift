@@ -10,11 +10,11 @@ import Foundation
 public final class ElfBuffsRepository: BuffsRepository {
 
     private let items: [Buff]
-    private let lookup: [UUID: Buff]
+    private let lookup: [BuffID: Buff]
 
     public init(buffsData: BuffsData) {
         self.items = buffsData.buffs
-        var lookup: [UUID: Buff] = [:]
+        var lookup: [BuffID: Buff] = [:]
         for buff in buffsData.buffs {
             lookup[buff.id] = buff
         }
@@ -23,5 +23,5 @@ public final class ElfBuffsRepository: BuffsRepository {
 
     public func getAll() -> [Buff] { items }
 
-    public func getById(id: UUID) -> Buff? { lookup[id] }
+    public func getById(id: BuffID) -> Buff? { lookup[id] }
 }

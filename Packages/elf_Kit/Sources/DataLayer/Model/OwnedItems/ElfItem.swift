@@ -8,6 +8,6 @@
 import Foundation
 
 public protocol ElfItem {
-    var id: UUID { get }
+    var id: OwnedItemID { get }
     var item: Item { get }
 }

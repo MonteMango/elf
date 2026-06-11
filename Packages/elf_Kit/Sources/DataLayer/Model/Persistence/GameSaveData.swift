@@ -9,7 +9,7 @@ import Foundation
 
 /// Core game data without metadata
 public struct GameSaveData: Codable, Sendable {
-    public let gameId: UUID
+    public let gameId: GameID
     public let houses: [HouseSaveData]
     public let gameState: GameStateSaveData
     public let playerHouseIndex: Int

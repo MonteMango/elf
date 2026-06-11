@@ -102,7 +102,7 @@ public final class ElfAttributeService: AttributeService {
         return totalAttributes
     }
 
-    public func getAllItemsAttributes(for itemIds: [UUID]) -> HeroAttributes {
+    public func getAllItemsAttributes(for itemIds: [ItemID]) -> HeroAttributes {
         var aggregatedAttributes = HeroAttributes()
         for itemId in itemIds {
             if let item = itemsRepository.getHeroItem(itemId) {

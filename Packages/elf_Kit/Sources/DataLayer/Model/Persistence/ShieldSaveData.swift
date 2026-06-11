@@ -11,10 +11,10 @@ import Foundation
 /// Stores instance ID and base item ID.
 public struct ShieldSaveData: Sendable, Equatable, Codable {
     /// Unique instance ID
-    public let id: UUID
+    public let id: OwnedItemID
 
     /// Base item ID from HeroItems (shields)
-    public let itemId: UUID
+    public let itemId: ItemID
 
     /// Create from ElfShieldItem
     public init(from elfShield: ElfShieldItem) {

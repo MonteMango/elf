@@ -9,7 +9,7 @@ import Foundation
 
 public final class ShieldItem: Item, HasPhysicalDefense, Decodable {
 
-    public let id: UUID
+    public let id: ItemID
     public let title: String
     public let tier: Int16
     public let isUnique: Bool?
@@ -31,7 +31,7 @@ public final class ShieldItem: Item, HasPhysicalDefense, Decodable {
     required public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        id = try container.decode(UUID.self, forKey: .id)
+        id = try container.decode(ItemID.self, forKey: .id)
         title = try container.decode(String.self, forKey: .title)
         tier = try container.decode(Int16.self, forKey: .tier)
         isUnique = try container.decodeIfPresent(Bool.self, forKey: .isUnique)

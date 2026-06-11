@@ -32,7 +32,7 @@ public final class DefaultEquipmentService: EquipmentService {
 
     // MARK: - Weapon
 
-    public func equipWeapon(id: UUID) {
+    public func equipWeapon(id: OwnedItemID) {
         guard let weapon = store.player.inventory.weapons.first(where: { $0.id == id }),
               let weaponItem = weapon.item as? WeaponItem else { return }
 
@@ -62,7 +62,7 @@ public final class DefaultEquipmentService: EquipmentService {
         store.player.equipped = equipped
     }
 
-    public func equipOffhandWeapon(id: UUID) {
+    public func equipOffhandWeapon(id: OwnedItemID) {
         guard let weapon = store.player.inventory.weapons.first(where: { $0.id == id }),
               let weaponItem = weapon.item as? WeaponItem,
               weaponItem.handUse == .oneHand,
@@ -82,7 +82,7 @@ public final class DefaultEquipmentService: EquipmentService {
         store.player.equipped = equipped
     }
 
-    public func unequipWeapon(id: UUID) {
+    public func unequipWeapon(id: OwnedItemID) {
         var equipped = store.player.equipped
         guard case .dualWield(let primary, let secondary) = equipped.weapons else { return }
 
@@ -96,7 +96,7 @@ public final class DefaultEquipmentService: EquipmentService {
 
     // MARK: - Shield
 
-    public func equipShield(id: UUID) {
+    public func equipShield(id: OwnedItemID) {
         guard let shield = store.player.inventory.shields.first(where: { $0.id == id }) else { return }
 
         var equipped = store.player.equipped
@@ -123,7 +123,7 @@ public final class DefaultEquipmentService: EquipmentService {
 
     // MARK: - Armor
 
-    public func equipArmor(id: UUID) {
+    public func equipArmor(id: OwnedItemID) {
         let inventory = store.player.inventory
 
         if let robe = inventory.robes.first(where: { $0.id == id }) {
@@ -142,7 +142,7 @@ public final class DefaultEquipmentService: EquipmentService {
         store.player.equipped = equipped
     }
 
-    public func unequipArmor(id: UUID) {
+    public func unequipArmor(id: OwnedItemID) {
         var equipped = store.player.equipped
         if equipped.shirt?.id == id {
             equipped.shirt = nil
@@ -164,7 +164,7 @@ public final class DefaultEquipmentService: EquipmentService {
 
     // MARK: - Jewelry
 
-    public func equipJewelry(id: UUID) {
+    public func equipJewelry(id: OwnedItemID) {
         guard let jewelry = store.player.inventory.jewelry.first(where: { $0.id == id }) else { return }
 
         var equipped = store.player.equipped
@@ -180,7 +180,7 @@ public final class DefaultEquipmentService: EquipmentService {
         store.player.equipped = equipped
     }
 
-    public func unequipJewelry(id: UUID) {
+    public func unequipJewelry(id: OwnedItemID) {
         var equipped = store.player.equipped
         if equipped.ring?.id == id {
             equipped.ring = nil

@@ -40,7 +40,7 @@ public final class CraftViewModel {
 
     public var selectedRecipeDetail: CraftRecipeDetailDisplay? {
         guard let recipeId = selectedRecipeId,
-              let recipe = recipeRepository.getById(id: recipeId) else {
+              let recipe = recipeRepository.getById(id: RecipeID(rawValue: recipeId)) else {
             return nil
         }
         return buildDetail(from: recipe)
@@ -85,7 +85,7 @@ public final class CraftViewModel {
         isCrafting = true
         defer { isCrafting = false }
 
-        guard let recipe = recipeRepository.getById(id: recipeId),
+        guard let recipe = recipeRepository.getById(id: RecipeID(rawValue: recipeId)),
               let item = itemsRepository.getHeroItem(recipe.resultItemId) else { return }
 
         try? await Task.sleep(for: .seconds(2))
@@ -106,7 +106,7 @@ public final class CraftViewModel {
             )
         }
         return CraftRecipeDisplay(
-            id: recipe.id,
+            id: recipe.id.rawValue,
             title: item?.title ?? "Unknown",
             imageName: itemImageName(for: item),
             shortInfo: buildShortInfo(for: item),
@@ -130,7 +130,7 @@ public final class CraftViewModel {
 
         let ingredientDisplays: [CraftIngredientDisplay] = recipe.ingredients.map { ingredient in
             let info = ingredientInfo(for: ingredient)
-            let inBag = inventory.materials.first(where: { $0.id == ingredient.itemId })?.quantity ?? 0
+            let inBag = inventory.materials.first(where: { $0.ref.rawValue == ingredient.itemId })?.quantity ?? 0
             return CraftIngredientDisplay(
                 id: ingredient.itemId,
                 imageName: info.imageName,
@@ -141,7 +141,7 @@ public final class CraftViewModel {
         }
 
         return CraftRecipeDetailDisplay(
-            recipeId: recipe.id,
+            recipeId: recipe.id.rawValue,
             title: item?.title ?? "Unknown",
             imageName: itemImageName(for: item),
             shortInfo: buildShortInfo(for: item),
@@ -174,7 +174,7 @@ public final class CraftViewModel {
     private func ingredientInfo(for ingredient: RecipeIngredient) -> (imageName: String, title: String) {
         switch ingredient.type {
         case .material:
-            let material = materialRepository.getById(id: ingredient.itemId)
+            let material = materialRepository.getById(id: MaterialID(rawValue: ingredient.itemId))
             return (material?.imageName ?? "item_unknown", material?.title ?? "Unknown")
         case .ore:
             let ore = oreRepository.getById(id: OreID(rawValue: ingredient.itemId))
@@ -184,6 +184,6 @@ public final class CraftViewModel {
 
     private func itemImageName(for item: Item?) -> String {
         guard let item else { return "item_unknown" }
-        return item.id.uuidString.lowercased()
+        return item.id.rawValue.uuidString.lowercased()
     }
 }

@@ -15,14 +15,14 @@ public protocol EquipmentQueryService: Sendable {
 
     // MARK: - Item Checks
 
-    /// Checks if the given item ID is equipped anywhere
-    func isItemEquipped(_ itemId: UUID, in equipped: EquippedItems) -> Bool
+    /// Checks if the given owned-instance item ID is equipped anywhere
+    func isItemEquipped(_ itemId: OwnedItemID, in equipped: EquippedItems) -> Bool
 
     // MARK: - Slot Queries
 
     /// Get equipped instance item ID for a slot
-    func equippedItemId(for slot: HeroItemType, in equipped: EquippedItems) -> UUID?
+    func equippedItemId(for slot: HeroItemType, in equipped: EquippedItems) -> OwnedItemID?
 
-    /// Get all equipped base item IDs as dictionary (for UI compatibility)
-    func equippedBaseItemIds(from equipped: EquippedItems) -> [HeroItemType: UUID]
+    /// Get all equipped base (catalog) item IDs as dictionary (for UI compatibility)
+    func equippedBaseItemIds(from equipped: EquippedItems) -> [HeroItemType: ItemID]
 }

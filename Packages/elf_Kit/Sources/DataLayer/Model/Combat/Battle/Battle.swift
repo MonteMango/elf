@@ -8,7 +8,7 @@
 import Foundation
 
 public struct Battle: Sendable, Identifiable {
-    public let id: UUID
+    public let id: BattleID
 
     /// Left team combatants (player team). Uses CombatantSnapshot for unified elf/monster handling.
     public let leftTeam: [CombatantSnapshot]
@@ -30,13 +30,13 @@ public struct Battle: Sendable, Identifiable {
     /// future state: move raw `EquippedItems` onto `CombatantSnapshot` (mutable),
     /// drop this field, and have VM `makeDisplay` resolve the UI map on-the-fly
     /// per render via `HeroEquippedSlotResolver`.
-    public let equippedItemsByCombatantId: [UUID: [HeroItemType: HeroEquippedSlot]]
+    public let equippedItemsByCombatantId: [CombatantID: [HeroItemType: HeroEquippedSlot]]
 
     public init(
-        id: UUID = UUID(),
+        id: BattleID = BattleID(),
         leftTeam: [CombatantSnapshot],
         rightTeam: [CombatantSnapshot],
-        equippedItemsByCombatantId: [UUID: [HeroItemType: HeroEquippedSlot]] = [:]
+        equippedItemsByCombatantId: [CombatantID: [HeroItemType: HeroEquippedSlot]] = [:]
     ) {
         self.id = id
         self.leftTeam = leftTeam

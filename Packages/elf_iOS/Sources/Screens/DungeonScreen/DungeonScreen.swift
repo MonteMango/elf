@@ -111,7 +111,7 @@ struct DungeonScreen: View {
     @Previewable @State var coordinator: AppCoordinator?
     @Previewable @State var router = AppRouter()
 
-    let dungeonId = UUID(uuidString: "11111111-0000-0000-0000-000000000001") ?? UUID()
+    let dungeonId = DungeonID(rawValue: UUID(uuidString: "11111111-0000-0000-0000-000000000001") ?? UUID())
 
     if let coordinator, let session = coordinator.gameSession {
         let house = session.state.houses[session.state.playerHouseIndex]

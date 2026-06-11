@@ -26,22 +26,22 @@ public protocol EquipmentService: AnyObject {
     ///   keeping the off-hand weapon.
     /// - **One-handed weapon** with current `.twoHanded`: replaces the two-hander (drops it).
     /// Use `equipOffhandWeapon(id:)` to explicitly target the off-hand slot.
-    func equipWeapon(id: UUID)
+    func equipWeapon(id: OwnedItemID)
 
     /// Equips a one-handed weapon from inventory into the **off-hand** slot, forming a dual-wield.
     /// - If a shield is currently equipped, it is auto-unequipped.
     /// - If a two-handed weapon is currently equipped, it is auto-unequipped and the new weapon
     ///   becomes the sole main-hand weapon.
     /// - No-op when the supplied weapon is two-handed.
-    func equipOffhandWeapon(id: UUID)
+    func equipOffhandWeapon(id: OwnedItemID)
 
     /// Unequips weapon (only works for the off-hand weapon in dual-wield mode)
-    func unequipWeapon(id: UUID)
+    func unequipWeapon(id: OwnedItemID)
 
     // MARK: - Shield
 
     /// Equips shield from inventory (only if current weapon config allows)
-    func equipShield(id: UUID)
+    func equipShield(id: OwnedItemID)
 
     /// Unequips current shield
     func unequipShield()
@@ -49,16 +49,16 @@ public protocol EquipmentService: AnyObject {
     // MARK: - Armor
 
     /// Equips armor from inventory, auto-determining slot by protectParts
-    func equipArmor(id: UUID)
+    func equipArmor(id: OwnedItemID)
 
     /// Unequips armor by finding which slot contains it
-    func unequipArmor(id: UUID)
+    func unequipArmor(id: OwnedItemID)
 
     // MARK: - Jewelry
 
     /// Equips jewelry from inventory, auto-finding first free slot
-    func equipJewelry(id: UUID)
+    func equipJewelry(id: OwnedItemID)
 
     /// Unequips jewelry by finding which slot contains it
-    func unequipJewelry(id: UUID)
+    func unequipJewelry(id: OwnedItemID)
 }

@@ -45,7 +45,7 @@ public final class BattleFightViewModel {
 
     /// Identity of the player-controlled combatant in `leftTeam`. By convention the hero
     /// is `leftTeam[0]`; nil for dev/auto flows that don't have a player.
-    public let playerCombatantId: UUID?
+    public let playerCombatantId: CombatantID?
 
     // MARK: - Round State
 
@@ -175,8 +175,8 @@ public final class BattleFightViewModel {
     /// If the buff shifts the effective HP/MP cap, `currentHP` and `currentMP`
     /// are scaled proportionally so the fraction-of-cap is preserved
     /// (e.g. 50/100 HP + a buff raising the cap to 120 → 60/120).
-    public func applyBattleBuff(buffId: UUID, toCombatantWithId combatantId: UUID) {
-        if let index = leftTeam.firstIndex(where: { $0.id == combatantId }) {
+    public func applyBattleBuff(buffId: BuffID, toCombatantWithId combatantId: UUID) {
+        if let index = leftTeam.firstIndex(where: { $0.id == CombatantID(rawValue: combatantId) }) {
             let before = buffEffectsCalculator.effectiveAttributes(of: leftTeam[index])
             leftTeam[index].battleBuffs = buffApplicationService.applyAsBattle(
                 buffId: buffId,
@@ -185,7 +185,7 @@ public final class BattleFightViewModel {
             rescaleCurrentVitals(combatant: &leftTeam[index], before: before)
             return
         }
-        if let index = rightTeam.firstIndex(where: { $0.id == combatantId }) {
+        if let index = rightTeam.firstIndex(where: { $0.id == CombatantID(rawValue: combatantId) }) {
             let before = buffEffectsCalculator.effectiveAttributes(of: rightTeam[index])
             rightTeam[index].battleBuffs = buffApplicationService.applyAsBattle(
                 buffId: buffId,
@@ -415,10 +415,10 @@ public final class BattleFightViewModel {
 
     private func getMonsterFromBot() -> Monster? {
         guard let botSnapshot = rightTeam.first,
-              botSnapshot.combatantType == .monster else {
+              case .monster(let monsterId) = botSnapshot.source else {
             return nil
         }
-        return monsterRepository.getById(id: botSnapshot.sourceId)
+        return monsterRepository.getById(id: monsterId)
     }
 
     // MARK: - Duel Pairs

@@ -11,13 +11,13 @@ public final class ElfMonsterRepository: MonsterRepository {
 
     private let monstersData: MonstersData
     private let items: [Monster]
-    private let lookup: [UUID: Monster]
+    private let lookup: [MonsterID: Monster]
 
     public init(monstersData: MonstersData) {
         self.monstersData = monstersData
 
         var items: [Monster] = []
-        var lookup: [UUID: Monster] = [:]
+        var lookup: [MonsterID: Monster] = [:]
 
         func index(_ monsters: [Monster]) {
             for monster in monsters {
@@ -42,7 +42,7 @@ public final class ElfMonsterRepository: MonsterRepository {
 
     public func getAll() -> [Monster] { items }
 
-    public func getById(id: UUID) -> Monster? { lookup[id] }
+    public func getById(id: MonsterID) -> Monster? { lookup[id] }
 
     public func getMonsters(world: WorldType, level: Int) -> [Monster] {
         let worldLevels: WorldLevels

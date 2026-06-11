@@ -11,7 +11,7 @@ import Foundation
 /// Each case carries only the parameters relevant to that condition type.
 public enum QuestCondition: Sendable, Hashable {
     case bringItem(itemId: UUID, amount: Int)
-    case killMonster(monsterId: UUID, amount: Int)
+    case killMonster(monsterId: MonsterID, amount: Int)
 }
 
 // MARK: - Codable
@@ -41,7 +41,7 @@ extension QuestCondition: Codable {
             self = .bringItem(itemId: itemId, amount: amount)
 
         case .killMonster:
-            let monsterId = try container.decode(UUID.self, forKey: .monsterId)
+            let monsterId = try container.decode(MonsterID.self, forKey: .monsterId)
             let amount = try container.decode(Int.self, forKey: .amount)
             self = .killMonster(monsterId: monsterId, amount: amount)
         }

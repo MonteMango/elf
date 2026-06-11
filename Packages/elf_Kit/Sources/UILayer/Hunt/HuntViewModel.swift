@@ -103,7 +103,7 @@ public final class HuntViewModel {
 
         for (idx, itemDrop) in monster.drops.weapons.enumerated() {
             if let uuid = UUID(uuidString: itemDrop.id),
-               let item = itemsRepository.getHeroItem(uuid) {
+               let item = itemsRepository.getHeroItem(ItemID(rawValue: uuid)) {
                 drops.append(DropDisplay(
                     id: "weapon-\(idx)",
                     imageName: itemDrop.id,
@@ -114,7 +114,7 @@ public final class HuntViewModel {
 
         for (idx, itemDrop) in monster.drops.armor.enumerated() {
             if let uuid = UUID(uuidString: itemDrop.id),
-               let item = itemsRepository.getHeroItem(uuid) {
+               let item = itemsRepository.getHeroItem(ItemID(rawValue: uuid)) {
                 drops.append(DropDisplay(
                     id: "armor-\(idx)",
                     imageName: itemDrop.id,
@@ -134,7 +134,7 @@ public final class HuntViewModel {
         }
 
         return MonsterDisplay(
-            id: monster.id,
+            id: monster.id.rawValue,
             title: monster.title,
             imageName: monster.imageName,
             drops: drops

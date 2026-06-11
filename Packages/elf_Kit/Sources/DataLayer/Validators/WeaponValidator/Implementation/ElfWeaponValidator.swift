@@ -18,10 +18,10 @@ public final class ElfWeaponValidator: WeaponValidator {
     }
 
     public func validateAndResolve(
-        selecting itemId: UUID?,
+        selecting itemId: ItemID?,
         for slot: HeroItemType,
-        currentItems: [HeroItemType: UUID?]
-    ) async -> [HeroItemType: UUID?] {
+        currentItems: [HeroItemType: ItemID?]
+    ) async -> [HeroItemType: ItemID?] {
 
         var updatedItems = currentItems
 
@@ -72,8 +72,8 @@ public final class ElfWeaponValidator: WeaponValidator {
     /// another one-handed weapon for dual-wield).
     private func handleWeaponSelection(
         item: Item,
-        currentItems: [HeroItemType: UUID?]
-    ) async -> [HeroItemType: UUID?] {
+        currentItems: [HeroItemType: ItemID?]
+    ) async -> [HeroItemType: ItemID?] {
 
         var updatedItems = currentItems
 
@@ -95,8 +95,8 @@ public final class ElfWeaponValidator: WeaponValidator {
     /// delegates to the appropriate handler.
     private func handleShieldSlotSelection(
         item: Item,
-        currentItems: [HeroItemType: UUID?]
-    ) async -> [HeroItemType: UUID?] {
+        currentItems: [HeroItemType: ItemID?]
+    ) async -> [HeroItemType: ItemID?] {
 
         let updatedItems = currentItems
 
@@ -120,8 +120,8 @@ public final class ElfWeaponValidator: WeaponValidator {
     /// the only conflict that survived the `WeaponHandUse` merge.
     private func handleShieldSelection(
         shield: ShieldItem,
-        currentItems: [HeroItemType: UUID?]
-    ) async -> [HeroItemType: UUID?] {
+        currentItems: [HeroItemType: ItemID?]
+    ) async -> [HeroItemType: ItemID?] {
 
         var updatedItems = currentItems
 
@@ -143,8 +143,8 @@ public final class ElfWeaponValidator: WeaponValidator {
     /// tab), so it is treated as an error and both slots are cleared.
     private func handleWeaponInShieldSlot(
         weapon: WeaponItem,
-        currentItems: [HeroItemType: UUID?]
-    ) async -> [HeroItemType: UUID?] {
+        currentItems: [HeroItemType: ItemID?]
+    ) async -> [HeroItemType: ItemID?] {
 
         var updatedItems = currentItems
 

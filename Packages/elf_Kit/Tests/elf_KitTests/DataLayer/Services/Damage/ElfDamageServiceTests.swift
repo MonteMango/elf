@@ -118,14 +118,14 @@ final class ElfDamageServiceTests: XCTestCase {
         let weapon = makeWeapon(id: weaponId, minDamage: 10, maxDamage: 20)
         let strategy = FakeStrengthStrategy(distributionToReturn: DamageDistribution(values: [1], weights: [1]))
         let repository = FakeItemsRepository()
-        repository.items[weaponId] = weapon
+        repository.items[ItemID(rawValue: weaponId)] = weapon
 
         let result = withDependencies {
             $0.itemsRepository = repository
             $0.strengthDamageDistributionStrategy = strategy
         } operation: {
             let service = ElfDamageService()
-            return service.getWeaponDamage(weaponId: weaponId)
+            return service.getWeaponDamage(weaponId: ItemID(rawValue: weaponId))
         }
 
         XCTAssertEqual(result?.minDmg, 10)
@@ -157,7 +157,7 @@ final class ElfDamageServiceTests: XCTestCase {
             $0.strengthDamageDistributionStrategy = strategy
         } operation: {
             let service = ElfDamageService()
-            return service.getWeaponDamage(weaponId: UUID())
+            return service.getWeaponDamage(weaponId: ItemID())
         }
 
         XCTAssertEqual(result?.minDmg, 0)

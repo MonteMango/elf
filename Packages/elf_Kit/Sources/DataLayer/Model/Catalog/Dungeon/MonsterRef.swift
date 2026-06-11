@@ -9,10 +9,10 @@ import Foundation
 
 /// Reference to a `Monster` from `Monsters.json` plus how many times it appears.
 public struct MonsterRef: Codable, Sendable, Equatable, Hashable {
-    public let monsterId: UUID
+    public let monsterId: MonsterID
     public let count: Int
 
-    public init(monsterId: UUID, count: Int) {
+    public init(monsterId: MonsterID, count: Int) {
         self.monsterId = monsterId
         self.count = count
     }

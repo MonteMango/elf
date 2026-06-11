@@ -32,8 +32,8 @@ public final class RandomDuelPairingService: DuelPairingService {
             ))
         }
 
-        let waitingLeftIds: [UUID]
-        let waitingRightIds: [UUID]
+        let waitingLeftIds: [CombatantID]
+        let waitingRightIds: [CombatantID]
 
         if shuffledLeft.count > pairCount {
             waitingLeftIds = shuffledLeft[pairCount...].map { $0.id }

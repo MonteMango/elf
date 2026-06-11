@@ -30,7 +30,7 @@ public enum AppRoute {
     case autoBattleResult(Battle)
     case multiBattleResult(Battle)
 
-    case dungeon(dungeonId: UUID, allyIds: [UUID])
+    case dungeon(dungeonId: DungeonID, allyIds: [ElfID])
 }
 
 // MARK: - Hashable

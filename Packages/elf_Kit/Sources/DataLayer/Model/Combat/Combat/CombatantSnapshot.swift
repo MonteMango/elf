@@ -24,10 +24,10 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
     // MARK: - Identity
 
     /// Unique identifier for this snapshot instance
-    public let id: UUID
+    public let id: CombatantID
 
-    /// Original ID from the source entity (ElfInfo.id or Monster.id)
-    public let sourceId: UUID
+    /// The roster entity this snapshot was built from (elf / synthetic / monster).
+    public let source: CombatantSource
 
     /// Display name of the combatant
     public let name: String
@@ -117,8 +117,8 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
     // MARK: - Initialization
 
     public init(
-        id: UUID = UUID(),
-        sourceId: UUID,
+        id: CombatantID = CombatantID(),
+        source: CombatantSource,
         name: String,
         imageName: String,
         combatantType: CombatantType,
@@ -135,7 +135,7 @@ public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
         battleBuffs: [AppliedBuff] = []
     ) {
         self.id = id
-        self.sourceId = sourceId
+        self.source = source
         self.name = name
         self.imageName = imageName
         self.combatantType = combatantType

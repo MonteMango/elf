@@ -52,7 +52,7 @@ public final class DungeonSquadViewModel {
         // MVP: no runtime HP/MP on ElfInfo yet — assume full reserves. No
         // domain buffs yet — empty array. State always alive.
         DungeonSquadMemberDetail(
-            id: elf.id,
+            id: elf.id.rawValue,
             name: elf.name,
             imageName: elf.imageName,
             level: progressionService.calculateLevel(currentExp: elf.currentExp),

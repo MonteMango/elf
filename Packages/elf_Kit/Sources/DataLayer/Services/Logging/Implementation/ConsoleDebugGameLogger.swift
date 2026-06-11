@@ -28,7 +28,7 @@ public final class ConsoleDebugGameLogger: DebugGameLogger {
         let state = game.gameState
 
         print("\n💾 ========== GAME SAVE ==========")
-        print("🎮 Game ID: \(game.id.uuidString.prefix(8))... | Play Time: \(formatTime(playTime))")
+        print("🎮 Game ID: \(game.id.rawValue.uuidString.prefix(8))... | Play Time: \(formatTime(playTime))")
 
         if categories.contains(.playerInfo) {
             logPlayerInfo(player)
@@ -93,9 +93,9 @@ public final class ConsoleDebugGameLogger: DebugGameLogger {
         for weapon in weapons {
             let enchant = weapon.enchantLevel > 0 ? " enchant:+\(weapon.enchantLevel)" : ""
             if let w = weapon.item as? WeaponItem {
-                print("    - \(w.title) [T\(w.tier)] id:\(shortId(weapon.id)) atk:\(w.minimumAttackPoint)-\(w.maximumAttackPoint)\(enchant)")
+                print("    - \(w.title) [T\(w.tier)] id:\(shortId(weapon.id.rawValue)) atk:\(w.minimumAttackPoint)-\(w.maximumAttackPoint)\(enchant)")
             } else {
-                print("    - Unknown [id:\(shortId(weapon.id))]\(enchant)")
+                print("    - Unknown [id:\(shortId(weapon.id.rawValue))]\(enchant)")
             }
         }
     }
@@ -104,9 +104,9 @@ public final class ConsoleDebugGameLogger: DebugGameLogger {
         print("  🛡️ Shields (\(shields.count)):")
         for shield in shields {
             if let s = shield.item as? ShieldItem {
-                print("    - \(s.title) [T\(s.tier)] id:\(shortId(shield.id)) def:\(s.physicalDefensePoint)")
+                print("    - \(s.title) [T\(s.tier)] id:\(shortId(shield.id.rawValue)) def:\(s.physicalDefensePoint)")
             } else {
-                print("    - Unknown [id:\(shortId(shield.id))]")
+                print("    - Unknown [id:\(shortId(shield.id.rawValue))]")
             }
         }
     }
@@ -116,9 +116,9 @@ public final class ConsoleDebugGameLogger: DebugGameLogger {
         for piece in armor {
             if let d = piece.item as? DefenseItem {
                 let parts = d.protectParts.map { $0.rawValue }.joined(separator: ",")
-                print("    - \(d.title) [T\(d.tier)] id:\(shortId(piece.id)) def:\(d.physicalDefensePoint) parts:[\(parts)]")
+                print("    - \(d.title) [T\(d.tier)] id:\(shortId(piece.id.rawValue)) def:\(d.physicalDefensePoint) parts:[\(parts)]")
             } else {
-                print("    - Unknown [id:\(shortId(piece.id))]")
+                print("    - Unknown [id:\(shortId(piece.id.rawValue))]")
             }
         }
     }
@@ -126,7 +126,7 @@ public final class ConsoleDebugGameLogger: DebugGameLogger {
     private func logRobes(_ robes: [ElfRobeItem]) {
         print("  👗 Robes (\(robes.count)):")
         for robe in robes {
-            print("    - \(robe.item.title) [T\(robe.item.tier)] id:\(shortId(robe.id))")
+            print("    - \(robe.item.title) [T\(robe.item.tier)] id:\(shortId(robe.id.rawValue))")
         }
     }
 
@@ -134,9 +134,9 @@ public final class ConsoleDebugGameLogger: DebugGameLogger {
         print("  💍 Jewelry (\(jewelry.count)):")
         for piece in jewelry {
             if let j = piece.item as? JewelryItem {
-                print("    - \(j.title) [T\(j.tier)] id:\(shortId(piece.id)) mdef:\(j.magicalDefensePoint)")
+                print("    - \(j.title) [T\(j.tier)] id:\(shortId(piece.id.rawValue)) mdef:\(j.magicalDefensePoint)")
             } else {
-                print("    - Unknown [id:\(shortId(piece.id))]")
+                print("    - Unknown [id:\(shortId(piece.id.rawValue))]")
             }
         }
     }
@@ -144,7 +144,7 @@ public final class ConsoleDebugGameLogger: DebugGameLogger {
     private func logMaterials(_ materials: [InventoryMaterial]) {
         print("  📦 Materials (\(materials.count) types):")
         for material in materials {
-            print("    - id:\(shortId(material.id)) x\(material.quantity)")
+            print("    - id:\(shortId(material.ref.rawValue)) x\(material.quantity)")
         }
     }
 

@@ -22,10 +22,10 @@ import Foundation
 public struct AppliedBuff: Sendable, Codable, Hashable, Identifiable {
 
     /// Per-instance identifier for diffing / UI.
-    public let id: UUID
+    public let id: AppliedBuffID
 
     /// Foreign key to `Buff.id` in `BuffsRepository`.
-    public let buffId: UUID
+    public let buffId: BuffID
 
     /// Game day on which this buff was applied. Combined with `Buff.durationDays`
     /// for expiry checks during day advance. Set to a concrete `Int` for
@@ -39,8 +39,8 @@ public struct AppliedBuff: Sendable, Codable, Hashable, Identifiable {
     public var stacks: Int
 
     public init(
-        id: UUID = UUID(),
-        buffId: UUID,
+        id: AppliedBuffID = AppliedBuffID(),
+        buffId: BuffID,
         appliedOnDay: Int? = nil,
         stacks: Int = 1
     ) {

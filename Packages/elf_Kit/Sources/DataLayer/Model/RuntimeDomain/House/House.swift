@@ -17,7 +17,7 @@ public struct House: Sendable, Identifiable, Equatable {
 
     // MARK: - Properties
 
-    public let id: UUID
+    public let id: HouseID
     public let name: String
     public let logoImageName: String
     public var isEliminated: Bool
@@ -26,7 +26,7 @@ public struct House: Sendable, Identifiable, Equatable {
     // MARK: - Initialization
 
     public init(
-        id: UUID = UUID(),
+        id: HouseID = HouseID(),
         name: String,
         logoImageName: String,
         isEliminated: Bool = false,

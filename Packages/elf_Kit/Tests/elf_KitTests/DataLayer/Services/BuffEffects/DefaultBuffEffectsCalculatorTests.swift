@@ -28,7 +28,7 @@ final class DefaultBuffEffectsCalculatorTests: XCTestCase {
     /// Single-buff catalog wrapped in a `ElfBuffsRepository` for the
     /// `withDependencies` override. Title/polarity/scope don't matter for the
     /// math — only `effects` and `stackingRule` are consulted by the calculator.
-    private func makeRepository(buffId: UUID, effects: [BuffEffect], scope: BuffScope = .battle) -> ElfBuffsRepository {
+    private func makeRepository(buffId: BuffID, effects: [BuffEffect], scope: BuffScope = .battle) -> ElfBuffsRepository {
         let buff = Buff(
             id: buffId,
             title: "Test",
@@ -51,7 +51,7 @@ final class DefaultBuffEffectsCalculatorTests: XCTestCase {
 
     func testApply_NoBuffs_ReturnsBaseUnchanged() {
         let calculator = withDependencies {
-            $0.buffsRepository = makeRepository(buffId: UUID(), effects: [])
+            $0.buffsRepository = makeRepository(buffId: BuffID(), effects: [])
         } operation: { DefaultBuffEffectsCalculator() }
 
         let result = calculator.apply(buffs: [], to: makeBase())
@@ -59,7 +59,7 @@ final class DefaultBuffEffectsCalculatorTests: XCTestCase {
     }
 
     func testApply_CombatAttributesPercent_ScalesAllFive() {
-        let buffId = UUID()
+        let buffId = BuffID()
         let calculator = withDependencies {
             $0.buffsRepository = makeRepository(buffId: buffId, effects: [.combatAttributesPercent(-0.5)])
         } operation: { DefaultBuffEffectsCalculator() }
@@ -79,7 +79,7 @@ final class DefaultBuffEffectsCalculatorTests: XCTestCase {
     /// Exhausted is the motivating case: −30 % to Strength + Endurance,
     /// everything else MUST stay at the base value.
     func testApply_CombatAttributesPercentDelta_OnlyTouchesNamedAttributes() {
-        let buffId = UUID()
+        let buffId = BuffID()
         let calculator = withDependencies {
             $0.buffsRepository = makeRepository(
                 buffId: buffId,
@@ -104,7 +104,7 @@ final class DefaultBuffEffectsCalculatorTests: XCTestCase {
         // .ignore catalog → stacks would normally be 1, but the calculator
         // honors whatever `AppliedBuff.stacks` value the caller passed.
         // Verify the multiplier is applied per stack.
-        let buffId = UUID()
+        let buffId = BuffID()
         let calculator = withDependencies {
             $0.buffsRepository = makeRepository(
                 buffId: buffId,
@@ -129,8 +129,8 @@ final class DefaultBuffEffectsCalculatorTests: XCTestCase {
         // Another buff: −0.10 selectively to strength.
         // Expected effective multiplier on strength = 1 − 0.20 − 0.10 = 0.70.
         // Effective multiplier on agility = 1 − 0.20 = 0.80.
-        let globalId = UUID()
-        let selectiveId = UUID()
+        let globalId = BuffID()
+        let selectiveId = BuffID()
         let buffs = [
             Buff(id: globalId, title: "G", imageName: "", description: "",
                  polarity: .negative, scope: .battle, durationDays: nil,
@@ -155,7 +155,7 @@ final class DefaultBuffEffectsCalculatorTests: XCTestCase {
     }
 
     func testApply_OverdrivenPercent_ClampsAtZero() {
-        let buffId = UUID()
+        let buffId = BuffID()
         let calculator = withDependencies {
             $0.buffsRepository = makeRepository(
                 buffId: buffId,

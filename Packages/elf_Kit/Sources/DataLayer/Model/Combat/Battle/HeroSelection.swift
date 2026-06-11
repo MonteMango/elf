@@ -11,12 +11,12 @@ import Foundation
 /// (`BattleFightViewModel`). Auto/simulation flows pass `nil` to let the runner
 /// fall back to bot AI for every pair.
 public struct HeroSelection: Sendable {
-    public let combatantId: UUID
+    public let combatantId: CombatantID
     public let attackPoints: Set<BodyPart>
     public let defensePoints: Set<BodyPart>
 
     public init(
-        combatantId: UUID,
+        combatantId: CombatantID,
         attackPoints: Set<BodyPart>,
         defensePoints: Set<BodyPart>
     ) {

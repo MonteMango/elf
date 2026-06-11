@@ -18,7 +18,7 @@ public final class DefaultBuffApplicationService: BuffApplicationService {
     }
 
     public func applyAsGlobal(
-        buffId: UUID,
+        buffId: BuffID,
         to buffs: [AppliedBuff],
         currentDay: Int
     ) -> [AppliedBuff] {
@@ -26,14 +26,14 @@ public final class DefaultBuffApplicationService: BuffApplicationService {
     }
 
     public func applyAsBattle(
-        buffId: UUID,
+        buffId: BuffID,
         to buffs: [AppliedBuff]
     ) -> [AppliedBuff] {
         applyCore(buffId: buffId, to: buffs, currentDay: nil, expectedScope: .battle)
     }
 
     private func applyCore(
-        buffId: UUID,
+        buffId: BuffID,
         to buffs: [AppliedBuff],
         currentDay: Int?,
         expectedScope: BuffScope

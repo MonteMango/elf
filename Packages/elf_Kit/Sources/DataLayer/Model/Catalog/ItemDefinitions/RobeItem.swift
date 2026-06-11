@@ -8,7 +8,7 @@
 import Foundation
 
 public final class RobeItem: Item {
-    public let id: UUID
+    public let id: ItemID
     public let title: String
     public let tier: Int16
     public let isUnique: Bool?

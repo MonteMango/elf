@@ -12,7 +12,7 @@ public protocol WeaponDamageCalculator: Sendable {
 
     /// Get weapon damage range for a specific weapon
     ///
-    /// - Parameter weaponId: The weapon's UUID (nil for unarmed)
+    /// - Parameter weaponId: The weapon's catalog item id (nil for unarmed)
     /// - Returns: Tuple of (minDmg, maxDmg) or nil if invalid
-    func getWeaponDamage(weaponId: UUID?) -> (minDmg: Int16, maxDmg: Int16)?
+    func getWeaponDamage(weaponId: ItemID?) -> (minDmg: Int16, maxDmg: Int16)?
 }

@@ -11,13 +11,11 @@ import Foundation
 /// Used by `InventoryService.addMaterials(_:to:)` to avoid per-item
 /// allocations when adding many materials at once.
 public struct MaterialAddition: Sendable, Equatable, Hashable {
-    public let id: UUID
-    public let source: MaterialSource
+    public let ref: MaterialRef
     public let quantity: Int
 
-    public init(id: UUID, source: MaterialSource, quantity: Int) {
-        self.id = id
-        self.source = source
+    public init(ref: MaterialRef, quantity: Int) {
+        self.ref = ref
         self.quantity = quantity
     }
 }

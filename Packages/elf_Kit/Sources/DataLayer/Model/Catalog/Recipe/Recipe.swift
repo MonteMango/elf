@@ -10,14 +10,14 @@ import Foundation
 // MARK: - Recipe
 
 public struct Recipe: Decodable, Sendable, Identifiable {
-    public let id: UUID
-    public let resultItemId: UUID
+    public let id: RecipeID
+    public let resultItemId: ItemID
     public let category: RecipeCategory
     public let ingredients: [RecipeIngredient]
 
     public init(
-        id: UUID,
-        resultItemId: UUID,
+        id: RecipeID,
+        resultItemId: ItemID,
         category: RecipeCategory,
         ingredients: [RecipeIngredient]
     ) {
