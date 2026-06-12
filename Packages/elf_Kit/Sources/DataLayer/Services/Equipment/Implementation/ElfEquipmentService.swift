@@ -20,11 +20,15 @@ public final class ElfEquipmentService: EquipmentService {
 
     // Resolved lazily on purpose: `itemsRepository` has a `fatalError` live
     // value (it is bootstrapped from async-loaded game data) and is only needed
-    // by `equipArmor`. A stored `@Dependency` captures the context at init but
-    // defers the read to first use, so constructing the service — e.g. when
-    // `GameSession` resolves it at init — never forces the repository unless an
-    // armor slot is actually touched.
-    @Dependency(\.itemsRepository) private var itemsRepository
+    // by `equipArmor`. Reading it through a computed property defers resolution
+    // to first use, so constructing the service — e.g. when `GameSession`
+    // resolves it at init — never forces the repository unless an armor slot is
+    // actually touched. A computed property (rather than a stored `@Dependency`)
+    // also keeps the type's `Sendable` conformance free of mutable stored state.
+    private var itemsRepository: any ItemsRepository {
+        @Dependency(\.itemsRepository) var itemsRepository
+        return itemsRepository
+    }
 
     // MARK: - Initialization
 

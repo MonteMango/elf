@@ -50,7 +50,10 @@ public final class FPSCounter: NSObject {
         super.init()
     }
 
-    deinit {
+    // `isolated deinit` runs the deinitializer on the main actor, so it can
+    // touch the `@MainActor`-isolated, non-Sendable `displayLink`. A plain
+    // nonisolated deinit cannot under the Swift 6 language mode.
+    isolated deinit {
         displayLink?.invalidate()
     }
 

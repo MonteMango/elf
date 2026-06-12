@@ -53,19 +53,22 @@ public final class BattleSetupViewModel {
 
     // Task properties for background work cancellation
     //
-    // Using nonisolated(unsafe) because:
-    // 1. @Observable macro makes these mutable stored properties
-    // 2. nonisolated cannot be applied to mutable stored properties
+    // These are internal task handles for debounced updates, not UI state, so
+    // they are `@ObservationIgnored` (observing them would invalidate the view
+    // on every (re)assignment for no reason). They are `nonisolated(unsafe)` so
+    // the nonisolated `deinit` can cancel them without hopping to the main actor;
+    // `nonisolated` (without `unsafe`) cannot be applied to a mutable stored
+    // property, so the escape hatch is required here.
     //
     // Thread safety justification:
     // - Task.cancel() is thread-safe by design
     // - deinit only calls cancel(), which is safe even if racing with setters
     // - Setters (setAttributesTask, setEquipmentTask) are @MainActor isolated
     // - Potential race: deinit vs setter - acceptable because cancel() is idempotent
-    private nonisolated(unsafe) var playerAttributesTask: Task<Void, Never>?
-    private nonisolated(unsafe) var botAttributesTask: Task<Void, Never>?
-    private nonisolated(unsafe) var playerEquipmentTask: Task<Void, Never>?
-    private nonisolated(unsafe) var botEquipmentTask: Task<Void, Never>?
+    @ObservationIgnored private nonisolated(unsafe) var playerAttributesTask: Task<Void, Never>?
+    @ObservationIgnored private nonisolated(unsafe) var botAttributesTask: Task<Void, Never>?
+    @ObservationIgnored private nonisolated(unsafe) var playerEquipmentTask: Task<Void, Never>?
+    @ObservationIgnored private nonisolated(unsafe) var botEquipmentTask: Task<Void, Never>?
 
     // MARK: - Hero Type Accessors
 
