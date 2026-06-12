@@ -24,4 +24,9 @@ public protocol DebugGameLogger: Sendable {
     ///   - game: The full Game struct being saved
     ///   - playTime: Total play time in seconds
     func logGameSave(game: Game, playTime: TimeInterval)
+
+    /// Logs a summary of a completed world turn (AI elves' day).
+    ///
+    /// - Parameter outcome: The combined result of every bot's turn.
+    func logWorldTurn(_ outcome: WorldTurnOutcome)
 }

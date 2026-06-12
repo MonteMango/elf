@@ -35,4 +35,7 @@ public enum DebugGameLogCategory: Sendable {
 
     /// Log house names, eliminated status
     case houses
+
+    /// Log the per-turn world simulation: bot count, battles won, exp/drops
+    case worldTurn
 }

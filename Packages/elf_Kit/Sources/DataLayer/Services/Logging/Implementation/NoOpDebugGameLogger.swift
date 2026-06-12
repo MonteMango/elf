@@ -13,4 +13,5 @@ import Foundation
 public struct NoOpDebugGameLogger: DebugGameLogger {
     public init() {}
     public func logGameSave(game: Game, playTime: TimeInterval) {}
+    public func logWorldTurn(_ outcome: WorldTurnOutcome) {}
 }

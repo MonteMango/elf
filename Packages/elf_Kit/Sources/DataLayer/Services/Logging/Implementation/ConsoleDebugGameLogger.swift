@@ -53,6 +53,23 @@ public final class ConsoleDebugGameLogger: DebugGameLogger {
         print("💾 ================================\n")
     }
 
+    public func logWorldTurn(_ outcome: WorldTurnOutcome) {
+        guard categories.contains(.worldTurn) else { return }
+
+        print("\n🌍 ========== WORLD TURN ==========")
+        print("  Bots: \(outcome.botCount) | Battles: \(outcome.totalBattles) "
+            + "(won \(outcome.totalWins)) | Exp: +\(outcome.totalExperience)")
+        for result in outcome.results {
+            let wins = result.battles.filter(\.won).count
+            let drops = result.battles.reduce(0) { $0 + $1.dropCount }
+            print("  - h\(result.slot.houseIndex)m\(result.slot.memberIndex) "
+                + "id:\(shortId(result.slot.id.rawValue)) | "
+                + "\(wins)/\(result.battles.count) won | "
+                + "+\(result.experienceGained) exp | \(drops) drops")
+        }
+        print("🌍 ================================\n")
+    }
+
     // MARK: - Player Info
 
     private func logPlayerInfo(_ player: ElfInfo) {

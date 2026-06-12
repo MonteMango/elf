@@ -283,6 +283,7 @@ public final class GameSession {
             )
             spendActionPoints(result.actionPointsSpent, forElfAt: houseIndex, memberIndex: memberIndex)
         }
+        debugGameLogger.logWorldTurn(outcome)
     }
 
     // MARK: - Crafting

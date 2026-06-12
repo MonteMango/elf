@@ -16,7 +16,7 @@ extension DependencyValues {
 
 private enum DebugGameLoggerKey: DependencyKey {
     static var liveValue: any DebugGameLogger {
-        ConsoleDebugGameLogger(categories: [.playerInfo, .gameState, .inventory, .equipment, .houses])
+        ConsoleDebugGameLogger(categories: [.playerInfo, .gameState, .inventory, .equipment, .houses, .worldTurn])
     }
     static var testValue: any DebugGameLogger { NoOpDebugGameLogger() }
 }
