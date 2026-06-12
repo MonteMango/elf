@@ -157,8 +157,14 @@ public final class BattleSetupViewModel {
         self.snapshotBuilder = snapshotBuilder
         self.monsterRepository = monsterRepository
         self.equippedSlotResolver = equippedSlotResolver
+    }
 
-        Task { await loadAllMonsters() }
+    // MARK: - Lifecycle
+
+    /// Loads all monsters. Call from the view's `.task { }` so the work is
+    /// structured and cancelled when the screen disappears.
+    public func load() async {
+        await loadAllMonsters()
     }
 
     // MARK: - Monster Loading

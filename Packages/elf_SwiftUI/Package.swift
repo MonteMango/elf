@@ -24,5 +24,5 @@ let package = Package(
                 .enableExperimentalFeature("DebugDescriptionMacro")
             ]
         ),
-    ], swiftLanguageModes: [.v5]
+    ], swiftLanguageModes: [.v6]
 )

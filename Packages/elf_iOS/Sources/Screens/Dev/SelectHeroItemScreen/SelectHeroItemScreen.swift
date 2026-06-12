@@ -65,6 +65,9 @@ internal struct SelectHeroItemScreen: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .task {
+            await viewModel.load()
+        }
         .overlay(alignment: .top) {
             // Title
             Text(itemTypeTitle)

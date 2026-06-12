@@ -214,7 +214,7 @@ internal struct BattleFightScreen: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.white, ignoresSafeAreaEdges: .all)
-        .onAppear { viewModel.loadInitialData() }
+        .task { viewModel.loadInitialData() }
         .onChange(of: viewModel.battleResult) { _, result in
             if let result = result {
                 router.presentModal(.battleResult(result))

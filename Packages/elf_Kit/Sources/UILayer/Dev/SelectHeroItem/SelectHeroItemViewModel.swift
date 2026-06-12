@@ -34,10 +34,6 @@ public final class SelectHeroItemViewModel {
 
         self.heroItemType = heroItemType
         self.selectedItemId = currentItemId
-
-        Task {
-            await loadItems()
-        }
     }
 
     // MARK: - Actions
@@ -46,9 +42,11 @@ public final class SelectHeroItemViewModel {
         selectedItemId = itemId
     }
 
-    // MARK: - Private Methods
+    // MARK: - Lifecycle
 
-    private func loadItems() async {
+    /// Loads the available items. Call from the view's `.task { }` so the work is
+    /// structured and cancelled when the screen disappears.
+    public func load() async {
         isLoading = true
         defer { isLoading = false }
 

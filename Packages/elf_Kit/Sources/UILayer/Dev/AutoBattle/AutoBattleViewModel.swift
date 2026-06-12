@@ -45,10 +45,15 @@ public final class AutoBattleViewModel {
 
     /// Run the auto-battle and collect statistics.
     ///
-    /// Stays on `@MainActor`: `await battleRoundRunner.runRound(...)` hops to
-    /// the cooperative pool internally for combat math and back to Main for
-    /// the loop body's bookkeeping. No `Task.detached` needed — each `await`
-    /// yields Main to the rendering runloop between rounds.
+    /// This method is `@MainActor`; the loop body's bookkeeping runs on Main.
+    /// `battleRoundRunner.runRound(...)` is `nonisolated async`, so where its
+    /// combat math executes depends on the language mode:
+    ///   - Swift 5 mode (current): it hops to the global concurrent pool.
+    ///   - Swift 6 mode: it runs on the caller's context (Main) unless it
+    ///     internally suspends onto another executor.
+    /// Either way it is safe — the inputs are immutable snapshots and the
+    /// result is consumed back on Main after `await`. No `Task.detached`
+    /// needed; each `await` yields Main to the rendering runloop between rounds.
     public func runAutoBattle() async {
         isRunning = true
         progress = 0.0

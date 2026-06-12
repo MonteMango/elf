@@ -161,6 +161,9 @@ internal struct BattleSetupScreen: View {
             )
         }
         .interactiveDismissDisabled(true)
+        .task {
+            await viewModel.load()
+        }
     }
 
     // MARK: - Player Panel
