@@ -110,17 +110,31 @@ public final class GameSession {
         }
     }
 
-    /// Spends action points for an activity. No-op if insufficient.
+    /// Spends the player's action points for an activity. No-op if insufficient.
     public func spendActionPoints(_ amount: Int) {
-        if case .success(let newPoints) = state.actionPoints.spend(amount) {
-            state.actionPoints = newPoints
+        spendActionPoints(amount, forElfAt: state.playerHouseIndex, memberIndex: state.playerMemberIndex)
+    }
+
+    /// Spends a specific elf's action points. No-op if insufficient or the slot
+    /// is out of range.
+    public func spendActionPoints(_ amount: Int, forElfAt houseIndex: Int, memberIndex: Int) {
+        guard isValidSlot(houseIndex: houseIndex, memberIndex: memberIndex) else { return }
+        let current = state.houses[houseIndex].members[memberIndex].actionPoints
+        if case .success(let newPoints) = current.spend(amount) {
+            state.houses[houseIndex].members[memberIndex].actionPoints = newPoints
         }
+    }
+
+    /// Whether `(houseIndex, memberIndex)` addresses a real roster member.
+    private func isValidSlot(houseIndex: Int, memberIndex: Int) -> Bool {
+        houseIndex >= 0 && houseIndex < state.houses.count
+            && memberIndex >= 0 && memberIndex < state.houses[houseIndex].members.count
     }
 
     // MARK: - Player Progression
 
     public func addPlayerExperience(_ amount: Int) {
-        state.player.currentExp += amount
+        addExperience(amount, toElfAt: state.playerHouseIndex, memberIndex: state.playerMemberIndex)
     }
 
     public func addFishingExperience(_ amount: Int) {
@@ -137,17 +151,44 @@ public final class GameSession {
 
     /// Adds hunt rewards (drops) to the player's inventory.
     public func addDropsToPlayerInventory(rewards: HuntRewards) {
-        let additions = rewards.materials.map {
+        addDrops(
+            materials: rewards.materials,
+            weapons: rewards.weapon.map { [$0] } ?? [],
+            armor: rewards.armor.map { [$0] } ?? [],
+            toElfAt: state.playerHouseIndex,
+            memberIndex: state.playerMemberIndex
+        )
+    }
+
+    // MARK: - Roster Progression (any elf)
+
+    /// Adds combat experience to a specific elf. No-op if the slot is invalid.
+    public func addExperience(_ amount: Int, toElfAt houseIndex: Int, memberIndex: Int) {
+        guard isValidSlot(houseIndex: houseIndex, memberIndex: memberIndex) else { return }
+        state.houses[houseIndex].members[memberIndex].currentExp += amount
+    }
+
+    /// Adds monster drops (materials, weapons, armor) to a specific elf's
+    /// inventory in one read-modify-write. No-op if the slot is invalid.
+    public func addDrops(
+        materials: [MaterialReward],
+        weapons: [ElfWeaponItem],
+        armor: [ElfDefenseItem],
+        toElfAt houseIndex: Int,
+        memberIndex: Int
+    ) {
+        guard isValidSlot(houseIndex: houseIndex, memberIndex: memberIndex) else { return }
+        let additions = materials.map {
             MaterialAddition(ref: .monster($0.id), quantity: $0.amount)
         }
-        var inventory = inventoryService.addMaterials(additions, to: state.player.inventory)
-        if let weapon = rewards.weapon {
+        var inventory = inventoryService.addMaterials(additions, to: state.houses[houseIndex].members[memberIndex].inventory)
+        for weapon in weapons {
             inventory = inventoryService.addWeapon(weapon, to: inventory)
         }
-        if let armor = rewards.armor {
-            inventory = inventoryService.addArmor(armor, to: inventory)
+        for armorPiece in armor {
+            inventory = inventoryService.addArmor(armorPiece, to: inventory)
         }
-        state.player.inventory = inventory
+        state.houses[houseIndex].members[memberIndex].inventory = inventory
     }
 
     /// Adds caught fish to the player's inventory as materials.
@@ -206,15 +247,42 @@ public final class GameSession {
 
     /// Applies a global-scope buff to a specific elf in the roster.
     public func applyGlobalBuff(buffId: BuffID, toElfAt houseIndex: Int, memberIndex: Int) {
-        guard houseIndex >= 0, houseIndex < state.houses.count,
-              memberIndex >= 0, memberIndex < state.houses[houseIndex].members.count else {
-            return
-        }
+        guard isValidSlot(houseIndex: houseIndex, memberIndex: memberIndex) else { return }
         state.houses[houseIndex].members[memberIndex].globalBuffs = buffApplicationService.applyAsGlobal(
             buffId: buffId,
             to: state.houses[houseIndex].members[memberIndex].globalBuffs,
             currentDay: state.currentDay.dayNumber
         )
+    }
+
+    // MARK: - World Turn
+
+    /// Applies a whole world turn's results to the roster in one synchronous
+    /// main-actor pass: for each bot, awards experience, adds drops, and spends
+    /// the action points it used.
+    ///
+    /// Every result targets a distinct elf slot (the player is never among
+    /// them), so the writes are conflict-free. Each is verified against the
+    /// elf's `id` before applying, guarding against any roster reshuffle
+    /// between snapshot and apply.
+    public func applyWorldTurn(_ outcome: WorldTurnOutcome) {
+        for result in outcome.results {
+            let houseIndex = result.slot.houseIndex
+            let memberIndex = result.slot.memberIndex
+            guard isValidSlot(houseIndex: houseIndex, memberIndex: memberIndex),
+                  state.houses[houseIndex].members[memberIndex].id == result.slot.id else {
+                continue
+            }
+            addExperience(result.experienceGained, toElfAt: houseIndex, memberIndex: memberIndex)
+            addDrops(
+                materials: result.materials,
+                weapons: result.weapons,
+                armor: result.armor,
+                toElfAt: houseIndex,
+                memberIndex: memberIndex
+            )
+            spendActionPoints(result.actionPointsSpent, forElfAt: houseIndex, memberIndex: memberIndex)
+        }
     }
 
     // MARK: - Crafting
