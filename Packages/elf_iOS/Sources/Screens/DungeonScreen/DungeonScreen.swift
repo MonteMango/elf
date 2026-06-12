@@ -17,7 +17,6 @@ import SwiftUI
 /// session so this shell stays purely structural.
 struct DungeonScreen: View {
 
-    @Environment(AppRouter.self) private var router
     private let dungeonSession: DungeonSession
     @State private var viewModel: DungeonViewModel
 
@@ -42,10 +41,17 @@ struct DungeonScreen: View {
             tabBody
         }
         .overlay(alignment: .bottomTrailing) {
-            EntranceButton(
-                isEnabled: dungeonSession.canEnter,
-                action: { router.pop() }
-            )
+            if dungeonSession.isInRun {
+                RoomActionButton(
+                    title: viewModel.actionTitle ?? "",
+                    action: { viewModel.performRoomAction() }
+                )
+            } else {
+                EntranceButton(
+                    isEnabled: dungeonSession.canEnter,
+                    action: { Task { await viewModel.enterDungeon() } }
+                )
+            }
         }
         .background {
             dungeonBackground
@@ -53,6 +59,13 @@ struct DungeonScreen: View {
         .overlay {
             DebugSafeAreaOverlay()
         }
+        .overlay {
+            if let transition = viewModel.transition {
+                DungeonTransitionView(transition: transition)
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut, value: viewModel.transition)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
     }

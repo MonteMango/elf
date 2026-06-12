@@ -23,6 +23,31 @@ public enum DungeonTab: String, CaseIterable, Sendable {
     }
 }
 
+// MARK: - Transition
+
+/// Describes the in-flight dungeon transition shown by the full-screen overlay.
+/// Sum-type so impossible states are unrepresentable: it is either entering the
+/// dungeon or moving between two specific rooms.
+public enum DungeonTransition: Equatable, Sendable {
+    case enteringDungeon(name: String)
+    /// Reserved for the next step (room-to-room navigation); unused for now.
+    case movingBetweenRooms(from: String, to: String)
+
+    public var title: String {
+        switch self {
+        case .enteringDungeon: return "Entering Dungeon"
+        case .movingBetweenRooms: return "Traveling"
+        }
+    }
+
+    public var subtitle: String {
+        switch self {
+        case .enteringDungeon(let name): return name
+        case .movingBetweenRooms(let from, let to): return "\(from) → \(to)"
+        }
+    }
+}
+
 // MARK: - Squad
 
 /// Shared squad member display: used by the Overview tab as a compact preview

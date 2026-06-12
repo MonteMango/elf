@@ -14,10 +14,10 @@ import Foundation
 ///
 /// Lifecycle: created by `GameSession.startDungeonSession(...)` when the
 /// player taps Dungeon on a Dungeon Day, released by `endDungeonSession()`
-/// when they leave the briefing or finish the run. Phase 1 — only stable
-/// inputs (`dungeonId`, `allyIds`); the mutating run state (alive/dead
-/// members, current room, defeated rooms, drops collected) lands in Phase 4
-/// with `DungeonRoomScreen`.
+/// when they leave the briefing or finish the run. Stable inputs
+/// (`dungeonId`, `allyIds`) are joined by the mutating run state: each elf's
+/// current room (`elfLocations`). Alive/dead members, defeated rooms, and
+/// collected drops land in later phases.
 @MainActor
 @Observable
 public final class DungeonSession {
@@ -34,6 +34,13 @@ public final class DungeonSession {
 
     public let dungeonId: DungeonID
     public let allyIds: [ElfID]
+
+    // MARK: - Run state (mutable, main-thread)
+
+    /// Current room of each squad elf. Empty = still in briefing (before
+    /// entrance). `onePath`: everyone shares one room; `splitPath`/`randomPath`
+    /// will populate them differently.
+    public private(set) var elfLocations: [ElfID: DungeonRoomID] = [:]
 
     // MARK: - Initialization
 
@@ -58,4 +65,27 @@ public final class DungeonSession {
     /// MVP: Entrance is always enabled. The view currently pops back; the
     /// real dungeon-run flow lands in a follow-up phase.
     public var canEnter: Bool { true }
+
+    public var heroId: ElfID { gameStore.player.id }
+
+    /// Room the hero is currently in. `nil` while still in the briefing.
+    public var currentRoom: DungeonRoom? {
+        guard let roomId = elfLocations[heroId] else { return nil }
+        return dungeon?.room(id: roomId)
+    }
+
+    /// `true` once the squad has entered the dungeon (room mode), `false`
+    /// during the briefing.
+    public var isInRun: Bool { currentRoom != nil }
+
+    // MARK: - Run mutations
+
+    /// Places the whole squad into the dungeon's entry room. Called once the
+    /// entrance transition overlay completes.
+    public func beginRun() {
+        guard let entry = dungeon?.entryRoomIds.first else { return }
+        var locations: [ElfID: DungeonRoomID] = [heroId: entry]
+        for allyId in allyIds { locations[allyId] = entry }
+        elfLocations = locations
+    }
 }

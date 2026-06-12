@@ -41,6 +41,15 @@ public final class DungeonOverviewViewModel {
     private var dungeon: Dungeon? { session.dungeon }
 
     public var header: DungeonHeaderDisplay {
+        // Room mode: once the squad has entered, show the hero's current room
+        // instead of the whole-dungeon briefing.
+        if let room = session.currentRoom {
+            return DungeonHeaderDisplay(
+                title: room.title,
+                regionSubtitle: roomKindLabel(room.kind),
+                description: room.description ?? ""
+            )
+        }
         guard let dungeon else {
             return DungeonHeaderDisplay(title: "Unknown Dungeon", regionSubtitle: "", description: "")
         }
@@ -87,15 +96,23 @@ public final class DungeonOverviewViewModel {
         return result
     }
 
-    /// Up to 5 unique drops aggregated across every monster in the dungeon, in a
-    /// stable order: weapons → armor → materials. Materials use a fixed tier of 4
-    /// to colour their card consistently with the existing Hunt drop palette.
+    /// Possible drops shown on the Overview tab: scoped to the current room's
+    /// monsters in room mode, aggregated across the whole dungeon in briefing
+    /// mode. See `drops(from:)` for the aggregation rules.
     public var possibleDrops: [DungeonDropDisplay] {
+        // Room mode: drops scoped to the current room's monsters; briefing mode:
+        // aggregated across the whole dungeon.
+        if let room = session.currentRoom {
+            return drops(from: room.kind.monsters.compactMap { monsterRepository.getById(id: $0.monsterId) })
+        }
         guard let dungeon else { return [] }
+        return drops(from: dungeon.rooms.flatMap { $0.kind.monsters }
+            .compactMap { monsterRepository.getById(id: $0.monsterId) })
+    }
 
-        let allMonsters = dungeon.rooms.flatMap { $0.kind.monsters }
-            .compactMap { monsterRepository.getById(id: $0.monsterId) }
-
+    /// Up to 5 unique drops from the given monsters, ordered weapons → armor →
+    /// materials. Materials use a fixed tier of 4 to match the Hunt drop palette.
+    private func drops(from allMonsters: [Monster]) -> [DungeonDropDisplay] {
         var seenIds = Set<String>()
         var drops: [DungeonDropDisplay] = []
 
@@ -212,6 +229,19 @@ public final class DungeonOverviewViewModel {
         case .upper: return "Upper World"
         case .middle: return "Middle World"
         case .lower: return "Lower World"
+        }
+    }
+
+    /// Subtitle shown under a room title in room mode.
+    private func roomKindLabel(_ kind: DungeonRoomKind) -> String {
+        switch kind {
+        case .combat: return "Combat"
+        case .miniBoss: return "Mini-Boss"
+        case .boss: return "Boss"
+        case .event(let event):
+            switch event {
+            case .healingSpring: return "Healing Spring"
+            }
         }
     }
 }
