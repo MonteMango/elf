@@ -7,32 +7,23 @@
 
 import Foundation
 
-/// Game state containing current day, action points, and full calendar
+/// Game state containing current day and full calendar.
+///
+/// Action points are **not** held here anymore — they live per-elf on
+/// `ElfInfo.actionPoints` (the player's pool is the player elf's pool).
 public struct GameState: Sendable, Equatable, Codable {
     public var currentDay: GameDay
-    public var actionPoints: ActionPoints
     public var calendar: [GameDay]
 
     public init(
         currentDay: GameDay,
-        actionPoints: ActionPoints,
         calendar: [GameDay]
     ) {
         self.currentDay = currentDay
-        self.actionPoints = actionPoints
         self.calendar = calendar
     }
 
-    // MARK: - Convenience Accessors (backward compatibility)
-
-    /// Current action points value
-    public var currentActionPoints: Int { actionPoints.current }
-
-    /// Maximum action points value
-    public var maxActionPoints: Int { actionPoints.maximum }
-
-    /// Progress of action points as a ratio (0.0 to 1.0)
-    public var actionPointsProgress: Double { actionPoints.progress }
+    // MARK: - Convenience Accessors
 
     /// Next 3 days after current day (computed for backward compatibility)
     public var upcomingDays: [GameDay] {

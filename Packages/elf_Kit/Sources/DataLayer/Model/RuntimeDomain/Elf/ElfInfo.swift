@@ -25,6 +25,14 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
 
     public var currentExp: Int
 
+    // MARK: - Action Points
+
+    /// Per-day action points for this elf. The player's AP is simply the
+    /// player elf's AP (surfaced via `GameStore.actionPoints`); every AI elf
+    /// carries its own pool, spent during the world turn. Reset to maximum for
+    /// all elves on `GameSession.advanceToNextDay()`.
+    public var actionPoints: ActionPoints
+
     // MARK: - Farming Skills (TDD: stored XP, levels computed)
 
     public var foragingExp: Int
@@ -76,6 +84,7 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
         imageName: String,
         fightStyle: FightStyle,
         currentExp: Int,
+        actionPoints: ActionPoints = ActionPoints.unsafeCreate(current: 100, maximum: 100),
         foragingExp: Int = 0,
         fishingExp: Int = 0,
         miningExp: Int = 0,
@@ -91,6 +100,7 @@ public struct ElfInfo: Sendable, Equatable, Identifiable {
         self.imageName = imageName
         self.fightStyle = fightStyle
         self.currentExp = currentExp
+        self.actionPoints = actionPoints
         self.foragingExp = foragingExp
         self.fishingExp = fishingExp
         self.miningExp = miningExp

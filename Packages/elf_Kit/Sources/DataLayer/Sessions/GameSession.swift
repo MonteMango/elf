@@ -67,16 +67,28 @@ public final class GameSession {
 
     // MARK: - Day Management
 
-    /// Advances to the next day in the calendar. Resets action points and
-    /// expires global buffs whose `durationDays` has elapsed.
+    /// Advances to the next day in the calendar. Resets action points for every
+    /// elf (player and AI) and expires global buffs whose `durationDays` has
+    /// elapsed.
     public func advanceToNextDay() {
         let nextDayNumber = state.currentDay.dayNumber + 1
         guard let nextDayIndex = state.calendar.firstIndex(where: { $0.dayNumber == nextDayNumber }) else {
             return
         }
         state.currentDay = state.calendar[nextDayIndex]
-        state.actionPoints = state.actionPoints.reset()
+        resetActionPointsForAllElves()
         expireGlobalBuffs(currentDayNumber: nextDayNumber)
+    }
+
+    /// Refills every elf's per-day action points to maximum. Player AP is
+    /// included (the player is one of the roster members).
+    private func resetActionPointsForAllElves() {
+        for houseIndex in state.houses.indices {
+            for memberIndex in state.houses[houseIndex].members.indices {
+                let current = state.houses[houseIndex].members[memberIndex].actionPoints
+                state.houses[houseIndex].members[memberIndex].actionPoints = current.reset()
+            }
+        }
     }
 
     private func expireGlobalBuffs(currentDayNumber: Int) {

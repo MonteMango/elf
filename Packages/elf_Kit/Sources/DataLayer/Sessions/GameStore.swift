@@ -34,7 +34,6 @@ public final class GameStore {
 
     // MARK: - Mutable state
 
-    public internal(set) var actionPoints: ActionPoints
     public internal(set) var currentDay: GameDay
     public internal(set) var calendar: [GameDay]
     public internal(set) var houses: [House]
@@ -51,11 +50,19 @@ public final class GameStore {
         set { houses[playerHouseIndex].members[playerMemberIndex] = newValue }
     }
 
+    /// The player's action points. AP is stored per-elf (`ElfInfo.actionPoints`);
+    /// the "player AP" surfaced to the UI and spent by activities is just the
+    /// player elf's pool. AI elves' pools are reached via `houses[…].members[…]`.
+    /// Writes flow back through `player`, triggering `@Observable` invalidation.
+    public internal(set) var actionPoints: ActionPoints {
+        get { player.actionPoints }
+        set { player.actionPoints = newValue }
+    }
+
     // MARK: - Initialization
 
     public init(from game: Game, playTime: TimeInterval = 0) {
         self.gameId = game.id
-        self.actionPoints = game.gameState.actionPoints
         self.currentDay = game.gameState.currentDay
         self.calendar = game.gameState.calendar
         self.houses = game.houses
@@ -93,7 +100,6 @@ public final class GameStore {
             houses: houses,
             gameState: GameState(
                 currentDay: currentDay,
-                actionPoints: actionPoints,
                 calendar: calendar
             ),
             playerHouseIndex: playerHouseIndex,

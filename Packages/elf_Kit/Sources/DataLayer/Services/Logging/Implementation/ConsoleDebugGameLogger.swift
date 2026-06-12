@@ -35,7 +35,7 @@ public final class ConsoleDebugGameLogger: DebugGameLogger {
         }
 
         if categories.contains(.gameState) {
-            logGameState(state)
+            logGameState(state, actionPoints: player.actionPoints)
         }
 
         if categories.contains(.inventory) {
@@ -64,11 +64,11 @@ public final class ConsoleDebugGameLogger: DebugGameLogger {
 
     // MARK: - Game State
 
-    private func logGameState(_ state: GameState) {
+    private func logGameState(_ state: GameState, actionPoints: ActionPoints) {
         let currentDayNumber = state.currentDay.dayNumber
         let totalDays = state.calendar.count
         print("\n📅 GAME STATE:")
-        print("  Day: \(currentDayNumber)/\(totalDays) | AP: \(state.currentActionPoints)/\(state.maxActionPoints)")
+        print("  Day: \(currentDayNumber)/\(totalDays) | AP: \(actionPoints.current)/\(actionPoints.maximum)")
     }
 
     // MARK: - Inventory

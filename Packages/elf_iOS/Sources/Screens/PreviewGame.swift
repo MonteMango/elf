@@ -151,7 +151,6 @@ enum PreviewGame {
 
         let gameState = GameState(
             currentDay: firstDay,
-            actionPoints: ActionPoints.unsafeCreate(current: 100, maximum: 100),
             calendar: calendar
         )
 

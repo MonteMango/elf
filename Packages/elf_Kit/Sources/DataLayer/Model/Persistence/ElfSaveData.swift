@@ -13,6 +13,7 @@ public struct ElfSaveData: Codable, Sendable {
     public let imageName: String
     public let fightStyle: FightStyle
     public let currentExp: Int
+    public let actionPoints: ActionPoints
     public let foragingExp: Int
     public let fishingExp: Int
     public let miningExp: Int
@@ -32,6 +33,7 @@ public struct ElfSaveData: Codable, Sendable {
         self.imageName = elf.imageName
         self.fightStyle = elf.fightStyle
         self.currentExp = elf.currentExp
+        self.actionPoints = elf.actionPoints
         self.foragingExp = elf.foragingExp
         self.fishingExp = elf.fishingExp
         self.miningExp = elf.miningExp
@@ -62,6 +64,7 @@ public struct ElfSaveData: Codable, Sendable {
             imageName: imageName,
             fightStyle: fightStyle,
             currentExp: currentExp,
+            actionPoints: actionPoints,
             foragingExp: foragingExp,
             fishingExp: fishingExp,
             miningExp: miningExp,

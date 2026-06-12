@@ -80,7 +80,6 @@ final class GameSession_CraftTests: XCTestCase {
         let calendar = [GameDay(dayNumber: 1, dayType: .normal)]
         let gameState = GameState(
             currentDay: calendar[0],
-            actionPoints: ActionPoints.unsafeCreate(current: 100, maximum: 100),
             calendar: calendar
         )
         return Game(
