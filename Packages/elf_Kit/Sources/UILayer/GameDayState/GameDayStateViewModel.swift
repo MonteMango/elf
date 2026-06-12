@@ -74,6 +74,10 @@ public final class GameDayStateViewModel {
     /// runs and applies before `advanceToNextDay()` refills everyone.
     public func advanceToNextDay() async {
         guard let session, !isAdvancingDay else { return }
+        // Bots act as part of a real day transition. On the last day there is
+        // no next day, so the transition can't happen — and neither should the
+        // world turn (otherwise bots would fight "for free" with no day change).
+        guard !session.state.isLastDay else { return }
         isAdvancingDay = true
         defer { isAdvancingDay = false }
 
@@ -88,6 +92,10 @@ public final class GameDayStateViewModel {
         // 2. Simulate off-main on the cooperative pool. The await suspends the
         //    main actor without blocking it (no progress overlay by design).
         let outcome = await worldTurnRunner.run(bots: bots, turnSeed: turnSeed)
+
+        // If the transition was cancelled mid-simulation (e.g. the screen went
+        // away), don't apply a partial turn — leave the day untouched.
+        guard !Task.isCancelled else { return }
 
         // 3. Apply + advance + save, all synchronous on the main actor.
         session.applyWorldTurn(outcome)

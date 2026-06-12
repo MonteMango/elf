@@ -16,6 +16,13 @@ import Foundation
 /// caller (`GameDayStateViewModel`) builds the value-type `[BotTurnContext]` on
 /// the main actor, awaits `run` off-main, and applies the result back on main —
 /// the simulation never touches the observable `GameStore`.
+///
+/// - Note: This off-main guarantee relies on the package's current Swift `.v5`
+///   language mode, where `nonisolated async` hops off the caller's actor. When
+///   the project moves to Swift 6.2 with `NonisolatedNonsendingByDefault`,
+///   `nonisolated async` will instead inherit the caller's isolation (run on
+///   the main actor). To preserve off-main execution then, mark `run`
+///   `@concurrent`.
 public protocol WorldTurnRunner: Sendable {
 
     /// Plan and simulate every bot concurrently.

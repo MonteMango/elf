@@ -81,6 +81,9 @@ final class WorldTurnRunnerTests: XCTestCase {
         let first = await run(bots, seed: 1)
         let second = await run(bots, seed: 2)
 
+        // Not flaky: per-bot seed = turnSeed &+ index &* K, so seeds 1 vs 2
+        // differ for every bot, and the SeedEcho stub maps that into distinct
+        // experienceGained — the outcomes cannot collide.
         XCTAssertNotEqual(first, second)
     }
 

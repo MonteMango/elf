@@ -28,8 +28,8 @@ public final class DefaultBotTurnSimulator: BotTurnSimulator {
 
     // MARK: - Constants
 
-    /// Monster pool is capped at level 3, mirroring the player's hunt flow.
-    private let maxMonsterLevel = 3
+    /// Monster pool cap, mirroring the player's hunt flow.
+    private let maxMonsterLevel = GameMechanicsConstants.maxHuntMonsterLevel
 
     // MARK: - Initialization
 
@@ -74,6 +74,10 @@ public final class DefaultBotTurnSimulator: BotTurnSimulator {
         var battles: [BotBattleSummary] = []
 
         for (index, action) in plan.actions.enumerated() {
+            // Cooperative cancellation: stop fighting if the turn was cancelled
+            // (e.g. the player left the screen). Already-fought battles stay in
+            // the partial result; the caller decides whether to apply it.
+            if Task.isCancelled { break }
             switch action {
             case .hunt:
                 // One generator per battle drives both monster choice and combat,

@@ -115,6 +115,42 @@ final class GameSession_WorldTurnTests: XCTestCase {
         XCTAssertEqual(bot.actionPoints.current, 100)
     }
 
+    func testApplyWorldTurn_appliesWeaponDropToBotInventory() {
+        let (session, store) = makeSession()
+        let botId = store.houses[0].members[1].id
+        // swiftlint:disable:next force_try
+        let weapon = ElfWeaponItem(weaponItem: try! TestFixtures.weaponItem(handUse: .oneHand))
+        let result = BotTurnResult(
+            slot: RosterSlot(houseIndex: 0, memberIndex: 1, id: botId),
+            experienceGained: 0,
+            materials: [],
+            weapons: [weapon],
+            armor: [],
+            actionPointsSpent: 20,
+            battles: []
+        )
+
+        session.applyWorldTurn(WorldTurnOutcome(results: [result]))
+
+        XCTAssertEqual(store.houses[0].members[1].inventory.weapons.count, 1)
+    }
+
+    func testApplyWorldTurn_appliesToMultipleDistinctBots() {
+        let (session, store) = makeSession()
+        let bot1 = store.houses[0].members[1].id
+        let bot2 = store.houses[0].members[2].id
+        let result1 = botResult(houseIndex: 0, memberIndex: 1, id: bot1, exp: 30, apSpent: 40)
+        let result2 = botResult(houseIndex: 0, memberIndex: 2, id: bot2, exp: 60, apSpent: 80)
+
+        session.applyWorldTurn(WorldTurnOutcome(results: [result1, result2]))
+
+        XCTAssertEqual(store.houses[0].members[1].currentExp, 30)
+        XCTAssertEqual(store.houses[0].members[2].currentExp, 60)
+        XCTAssertEqual(store.houses[0].members[1].actionPoints.current, 60)
+        XCTAssertEqual(store.houses[0].members[2].actionPoints.current, 20)
+        XCTAssertEqual(store.player.currentExp, 0)
+    }
+
     // MARK: - advanceToNextDay
 
     func testAdvanceToNextDay_resetsActionPointsForAllElves() {

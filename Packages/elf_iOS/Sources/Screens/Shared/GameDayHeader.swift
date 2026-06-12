@@ -27,6 +27,7 @@ struct GameDayHeader: View {
             currentActionPoints: viewModel.actionPoints.current,
             maxActionPoints: viewModel.actionPoints.maximum,
             isLastDay: viewModel.isLastDay,
+            isNextDayDisabled: viewModel.isAdvancingDay,
             currentDay: viewModel.currentDay.calendarDayData,
             upcomingDays: viewModel.upcomingDays.map(\.calendarDayData),
             onNextDay: {

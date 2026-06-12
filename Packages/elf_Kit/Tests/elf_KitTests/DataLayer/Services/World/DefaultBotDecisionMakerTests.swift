@@ -25,22 +25,19 @@ final class DefaultBotDecisionMakerTests: XCTestCase {
         XCTAssertEqual(plan.slot, slot)
     }
 
-    func testPlanTurn_partialActionPoints_floorsToWholeHunts() {
-        let elf = TestFixtures.elf(actionPoints: .unsafeCreate(current: 50, maximum: 100))
+    func testPlanTurn_huntCountFloorsAcrossBudgets() {
+        // (available AP, expected hunts) — 20 AP per hunt, integer floor.
+        let cases: [(ap: Int, hunts: Int)] = [
+            (0, 0), (19, 0), (20, 1), (40, 2), (99, 4), (100, 5)
+        ]
 
-        let plan = sut.planTurn(for: elf, at: slot)
+        for testCase in cases {
+            let elf = TestFixtures.elf(actionPoints: .unsafeCreate(current: testCase.ap, maximum: 100))
 
-        // 50 / 20 = 2 hunts (the leftover 10 AP can't fund a third).
-        XCTAssertEqual(plan.actions.count, 2)
-        XCTAssertEqual(plan.totalCost, 40)
-    }
+            let plan = sut.planTurn(for: elf, at: slot)
 
-    func testPlanTurn_zeroActionPoints_yieldsEmptyPlan() {
-        let elf = TestFixtures.elf(actionPoints: .unsafeCreate(current: 0, maximum: 100))
-
-        let plan = sut.planTurn(for: elf, at: slot)
-
-        XCTAssertTrue(plan.actions.isEmpty)
-        XCTAssertEqual(plan.totalCost, 0)
+            XCTAssertEqual(plan.actions.count, testCase.hunts, "AP \(testCase.ap) → \(testCase.hunts) hunts")
+            XCTAssertTrue(plan.actions.allSatisfy { $0 == .hunt })
+        }
     }
 }

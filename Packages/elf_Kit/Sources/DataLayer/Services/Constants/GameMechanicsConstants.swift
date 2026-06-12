@@ -212,4 +212,12 @@ internal enum GameMechanicsConstants {
 
     /// Number of upcoming days to show in the calendar preview
     internal static let upcomingDaysCount: Int = 3
+
+    // MARK: - Hunting
+
+    /// Action-point cost of a single hunt, shared by the player and AI elves.
+    internal static let huntActionPointCost: Int = 20
+
+    /// Upper bound on the monster-pool level a hunt draws from.
+    internal static let maxHuntMonsterLevel: Int = 3
 }

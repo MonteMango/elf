@@ -110,6 +110,7 @@ internal struct GameDayScreen: View {
                 max: dayStateViewModel.actionPoints.maximum,
                 showNextDayButton: true,
                 isLastDay: dayStateViewModel.isLastDay,
+                isNextDayDisabled: dayStateViewModel.isAdvancingDay,
                 onNextDay: { Task { await dayStateViewModel.advanceToNextDay() } }
             )
 

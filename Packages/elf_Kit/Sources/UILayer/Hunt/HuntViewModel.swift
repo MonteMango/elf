@@ -25,7 +25,7 @@ public final class HuntViewModel {
     // MARK: - Constants / Local UI state
 
     /// Cost in action points to hunt
-    public let huntCost: Int = 20
+    public let huntCost: Int = GameMechanicsConstants.huntActionPointCost
     public private(set) var isHunting: Bool = false
 
     // MARK: - Derived (computed reactively)
@@ -36,7 +36,7 @@ public final class HuntViewModel {
 
     /// Pool of monsters for the player's current level.
     private var availableMonsters: [Monster] {
-        let monsterLevel = min(progressionService.calculateLevel(currentExp: session.state.player.currentExp), 3)
+        let monsterLevel = min(progressionService.calculateLevel(currentExp: session.state.player.currentExp), GameMechanicsConstants.maxHuntMonsterLevel)
         return monsterRepository.getMonsters(world: .upper, level: monsterLevel)
     }
 

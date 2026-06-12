@@ -18,8 +18,9 @@ public enum BotAction: Sendable, Equatable, Hashable {
     /// `BotAction.huntCost` AP.
     case hunt
 
-    /// Action point cost of a single hunt. Mirrors `HuntViewModel.huntCost`.
-    public static let huntCost = 20
+    /// Action point cost of a single hunt. Single source of truth shared with
+    /// the player's hunt flow via `GameMechanicsConstants.huntActionPointCost`.
+    public static let huntCost = GameMechanicsConstants.huntActionPointCost
 
     /// Action point cost of performing this action.
     public var cost: Int {

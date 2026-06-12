@@ -14,6 +14,7 @@ public struct ActionPointsBar: View {
     let max: Int
     let showNextDayButton: Bool
     let isLastDay: Bool
+    let isNextDayDisabled: Bool
     let nextDayButtonText: String
     let onNextDay: (() -> Void)?
 
@@ -22,6 +23,7 @@ public struct ActionPointsBar: View {
         max: Int,
         showNextDayButton: Bool = false,
         isLastDay: Bool = false,
+        isNextDayDisabled: Bool = false,
         nextDayButtonText: String = "Next day",
         onNextDay: (() -> Void)? = nil
     ) {
@@ -29,6 +31,7 @@ public struct ActionPointsBar: View {
         self.max = max
         self.showNextDayButton = showNextDayButton
         self.isLastDay = isLastDay
+        self.isNextDayDisabled = isNextDayDisabled
         self.nextDayButtonText = nextDayButtonText
         self.onNextDay = onNextDay
     }
@@ -81,11 +84,11 @@ public struct ActionPointsBar: View {
             onNextDay?()
         }
         .buttonStyle(.elfFlexible(
-            isEnabled: !isLastDay,
+            isEnabled: !isLastDay && !isNextDayDisabled,
             height: ElfSizing.ProgressBar.large,
             cornerRadius: ElfSizing.ProgressBar.large / 2
         ))
-        .disabled(isLastDay)
+        .disabled(isLastDay || isNextDayDisabled)
     }
 }
 

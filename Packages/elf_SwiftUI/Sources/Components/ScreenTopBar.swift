@@ -13,6 +13,7 @@ public struct ScreenTopBar: View {
     let currentActionPoints: Int
     let maxActionPoints: Int
     let isLastDay: Bool
+    let isNextDayDisabled: Bool
     let currentDay: CalendarDayData
     let upcomingDays: [CalendarDayData]
     let onNextDay: () -> Void
@@ -23,6 +24,7 @@ public struct ScreenTopBar: View {
         currentActionPoints: Int,
         maxActionPoints: Int,
         isLastDay: Bool,
+        isNextDayDisabled: Bool = false,
         currentDay: CalendarDayData,
         upcomingDays: [CalendarDayData],
         onNextDay: @escaping () -> Void,
@@ -32,6 +34,7 @@ public struct ScreenTopBar: View {
         self.currentActionPoints = currentActionPoints
         self.maxActionPoints = maxActionPoints
         self.isLastDay = isLastDay
+        self.isNextDayDisabled = isNextDayDisabled
         self.currentDay = currentDay
         self.upcomingDays = upcomingDays
         self.onNextDay = onNextDay
@@ -49,6 +52,7 @@ public struct ScreenTopBar: View {
                 max: maxActionPoints,
                 showNextDayButton: true,
                 isLastDay: isLastDay,
+                isNextDayDisabled: isNextDayDisabled,
                 onNextDay: onNextDay
             )
             .frame(width: 300)
