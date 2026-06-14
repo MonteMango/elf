@@ -164,13 +164,27 @@ public final class DungeonViewModel {
         transition = nil
     }
 
-    /// Event-room action (e.g. healing-spring "Drink"): resolves the current
-    /// room's event to an outcome and applies it (full restore + clear for the
-    /// spring). Guarded on the `.drink` state, so a second tap (room already
-    /// cleared) is a no-op.
-    public func drinkFromSpring() {
-        guard actionKind == .drink,
+    /// Event-room action (e.g. healing-spring "Drink"): shows the transition
+    /// overlay for ~2s, then resolves the current room's event and applies its
+    /// outcome (full restore + clear for the spring). The overlay covers the
+    /// action button, so re-entry is also blocked. Guarded on `transition == nil`
+    /// and the `.drink` state, so a second tap is a no-op. Mirrors the timing of
+    /// `enterDungeon()` / `advanceToNextRoom()`.
+    public func resolveRoomEvent() async {
+        guard transition == nil,
+              actionKind == .drink,
               case .event(let event)? = session.currentRoom?.kind else { return }
+        transition = eventTransition(for: event)
+        try? await Task.sleep(for: .seconds(2))
         session.apply(specialEventResolver.resolve(event))
+        transition = nil
+    }
+
+    /// Overlay copy shown while a room event resolves.
+    private func eventTransition(for event: SpecialEvent) -> DungeonTransition {
+        switch event {
+        case .healingSpring:
+            return .resolvingEvent(title: "Healing Spring", subtitle: "The squad drinks and recovers")
+        }
     }
 }

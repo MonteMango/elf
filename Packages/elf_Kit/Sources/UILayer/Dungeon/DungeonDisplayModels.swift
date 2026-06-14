@@ -30,13 +30,17 @@ public enum DungeonTab: String, CaseIterable, Sendable {
 /// dungeon or moving between two specific rooms.
 public enum DungeonTransition: Equatable, Sendable {
     case enteringDungeon(name: String)
-    /// Reserved for the next step (room-to-room navigation); unused for now.
     case movingBetweenRooms(from: String, to: String)
+    /// Resolving a non-combat room event (e.g. drinking at a healing spring).
+    /// Title/subtitle are supplied by the caller so each event can describe
+    /// itself.
+    case resolvingEvent(title: String, subtitle: String)
 
     public var title: String {
         switch self {
         case .enteringDungeon: return "Entering Dungeon"
         case .movingBetweenRooms: return "Traveling"
+        case .resolvingEvent(let title, _): return title
         }
     }
 
@@ -44,6 +48,7 @@ public enum DungeonTransition: Equatable, Sendable {
         switch self {
         case .enteringDungeon(let name): return name
         case .movingBetweenRooms(let from, let to): return "\(from) → \(to)"
+        case .resolvingEvent(_, let subtitle): return subtitle
         }
     }
 }

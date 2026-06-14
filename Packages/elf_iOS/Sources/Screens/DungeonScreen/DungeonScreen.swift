@@ -91,7 +91,7 @@ struct DungeonScreen: View {
             router.popToGameDay()
             gameSession.endDungeonSession()
         case .drink:
-            viewModel.drinkFromSpring()
+            Task { await viewModel.resolveRoomEvent() }
         case .none:
             break
         }
