@@ -11,6 +11,7 @@ import SwiftUI
 
 struct BattleResultScreen: View {
     @Environment(AppRouter.self) private var router
+    @Environment(AppCoordinator.self) private var coordinator
     @State private var viewModel: BattleResultViewModel
 
     // Animation states (kept in View)
@@ -73,8 +74,7 @@ struct BattleResultScreen: View {
                     Spacer()
 
                     Button("Continue") {
-                        router.pop()
-                        router.dismissModal()
+                        continueAfterBattle()
                     }
                     .buttonStyle(.elfPrimary)
                     .opacity(showContinueButton ? 1.0 : 0.0)
@@ -92,6 +92,24 @@ struct BattleResultScreen: View {
         }
         .task {
             await startAnimationSequence()
+        }
+    }
+
+    /// Routes away from the result overlay. During a dungeon run the
+    /// destination depends on the hero: a downed hero ends the run and returns
+    /// to the Game Day screen, a surviving hero returns to the (now cleared)
+    /// room. Hunt / dev battles keep the plain pop-back.
+    private func continueAfterBattle() {
+        router.dismissModal()
+        if let dungeon = coordinator.gameSession?.dungeonSession, dungeon.isInRun {
+            if dungeon.heroIsDowned {
+                coordinator.gameSession?.endDungeonSession()
+                router.popToGameDay()
+            } else {
+                router.pop()
+            }
+        } else {
+            router.pop()
         }
     }
 
@@ -177,6 +195,7 @@ struct BattleResultScreen: View {
         )
     )
     .environment(AppRouter())
+    .environment(AppCoordinator())
 }
 
 #Preview("Defeat") {
@@ -194,6 +213,7 @@ struct BattleResultScreen: View {
         )
     )
     .environment(AppRouter())
+    .environment(AppCoordinator())
 }
 
 #Preview("Draw") {
@@ -211,4 +231,5 @@ struct BattleResultScreen: View {
         )
     )
     .environment(AppRouter())
+    .environment(AppCoordinator())
 }

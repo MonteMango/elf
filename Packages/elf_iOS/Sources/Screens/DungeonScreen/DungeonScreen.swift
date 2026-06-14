@@ -17,6 +17,9 @@ import SwiftUI
 /// session so this shell stays purely structural.
 struct DungeonScreen: View {
 
+    @Environment(AppRouter.self) private var router
+
+    private let gameSession: GameSession
     private let dungeonSession: DungeonSession
     @State private var viewModel: DungeonViewModel
 
@@ -27,6 +30,7 @@ struct DungeonScreen: View {
         guard let dungeonSession = session.dungeonSession else {
             fatalError("DungeonScreen reached without an active DungeonSession on GameSession.")
         }
+        self.gameSession = session
         self.dungeonSession = dungeonSession
         self._viewModel = State(initialValue: DungeonViewModel(session: dungeonSession))
     }
@@ -44,7 +48,7 @@ struct DungeonScreen: View {
             if dungeonSession.isInRun {
                 RoomActionButton(
                     title: viewModel.actionTitle ?? "",
-                    action: { viewModel.performRoomAction() }
+                    action: { performRoomAction() }
                 )
             } else {
                 EntranceButton(
@@ -68,6 +72,28 @@ struct DungeonScreen: View {
         .animation(.easeInOut, value: viewModel.transition)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+    }
+
+    // MARK: - Room action
+
+    /// Dispatches the bottom action button by the room's current state:
+    /// launch the battle, walk to the next room, or finish the run.
+    private func performRoomAction() {
+        switch viewModel.actionKind {
+        case .fight:
+            if let battle = viewModel.startRoomBattle() {
+                router.navigationPath.append(AppRoute.battleFight(battle))
+            }
+        case .next:
+            Task { await viewModel.advanceToNextRoom() }
+        case .finish:
+            gameSession.endDungeonSession()
+            router.popToGameDay()
+        case .drink:
+            viewModel.drinkFromSpring()
+        case .none:
+            break
+        }
     }
 
     // MARK: - Background

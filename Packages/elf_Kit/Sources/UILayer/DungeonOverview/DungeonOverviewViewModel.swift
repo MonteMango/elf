@@ -154,33 +154,34 @@ public final class DungeonOverviewViewModel {
     /// silently dropped — the squad summary card handles fewer than 5 rows.
     public var squad: [DungeonSquadMemberDisplay] {
         let player = session.gameStore.player
-        var rows: [DungeonSquadMemberDisplay] = [
-            DungeonSquadMemberDisplay(
-                id: player.id.rawValue,
-                name: player.name,
-                imageName: player.imageName,
-                level: progressionService.calculateLevel(currentExp: player.currentExp),
-                currentHP: Int(player.maxHP),
-                maxHP: Int(player.maxHP),
-                isHero: true
-            )
-        ]
+        var rows: [DungeonSquadMemberDisplay] = [memberDisplay(for: player, isHero: true)]
 
         let house = session.gameStore.houses[session.gameStore.playerHouseIndex]
         let elfById = Dictionary(uniqueKeysWithValues: house.members.map { ($0.id, $0) })
         for id in session.allyIds {
             guard let elf = elfById[id] else { continue }
-            rows.append(DungeonSquadMemberDisplay(
-                id: elf.id.rawValue,
-                name: elf.name,
-                imageName: elf.imageName,
-                level: progressionService.calculateLevel(currentExp: elf.currentExp),
-                currentHP: Int(elf.maxHP),
-                maxHP: Int(elf.maxHP),
-                isHero: false
-            ))
+            rows.append(memberDisplay(for: elf, isHero: false))
         }
         return rows
+    }
+
+    /// `true` when the hero's current room has been cleared — drives the
+    /// "Cleared" marker in the room header.
+    public var isCurrentRoomCleared: Bool { session.isCurrentRoomCleared }
+
+    /// Compact squad row. HP comes from the run's `roomVitals` once the squad
+    /// has entered; before that (briefing) it defaults to full.
+    private func memberDisplay(for elf: ElfInfo, isHero: Bool) -> DungeonSquadMemberDisplay {
+        let maxHP = Int(elf.maxHP)
+        return DungeonSquadMemberDisplay(
+            id: elf.id.rawValue,
+            name: elf.name,
+            imageName: elf.imageName,
+            level: progressionService.calculateLevel(currentExp: elf.currentExp),
+            currentHP: session.roomVitals[elf.id]?.hp ?? maxHP,
+            maxHP: maxHP,
+            isHero: isHero
+        )
     }
 
     /// Linear walk of the room graph for the mini-map: entrance node followed by

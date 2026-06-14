@@ -33,6 +33,15 @@ struct BattleFightRouteView: View {
     let battle: Battle
 
     var body: some View {
-        BattleFightScreen(battle: battle, session: coordinator.gameSession)
+        BattleFightScreen(
+            battle: battle,
+            session: coordinator.gameSession,
+            // When a dungeon run is active, fold the finished battle's final
+            // squad state back into it. No-op for hunt / dev battles (no run).
+            onConclude: { finalLeftTeam, outcome in
+                coordinator.gameSession?.dungeonSession?
+                    .applyBattleOutcome(finalLeftTeam: finalLeftTeam, outcome: outcome)
+            }
+        )
     }
 }

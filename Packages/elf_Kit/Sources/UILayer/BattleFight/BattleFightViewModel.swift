@@ -28,6 +28,12 @@ public final class BattleFightViewModel {
     // Optional session context (nil for non-hunt battles like dev BattleSetup flow)
     let session: GameSession?
 
+    /// Fired once when the battle ends, handing the final player-side snapshots
+    /// and outcome back to whoever launched the fight (e.g. a dungeon run, which
+    /// folds them into squad vitals). `nil` for hunt / dev battles. Keeps this VM
+    /// generic — it never references `DungeonSession`.
+    private let onConclude: ((_ finalLeftTeam: [CombatantSnapshot], _ outcome: BattleOutcome) -> Void)?
+
     // MARK: - State
 
     public let battle: Battle
@@ -126,7 +132,11 @@ public final class BattleFightViewModel {
 
     // MARK: - Initialization
 
-    public init(battle: Battle, session: GameSession? = nil) {
+    public init(
+        battle: Battle,
+        session: GameSession? = nil,
+        onConclude: ((_ finalLeftTeam: [CombatantSnapshot], _ outcome: BattleOutcome) -> Void)? = nil
+    ) {
         precondition(!battle.leftTeam.isEmpty, "Battle.leftTeam must be non-empty")
         precondition(!battle.rightTeam.isEmpty, "Battle.rightTeam must be non-empty")
 
@@ -153,6 +163,7 @@ public final class BattleFightViewModel {
 
         self.battle = battle
         self.session = session
+        self.onConclude = onConclude
         self.leftTeam = battle.leftTeam
         self.rightTeam = battle.rightTeam
         self.playerCombatantId = battle.leftTeam.first?.id
@@ -380,6 +391,11 @@ public final class BattleFightViewModel {
             currentExp: currentExp
         )
         battleResult = result
+
+        // Hand the final player-side state to whoever launched the fight
+        // (e.g. an active dungeon run) so it can update squad vitals / progress.
+        // No-op for hunt and dev battles, which pass no handler.
+        onConclude?(leftTeam, outcome)
 
         await applyBattleRewards(result: result, monster: monster)
     }

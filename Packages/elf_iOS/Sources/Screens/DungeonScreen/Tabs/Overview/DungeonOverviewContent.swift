@@ -58,6 +58,15 @@ struct DungeonOverviewContent: View {
 
     private var titleSection: some View {
         VStack(alignment: .leading, spacing: ElfSpacing.xs) {
+            if viewModel.isCurrentRoomCleared {
+                Text("Cleared")
+                    .font(ElfFonts.caption)
+                    .foregroundStyle(ElfColors.Text.primaryLight)
+                    .padding(.horizontal, ElfSpacing.small)
+                    .padding(.vertical, ElfSpacing.xxs)
+                    .background(ElfColors.Button.primary, in: Capsule())
+            }
+
             Text(viewModel.header.title)
                 .font(ElfFonts.title2)
                 .foregroundStyle(ElfColors.Text.accent)

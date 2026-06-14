@@ -49,21 +49,27 @@ public final class DungeonSquadViewModel {
     // MARK: - Private
 
     private func memberDetail(for elf: ElfInfo, isHero: Bool) -> DungeonSquadMemberDetail {
-        // MVP: no runtime HP/MP on ElfInfo yet — assume full reserves. No
-        // domain buffs yet — empty array. State always alive.
-        DungeonSquadMemberDetail(
+        // HP/MP come from the run's `roomVitals` once the squad has entered;
+        // before that (briefing) they default to full. A `hp <= 0` reading marks
+        // a downed member. No domain buffs yet — empty array.
+        let maxHP = Int(elf.maxHP)
+        let maxMP = Int(elf.maxMP)
+        let vitals = session.roomVitals[elf.id]
+        let currentHP = vitals?.hp ?? maxHP
+        let currentMP = vitals?.mp ?? maxMP
+        return DungeonSquadMemberDetail(
             id: elf.id.rawValue,
             name: elf.name,
             imageName: elf.imageName,
             level: progressionService.calculateLevel(currentExp: elf.currentExp),
-            currentHP: Int(elf.maxHP),
-            maxHP: Int(elf.maxHP),
-            currentMP: Int(elf.maxMP),
-            maxMP: Int(elf.maxMP),
+            currentHP: currentHP,
+            maxHP: maxHP,
+            currentMP: currentMP,
+            maxMP: maxMP,
             attributes: elf.totalAttributes,
             equippedItems: equippedSlotResolver.resolve(equipped: elf.equipped),
             activeBuffs: [],
-            state: .alive,
+            state: currentHP <= 0 ? .dead : .alive,
             isHero: isHero
         )
     }

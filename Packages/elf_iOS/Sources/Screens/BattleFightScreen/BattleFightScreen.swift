@@ -14,10 +14,15 @@ internal struct BattleFightScreen: View {
     @State private var viewModel: BattleFightViewModel
     @State private var showLeaveConfirmation = false
 
-    internal init(battle: Battle, session: GameSession?) {
+    internal init(
+        battle: Battle,
+        session: GameSession?,
+        onConclude: ((_ finalLeftTeam: [CombatantSnapshot], _ outcome: BattleOutcome) -> Void)? = nil
+    ) {
         self._viewModel = State(initialValue: BattleFightViewModel(
             battle: battle,
-            session: session
+            session: session,
+            onConclude: onConclude
         ))
     }
 

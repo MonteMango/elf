@@ -41,7 +41,7 @@
                     "description": "A pool of glowing water steams in the cold. The squad can drink to recover.",
                     "kind": {
                         "type": "event",
-                        "event": { "type": "healingSpring", "healPercent": 50 }
+                        "event": { "type": "healingSpring" }
                     },
                     "nextRoomIds": ["11111111-0000-0000-0000-100000000004"]
                 },

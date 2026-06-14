@@ -42,6 +42,15 @@ public final class DungeonSession {
     /// will populate them differently.
     public private(set) var elfLocations: [ElfID: DungeonRoomID] = [:]
 
+    /// Current HP/MP of each squad elf, seeded full at `beginRun()` and updated
+    /// after every room battle via `applyBattleOutcome`. A `hp <= 0` entry marks
+    /// a downed member. Empty during the briefing.
+    public private(set) var roomVitals: [ElfID: DungeonElfVitals] = [:]
+
+    /// Rooms whose battle the squad has won. Drives the room-action button
+    /// (`Fight` → `Next`/`Finish`) and the "Cleared" UI marker.
+    public private(set) var clearedRoomIds: Set<DungeonRoomID> = []
+
     // MARK: - Initialization
 
     public init(gameStore: GameStore, dungeonId: DungeonID, allyIds: [ElfID]) {
@@ -78,14 +87,125 @@ public final class DungeonSession {
     /// during the briefing.
     public var isInRun: Bool { currentRoom != nil }
 
+    /// `true` when the hero's current room has been cleared (its battle won).
+    public var isCurrentRoomCleared: Bool {
+        guard let room = currentRoom else { return false }
+        return clearedRoomIds.contains(room.id)
+    }
+
+    /// `true` when the hero is at 0 HP after the most recent battle — the run
+    /// is over and the player should be sent back to the Game Day screen.
+    public var heroIsDowned: Bool {
+        guard let vitals = roomVitals[heroId] else { return false }
+        return vitals.hp <= 0
+    }
+
+    /// `true` when the current room links to a following room (linear path).
+    public var hasNextRoom: Bool {
+        currentRoom?.nextRoomIds.first != nil
+    }
+
+    /// Hero first, then every ally id that still resolves to a roster `ElfInfo`.
+    /// Mirrors the resolution used by the Squad / Overview tabs.
+    public func squadElves() -> [ElfInfo] {
+        let house = gameStore.houses[gameStore.playerHouseIndex]
+        let byId = Dictionary(uniqueKeysWithValues: house.members.map { ($0.id, $0) })
+        var elves: [ElfInfo] = [gameStore.player]
+        for id in allyIds {
+            guard let elf = byId[id] else { continue }
+            elves.append(elf)
+        }
+        return elves
+    }
+
     // MARK: - Run mutations
 
-    /// Places the whole squad into the dungeon's entry room. Called once the
-    /// entrance transition overlay completes.
+    /// Places the whole squad into the dungeon's entry room and seeds full
+    /// HP/MP reserves. Called once the entrance transition overlay completes.
     public func beginRun() {
         guard let entry = dungeon?.entryRoomIds.first else { return }
         var locations: [ElfID: DungeonRoomID] = [heroId: entry]
         for allyId in allyIds { locations[allyId] = entry }
         elfLocations = locations
+
+        var vitals: [ElfID: DungeonElfVitals] = [:]
+        for elf in squadElves() {
+            vitals[elf.id] = DungeonElfVitals(hp: Int(elf.maxHP), mp: Int(elf.maxMP))
+        }
+        roomVitals = vitals
+    }
+
+    /// Restores 25% of max HP/MP to every *living* squad member (downed members
+    /// stay down — no revive). Used during the room-to-room transition.
+    public func restoreQuarter() {
+        updateLivingVitals { elf, vitals in
+            let maxHP = Int(elf.maxHP)
+            let maxMP = Int(elf.maxMP)
+            vitals.hp = min(maxHP, vitals.hp + maxHP / 4)
+            vitals.mp = min(maxMP, vitals.mp + maxMP / 4)
+        }
+    }
+
+    /// Applies a resolved `SpecialEvent` outcome to the run. `DungeonSession`
+    /// stays the single writer of run state; the *policy* (what each event does)
+    /// lives in `SpecialEventResolver`. Restores apply to living members only —
+    /// no revive (consistent with `restoreQuarter`).
+    public func apply(_ outcome: DungeonEventOutcome) {
+        switch outcome.restore {
+        case .full:
+            updateLivingVitals { elf, vitals in
+                vitals.hp = Int(elf.maxHP)
+                vitals.mp = Int(elf.maxMP)
+            }
+        case nil:
+            break
+        }
+        if outcome.clearsRoom, let room = currentRoom {
+            clearedRoomIds.insert(room.id)
+        }
+    }
+
+    /// Applies `transform` to each *living* member's vitals (downed members,
+    /// `hp <= 0`, are skipped — no revive). Shared by `restoreQuarter` and
+    /// `apply(_:)`.
+    private func updateLivingVitals(_ transform: (ElfInfo, inout DungeonElfVitals) -> Void) {
+        let byId = Dictionary(squadElves().map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        for id in Array(roomVitals.keys) {
+            guard var vitals = roomVitals[id], vitals.hp > 0, let elf = byId[id] else { continue }
+            transform(elf, &vitals)
+            roomVitals[id] = vitals
+        }
+    }
+
+    /// Moves the whole squad into the current room's first next room (linear
+    /// path). No-op on a final room.
+    public func moveSquadToNextRoom() {
+        guard let next = currentRoom?.nextRoomIds.first else { return }
+        var locations: [ElfID: DungeonRoomID] = [:]
+        for id in elfLocations.keys { locations[id] = next }
+        elfLocations = locations
+    }
+}
+
+// MARK: - Battle outcome
+
+extension DungeonSession {
+
+    /// Folds a finished room battle back into the run: writes each elf's
+    /// end-of-battle HP/MP into `roomVitals`, and — if the hero survived —
+    /// marks the current room cleared. A downed hero leaves the room uncleared;
+    /// the run ends from the Game Day side. Called by `BattleFightViewModel`'s
+    /// `onConclude` handler (wired in `BattleFightRouteView`).
+    public func applyBattleOutcome(finalLeftTeam: [CombatantSnapshot], outcome: BattleOutcome) {
+        for snapshot in finalLeftTeam {
+            guard case .elf(let elfId) = snapshot.source else { continue }
+            roomVitals[elfId] = DungeonElfVitals(
+                hp: max(0, snapshot.currentHP),
+                mp: max(0, snapshot.currentMP)
+            )
+        }
+        if !heroIsDowned, let room = currentRoom {
+            clearedRoomIds.insert(room.id)
+        }
     }
 }
