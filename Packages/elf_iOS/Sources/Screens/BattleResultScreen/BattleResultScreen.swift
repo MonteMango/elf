@@ -103,8 +103,11 @@ struct BattleResultScreen: View {
         router.dismissModal()
         if let dungeon = coordinator.gameSession?.dungeonSession, dungeon.isInRun {
             if dungeon.heroIsDowned {
-                coordinator.gameSession?.endDungeonSession()
+                // Pop first, then release the run (see DungeonRouteView): removing
+                // the route before nil-ing the session keeps DungeonScreen from
+                // being rebuilt against a released session.
                 router.popToGameDay()
+                coordinator.gameSession?.endDungeonSession()
             } else {
                 router.pop()
             }

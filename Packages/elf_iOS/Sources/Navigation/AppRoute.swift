@@ -148,7 +148,7 @@ extension AppRoute {
         case .multiBattleResult(let battle):
             MultiBattleResultScreen(battle: battle)
         case .dungeon:
-            SessionRouteView { DungeonScreen(session: $0) }
+            DungeonRouteView()
         }
     }
 }

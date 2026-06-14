@@ -23,14 +23,13 @@ struct DungeonScreen: View {
     private let dungeonSession: DungeonSession
     @State private var viewModel: DungeonViewModel
 
-    init(session: GameSession) {
-        // Force-unwrap is safe: the route is only reachable from
-        // `GameDayScreen.dungeon` which calls `session.startDungeonSession(...)`
-        // before pushing the route.
-        guard let dungeonSession = session.dungeonSession else {
-            fatalError("DungeonScreen reached without an active DungeonSession on GameSession.")
-        }
-        self.gameSession = session
+    /// Both sessions are passed in non-optional — the existence guard lives in
+    /// `DungeonRouteView`, which only builds this screen while a run is active.
+    /// Keeping `init` trap-free matters because SwiftUI re-creates the view
+    /// struct during teardown (e.g. while popping after "Finish"), when the
+    /// dungeon session may already have been released.
+    init(gameSession: GameSession, dungeonSession: DungeonSession) {
+        self.gameSession = gameSession
         self.dungeonSession = dungeonSession
         self._viewModel = State(initialValue: DungeonViewModel(session: dungeonSession))
     }
@@ -87,8 +86,10 @@ struct DungeonScreen: View {
         case .next:
             Task { await viewModel.advanceToNextRoom() }
         case .finish:
-            gameSession.endDungeonSession()
+            // Pop first, then release the run: removing the route before nil-ing
+            // the session avoids rebuilding this screen against a missing session.
             router.popToGameDay()
+            gameSession.endDungeonSession()
         case .drink:
             viewModel.drinkFromSpring()
         case .none:
@@ -160,10 +161,10 @@ struct DungeonScreen: View {
             .map(\.element.id)
             .shuffled()
             .prefix(4)
-        let _ = session.startDungeonSession(dungeonId: dungeonId, allyIds: Array(allyIds))
+        let dungeonSession = session.startDungeonSession(dungeonId: dungeonId, allyIds: Array(allyIds))
 
         NavigationStack(path: $router.navigationPath) {
-            DungeonScreen(session: session)
+            DungeonScreen(gameSession: session, dungeonSession: dungeonSession)
                 .environment(router)
                 .environment(coordinator)
         }
