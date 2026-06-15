@@ -12,17 +12,31 @@ import SwiftUI
 /// (the dev BattleSetup flow reaches it without an active game session).
 struct BattleFightRouteView: View {
     @Environment(AppCoordinator.self) private var coordinator
+    @Environment(AppRouter.self) private var router
     let battle: Battle
 
     var body: some View {
         BattleFightScreen(
             battle: battle,
             session: coordinator.gameSession,
-            // When a dungeon run is active, fold the finished battle's final
-            // squad state back into it. No-op for hunt / dev battles (no run).
-            onConclude: { finalLeftTeam, outcome in
-                coordinator.gameSession?.dungeonSession?
-                    .applyBattleOutcome(finalLeftTeam: finalLeftTeam, outcome: outcome)
+            // The launcher owns post-battle side effects and returns the result
+            // to show. Dungeon: fold squad state, no rewards/save (the dungeon
+            // flow saves). Hunt: apply XP/drops + save. Dev (no session): the VM
+            // computes a display-only result.
+            onBattleConcluded: { outcome, finalLeftTeam in
+                // An active dungeon run owns the battle — the authoritative
+                // "this battle belongs to the dungeon" signal. More robust than
+                // `isInRun` (a derived currentRoom != nil condition).
+                if let dungeon = coordinator.gameSession?.dungeonSession {
+                    return dungeon.concludeRoomBattle(outcome: outcome, finalLeftTeam: finalLeftTeam)
+                }
+                if let session = coordinator.gameSession {
+                    return session.concludeHuntBattle(battle: battle, outcome: outcome)
+                }
+                // Dev BattleSetup (no game session): no rewards, no result
+                // overlay — just auto-close the battle screen.
+                router.pop()
+                return nil
             }
         )
     }

@@ -160,6 +160,52 @@ public final class GameSession {
         )
     }
 
+    // MARK: - Battle conclusion
+
+    /// Concludes a hunt battle: computes the result, applies XP + drops to the
+    /// player, kicks off a background save, and returns the result for the
+    /// overlay. Synchronous so the overlay shows immediately — persistence runs
+    /// off the critical path. Reward application + saving live here (the flow
+    /// owner), not in `BattleFightViewModel`.
+    public func concludeHuntBattle(battle: Battle, outcome: BattleOutcome) -> ManualBattleResult {
+        // Resolved lazily (not in init) so constructing a GameSession doesn't
+        // eagerly pull these live-only deps — keeps non-battle flows and tests
+        // free of the hunt/drop/monster dependency chain.
+        @Dependency(\.battleResultCalculator) var battleResultCalculator
+        @Dependency(\.monsterRepository) var monsterRepository
+
+        let monster = battle.botMonsterID.flatMap { monsterRepository.getById(id: $0) }
+
+        // Order matters: compute the result against the *current* exp BEFORE
+        // `addPlayerExperience` mutates it, so the overlay's previous→new XP
+        // progression is correct. Do not reorder these two statements.
+        let result = battleResultCalculator.calculateResult(
+            outcome: outcome,
+            monster: monster,
+            currentExp: state.player.currentExp
+        )
+        if result.experienceGained > 0 {
+            addPlayerExperience(result.experienceGained)
+        }
+        if let huntRewards = result.huntRewards {
+            addDropsToPlayerInventory(rewards: huntRewards)
+        }
+        // Persist off the critical path so the result overlay isn't blocked on
+        // disk I/O. The XP/drops are already applied to in-memory state above;
+        // scenePhase-background and the next day-advance save are the safety net
+        // if this fire-and-forget save is interrupted.
+        Task {
+            do {
+                try await save()
+            } catch {
+                #if DEBUG
+                print("[GameSession] Failed to save after hunt battle: \(error)")
+                #endif
+            }
+        }
+        return result
+    }
+
     // MARK: - Roster Progression (any elf)
 
     /// Adds combat experience to a specific elf. No-op if the slot is invalid.

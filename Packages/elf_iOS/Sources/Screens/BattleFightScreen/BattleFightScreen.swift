@@ -17,12 +17,12 @@ internal struct BattleFightScreen: View {
     internal init(
         battle: Battle,
         session: GameSession?,
-        onConclude: ((_ finalLeftTeam: [CombatantSnapshot], _ outcome: BattleOutcome) -> Void)? = nil
+        onBattleConcluded: ((_ outcome: BattleOutcome, _ finalLeftTeam: [CombatantSnapshot]) -> ManualBattleResult?)? = nil
     ) {
         self._viewModel = State(initialValue: BattleFightViewModel(
             battle: battle,
             session: session,
-            onConclude: onConclude
+            onBattleConcluded: onBattleConcluded
         ))
     }
 

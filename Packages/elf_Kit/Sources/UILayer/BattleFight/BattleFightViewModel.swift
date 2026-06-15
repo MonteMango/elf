@@ -19,8 +19,6 @@ public final class BattleFightViewModel {
     private let battleLogger: any BattleLogger
     private let debugLogger: any DebugBattleLogger
     private let duelPairingService: any DuelPairingService
-    private let monsterRepository: any MonsterRepository
-    private let battleResultCalculator: any BattleResultCalculator
     private let buffApplicationService: any BuffApplicationService
     let buffEffectsCalculator: any BuffEffectsCalculator
     let buffsRepository: any BuffsRepository
@@ -28,11 +26,14 @@ public final class BattleFightViewModel {
     // Optional session context (nil for non-hunt battles like dev BattleSetup flow)
     let session: GameSession?
 
-    /// Fired once when the battle ends, handing the final player-side snapshots
-    /// and outcome back to whoever launched the fight (e.g. a dungeon run, which
-    /// folds them into squad vitals). `nil` for hunt / dev battles. Keeps this VM
-    /// generic — it never references `DungeonSession`.
-    private let onConclude: ((_ finalLeftTeam: [CombatantSnapshot], _ outcome: BattleOutcome) -> Void)?
+    /// Launcher hook called once when the battle ends. The launcher owns all
+    /// post-battle side effects (rewards, saving, dungeon writeback) and returns
+    /// the `ManualBattleResult` to display (`nil` → no overlay, e.g. the dev
+    /// BattleSetup flow, which auto-closes). Synchronous: the launcher applies
+    /// rewards in-memory and persists in the background, so the overlay shows
+    /// without waiting on disk I/O. Keeps this VM generic — it neither applies
+    /// rewards, saves, nor references `DungeonSession`.
+    private let onBattleConcluded: ((_ outcome: BattleOutcome, _ finalLeftTeam: [CombatantSnapshot]) -> ManualBattleResult?)?
 
     // MARK: - State
 
@@ -135,7 +136,7 @@ public final class BattleFightViewModel {
     public init(
         battle: Battle,
         session: GameSession? = nil,
-        onConclude: ((_ finalLeftTeam: [CombatantSnapshot], _ outcome: BattleOutcome) -> Void)? = nil
+        onBattleConcluded: ((_ outcome: BattleOutcome, _ finalLeftTeam: [CombatantSnapshot]) -> ManualBattleResult?)? = nil
     ) {
         precondition(!battle.leftTeam.isEmpty, "Battle.leftTeam must be non-empty")
         precondition(!battle.rightTeam.isEmpty, "Battle.rightTeam must be non-empty")
@@ -145,8 +146,6 @@ public final class BattleFightViewModel {
         @Dependency(\.battleLogger) var battleLogger
         @Dependency(\.debugBattleLogger) var debugLogger
         @Dependency(\.duelPairingService) var duelPairingService
-        @Dependency(\.monsterRepository) var monsterRepository
-        @Dependency(\.battleResultCalculator) var battleResultCalculator
         @Dependency(\.buffApplicationService) var buffApplicationService
         @Dependency(\.buffEffectsCalculator) var buffEffectsCalculator
         @Dependency(\.buffsRepository) var buffsRepository
@@ -155,15 +154,13 @@ public final class BattleFightViewModel {
         self.battleLogger = battleLogger
         self.debugLogger = debugLogger
         self.duelPairingService = duelPairingService
-        self.monsterRepository = monsterRepository
-        self.battleResultCalculator = battleResultCalculator
         self.buffApplicationService = buffApplicationService
         self.buffEffectsCalculator = buffEffectsCalculator
         self.buffsRepository = buffsRepository
 
         self.battle = battle
         self.session = session
-        self.onConclude = onConclude
+        self.onBattleConcluded = onBattleConcluded
         self.leftTeam = battle.leftTeam
         self.rightTeam = battle.rightTeam
         self.playerCombatantId = battle.leftTeam.first?.id
@@ -376,49 +373,19 @@ public final class BattleFightViewModel {
 
     // MARK: - Actions
 
-    /// Calculates battle result, applies rewards to game state, and saves
+    /// Ends the battle: hands off to the launcher (which owns rewards, saving,
+    /// and any dungeon writeback) and publishes the result for the overlay. The
+    /// VM itself applies nothing and never saves.
     public func finishBattle() async {
         guard battleEnded, !isFinishingBattle else { return }
         isFinishingBattle = true
 
         let outcome = determineBattleOutcome()
-        let monster = getMonsterFromBot()
-        let currentExp: Int = session?.state.player.currentExp ?? 0
-
-        let result = battleResultCalculator.calculateResult(
-            outcome: outcome,
-            monster: monster,
-            currentExp: currentExp
-        )
-        battleResult = result
-
-        // Hand the final player-side state to whoever launched the fight
-        // (e.g. an active dungeon run) so it can update squad vitals / progress.
-        // No-op for hunt and dev battles, which pass no handler.
-        onConclude?(leftTeam, outcome)
-
-        await applyBattleRewards(result: result, monster: monster)
-    }
-
-    /// Applies battle rewards to game state (XP, drops, save)
-    private func applyBattleRewards(result: ManualBattleResult, monster: Monster?) async {
-        guard let session = session else { return }
-
-        if result.experienceGained > 0 {
-            session.addPlayerExperience(result.experienceGained)
-        }
-
-        if let huntRewards = result.huntRewards {
-            session.addDropsToPlayerInventory(rewards: huntRewards)
-        }
-
-        do {
-            try await session.save()
-        } catch {
-            #if DEBUG
-            print("[BattleFightViewModel] Failed to save game: \(error)")
-            #endif
-        }
+        // The launcher owns all post-battle handling and returns the result to
+        // display; `nil` means no overlay — the dev BattleSetup flow, which
+        // auto-closes the battle screen instead. Synchronous: the overlay is not
+        // blocked on the launcher's background save.
+        battleResult = onBattleConcluded?(outcome, leftTeam)
     }
 
     // MARK: - Private Helpers
@@ -427,14 +394,6 @@ public final class BattleFightViewModel {
         // `?? .draw` is a defensive fallback — `finishBattle` only fires when
         // `battleEnded == true`, which means at least one side has wiped.
         detectBattleOutcome(left: leftTeam, right: rightTeam) ?? .draw
-    }
-
-    private func getMonsterFromBot() -> Monster? {
-        guard let botSnapshot = rightTeam.first,
-              case .monster(let monsterId) = botSnapshot.source else {
-            return nil
-        }
-        return monsterRepository.getById(id: monsterId)
     }
 
     // MARK: - Duel Pairs

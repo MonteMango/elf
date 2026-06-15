@@ -191,11 +191,32 @@ public final class DungeonSession {
 
 extension DungeonSession {
 
+    /// Concludes a room battle: folds the final squad state into the run (vitals
+    /// + room-clear on hero survival) and returns a result for the overlay.
+    ///
+    /// Phase 1: no rewards are granted here — dungeon rewards are accrued during
+    /// the run and flushed to `GameSession` on exit (later phase), so the result
+    /// is outcome-only (0 XP, no drops). Saving is owned by the dungeon flow,
+    /// not by the battle layer.
+    public func concludeRoomBattle(
+        outcome: BattleOutcome,
+        finalLeftTeam: [CombatantSnapshot]
+    ) -> ManualBattleResult {
+        // Resolved lazily (not in init) so constructing a DungeonSession doesn't
+        // eagerly pull this live-only dep — keeps existing tests/flows clean.
+        @Dependency(\.battleResultCalculator) var battleResultCalculator
+        applyBattleOutcome(finalLeftTeam: finalLeftTeam, outcome: outcome)
+        return battleResultCalculator.calculateResult(
+            outcome: outcome,
+            monster: nil,
+            currentExp: gameStore.player.currentExp
+        )
+    }
+
     /// Folds a finished room battle back into the run: writes each elf's
     /// end-of-battle HP/MP into `roomVitals`, and — if the hero survived —
     /// marks the current room cleared. A downed hero leaves the room uncleared;
-    /// the run ends from the Game Day side. Called by `BattleFightViewModel`'s
-    /// `onConclude` handler (wired in `BattleFightRouteView`).
+    /// the run ends from the Game Day side. Called by `concludeRoomBattle`.
     public func applyBattleOutcome(finalLeftTeam: [CombatantSnapshot], outcome: BattleOutcome) {
         for snapshot in finalLeftTeam {
             guard case .elf(let elfId) = snapshot.source else { continue }

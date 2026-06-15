@@ -32,6 +32,14 @@ public struct Battle: Sendable, Identifiable {
     /// per render via `HeroEquippedSlotResolver`.
     public let equippedItemsByCombatantId: [CombatantID: [HeroItemType: HeroEquippedSlot]]
 
+    /// `MonsterID` of the first opponent when it's a monster (`nil` for
+    /// synthetic / elf opponents). Single source for resolving the bot monster
+    /// behind reward calculation.
+    public var botMonsterID: MonsterID? {
+        guard let bot = rightTeam.first, case .monster(let monsterId) = bot.source else { return nil }
+        return monsterId
+    }
+
     public init(
         id: BattleID = BattleID(),
         leftTeam: [CombatantSnapshot],
