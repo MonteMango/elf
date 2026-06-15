@@ -35,6 +35,10 @@ public final class MainMenuViewModel {
     /// Loaded game — triggers navigation when set.
     public private(set) var loadedGame: Game?
 
+    /// In-progress dungeon run from the loaded save, if any. Drives resuming
+    /// straight into the dungeon room on Continue.
+    public private(set) var loadedDungeonRun: DungeonRunSaveData?
+
     /// Play time from loaded save.
     public private(set) var loadedPlayTime: TimeInterval = 0
 
@@ -57,9 +61,10 @@ public final class MainMenuViewModel {
 
         do {
             let playTime = await gameRepository.getPlayTime(slotId: SaveSlotInfo.defaultSlotId)
-            let game = try await gameRepository.loadDefault()
+            let loaded = try await gameRepository.loadDefault()
             loadedPlayTime = playTime
-            loadedGame = game
+            loadedDungeonRun = loaded.dungeonRun
+            loadedGame = loaded.game
         } catch {
             loadError = error.localizedDescription
         }
@@ -70,6 +75,7 @@ public final class MainMenuViewModel {
     /// Clears loaded game state after navigation.
     public func consumeLoadedGame() {
         loadedGame = nil
+        loadedDungeonRun = nil
         loadedPlayTime = 0
     }
 

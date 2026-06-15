@@ -31,8 +31,8 @@ final class GameSession_CraftTests: XCTestCase {
     // MARK: - Fakes
 
     private struct NoOpStorage: GameSaveStorage {
-        func save(_ game: Game, slotId: String, playTime: TimeInterval) async throws {}
-        func load(slotId: String) async throws -> Game { fatalError("unused") }
+        func save(_ game: Game, dungeonRun: DungeonRunSaveData?, slotId: String, playTime: TimeInterval) async throws {}
+        func load(slotId: String) async throws -> LoadedSave { fatalError("unused") }
         func hasAnySave() -> Bool { false }
         func getPlayTime(slotId: String) async -> TimeInterval { 0 }
     }

@@ -248,6 +248,57 @@ final class DungeonSession_BattleFlowTests: XCTestCase {
         XCTAssertEqual(session.roomVitals[ally.id], DungeonElfVitals(hp: 0, mp: 0))
     }
 
+    // MARK: - Persistence (makeSaveData / restore / round-trip)
+
+    func testMakeSaveData_CapturesRunState() {
+        let (session, hero, ally) = makeSession()
+        session.beginRun()
+        session.applyBattleOutcome(
+            finalLeftTeam: [snapshot(elfId: hero.id, hp: 40, mp: 8)],
+            outcome: .victory
+        )
+
+        let data = session.makeSaveData()
+
+        XCTAssertEqual(data.dungeonId, dungeonId)
+        XCTAssertEqual(data.allyIds, [ally.id])
+        XCTAssertEqual(data.elfLocations[hero.id], roomAId)
+        XCTAssertEqual(data.roomVitals[hero.id], DungeonElfVitals(hp: 40, mp: 8))
+        XCTAssertEqual(data.clearedRoomIds, [roomAId])
+    }
+
+    func testRestore_RestoresRunState() {
+        let (session, hero, ally) = makeSession()
+        let data = DungeonRunSaveData(
+            dungeonId: dungeonId,
+            allyIds: [ally.id],
+            elfLocations: [hero.id: roomBId, ally.id: roomBId],
+            roomVitals: [hero.id: DungeonElfVitals(hp: 50, mp: 10),
+                         ally.id: DungeonElfVitals(hp: 0, mp: 0)],
+            clearedRoomIds: [roomAId]
+        )
+
+        session.restore(from: data)
+
+        XCTAssertEqual(session.currentRoom?.id, roomBId)
+        XCTAssertEqual(session.roomVitals[hero.id], DungeonElfVitals(hp: 50, mp: 10))
+        XCTAssertTrue(session.heroIsDowned == false)
+        XCTAssertTrue(session.clearedRoomIds.contains(roomAId))
+        XCTAssertEqual(session.roomVitals[ally.id]?.hp, 0)
+    }
+
+    func testSaveData_CodableRoundTrip() throws {
+        let (session, hero, _) = makeSession()
+        session.beginRun()
+        let original = session.makeSaveData()
+
+        let encoded = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(DungeonRunSaveData.self, from: encoded)
+
+        XCTAssertEqual(decoded, original)
+        XCTAssertEqual(decoded.roomVitals[hero.id], original.roomVitals[hero.id])
+    }
+
     // MARK: - moveSquadToNextRoom
 
     func testMoveSquadToNextRoom_AdvancesEveryoneAndExposesFinalRoom() {

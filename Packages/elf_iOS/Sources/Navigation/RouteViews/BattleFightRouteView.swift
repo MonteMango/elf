@@ -27,8 +27,15 @@ struct BattleFightRouteView: View {
                 // An active dungeon run owns the battle — the authoritative
                 // "this battle belongs to the dungeon" signal. More robust than
                 // `isInRun` (a derived currentRoom != nil condition).
-                if let dungeon = coordinator.gameSession?.dungeonSession {
-                    return dungeon.concludeRoomBattle(outcome: outcome, finalLeftTeam: finalLeftTeam)
+                if let session = coordinator.gameSession, let dungeon = session.dungeonSession {
+                    let result = dungeon.concludeRoomBattle(outcome: outcome, finalLeftTeam: finalLeftTeam)
+                    // Checkpoint the cleared room. On a downed hero the run ends
+                    // from the result screen (which saves the cleared run), so we
+                    // skip persisting a downed-in-dungeon state here.
+                    if !dungeon.heroIsDowned {
+                        session.saveInBackground()
+                    }
+                    return result
                 }
                 if let session = coordinator.gameSession {
                     return session.concludeHuntBattle(battle: battle, outcome: outcome)

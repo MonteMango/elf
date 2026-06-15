@@ -52,8 +52,17 @@ struct MainMenuScreen: View {
         .task { viewModel.refreshSavedGameState() }
         .onChange(of: viewModel.loadedGame) { _, newGame in
             if let game = newGame {
-                coordinator.startGame(game, playTime: viewModel.loadedPlayTime)
+                coordinator.startGame(
+                    game,
+                    playTime: viewModel.loadedPlayTime,
+                    dungeonRun: viewModel.loadedDungeonRun
+                )
                 router.navigate(to: .gameSession(game, playTime: viewModel.loadedPlayTime))
+                // Resume into the dungeon room if the save had a valid run.
+                // The coordinator owns the "which route to resume" decision.
+                if let resumeRoute = coordinator.resumeRoute {
+                    router.navigate(to: resumeRoute)
+                }
                 viewModel.consumeLoadedGame()
             }
         }

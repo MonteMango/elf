@@ -177,6 +177,54 @@ public final class DungeonSession {
         }
     }
 
+    // MARK: - Persistence
+
+    /// Snapshot of the run for saving. ID-reference only. `clearedRoomIds` is
+    /// sorted for deterministic output (the underlying `Set` has no stable order).
+    public func makeSaveData() -> DungeonRunSaveData {
+        DungeonRunSaveData(
+            dungeonId: dungeonId,
+            allyIds: allyIds,
+            elfLocations: elfLocations,
+            roomVitals: roomVitals,
+            clearedRoomIds: clearedRoomIds.sorted { $0.rawValue.uuidString < $1.rawValue.uuidString }
+        )
+    }
+
+    /// Snapshot for persistence, but only when the run is actually **resumable**:
+    /// the squad has entered a room and the hero is alive. Returns nil during the
+    /// briefing (not yet entered) or when the hero is downed (the run is ending →
+    /// Game Day), so a background save in those states doesn't persist a run that
+    /// would resume into a broken state.
+    public func resumableSaveData() -> DungeonRunSaveData? {
+        guard isInRun, !heroIsDowned else { return nil }
+        return makeSaveData()
+    }
+
+    /// Whether the restored run still resolves against the current catalog: the
+    /// dungeon and the hero's room exist, and every cleared room id still exists.
+    /// If false, the caller discards the run and resumes on the Game Day screen
+    /// (the state before entering the dungeon).
+    public func isResumeStateValid() -> Bool {
+        guard let dungeon, currentRoom != nil else { return false }
+        return clearedRoomIds.allSatisfy { dungeon.room(id: $0) != nil }
+    }
+
+    /// Restores mutable run state from a saved snapshot. The stable inputs
+    /// (`dungeonId`, `allyIds`) are passed to `init` by the caller; this fills in
+    /// the run position + vitals + cleared rooms.
+    public func restore(from data: DungeonRunSaveData) {
+        assert(
+            data.dungeonId == dungeonId && data.allyIds == allyIds,
+            "restore(from:) must be called on a session created with the same dungeonId/allyIds"
+        )
+        elfLocations = data.elfLocations
+        roomVitals = data.roomVitals
+        clearedRoomIds = Set(data.clearedRoomIds)
+    }
+
+    // MARK: - Run mutations (cont.)
+
     /// Moves the whole squad into the current room's first next room (linear
     /// path). No-op on a final room.
     public func moveSquadToNextRoom() {

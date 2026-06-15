@@ -194,15 +194,7 @@ public final class GameSession {
         // disk I/O. The XP/drops are already applied to in-memory state above;
         // scenePhase-background and the next day-advance save are the safety net
         // if this fire-and-forget save is interrupted.
-        Task {
-            do {
-                try await save()
-            } catch {
-                #if DEBUG
-                print("[GameSession] Failed to save after hunt battle: \(error)")
-                #endif
-            }
-        }
+        saveInBackground()
         return result
     }
 
@@ -420,12 +412,38 @@ public final class GameSession {
 
     // TODO: [persistence/P0] Coalesce/debounce rapid save() calls.
     /// Saves the active game state. Snapshots the store on the main thread,
-    /// then offloads disk I/O to the repository (background actor).
+    /// then offloads disk I/O to the repository (background actor). Only a
+    /// *resumable* dungeon run is persisted (in a room, hero alive) — a briefing
+    /// or downed-hero run is not (it would resume into a broken/over state).
     public func save() async throws {
         let snap = state.snapshot()
         let time = state.playTime
         debugGameLogger.logGameSave(game: snap, playTime: time)
-        try await gameRepository.save(snap, slotId: slotId, playTime: time)
+        try await gameRepository.save(
+            snap,
+            dungeonRun: dungeonSession?.resumableSaveData(),
+            slotId: slotId,
+            playTime: time
+        )
+    }
+
+    /// Fire-and-forget persistence for checkpoints where the UI shouldn't block
+    /// on disk I/O (battle conclusion, dungeon step points). Errors are logged in
+    /// DEBUG.
+    ///
+    /// TODO: [persistence/P0] Coalesce/debounce rapid calls — several checkpoints
+    /// in quick succession currently spawn independent save Tasks that contend on
+    /// the storage actor. A single home (here) is where that debounce should land.
+    public func saveInBackground() {
+        Task {
+            do {
+                try await save()
+            } catch {
+                #if DEBUG
+                print("[GameSession] Background save failed: \(error)")
+                #endif
+            }
+        }
     }
 
     // MARK: - Dungeon Session Lifecycle

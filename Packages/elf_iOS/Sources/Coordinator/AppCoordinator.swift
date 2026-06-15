@@ -37,10 +37,33 @@ public final class AppCoordinator {
     /// Starts (or replaces) the active game session. Must be called before
     /// navigating to `.gameSession` so that the session's state is available
     /// to session-bound VMs.
-    public func startGame(_ game: Game, playTime: TimeInterval = 0) {
+    public func startGame(_ game: Game, playTime: TimeInterval = 0, dungeonRun: DungeonRunSaveData? = nil) {
         let session = GameSession(game: game, playTime: playTime)
         gameSession = session
         dayStateViewModel = GameDayStateViewModel(session: session)
+
+        // Resume an in-progress dungeon run, if the save had one. Restore the
+        // mutable run state, then discard it if it no longer resolves (e.g. the
+        // dungeon/room was removed from the catalog) — the player just resumes
+        // on the Game Day screen instead.
+        if let dungeonRun {
+            let dungeonSession = session.startDungeonSession(
+                dungeonId: dungeonRun.dungeonId,
+                allyIds: dungeonRun.allyIds
+            )
+            dungeonSession.restore(from: dungeonRun)
+            if !dungeonSession.isResumeStateValid() {
+                session.endDungeonSession()
+            }
+        }
+    }
+
+    /// Route to push on top of `.gameSession` when resuming a saved game, or nil.
+    /// Currently only resumes into an active, valid dungeon run. Keeps the
+    /// "when + which route to resume" decision out of the menu view.
+    public var resumeRoute: AppRoute? {
+        guard let dungeon = gameSession?.dungeonSession, dungeon.isInRun else { return nil }
+        return .dungeon(dungeonId: dungeon.dungeonId, allyIds: dungeon.allyIds)
     }
 
     /// Ends the active game session and releases the session.

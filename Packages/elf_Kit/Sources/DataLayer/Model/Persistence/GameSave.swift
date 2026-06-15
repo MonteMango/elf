@@ -33,15 +33,21 @@ struct GameSave: Codable, Sendable {
     /// The actual game data
     public let data: GameSaveData
 
+    /// Snapshot of an in-progress dungeon run to resume, or nil if the player
+    /// was not in a dungeon when the save was written. Optional so older saves
+    /// (and out-of-dungeon saves) decode with `nil`.
+    public let dungeonRun: DungeonRunSaveData?
+
     // MARK: - Initialization
 
     /// Create a new GameSave from a Game object
-    init(from game: Game, playTime: TimeInterval, appVersion: String) {
+    init(from game: Game, dungeonRun: DungeonRunSaveData?, playTime: TimeInterval, appVersion: String) {
         self.version = Self.currentVersion
         self.savedAt = Date()
         self.appVersion = appVersion
         self.playTime = playTime
         self.data = GameSaveData(from: game)
+        self.dungeonRun = dungeonRun
     }
 
     // MARK: - Conversion

@@ -108,6 +108,8 @@ struct BattleResultScreen: View {
                 // being rebuilt against a released session.
                 router.popToGameDay()
                 coordinator.gameSession?.endDungeonSession()
+                // Persist the cleared run (dungeonSession now nil → no run).
+                coordinator.gameSession?.saveInBackground()
             } else {
                 router.pop()
             }

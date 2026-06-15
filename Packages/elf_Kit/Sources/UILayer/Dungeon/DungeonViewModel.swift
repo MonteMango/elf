@@ -32,6 +32,10 @@ public final class DungeonViewModel {
 
     private let session: DungeonSession
 
+    /// Owning game session — used to persist the run after each step
+    /// (`GameSession.save()` includes the dungeon snapshot).
+    private let gameSession: GameSession
+
     @ObservationIgnored
     @Dependency(\.snapshotBuilder) private var snapshotBuilder
 
@@ -86,8 +90,16 @@ public final class DungeonViewModel {
 
     // MARK: - Initialization
 
-    public init(session: DungeonSession) {
+    public init(session: DungeonSession, gameSession: GameSession) {
         self.session = session
+        self.gameSession = gameSession
+    }
+
+    /// Persists the run after a step. Fire-and-forget so the UI isn't blocked on
+    /// disk I/O; `GameSession.save()` snapshots the dungeon run via
+    /// `dungeonSession?.makeSaveData()`.
+    private func persist() {
+        gameSession.saveInBackground()
     }
 
     // MARK: - Actions
@@ -103,6 +115,7 @@ public final class DungeonViewModel {
         try? await Task.sleep(for: .seconds(2))
         session.beginRun()   // swap Overview content to the room behind the overlay
         transition = nil      // overlay fades → room + Fight button revealed
+        persist()             // checkpoint: squad entered the dungeon
     }
 
     /// Builds the current room's `Battle`: the living squad (carrying their
@@ -162,6 +175,7 @@ public final class DungeonViewModel {
         try? await Task.sleep(for: .seconds(2))
         session.moveSquadToNextRoom()
         transition = nil
+        persist()             // checkpoint: moved into the next room
     }
 
     /// Event-room action (e.g. healing-spring "Drink"): shows the transition
@@ -178,6 +192,7 @@ public final class DungeonViewModel {
         try? await Task.sleep(for: .seconds(2))
         session.apply(specialEventResolver.resolve(event))
         transition = nil
+        persist()             // checkpoint: room event resolved (room cleared)
     }
 
     /// Overlay copy shown while a room event resolves.

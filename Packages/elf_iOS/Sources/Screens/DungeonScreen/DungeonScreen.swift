@@ -31,7 +31,7 @@ struct DungeonScreen: View {
     init(gameSession: GameSession, dungeonSession: DungeonSession) {
         self.gameSession = gameSession
         self.dungeonSession = dungeonSession
-        self._viewModel = State(initialValue: DungeonViewModel(session: dungeonSession))
+        self._viewModel = State(initialValue: DungeonViewModel(session: dungeonSession, gameSession: gameSession))
     }
 
     var body: some View {
@@ -90,6 +90,8 @@ struct DungeonScreen: View {
             // the session avoids rebuilding this screen against a missing session.
             router.popToGameDay()
             gameSession.endDungeonSession()
+            // Persist the cleared run state (dungeonSession is now nil → no run).
+            gameSession.saveInBackground()
         case .drink:
             Task { await viewModel.resolveRoomEvent() }
         case .none:

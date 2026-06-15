@@ -11,7 +11,7 @@ import Foundation
 /// `DungeonSession` — `ElfInfo` carries no runtime HP/MP, so these reserves are
 /// scoped to the run and discarded when it ends. Endurance is a per-battle
 /// resource and is not tracked here (each fight starts with a full EP pool).
-public struct DungeonElfVitals: Equatable, Sendable {
+public struct DungeonElfVitals: Codable, Equatable, Sendable {
     public var hp: Int
     public var mp: Int
 

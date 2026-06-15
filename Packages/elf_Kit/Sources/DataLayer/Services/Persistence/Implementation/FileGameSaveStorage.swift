@@ -94,7 +94,7 @@ public actor FileGameSaveStorage: GameSaveStorage {
     // swap JSONEncoder/JSONDecoder here, keep every SaveData type unchanged. Only do this if
     // profiling shows encode/decode or write time hurts UX — not sooner.
 
-    public func save(_ game: Game, slotId: String, playTime: TimeInterval) async throws {
+    public func save(_ game: Game, dungeonRun: DungeonRunSaveData?, slotId: String, playTime: TimeInterval) async throws {
         debugLog("💾 [GameSaveStorage] ========== SAVE START ==========")
         debugLog("💾 [GameSaveStorage] Slot ID: \(slotId)")
         debugLog("💾 [GameSaveStorage] Game ID: \(game.id)")
@@ -104,7 +104,7 @@ public actor FileGameSaveStorage: GameSaveStorage {
         debugLog("💾 [GameSaveStorage] Play time: \(playTime)s")
 
         // Create GameSave DTO
-        let gameSave = GameSave(from: game, playTime: playTime, appVersion: appVersion)
+        let gameSave = GameSave(from: game, dungeonRun: dungeonRun, playTime: playTime, appVersion: appVersion)
 
         // Encode to JSON
         let data: Data
@@ -156,7 +156,7 @@ public actor FileGameSaveStorage: GameSaveStorage {
         debugLog("💾 [GameSaveStorage] ========== SAVE COMPLETE ==========")
     }
 
-    public func load(slotId: String) async throws -> Game {
+    public func load(slotId: String) async throws -> LoadedSave {
         debugLog("📂 [GameSaveStorage] ========== LOAD START ==========")
         debugLog("📂 [GameSaveStorage] Slot ID: \(slotId)")
 
@@ -190,7 +190,8 @@ public actor FileGameSaveStorage: GameSaveStorage {
                 // Step 3: Check version and migrate if needed
                 if gameSave.version < GameSave.currentVersion {
                     debugLog("📂 [GameSaveStorage] Migration needed from v\(gameSave.version) to v\(GameSave.currentVersion)")
-                    return try await migrate(data: data, fromVersion: gameSave.version)
+                    let migrated = try await migrate(data: data, fromVersion: gameSave.version)
+                    return LoadedSave(game: migrated, dungeonRun: gameSave.dungeonRun)
                 }
 
                 // Step 4: Convert to Game
@@ -203,7 +204,7 @@ public actor FileGameSaveStorage: GameSaveStorage {
                 debugLog("📂 [GameSaveStorage] - Houses: \(game.houses.count)")
                 debugLog("📂 [GameSaveStorage] - Player house: \(game.playerHouse.name)")
                 debugLog("✅ [GameSaveStorage] ========== LOAD COMPLETE ==========")
-                return game
+                return LoadedSave(game: game, dungeonRun: gameSave.dungeonRun)
             } catch let error as GameSaveError {
                 debugLog("❌ [GameSaveStorage] GameSaveError: \(error.errorDescription ?? "unknown")")
                 // If main file failed, try backup

@@ -28,8 +28,8 @@ private enum GameRepositoryKey: DependencyKey {
 /// snapshot-in-init types that resolve `gameRepository` even in code paths that
 /// never persist.
 private struct NoOpGameSaveStorage: GameSaveStorage {
-    func save(_ game: Game, slotId: String, playTime: TimeInterval) async throws {}
-    func load(slotId: String) async throws -> Game {
+    func save(_ game: Game, dungeonRun: DungeonRunSaveData?, slotId: String, playTime: TimeInterval) async throws {}
+    func load(slotId: String) async throws -> LoadedSave {
         throw CocoaError(.fileReadNoSuchFile)
     }
     func hasAnySave() -> Bool { false }

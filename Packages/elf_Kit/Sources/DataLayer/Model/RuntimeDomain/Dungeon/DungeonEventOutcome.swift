@@ -7,14 +7,6 @@
 
 import Foundation
 
-/// How much of a squad member's reserves an event restores. A closed set so new
-/// magnitudes are explicit; `nil` outcome means "no restore". Extend with e.g.
-/// `case fraction(Double)` when an event needs partial healing.
-public enum VitalsRestore: Sendable, Equatable {
-    /// Restore HP/MP to full (living members only — no revive).
-    case full
-}
-
 /// Declarative result of resolving a `SpecialEvent`: *what* should change in the
 /// run. Produced by `SpecialEventResolver` (pure policy) and applied by
 /// `DungeonSession` (the single writer of run state). Keeping this a small value
