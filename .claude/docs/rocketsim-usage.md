@@ -4,23 +4,27 @@ This project runs **landscape-only**. RocketSim's accessibility tree reports ele
 
 ## The transformation
 
-The simulator's physical orientation is portrait. The app is rotated to landscape-right (home indicator on the right side of the visible screen, status bar on the left). To convert a landscape-space point `(lx, ly)` to a portrait-space tap point `(px, py)`:
+The simulator's physical orientation is portrait; the app is rotated to landscape. To convert a landscape-space point `(lx, ly)` from the accessibility tree to a portrait-space tap point `(px, py)`:
 
 ```
-px = portrait_width  - ly
-py = lx
+px = ly
+py = portrait_height - lx
 ```
 
 For iPhone 17 / iPhone 17 Pro (logical portrait size **402 × 874** points):
 
 ```
-px = 402 - ly
-py = lx
+px = ly
+py = 874 - lx
 ```
+
+> **Coordinate space:** `rocketsim interact tap <px> <py>` expects **logical points** (the 402 × 874 portrait space), *not* screenshot pixels. The screenshot is 1206 × 2622 px (3× scale); passing pixel values silently misses (e.g. an x of 600 is off the 402-pt-wide screen). Divide pixels by the scale, or just use the AX→point formula above.
+
+> **History:** an earlier version of this doc had `px = 402 - ly, py = lx`. That is **wrong** for this build — it mirrors both axes. The formula above (`px = ly, py = 874 - lx`) was verified empirically by driving a full dungeon run (menu → game day → dungeon → 4 rooms → finish): every tap landed only with this mapping.
 
 ### Example
 
-`rocketsim elements --agent` reports the Close button at landscape `(790, 32)`:
+`rocketsim elements --agent-mode debug` reports the Close button centered at landscape `(790, 32)`:
 
 ```bash
 # ❌ Does not work (success: true but no UI reaction)
@@ -28,15 +32,24 @@ rocketsim interact tap 790 32
 rocketsim interact tap --label "Close"
 
 # ✅ Works
-rocketsim interact tap 370 790    # 402-32=370, 790
+rocketsim interact tap 32 84    # px=ly=32, py=874-790=84
 ```
 
 ## Practical workflow
 
 1. `rocketsim simulator focused` — confirm device.
-2. `rocketsim elements --agent` — list elements; remember `cx`/`cy` are landscape coords.
-3. Convert to portrait coords with the formula above before calling `rocketsim interact tap <px> <py>`.
+2. `rocketsim elements --agent-mode debug` — get each element's `frame`
+   (`[[x, y], [w, h]]` in landscape space). The compact `--agent` nav/act modes
+   return only `id|role|label` rows **without** coordinates — use `debug` (or
+   `elements` without `--agent`) when you need a frame to tap.
+3. Take the element's center `(lx, ly)` = `(x + w/2, y + h/2)`, convert with the
+   formula above, then call `rocketsim interact tap <px> <py>`.
 4. Re-fetch elements after each interaction to confirm the screen changed.
+
+> **Resolving the CLI:** an agent shell may not have `rocketsim` on `PATH`. Try
+> `command -v rocketsim` first; otherwise use the bundled helper
+> `/Applications/RocketSim.app/Contents/Helpers/rocketsim` (substitute it
+> everywhere an example below starts with `rocketsim`).
 
 ## What does *not* need transformation
 
@@ -50,4 +63,4 @@ Selector-based interaction (`--label`, `--type`, `--value`) inside the elf app: 
 
 ## If the device size changes
 
-If the active simulator is no longer iPhone 17 / 17 Pro, update `portrait_width` in the formula. Read the running device with `rocketsim simulator focused` and look up the device's logical portrait size.
+If the active simulator is no longer iPhone 17 / 17 Pro, update `portrait_height` in the formula (the `874` constant). Read the running device with `rocketsim simulator focused` and look up the device's logical portrait size; `portrait_height` is the larger (long-edge) point dimension.
