@@ -73,6 +73,7 @@ While the project is in active early development, **save-format migrations are N
 | Attributes, fight styles, Endurance/EP system | `attributes.md` — single source of truth |
 | Driving the iOS Simulator with RocketSim | `rocketsim-usage.md` — landscape→portrait coord transform |
 | Generating game art via Leonardo AI (portraits, backgrounds, icons) | `leonardo-ai-prompts.md` — prompt structure, Anime XL specifics, project seed, working examples |
+| Swift concurrency / language design rationale (best practices, Swift 6 migration) | `wwdc26/wwdc26-swift-group-lab.md` — WWDC26 Swift Group Lab Q&A, takeaways |
 
 **Quick reference:**
 - All docs: `.claude/docs/`
