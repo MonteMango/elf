@@ -40,6 +40,17 @@ final class DefaultBattleResultCalculatorTests: XCTestCase {
     final class MockProgressionService: ProgressionService, @unchecked Sendable {
         func calculateLevel(currentExp: Int) -> Int { currentExp / 100 }
         func expToNextLevel(currentExp: Int) -> Int { 100 }
+        func experienceTransition(previousExp: Int, gained: Int) -> ExperienceTransition {
+            let newExp = previousExp + gained
+            return ExperienceTransition(
+                previousLevel: calculateLevel(currentExp: previousExp),
+                previousExp: previousExp,
+                previousExpToNext: expToNextLevel(currentExp: previousExp),
+                newLevel: calculateLevel(currentExp: newExp),
+                newExp: newExp,
+                newExpToNext: expToNextLevel(currentExp: newExp)
+            )
+        }
         func expProgress(currentExp: Int) -> Double { 0 }
         func farmingLevel(exp: Int) -> Int { 0 }
         func farmingProgress(exp: Int) -> Double { 0 }

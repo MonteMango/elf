@@ -18,6 +18,15 @@ Saves/
 
 ## Architecture
 
+> **Naming note (current code):** the facade is **`GameSession`** (not
+> `GameService`) and the storage protocol is **`GameSaveStorage`** with
+> **`FileGameSaveStorage`** as the file implementation (not `GameRepository`/
+> `FileGameRepository`). Older diagrams/examples below still use the legacy
+> names — read them as `GameSession` / `GameSaveStorage`. Persistence is driven
+> through `GameSession.save()` (async) and `GameSession.saveInBackground()`
+> (fire-and-forget); `GameSaveStorage.load(slotId:)` returns a **`LoadedSave`**
+> `{ game, dungeonRun? }`.
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                     UI Layer                            │
@@ -131,15 +140,19 @@ GameSave (DTO wrapper)
 ├── savedAt: Date
 ├── appVersion: String
 ├── playTime: TimeInterval
-└── data: GameSaveData
-    ├── gameId: UUID
-    ├── houses: [HouseSaveData]
-    │   └── members: [ElfSaveData]
-    │       ├── attributes, equipment slots
-    │       └── inventory: InventorySaveData
-    ├── gameState: GameStateSaveData
-    ├── playerHouseIndex: Int
-    └── playerMemberIndex: Int
+├── data: GameSaveData
+│   ├── gameId: UUID
+│   ├── houses: [HouseSaveData]
+│   │   └── members: [ElfSaveData]
+│   │       ├── attributes, equipment slots
+│   │       └── inventory: InventorySaveData
+│   ├── gameState: GameStateSaveData
+│   ├── playerHouseIndex: Int
+│   └── playerMemberIndex: Int
+└── dungeonRun: DungeonRunSaveData?   (in-progress run; nil if not in a dungeon)
+    ├── dungeonId, allyIds, elfLocations, roomVitals, clearedRoomIds
+    └── pendingRewards: DungeonRunRewardsSaveData   (banked XP/drops, id-refs)
+        └── experience, materials, weapons[WeaponSaveData], armor[DefenseSaveData]
 
 SaveSlotInfo (metadata for quick access)
 ├── slotId, savedAt, playTime
@@ -255,14 +268,81 @@ This error means:
 
 ---
 
+## Dungeon Run Save & Restore
+
+An in-progress dungeon run is persisted **alongside** the game so quitting
+mid-dungeon and tapping **Continue** resumes in the same room with the same
+squad state. `Game` stays pure — the run is a sibling field on the save.
+
+**Save shape**
+- `DungeonRunSaveData` (`Model/Persistence`, Codable, ID-reference): `dungeonId`,
+  `allyIds`, `elfLocations: [ElfID: DungeonRoomID]`, `roomVitals: [ElfID: DungeonElfVitals]`,
+  `clearedRoomIds: [DungeonRoomID]` (sorted for deterministic output),
+  `pendingRewards: DungeonRunRewardsSaveData` (the run's banked XP/drops). No catalog
+  payload — dungeon/rooms/elves/items resolve from repositories on load.
+- `DungeonRunRewardsSaveData` (`Model/Persistence`, Codable, ID-reference): the
+  on-disk form of the runtime `DungeonRunRewards` ledger — `experience`,
+  `materials`, `weapons: [WeaponSaveData]`, `armor: [DefenseSaveData]`. The live
+  ledger holds **resolved** `ElfWeaponItem`/`ElfDefenseItem`; `init(from:)` snapshots
+  to ids and `toRewards(using: ItemsRepository)` resolves back on restore.
+- `GameSave.dungeonRun: DungeonRunSaveData?` — optional, so out-of-dungeon and
+  older saves decode `nil`.
+- `LoadedSave { game: Game, dungeonRun: DungeonRunSaveData? }` — the load result.
+
+**Save** — `GameSession.save()` passes `dungeonSession?.resumableSaveData()`,
+which returns the snapshot **only when the run is resumable** (`isInRun &&
+!heroIsDowned`). A briefing (not yet entered) or a downed-hero run persists
+`nil`, so a background save in those states can't resume into a broken/over run.
+
+**Run end** — the reward ledger is flushed into the player and the session
+released, so the next save writes `dungeonRun = nil` (a finished run is never
+resumed). Three intent-named exits:
+- **Finish** (`DungeonScreen`) → `GameSession.finishDungeonRun()` — flush banked
+  XP/drops into the player, then release.
+- **Hero death** (`BattleFightRouteView` at conclusion) → `bankDungeonRewardsOnDeath()`
+  flushes the ledger into the always-saved player state *before* any downed-state
+  save erases it; the result screen's `finishDungeonRun()` then just releases
+  (ledger already empty — idempotent).
+- **Invalid resume discard** (`AppCoordinator`, dungeon/room no longer resolves) →
+  `discardDungeonRun()` — release **without** flushing (the run never legitimately
+  ran). The "discard" name is deliberate so throwing away rewards is explicit.
+
+**Restore** — on Continue, `AppCoordinator.startGame(game, playTime:, dungeonRun:)`
+recreates the `DungeonSession` (`startDungeonSession` + `restore(from:)`) and
+**discards it** (→ Game Day) if `isResumeStateValid()` is false (dungeon, hero
+room, or a cleared room no longer resolves). `MainMenuScreen` then pushes
+`.gameSession` and, if `coordinator.resumeRoute != nil`, `.dungeon(...)` —
+landing the player in the room. `AppRoute` stays **non-Codable**: the resume
+pointer is simply `dungeonRun != nil`, and the stack is rebuilt programmatically
+(no `NavigationPath` serialization).
+
+**Catalog drift on the rewards ledger (known limitation).** Banked weapon/armor
+drops persist as id-references, so the *same instance* the room overlay showed is
+the one the player receives — guaranteed **within a session** (the live ledger
+holds resolved items; flush hands them over directly). The only gap is a *resumed*
+run whose catalog changed between save and resume: `DungeonRunRewardsSaveData.toRewards`
+drops an item whose `itemId` no longer resolves (logged in DEBUG). This is the
+**same behavior as every `*SaveData.toRuntimeType(using:)` in the project** (id-refs
+can't outlive a deleted catalog id) and is out of scope under the early-dev save
+policy (saves needn't survive across builds). If/when save-versioning lands, this
+is solved globally by a catalog-migration strategy — not per-feature here.
+
 ## Auto-save Triggers
 
 | Trigger | Location | When |
 |---------|----------|------|
-| Day change | `GameDayViewModel.advanceToNextDay()` | After spending all AP |
-| App background | `ElfApp.onChange(scenePhase)` | When app goes to background/inactive |
-| After battle | `DefaultBattleResultCalculator` | After battle results calculated |
+| Day change | `GameDayStateViewModel` / `GameSession.advanceToNextDay()` | After the world turn + day advance |
+| App background | `AppCoordinator.saveIfNeeded()` (scenePhase) | App goes to background/inactive |
+| After hunt battle | `GameSession.concludeHuntBattle()` → `saveInBackground()` | XP/drops applied, then background save |
+| Dungeon step | `DungeonViewModel.persist()` / `BattleFightRouteView` / Finish / death → `GameSession.saveInBackground()` | Enter room, room cleared, room transition, run end |
 | New game | `ElfGameInitializationService` | After creating new game |
+
+`GameSession.saveInBackground()` is the single fire-and-forget save home; all
+battle/dungeon checkpoints route through it. It **coalesces**: at most one save
+runs at a time (`saveInFlight`/`saveAgain`), and requests arriving mid-save
+collapse into a single follow-up pass that captures the latest state — so rapid
+checkpoints can't pile up independent Tasks contending on the storage actor, and
+the newest snapshot always wins.
 
 ---
 
@@ -319,16 +399,19 @@ private func migrate(data: Data, fromVersion: Int) throws -> Game {
 
 | File | Purpose |
 |------|---------|
-| `Services/Persistence/GameRepository.swift` | Repository protocol |
-| `Services/Persistence/Implementation/FileGameRepository.swift` | JSON implementation |
-| `Services/Game/GameService.swift` | Game session protocol |
-| `Services/Game/Implementation/DefaultGameService.swift` | Session management |
-| `Model/Persistence/GameSave.swift` | DTO wrapper with version |
+| `Services/Persistence/GameSaveStorage.swift` | Storage protocol (+ `loadDefault`, no-dungeon `save` overload) |
+| `Services/Persistence/Implementation/FileGameSaveStorage.swift` | JSON file implementation (atomic + backup) |
+| `Sessions/GameSession.swift` | Session facade: `save()`, coalesced `saveInBackground()`, `concludeHuntBattle()`, `finishDungeonRun()` / `bankDungeonRewardsOnDeath()` / `discardDungeonRun()` |
+| `Sessions/DungeonSession.swift` | `makeSaveData()` / `resumableSaveData()` / `restore(from:)` / `isResumeStateValid()` / reward ledger `pendingRewards` |
+| `Model/Persistence/GameSave.swift` | DTO wrapper with version (+ `dungeonRun`) |
 | `Model/Persistence/GameSaveData.swift` | Main game data |
+| `Model/Persistence/DungeonRunSaveData.swift` | In-progress dungeon run snapshot (+ `pendingRewards`) |
+| `Model/Persistence/DungeonRunRewardsSaveData.swift` | On-disk reward ledger (id-refs) ↔ runtime `DungeonRunRewards` |
+| `Model/Persistence/LoadedSave.swift` | Load result `{ game, dungeonRun? }` |
 | `Model/Persistence/ElfSaveData.swift` | Character save data |
 | `Model/Persistence/GameSaveError.swift` | Error types |
-| `UILayer/Menu/MainMenuViewModel.swift` | Load trigger |
-| `UILayer/GameDay/GameDayViewModel.swift` | Save trigger |
+| `Coordinator/AppCoordinator.swift` | `startGame(dungeonRun:)` restore + `resumeRoute` |
+| `UILayer/Menu/MainMenuViewModel.swift` | Load trigger (exposes `loadedDungeonRun`) |
 
 ---
 

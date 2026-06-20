@@ -31,17 +31,23 @@ public struct DungeonRunSaveData: Codable, Sendable, Equatable {
     /// Rooms the squad has cleared.
     public let clearedRoomIds: [DungeonRoomID]
 
+    /// Rewards accrued so far this run (XP + drops), flushed to the game on exit.
+    /// Id-reference DTO of the runtime `DungeonRunRewards` ledger.
+    public let pendingRewards: DungeonRunRewardsSaveData
+
     public init(
         dungeonId: DungeonID,
         allyIds: [ElfID],
         elfLocations: [ElfID: DungeonRoomID],
         roomVitals: [ElfID: DungeonElfVitals],
-        clearedRoomIds: [DungeonRoomID]
+        clearedRoomIds: [DungeonRoomID],
+        pendingRewards: DungeonRunRewardsSaveData
     ) {
         self.dungeonId = dungeonId
         self.allyIds = allyIds
         self.elfLocations = elfLocations
         self.roomVitals = roomVitals
         self.clearedRoomIds = clearedRoomIds
+        self.pendingRewards = pendingRewards
     }
 }

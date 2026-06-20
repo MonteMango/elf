@@ -60,4 +60,28 @@ public struct ManualBattleResult: Sendable, Equatable {
         self.newExp = newExp
         self.newExpToNext = newExpToNext
     }
+
+    /// Convenience initializer that fills the XP-bar fields from an
+    /// `ExperienceTransition` (built by `ProgressionService`). Keeps the
+    /// before→after level/exp math in one place instead of at each call site.
+    public init(
+        outcome: BattleOutcome,
+        experienceGained: Int,
+        drops: [DropItem],
+        huntRewards: HuntRewards? = nil,
+        transition: ExperienceTransition
+    ) {
+        self.init(
+            outcome: outcome,
+            experienceGained: experienceGained,
+            drops: drops,
+            huntRewards: huntRewards,
+            previousLevel: transition.previousLevel,
+            previousExp: transition.previousExp,
+            previousExpToNext: transition.previousExpToNext,
+            newLevel: transition.newLevel,
+            newExp: transition.newExp,
+            newExpToNext: transition.newExpToNext
+        )
+    }
 }

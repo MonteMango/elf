@@ -34,6 +34,16 @@ public protocol ProgressionService: Sendable {
     /// - Returns: Total XP needed for next level, or 0 if at max level (12)
     func expToNextLevel(currentExp: Int) -> Int
 
+    /// Builds the before→after level/exp bracket for gaining `gained` XP on top of
+    /// `previousExp`. Single source of truth for the result-overlay XP bar, shared
+    /// by every flow (hunt, dungeon) so the bracket math never drifts between them.
+    ///
+    /// - Parameters:
+    ///   - previousExp: Total experience before the gain.
+    ///   - gained: Experience gained (0 is valid — produces a no-op transition).
+    /// - Returns: Paired previous/new level, exp, and exp-to-next values.
+    func experienceTransition(previousExp: Int, gained: Int) -> ExperienceTransition
+
     /// Calculates progress within current level as a percentage
     ///
     /// - Parameter currentExp: Total accumulated experience

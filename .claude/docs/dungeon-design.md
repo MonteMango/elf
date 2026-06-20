@@ -8,7 +8,31 @@
 
 **Подземелье (Dungeon)** — структурированное многокомнатное приключение, доступное только в **Dungeon Day** (см. `game-design.md` → *Day Types*). Игрок входит в подземелье отрядом из **5 эльфов** (главный герой + 4 случайных эльфа из дома), проходит граф комнат, сражается с монстрами и финальным боссом.
 
-Подземелья — **статический контент**: их структура, монстры в комнатах и параметры специальных событий описаны в `Resources/Dungeons.json`. Состояние конкретного прохождения (живы/мертвы, текущий HP, какая комната пройдена) живёт в save-данных и ссылается на статический контент по `UUID` (см. `persistence-patterns.md` → *ID-Reference Pattern*).
+Подземелья — **статический контент**: их структура, монстры в комнатах и параметры специальных событий описаны в `Resources/Dungeons.json`. Состояние конкретного прохождения (текущий HP/MP, в какой комнате отряд, какие комнаты зачищены) живёт в save-данных и ссылается на статический контент по `UUID` (см. `persistence-patterns.md` → *ID-Reference Pattern* и *Dungeon Run Save & Restore*).
+
+---
+
+## Фактическая реализация (onePath, Phase 1–2)
+
+> Этот раздел описывает то, что **реально построено** для `onePath`, и заменяет
+> ранний «набросок» ниже (`DungeonRunState`/`DungeonGroup`/`DungeonRunService`/
+> `BotBattleSimulator` + отдельные `DungeonOverviewScreen`/`DungeonRoomScreen`).
+> `splitPath`/`randomPath` и параллельные бои — пока не реализованы.
+
+**Состояние похода — `DungeonSession`** (`@MainActor @Observable`, ребёнок `GameSession`). Держит `dungeonId`, `allyIds` (стабильные входы) + run-состояние: `elfLocations`, `roomVitals` (`DungeonElfVitals` — текущие HP/MP), `clearedRoomIds`. Единственный писатель run-состояния. На `ElfInfo` рантайм-HP/MP нет — они живут только здесь на время похода.
+
+**Один экран — `DungeonScreen`** с тремя вкладками (Overview/Squad/Map) и нижней action-кнопкой. Два режима в одном экране: **брифинг** (`isInRun == false`, кнопка `Entrance`) → после входа **режим комнаты** (`isInRun == true`, кнопка `Fight`/`Drink`/`Next`/`Finish`). Логика — в `DungeonViewModel`; existence-guard сессии — в `DungeonRouteView` (см. `project-architecture.md`).
+
+**Завершение боя (Phase 1).** Бой запускается маршрутом `.battleFight`, а пост-боевую логику решает лончер (`BattleFightRouteView`), а не `BattleFightViewModel`:
+- Дунжен-бой → `DungeonSession.concludeRoomBattle(outcome:finalLeftTeam:)` — переносит финальные HP/MP в `roomVitals` и помечает комнату cleared, если герой жив.
+- Hunt-бой → `GameSession.concludeHuntBattle(...)` (XP/дроп игроку + сейв).
+- dev-бой (нет сессии) → без наград, экран авто-закрывается.
+
+**Кнопка комнаты:** `Fight` (combat/miniBoss/boss, не cleared) → бой; после победы комната cleared → `Next` (есть следующая) или `Finish` (последняя). `Drink` — для `event`-комнаты (`resolveRoomEvent` → `SpecialEventResolver` → `DungeonEventOutcome` → `DungeonSession.apply`). На переходе (`Next`) — +25% HP/MP живым.
+
+**Награды подземелья (модель; flush — Phase 3, ещё не реализован).** Дунжен-бой **сейчас наград не начисляет** (модалка outcome-only, 0 XP). По плану: XP/дроп **копятся в леджере на `DungeonSession`** по ходу похода, показываются per-battle в модалке, и **начисляются в `GameSession` при выходе** — и на `Finish`, и на **смерти героя** (накопленное не теряется). Это устранило прежний баг, когда дунжен-бой воровал Hunt-награды и сохранял игру посреди похода.
+
+**Сохранение и продолжение (Phase 2).** Поход сохраняется после каждого шага (вход / комната cleared / переход / выход) и восстанавливается на «Continue» — игрок продолжает с той же комнаты. Детали — `persistence-patterns.md` → *Dungeon Run Save & Restore*. Кратко: персистится только **продолжаемый** run (`isInRun && !heroIsDowned`); на выходе `dungeonRun` обнуляется; на старте `AppCoordinator` восстанавливает run и **отбрасывает его → GameDay**, если каталог не резолвится.
 
 ---
 
@@ -122,6 +146,14 @@ HP и MP **сохраняются** между комнатами (только 
 
 ## Дроп и опыт
 
+> **Реализованная модель (тайминг):** награды не начисляются по ходу боёв —
+> они **копятся в леджере на `DungeonSession`** и применяются к `GameSession`
+> **при выходе** (и `Finish`, и смерть героя — накопленное не теряется). Это
+> сохраняет принцип «лут с выигранных комнат остаётся даже при гибели героя»,
+> но переносит фактическое начисление на момент выхода (а не per-battle).
+> Накопление/flush — **Phase 3** (пока дунжен-бой даёт 0 XP / без дропа).
+> Подробности — раздел *Фактическая реализация* выше.
+
 ### Дроп
 
 - **Только с монстров.** Используется существующая система `MonsterDrops` (`weapons` / `armor` / `materials`) и `DropService`.
@@ -180,7 +212,7 @@ HP и MP **сохраняются** между комнатами (только 
         "stage": 2,
         "kind": {
           "type": "event",
-          "event": { "type": "healingSpring", "healPercent": 50 }
+          "event": { "type": "healingSpring" }
         },
         "nextRoomIds": ["UUID"]
       },
@@ -225,7 +257,7 @@ HP и MP **сохраняются** между комнатами (только 
 | Событие         | Параметры                            | Эффект |
 |-----------------|--------------------------------------|--------|
 | `chest`         | `lootTableId: UUID`                  | Открытие сундука с гарантированным луtom. |
-| `healingSpring` | `healPercent: Int`                   | Восстанавливает HP отряда. |
+| `healingSpring` | *(нет)*                              | **Реализовано:** полное восстановление HP/MP **живых** членов отряда (павших не воскрешает). Без payload — эффект всегда «full restore» (`VitalsRestore.full`). |
 | `oreVein`       | `oreId: UUID, attempts: Int`         | Мини-игра: добыча руды (ссылка на `Ores.json`). |
 | `fishingPond`   | `fishPoolId: UUID, attempts: Int`    | Мини-игра: рыбалка (ссылка на `Fish.json`). |
 | `shrine`        | `buff: BuffId`                       | Временный бафф на оставшиеся комнаты. |

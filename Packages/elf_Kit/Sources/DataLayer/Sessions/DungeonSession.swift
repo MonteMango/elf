@@ -13,8 +13,9 @@ import Foundation
 /// per-property from SwiftUI views.
 ///
 /// Lifecycle: created by `GameSession.startDungeonSession(...)` when the
-/// player taps Dungeon on a Dungeon Day, released by `endDungeonSession()`
-/// when they leave the briefing or finish the run. Stable inputs
+/// player taps Dungeon on a Dungeon Day, released by `finishDungeonRun()`
+/// (with reward flush) or `discardDungeonRun()` (no rewards) when they leave
+/// the run. Stable inputs
 /// (`dungeonId`, `allyIds`) are joined by the mutating run state: each elf's
 /// current room (`elfLocations`). Alive/dead members, defeated rooms, and
 /// collected drops land in later phases.
@@ -50,6 +51,11 @@ public final class DungeonSession {
     /// Rooms whose battle the squad has won. Drives the room-action button
     /// (`Fight` → `Next`/`Finish`) and the "Cleared" UI marker.
     public private(set) var clearedRoomIds: Set<DungeonRoomID> = []
+
+    /// XP + drops earned across the run, accrued per cleared room and flushed to
+    /// the game on exit (Finish *or* hero death). Held only in memory between
+    /// rooms; `makeSaveData()` persists it so a resumed run keeps its ledger.
+    public private(set) var pendingRewards: DungeonRunRewards = .empty
 
     // MARK: - Initialization
 
@@ -187,7 +193,8 @@ public final class DungeonSession {
             allyIds: allyIds,
             elfLocations: elfLocations,
             roomVitals: roomVitals,
-            clearedRoomIds: clearedRoomIds.sorted { $0.rawValue.uuidString < $1.rawValue.uuidString }
+            clearedRoomIds: clearedRoomIds.sorted { $0.rawValue.uuidString < $1.rawValue.uuidString },
+            pendingRewards: DungeonRunRewardsSaveData(from: pendingRewards)
         )
     }
 
@@ -221,6 +228,24 @@ public final class DungeonSession {
         elfLocations = data.elfLocations
         roomVitals = data.roomVitals
         clearedRoomIds = Set(data.clearedRoomIds)
+        pendingRewards = restoredRewards(from: data.pendingRewards)
+    }
+
+    /// Rebuilds the runtime ledger from its on-disk DTO, resolving weapon/armor
+    /// ids via the catalog. The `ItemsRepository` is resolved only when there are
+    /// weapon/armor drops to resolve — XP/material-only runs (and the tests that
+    /// drive them) stay dependency-free.
+    private func restoredRewards(from data: DungeonRunRewardsSaveData) -> DungeonRunRewards {
+        guard !data.weapons.isEmpty || !data.armor.isEmpty else {
+            return DungeonRunRewards(
+                experience: data.experience,
+                materials: data.materials,
+                weapons: [],
+                armor: []
+            )
+        }
+        @Dependency(\.itemsRepository) var itemsRepository
+        return data.toRewards(using: itemsRepository)
     }
 
     // MARK: - Run mutations (cont.)
@@ -240,31 +265,76 @@ public final class DungeonSession {
 extension DungeonSession {
 
     /// Concludes a room battle: folds the final squad state into the run (vitals
-    /// + room-clear on hero survival) and returns a result for the overlay.
+    /// + room-clear on hero survival), accrues the room's rewards into the run
+    /// ledger, and returns a result for the overlay.
     ///
-    /// Phase 1: no rewards are granted here — dungeon rewards are accrued during
-    /// the run and flushed to `GameSession` on exit (later phase), so the result
-    /// is outcome-only (0 XP, no drops). Saving is owned by the dungeon flow,
-    /// not by the battle layer.
+    /// Rewards are *not* applied to the game here — they accumulate on the run
+    /// and are flushed to `GameSession` on exit (Finish or hero death). The
+    /// overlay therefore shows the room's gain over a *cumulative* XP bar: it
+    /// animates from the player's real XP plus everything banked in earlier
+    /// rooms, to that same total plus this room's XP. Saving is owned by the
+    /// dungeon flow, not the battle layer.
     public func concludeRoomBattle(
         outcome: BattleOutcome,
         finalLeftTeam: [CombatantSnapshot]
     ) -> ManualBattleResult {
         // Resolved lazily (not in init) so constructing a DungeonSession doesn't
-        // eagerly pull this live-only dep — keeps existing tests/flows clean.
-        @Dependency(\.battleResultCalculator) var battleResultCalculator
+        // eagerly pull these live-only deps — keeps existing tests/flows clean.
+        @Dependency(\.dungeonRewardCalculator) var dungeonRewardCalculator
+        @Dependency(\.dropService) var dropService
+        @Dependency(\.progressionService) var progressionService
+
+        // Capture before applyBattleOutcome mutates clearedRoomIds, so we accrue
+        // a room's rewards exactly once (only on its first clear).
+        let roomBeforeClear = currentRoom
+        let wasAlreadyCleared = isCurrentRoomCleared
+        let bankedExpBefore = pendingRewards.experience
+
         applyBattleOutcome(finalLeftTeam: finalLeftTeam, outcome: outcome)
-        return battleResultCalculator.calculateResult(
+
+        // A room win earns its rewards whether or not the hero survived the final
+        // blow — if the squad cleared the enemies (`.victory`), the loot is owed.
+        // A downed hero still ends the run (from the result screen), but the
+        // rewards are banked and flushed on the way out. Roll once and reuse the
+        // same instances for ledger + overlay (the roll uses RNG, never twice).
+        var roomRewards: [HuntRewards] = []
+        if outcome == .victory, !wasAlreadyCleared, let room = roomBeforeClear {
+            roomRewards = dungeonRewardCalculator.roomRewards(monsters: room.kind.monsters)
+            for reward in roomRewards {
+                pendingRewards.accrue(reward)
+            }
+        }
+
+        // Cumulative XP bar: animate from the player's real XP plus everything
+        // banked in earlier rooms, up by this room's gain. The ledger isn't
+        // flushed to the player until the run ends, so the base is read live.
+        let previousExp = gameStore.player.currentExp + bankedExpBefore
+        let roomExperience = pendingRewards.experience - bankedExpBefore
+        let transition = progressionService.experienceTransition(
+            previousExp: previousExp,
+            gained: roomExperience
+        )
+
+        let drops = roomRewards.flatMap {
+            dropService.convertToDropItems(rewards: $0, didWin: outcome == .victory)
+        }
+
+        return ManualBattleResult(
             outcome: outcome,
-            monster: nil,
-            currentExp: gameStore.player.currentExp
+            experienceGained: roomExperience,
+            drops: drops,
+            // Drops are flushed from the run ledger on exit (not from this result),
+            // so leave huntRewards nil to avoid any double-application downstream.
+            huntRewards: nil,
+            transition: transition
         )
     }
 
     /// Folds a finished room battle back into the run: writes each elf's
-    /// end-of-battle HP/MP into `roomVitals`, and — if the hero survived —
-    /// marks the current room cleared. A downed hero leaves the room uncleared;
-    /// the run ends from the Game Day side. Called by `concludeRoomBattle`.
+    /// end-of-battle HP/MP into `roomVitals`, and — on a squad win (`.victory`) —
+    /// marks the current room cleared, even if the hero fell on the final blow
+    /// (the room is genuinely cleared; the run still ends from the Game Day side).
+    /// A defeat/draw leaves the room uncleared. Called by `concludeRoomBattle`.
     public func applyBattleOutcome(finalLeftTeam: [CombatantSnapshot], outcome: BattleOutcome) {
         for snapshot in finalLeftTeam {
             guard case .elf(let elfId) = snapshot.source else { continue }
@@ -273,8 +343,15 @@ extension DungeonSession {
                 mp: max(0, snapshot.currentMP)
             )
         }
-        if !heroIsDowned, let room = currentRoom {
+        if outcome == .victory, let room = currentRoom {
             clearedRoomIds.insert(room.id)
         }
+    }
+
+    /// Empties the run reward ledger after it has been flushed into the player.
+    /// Keeps the flush idempotent: a second flush (e.g. `finishDungeonRun` after a
+    /// death-time bank) then grants nothing.
+    public func clearPendingRewards() {
+        pendingRewards = .empty
     }
 }

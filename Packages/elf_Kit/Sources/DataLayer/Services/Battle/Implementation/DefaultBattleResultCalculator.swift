@@ -49,26 +49,17 @@ public final class DefaultBattleResultCalculator: BattleResultCalculator {
             }
         }
 
-        // XP state before battle
-        let previousLevel = progressionService.calculateLevel(currentExp: currentExp)
-        let previousExpToNext = progressionService.expToNextLevel(currentExp: currentExp)
-
-        // XP state after battle
-        let newExp = currentExp + experienceGained
-        let newLevel = progressionService.calculateLevel(currentExp: newExp)
-        let newExpToNext = progressionService.expToNextLevel(currentExp: newExp)
+        let transition = progressionService.experienceTransition(
+            previousExp: currentExp,
+            gained: experienceGained
+        )
 
         return ManualBattleResult(
             outcome: outcome,
             experienceGained: experienceGained,
             drops: drops,
             huntRewards: huntRewards,
-            previousLevel: previousLevel,
-            previousExp: currentExp,
-            previousExpToNext: previousExpToNext,
-            newLevel: newLevel,
-            newExp: newExp,
-            newExpToNext: newExpToNext
+            transition: transition
         )
     }
 }

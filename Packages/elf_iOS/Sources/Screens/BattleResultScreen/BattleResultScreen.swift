@@ -107,8 +107,11 @@ struct BattleResultScreen: View {
                 // the route before nil-ing the session keeps DungeonScreen from
                 // being rebuilt against a released session.
                 router.popToGameDay()
-                coordinator.gameSession?.endDungeonSession()
-                // Persist the cleared run (dungeonSession now nil → no run).
+                // Rewards were already banked into the player at the moment of
+                // death (BattleFightRouteView), so this flush is a no-op and just
+                // releases the session. Kept for symmetry with the Finish path.
+                coordinator.gameSession?.finishDungeonRun()
+                // Persist the now-flushed game state (dungeonSession now nil).
                 coordinator.gameSession?.saveInBackground()
             } else {
                 router.pop()

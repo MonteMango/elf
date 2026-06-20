@@ -53,7 +53,7 @@ public final class AppCoordinator {
             )
             dungeonSession.restore(from: dungeonRun)
             if !dungeonSession.isResumeStateValid() {
-                session.endDungeonSession()
+                session.discardDungeonRun()
             }
         }
     }

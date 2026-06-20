@@ -42,6 +42,18 @@ public final class ElfProgressionService: ProgressionService {
         return (level + 1) * characterExpPerLevel
     }
 
+    public func experienceTransition(previousExp: Int, gained: Int) -> ExperienceTransition {
+        let newExp = previousExp + gained
+        return ExperienceTransition(
+            previousLevel: calculateLevel(currentExp: previousExp),
+            previousExp: previousExp,
+            previousExpToNext: expToNextLevel(currentExp: previousExp),
+            newLevel: calculateLevel(currentExp: newExp),
+            newExp: newExp,
+            newExpToNext: expToNextLevel(currentExp: newExp)
+        )
+    }
+
     public func expProgress(currentExp: Int) -> Double {
         levelProgress(exp: currentExp, expPerLevel: characterExpPerLevel)
     }

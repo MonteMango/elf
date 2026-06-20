@@ -8,7 +8,7 @@
 import Foundation
 
 /// A material drop with its quantity
-public struct MaterialReward: Sendable, Equatable, Hashable {
+public struct MaterialReward: Sendable, Equatable, Hashable, Codable {
     public let id: MaterialID
     public let amount: Int
 

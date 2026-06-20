@@ -143,7 +143,7 @@ final class DungeonSession_BattleFlowTests: XCTestCase {
         XCTAssertTrue(session.isCurrentRoomCleared)
     }
 
-    func testApplyBattleOutcome_HeroDowned_DoesNotClearRoom() {
+    func testApplyBattleOutcome_Defeat_DoesNotClearRoom() {
         let (session, hero, ally) = makeSession()
         session.beginRun()
 
@@ -157,6 +157,25 @@ final class DungeonSession_BattleFlowTests: XCTestCase {
 
         XCTAssertTrue(session.heroIsDowned)
         XCTAssertFalse(session.isCurrentRoomCleared)
+    }
+
+    /// A squad win clears the room even when the hero fell on the final blow —
+    /// the room is genuinely cleared, so its rewards are owed (the run still ends
+    /// from the result screen because the hero is downed).
+    func testApplyBattleOutcome_VictoryWithHeroDowned_StillClearsRoom() {
+        let (session, hero, ally) = makeSession()
+        session.beginRun()
+
+        session.applyBattleOutcome(
+            finalLeftTeam: [
+                snapshot(elfId: hero.id, hp: 0, mp: 0),   // hero fell on the winning blow
+                snapshot(elfId: ally.id, hp: 12, mp: 0)   // ally survived → squad won
+            ],
+            outcome: .victory
+        )
+
+        XCTAssertTrue(session.heroIsDowned)
+        XCTAssertTrue(session.isCurrentRoomCleared)
     }
 
     func testApplyBattleOutcome_NegativeHPClampedToZero() {
@@ -275,7 +294,8 @@ final class DungeonSession_BattleFlowTests: XCTestCase {
             elfLocations: [hero.id: roomBId, ally.id: roomBId],
             roomVitals: [hero.id: DungeonElfVitals(hp: 50, mp: 10),
                          ally.id: DungeonElfVitals(hp: 0, mp: 0)],
-            clearedRoomIds: [roomAId]
+            clearedRoomIds: [roomAId],
+            pendingRewards: .empty
         )
 
         session.restore(from: data)

@@ -42,6 +42,18 @@ public final class GameSession {
 
     private let slotId: String
 
+    // MARK: - Save coalescing
+
+    /// The single in-flight background save, or `nil` when idle. Guarantees at
+    /// most one save Task runs at a time; concurrent requests collapse via
+    /// `saveAgain`. `@MainActor`-isolated (the enclosing class is `@MainActor`).
+    private var saveInFlight: Task<Void, Never>?
+
+    /// Set when a save is requested while one is already running. Triggers exactly
+    /// one more save pass after the current one finishes, capturing the latest
+    /// state so the newest snapshot always wins.
+    private var saveAgain = false
+
     // MARK: - Initialization
 
     public init(
@@ -151,10 +163,26 @@ public final class GameSession {
 
     /// Adds hunt rewards (drops) to the player's inventory.
     public func addDropsToPlayerInventory(rewards: HuntRewards) {
-        addDrops(
+        addDropsToPlayerInventory(
             materials: rewards.materials,
             weapons: rewards.weapon.map { [$0] } ?? [],
-            armor: rewards.armor.map { [$0] } ?? [],
+            armor: rewards.armor.map { [$0] } ?? []
+        )
+    }
+
+    /// Routes a batch of drops to the player's own inventory slot. The single home
+    /// for "where do the player's drops go" — both the hunt flow (via the
+    /// `HuntRewards` overload) and the dungeon flow (`flushRewards`) funnel here,
+    /// so the player-slot resolution lives in exactly one place.
+    public func addDropsToPlayerInventory(
+        materials: [MaterialReward],
+        weapons: [ElfWeaponItem],
+        armor: [ElfDefenseItem]
+    ) {
+        addDrops(
+            materials: materials,
+            weapons: weapons,
+            armor: armor,
             toElfAt: state.playerHouseIndex,
             memberIndex: state.playerMemberIndex
         )
@@ -410,7 +438,6 @@ public final class GameSession {
 
     // MARK: - Persistence
 
-    // TODO: [persistence/P0] Coalesce/debounce rapid save() calls.
     /// Saves the active game state. Snapshots the store on the main thread,
     /// then offloads disk I/O to the repository (background actor). Only a
     /// *resumable* dungeon run is persisted (in a room, hero alive) — a briefing
@@ -427,22 +454,33 @@ public final class GameSession {
         )
     }
 
-    /// Fire-and-forget persistence for checkpoints where the UI shouldn't block
-    /// on disk I/O (battle conclusion, dungeon step points). Errors are logged in
-    /// DEBUG.
+    /// Fire-and-forget persistence for checkpoints where the UI shouldn't wait on
+    /// disk I/O (battle conclusion, dungeon step points). Errors are logged in DEBUG.
     ///
-    /// TODO: [persistence/P0] Coalesce/debounce rapid calls — several checkpoints
-    /// in quick succession currently spawn independent save Tasks that contend on
-    /// the storage actor. A single home (here) is where that debounce should land.
+    /// Coalesced: at most one save runs at a time. Requests arriving while a save
+    /// is in flight collapse into a single follow-up pass that captures the latest
+    /// state — so rapid checkpoints can't pile up into independent Tasks contending
+    /// on the storage actor, and the newest snapshot always wins. The only
+    /// suspension point is `await save()`; every flag mutation is `@MainActor`-
+    /// isolated (the Task inherits that isolation), so there is no data race.
     public func saveInBackground() {
-        Task {
-            do {
-                try await save()
-            } catch {
-                #if DEBUG
-                print("[GameSession] Background save failed: \(error)")
-                #endif
-            }
+        guard saveInFlight == nil else {
+            saveAgain = true
+            return
+        }
+        saveInFlight = Task { [weak self] in
+            guard let self else { return }
+            repeat {
+                self.saveAgain = false
+                do {
+                    try await self.save()
+                } catch {
+                    #if DEBUG
+                    print("[GameSession] Background save failed: \(error)")
+                    #endif
+                }
+            } while self.saveAgain
+            self.saveInFlight = nil
         }
     }
 
@@ -459,7 +497,60 @@ public final class GameSession {
         return session
     }
 
-    public func endDungeonSession() {
+    /// Low-level teardown — the single place the dungeon session is released.
+    /// Callers pick the intent-named wrapper (`finishDungeonRun` /
+    /// `discardDungeonRun`) so the reward semantics are explicit at the call site.
+    private func releaseDungeonSession() {
         dungeonSession = nil
+    }
+
+    /// Flushes a run reward ledger into the player and empties it. Shared by the
+    /// run-end flush and the on-death bank; clearing keeps it idempotent so a
+    /// later flush of the same (now-empty) ledger grants nothing.
+    private func flushRewards(from dungeonSession: DungeonSession) {
+        // The ledger holds resolved drop instances, so flush hands them to the
+        // player directly — no repository round-trip (resolution already happened
+        // at accrue, and again at restore for a resumed run).
+        let rewards = dungeonSession.pendingRewards
+        if rewards.experience > 0 {
+            addPlayerExperience(rewards.experience)
+        }
+        if !rewards.materials.isEmpty || !rewards.weapons.isEmpty || !rewards.armor.isEmpty {
+            addDropsToPlayerInventory(
+                materials: rewards.materials,
+                weapons: rewards.weapons,
+                armor: rewards.armor
+            )
+        }
+        dungeonSession.clearPendingRewards()
+    }
+
+    /// Banks the run's rewards into the player *immediately on hero death*, while
+    /// keeping the session alive for the result screen. The point: a downed run is
+    /// non-resumable (`resumableSaveData()` returns nil), so a subsequent save
+    /// would erase the on-disk ledger — banking now lands the rewards in the
+    /// always-saved game state first. Idempotent (clears the ledger).
+    public func bankDungeonRewardsOnDeath() {
+        guard let dungeonSession else { return }
+        flushRewards(from: dungeonSession)
+    }
+
+    /// Ends a *completed* dungeon run: flushes the run's accrued rewards (XP +
+    /// drops, banked per cleared room) into the player, then releases the
+    /// session. Called on both legitimate exits — Finish and hero death — since
+    /// rewards are kept even when the hero falls. After an on-death bank the
+    /// ledger is already empty, so the flush here is a no-op and only releases.
+    public func finishDungeonRun() {
+        guard let dungeonSession else { return }
+        flushRewards(from: dungeonSession)
+        releaseDungeonSession()
+    }
+
+    /// Discards a dungeon run *without* granting any rewards. Use ONLY when the
+    /// run never legitimately ran — e.g. an invalid resume whose dungeon/room no
+    /// longer resolves. The "discard" name is deliberate: throwing away a run's
+    /// banked XP/drops must be spelled out, never the path of least resistance.
+    public func discardDungeonRun() {
+        releaseDungeonSession()
     }
 }

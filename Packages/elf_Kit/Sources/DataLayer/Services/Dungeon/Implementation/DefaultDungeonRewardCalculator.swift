@@ -1,0 +1,31 @@
+//
+//  DefaultDungeonRewardCalculator.swift
+//  elf_Kit
+//
+//  Created by Vitalii Lytvynov
+//
+
+import Dependencies
+import Foundation
+
+public struct DefaultDungeonRewardCalculator: DungeonRewardCalculator {
+
+    public init() {}
+
+    public func roomRewards(monsters: [MonsterRef]) -> [HuntRewards] {
+        // Resolved lazily (not in init) so constructing the calculator doesn't
+        // eagerly pull these live-only deps — keeps non-battle flows / tests free
+        // of the hunt/monster dependency chain.
+        @Dependency(\.huntService) var huntService
+        @Dependency(\.monsterRepository) var monsterRepository
+
+        var rewards: [HuntRewards] = []
+        for ref in monsters {
+            guard let monster = monsterRepository.getById(id: ref.monsterId) else { continue }
+            for _ in 0..<max(1, ref.count) {
+                rewards.append(huntService.calculateRewards(for: monster))
+            }
+        }
+        return rewards
+    }
+}
