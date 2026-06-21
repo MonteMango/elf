@@ -109,7 +109,12 @@ public final class DungeonViewModel {
         guard transition == nil, !session.isInRun else { return }
         let name = session.dungeon?.title ?? "Dungeon"
         transition = .enteringDungeon(name: name)
-        try? await Task.sleep(for: .seconds(2))
+        do {
+            try await Task.sleep(for: .seconds(2))
+        } catch {
+            transition = nil  // cancelled mid-flight: roll back overlay, don't begin the run
+            return
+        }
         session.beginRun()   // swap Overview content to the room behind the overlay
         transition = nil      // overlay fades → room + Fight button revealed
         persist()             // checkpoint: squad entered the dungeon
@@ -168,8 +173,13 @@ public final class DungeonViewModel {
               let nextId = from.nextRoomIds.first,
               let to = session.dungeon?.room(id: nextId) else { return }
         transition = .movingBetweenRooms(from: from.title, to: to.title)
+        do {
+            try await Task.sleep(for: .seconds(2))
+        } catch {
+            transition = nil  // cancelled mid-flight: roll back overlay, don't heal or move the squad
+            return
+        }
         session.restoreQuarter()
-        try? await Task.sleep(for: .seconds(2))
         session.moveSquadToNextRoom()
         transition = nil
         persist()             // checkpoint: moved into the next room
@@ -186,7 +196,12 @@ public final class DungeonViewModel {
               actionKind == .drink,
               case .event(let event)? = session.currentRoom?.kind else { return }
         transition = eventTransition(for: event)
-        try? await Task.sleep(for: .seconds(2))
+        do {
+            try await Task.sleep(for: .seconds(2))
+        } catch {
+            transition = nil  // cancelled mid-flight: roll back overlay, don't resolve the event
+            return
+        }
         session.apply(specialEventResolver.resolve(event))
         transition = nil
         persist()             // checkpoint: room event resolved (room cleared)
