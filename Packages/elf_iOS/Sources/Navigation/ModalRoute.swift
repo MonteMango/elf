@@ -11,7 +11,7 @@ import SwiftUI
 // MARK: - Modal Routes
 
 /// Modal presentation routes (displayed as overlay on top of navigation stack)
-public enum ModalRoute: Identifiable {
+internal enum ModalRoute: Identifiable {
 
     case battleResult(ManualBattleResult)
     case fishingResult(FishingResult)
@@ -20,7 +20,7 @@ public enum ModalRoute: Identifiable {
 
     // MARK: - Identifiable
 
-    public var id: String {
+    internal var id: String {
         switch self {
         case .battleResult:
             return "battleResult"
@@ -40,7 +40,7 @@ extension ModalRoute {
 
     @MainActor
     @ViewBuilder
-    public func view() -> some View {
+    internal func view() -> some View {
         switch self {
         case .battleResult(let result):
             BattleResultScreen(result: result)

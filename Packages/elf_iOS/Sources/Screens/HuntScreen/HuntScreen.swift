@@ -64,7 +64,7 @@ struct HuntScreen: View {
     private var huntButton: some View {
         Button("Hunt") {
             if let battle = viewModel.startHunt() {
-                router.navigationPath.append(AppRoute.battleFight(battle))
+                router.pushBattle(battle)
             }
         }
         .buttonStyle(.elfPrimary(isEnabled: viewModel.canHunt))
@@ -84,7 +84,7 @@ struct HuntScreen: View {
     @Previewable @State var router = AppRouter()
 
     if let coordinator, let session = coordinator.gameSession {
-        NavigationStack(path: $router.navigationPath) {
+        NavigationStack(path: router.navigationStackBinding) {
             HuntScreen(session: session)
                 .environment(router)
                 .environment(coordinator)

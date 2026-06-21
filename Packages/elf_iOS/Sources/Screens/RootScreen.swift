@@ -20,7 +20,7 @@ public struct RootScreen: View {
         #if DEBUG
         let _ = Self._printChanges()
         #endif
-        NavigationStack(path: $router.navigationPath) {
+        NavigationStack(path: router.navigationStackBinding) {
             MainMenuScreen()
                 .navigationDestination(for: AppRoute.self) { route in
                     route.view()

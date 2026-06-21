@@ -180,7 +180,7 @@ struct QuestScreen: View {
     @Previewable @Namespace var previewNamespace
 
     if let coordinator, let session = coordinator.gameSession {
-        NavigationStack(path: $router.navigationPath) {
+        NavigationStack(path: router.navigationStackBinding) {
             QuestScreen(
                 questId: QuestID(),
                 ownerImageName: "quest_preview",

@@ -130,7 +130,7 @@ struct FarmActivityScreen: View {
                     onFight: {
                         if let battle = viewModel.startBattle() {
                             navigatedToBattle = true
-                            router.navigationPath.append(AppRoute.battleFight(battle))
+                            router.pushBattle(battle)
                         }
                     }
                 )

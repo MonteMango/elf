@@ -18,12 +18,12 @@ private struct QuestZoomNamespaceKey: EnvironmentKey {
 }
 
 extension EnvironmentValues {
-    var farmZoomNamespace: Namespace.ID? {
+    internal var farmZoomNamespace: Namespace.ID? {
         get { self[FarmZoomNamespaceKey.self] }
         set { self[FarmZoomNamespaceKey.self] = newValue }
     }
 
-    var questZoomNamespace: Namespace.ID? {
+    internal var questZoomNamespace: Namespace.ID? {
         get { self[QuestZoomNamespaceKey.self] }
         set { self[QuestZoomNamespaceKey.self] = newValue }
     }
@@ -32,11 +32,11 @@ extension EnvironmentValues {
 // MARK: - Zoom Transition Modifiers
 
 /// Applies matchedTransitionSource if namespace is available
-struct ZoomSourceModifier: ViewModifier {
-    let id: String
-    let namespace: Namespace.ID?
+internal struct ZoomSourceModifier: ViewModifier {
+    internal let id: String
+    internal let namespace: Namespace.ID?
 
-    func body(content: Content) -> some View {
+    internal func body(content: Content) -> some View {
         if let namespace {
             content.matchedTransitionSource(id: id, in: namespace)
         } else {
@@ -46,11 +46,11 @@ struct ZoomSourceModifier: ViewModifier {
 }
 
 /// Applies navigationTransition zoom if namespace is available
-struct ZoomTransitionModifier: ViewModifier {
-    let sourceID: String
-    let namespace: Namespace.ID?
+internal struct ZoomTransitionModifier: ViewModifier {
+    internal let sourceID: String
+    internal let namespace: Namespace.ID?
 
-    func body(content: Content) -> some View {
+    internal func body(content: Content) -> some View {
         if let namespace {
             content.navigationTransition(.zoom(sourceID: sourceID, in: namespace))
         } else {

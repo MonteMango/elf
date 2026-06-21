@@ -13,11 +13,11 @@ import SwiftUI
 ///
 /// `AppRoute.view()` is a non-View context (no `@Environment`), so reading
 /// the session is deferred to this small adapter view.
-struct SessionRouteView<Content: View>: View {
+internal struct SessionRouteView<Content: View>: View {
     @Environment(AppCoordinator.self) private var coordinator
-    @ViewBuilder let content: (GameSession) -> Content
+    @ViewBuilder internal let content: (GameSession) -> Content
 
-    var body: some View {
+    internal var body: some View {
         if let session = coordinator.gameSession,
            let dayStateVM = coordinator.dayStateViewModel {
             content(session)

@@ -74,7 +74,7 @@ internal struct BattleSetupScreen: View {
                     Button(action: {
                         Task {
                             if let battle = await viewModel.startBattle() {
-                                router.navigationPath.append(AppRoute.battleFight(battle))
+                                router.pushBattle(battle)
                             }
                         }
                     }) {
@@ -109,7 +109,7 @@ internal struct BattleSetupScreen: View {
                                     guard let battle = await viewModel.startBattle() else {
                                         return
                                     }
-                                    router.navigationPath.append(AppRoute.multiBattleResult(battle))
+                                    router.navigate(to: .multiBattleResult(battle))
                                 }
                             }) {
                                 Text("1000x")
@@ -126,7 +126,7 @@ internal struct BattleSetupScreen: View {
                                     guard let battle = await viewModel.startBattle() else {
                                         return
                                     }
-                                    router.navigationPath.append(AppRoute.autoBattleResult(battle))
+                                    router.navigate(to: .autoBattleResult(battle))
                                 }
                             }) {
                                 Text("1x")
@@ -276,7 +276,7 @@ internal struct BattleSetupScreen: View {
     @Previewable @State var router = AppRouter()
 
     if isReady {
-        NavigationStack(path: $router.navigationPath) {
+        NavigationStack(path: router.navigationStackBinding) {
             BattleSetupScreen()
                 .environment(router)
         }

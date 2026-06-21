@@ -86,7 +86,7 @@ struct MainMenuScreen: View {
     @Previewable @State var router = AppRouter()
 
     if let coordinator {
-        NavigationStack(path: $router.navigationPath) {
+        NavigationStack(path: router.navigationStackBinding) {
             MainMenuScreen()
                 .environment(router)
                 .environment(coordinator)

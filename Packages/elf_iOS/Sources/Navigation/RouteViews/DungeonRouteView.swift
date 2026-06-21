@@ -14,10 +14,10 @@ import SwiftUI
 /// re-evaluates and renders nothing instead of constructing the screen against
 /// a released session, which would trap. See `BattleFightRouteView` for the
 /// sibling pattern.
-struct DungeonRouteView: View {
+internal struct DungeonRouteView: View {
     @Environment(AppCoordinator.self) private var coordinator
 
-    var body: some View {
+    internal var body: some View {
         if let session = coordinator.gameSession,
            let dayStateVM = coordinator.dayStateViewModel,
            let dungeonSession = session.dungeonSession {

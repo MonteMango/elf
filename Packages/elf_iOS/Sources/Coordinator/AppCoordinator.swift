@@ -61,7 +61,7 @@ public final class AppCoordinator {
     /// Route to push on top of `.gameSession` when resuming a saved game, or nil.
     /// Currently only resumes into an active, valid dungeon run. Keeps the
     /// "when + which route to resume" decision out of the menu view.
-    public var resumeRoute: AppRoute? {
+    internal var resumeRoute: AppRoute? {
         guard let dungeon = gameSession?.dungeonSession, dungeon.isInRun else { return nil }
         return .dungeon(dungeonId: dungeon.dungeonId, allyIds: dungeon.allyIds)
     }

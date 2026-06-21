@@ -10,12 +10,12 @@ import SwiftUI
 
 /// Specialized adapter for `BattleFightScreen`, which accepts an **optional** session
 /// (the dev BattleSetup flow reaches it without an active game session).
-struct BattleFightRouteView: View {
+internal struct BattleFightRouteView: View {
     @Environment(AppCoordinator.self) private var coordinator
     @Environment(AppRouter.self) private var router
-    let battle: Battle
+    internal let battle: Battle
 
-    var body: some View {
+    internal var body: some View {
         BattleFightScreen(
             battle: battle,
             session: coordinator.gameSession,

@@ -89,7 +89,7 @@ struct QuestListScreen: View {
     @Previewable @State var router = AppRouter()
 
     if let coordinator, let session = coordinator.gameSession {
-        NavigationStack(path: $router.navigationPath) {
+        NavigationStack(path: router.navigationStackBinding) {
             QuestListScreen(session: session)
                 .environment(router)
                 .environment(coordinator)

@@ -1,6 +1,31 @@
 # RocketSim Usage (Landscape Apps)
 
-This project runs **landscape-only**. RocketSim's accessibility tree reports element coordinates in the app's logical (landscape) space, but tap/long-press/swipe events are delivered in the simulator's **physical portrait** coordinate space. Tapping the raw `cx`/`cy` from `rocketsim elements` will silently miss the target — `rocketsim interact tap` returns `{"success": true}` even when the tap lands outside any hit zone.
+> ## ⚠️ FIRST: rotate the Simulator to landscape
+>
+> This project is **landscape-only**. Before any RocketSim geometry work, make
+> sure the **Simulator device itself is in landscape**. When the device
+> orientation matches the app, the accessibility tree and the tap event space are
+> the **same coordinate space**, so taps land directly and your geometry
+> calculations are correct — **no transform needed**.
+>
+> - Rotate: Simulator menu **Device → Rotate Left/Right** (or `⌘←` / `⌘→` with
+>   the Simulator window focused).
+> - Verify it actually rotated (a landscape-only app can render rotated *inside*
+>   a portrait device window, which looks similar but is NOT landscape): the true
+>   framebuffer must be **landscape** (long edge horizontal). Check with
+>   `xcrun simctl io <udid> screenshot /tmp/x.png && sips -g pixelWidth -g pixelHeight /tmp/x.png`
+>   — for iPhone 17 a landscape device reports **2622 × 1206 px**; a still-portrait
+>   device reports **1206 × 2622 px**. (RocketSim's own screenshot is
+>   portrait-normalized, so judge orientation by `simctl`, not by RocketSim.)
+> - Once in real landscape, tap with the element-center coordinates directly.
+>
+> The coordinate-transform section below is the **fallback** for when the device
+> is still in physical portrait (app rotated-in-portrait).
+
+## Fallback: portrait device, app rotated to landscape
+
+If the device is in **physical portrait** while the app renders landscape,
+RocketSim's accessibility tree reports element coordinates in the app's logical (landscape) space, but tap/long-press/swipe events are delivered in the simulator's **physical portrait** coordinate space. Tapping the raw `cx`/`cy` from `rocketsim elements` will silently miss the target — `rocketsim interact tap` returns `{"success": true}` even when the tap lands outside any hit zone.
 
 ## The transformation
 

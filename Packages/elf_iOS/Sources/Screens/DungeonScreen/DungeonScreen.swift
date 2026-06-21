@@ -81,7 +81,7 @@ struct DungeonScreen: View {
         switch viewModel.actionKind {
         case .fight:
             if let battle = viewModel.startRoomBattle() {
-                router.navigationPath.append(AppRoute.battleFight(battle))
+                router.pushBattle(battle)
             }
         case .next:
             Task { await viewModel.advanceToNextRoom() }
@@ -166,7 +166,7 @@ struct DungeonScreen: View {
             .prefix(4)
         let dungeonSession = session.startDungeonSession(dungeonId: dungeonId, allyIds: Array(allyIds))
 
-        NavigationStack(path: $router.navigationPath) {
+        NavigationStack(path: router.navigationStackBinding) {
             DungeonScreen(gameSession: session, dungeonSession: dungeonSession)
                 .environment(router)
                 .environment(coordinator)

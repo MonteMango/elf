@@ -11,7 +11,7 @@ import SwiftUI
 // MARK: - Navigation Routes
 
 /// Application navigation routes
-public enum AppRoute {
+internal enum AppRoute {
 
     case mainMenu
     case characterCreation
@@ -37,7 +37,7 @@ public enum AppRoute {
 
 extension AppRoute: Hashable {
 
-    public static func == (lhs: AppRoute, rhs: AppRoute) -> Bool {
+    internal static func == (lhs: AppRoute, rhs: AppRoute) -> Bool {
         switch (lhs, rhs) {
         case (.mainMenu, .mainMenu),
              (.characterCreation, .characterCreation),
@@ -66,7 +66,7 @@ extension AppRoute: Hashable {
         }
     }
 
-    public func hash(into hasher: inout Hasher) {
+    internal func hash(into hasher: inout Hasher) {
         switch self {
         case .mainMenu:
             hasher.combine("mainMenu")
@@ -117,7 +117,7 @@ extension AppRoute {
 
     @MainActor
     @ViewBuilder
-    public func view() -> some View {
+    internal func view() -> some View {
         switch self {
         case .mainMenu:
             MainMenuScreen()
