@@ -19,7 +19,6 @@ public final class FarmActivityViewModel {
     private let monsterRepository: any MonsterRepository
     private let snapshotBuilder: any CombatantSnapshotBuilder
     private let progressionService: any ProgressionService
-    private let equippedSlotResolver: any HeroEquippedSlotResolver
 
     // MARK: - Activity
 
@@ -93,12 +92,10 @@ public final class FarmActivityViewModel {
         @Dependency(\.monsterRepository) var monsterRepository
         @Dependency(\.snapshotBuilder) var snapshotBuilder
         @Dependency(\.progressionService) var progressionService
-        @Dependency(\.equippedSlotResolver) var equippedSlotResolver
         self.farmActivityService = farmActivityService
         self.monsterRepository = monsterRepository
         self.snapshotBuilder = snapshotBuilder
         self.progressionService = progressionService
-        self.equippedSlotResolver = equippedSlotResolver
 
         self.activity = activity
         self.session = session
@@ -215,9 +212,7 @@ public final class FarmActivityViewModel {
         pendingBattle = Battle(
             leftTeam: [playerSnapshot],
             rightTeam: [monsterSnapshot],
-            equippedItemsByCombatantId: [
-                playerSnapshot.id: equippedSlotResolver.resolve(equipped: player.equipped)
-            ]
+            equippedByCombatantId: [playerSnapshot.id: player.equipped]
         )
 
         return true

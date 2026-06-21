@@ -213,19 +213,18 @@ public final class GameDayViewModel {
 
         session.spendActionPoints(dungeonCost)
 
-        // Pre-resolve UI equipment maps for every elf-side combatant. Keyed by
-        // snapshot id; monsters carry no entry (consumer falls back to [:]).
-        var equipmentMap: [CombatantID: [HeroItemType: HeroEquippedSlot]] = [
-            heroSnapshot.id: equippedSlotResolver.resolve(equipped: player.equipped)
-        ]
+        // Carry each elf-side combatant's equipment, keyed by snapshot id; the
+        // fight screen resolves it to the UI slot map at render time. Monsters
+        // carry no entry (consumer falls back to [:]).
+        var equipmentMap: [CombatantID: EquippedItems] = [heroSnapshot.id: player.equipped]
         for (snapshot, ally) in zip(allySnapshots, allies) {
-            equipmentMap[snapshot.id] = equippedSlotResolver.resolve(equipped: ally.equipped)
+            equipmentMap[snapshot.id] = ally.equipped
         }
 
         return Battle(
             leftTeam: [heroSnapshot] + allySnapshots,
             rightTeam: wolfSnapshots,
-            equippedItemsByCombatantId: equipmentMap
+            equippedByCombatantId: equipmentMap
         )
     }
 

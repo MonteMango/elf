@@ -46,9 +46,6 @@ public final class DungeonViewModel {
     @Dependency(\.monsterRepository) private var monsterRepository
 
     @ObservationIgnored
-    @Dependency(\.equippedSlotResolver) private var equippedSlotResolver
-
-    @ObservationIgnored
     @Dependency(\.specialEventResolver) private var specialEventResolver
 
     // MARK: - View state
@@ -128,7 +125,7 @@ public final class DungeonViewModel {
         guard !monsterRefs.isEmpty else { return nil }
 
         var leftTeam: [CombatantSnapshot] = []
-        var equipped: [CombatantID: [HeroItemType: HeroEquippedSlot]] = [:]
+        var equipped: [CombatantID: EquippedItems] = [:]
         for elf in session.squadElves() {
             guard let vitals = session.roomVitals[elf.id], vitals.hp > 0 else { continue }
             var snapshot = snapshotBuilder.buildSnapshot(
@@ -140,7 +137,7 @@ public final class DungeonViewModel {
             snapshot.currentHP = min(vitals.hp, snapshot.maxHP)
             snapshot.currentMP = min(vitals.mp, snapshot.maxMP)
             leftTeam.append(snapshot)
-            equipped[snapshot.id] = equippedSlotResolver.resolve(equipped: elf.equipped)
+            equipped[snapshot.id] = elf.equipped
         }
         guard !leftTeam.isEmpty else { return nil }
 
@@ -156,7 +153,7 @@ public final class DungeonViewModel {
         return Battle(
             leftTeam: leftTeam,
             rightTeam: rightTeam,
-            equippedItemsByCombatantId: equipped
+            equippedByCombatantId: equipped
         )
     }
 

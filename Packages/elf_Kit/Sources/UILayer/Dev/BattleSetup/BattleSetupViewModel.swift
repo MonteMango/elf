@@ -21,7 +21,6 @@ public final class BattleSetupViewModel {
     private let weaponValidator: any WeaponValidator
     private let snapshotBuilder: any CombatantSnapshotBuilder
     private let monsterRepository: any MonsterRepository
-    private let equippedSlotResolver: any HeroEquippedSlotResolver
 
     // MARK: - State
 
@@ -151,7 +150,6 @@ public final class BattleSetupViewModel {
         @Dependency(\.weaponValidator) var weaponValidator
         @Dependency(\.snapshotBuilder) var snapshotBuilder
         @Dependency(\.monsterRepository) var monsterRepository
-        @Dependency(\.equippedSlotResolver) var equippedSlotResolver
         self.itemsRepository = itemsRepository
         self.attributeService = attributeService
         self.armorService = armorService
@@ -159,7 +157,6 @@ public final class BattleSetupViewModel {
         self.weaponValidator = weaponValidator
         self.snapshotBuilder = snapshotBuilder
         self.monsterRepository = monsterRepository
-        self.equippedSlotResolver = equippedSlotResolver
     }
 
     // MARK: - Lifecycle
@@ -475,9 +472,9 @@ public final class BattleSetupViewModel {
             return Battle(
                 leftTeam: [playerSnapshot],
                 rightTeam: [botSnapshot],
-                equippedItemsByCombatantId: [
-                    playerSnapshot.id: equippedSlotResolver.resolve(equipped: playerEquipped),
-                    botSnapshot.id: equippedSlotResolver.resolve(equipped: botEquipped)
+                equippedByCombatantId: [
+                    playerSnapshot.id: playerEquipped,
+                    botSnapshot.id: botEquipped
                 ]
             )
 
@@ -489,9 +486,7 @@ public final class BattleSetupViewModel {
             return Battle(
                 leftTeam: [playerSnapshot],
                 rightTeam: [monsterSnapshot],
-                equippedItemsByCombatantId: [
-                    playerSnapshot.id: equippedSlotResolver.resolve(equipped: playerEquipped)
-                ]
+                equippedByCombatantId: [playerSnapshot.id: playerEquipped]
             )
         }
     }

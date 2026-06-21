@@ -16,21 +16,21 @@ public struct Battle: Sendable, Identifiable {
     /// Right team combatants (opponent team). Uses CombatantSnapshot for unified elf/monster handling.
     public let rightTeam: [CombatantSnapshot]
 
-    /// Pre-resolved per-combatant equipment slot map, keyed by `CombatantSnapshot.id`.
-    /// UI-only data (consumed by `BattleFightViewModel+Display.makeDisplay` to feed
-    /// `HeroDisplayState.equippedItems`); kept off `CombatantSnapshot` so combat
-    /// invalidations don't ripple through the equipment layout. Static for the
-    /// duration of the battle — no mid-fight item swaps.
+    /// Per-combatant equipped item set, keyed by `CombatantSnapshot.id`. Pure
+    /// domain data (`EquippedItems`) — the UI slot map
+    /// (`[HeroItemType: HeroEquippedSlot]`) is resolved on-the-fly at render time
+    /// by `BattleFightViewModel.makeDisplay` via `HeroEquippedSlotResolver`,
+    /// keeping this model free of presentation types. Kept off `CombatantSnapshot`
+    /// so per-round HP / battleBuffs mutations don't ripple through equipment
+    /// rendering. Static for the duration of the battle — no mid-fight item swaps.
     ///
-    /// Monsters carry no entry (or `[:]` if explicitly included); the consumer
-    /// falls back to an empty map per missing key.
+    /// Monsters carry no entry; the consumer falls back to an empty map per
+    /// missing key.
     ///
     /// TODO: [combat/equipment-mutation] when items can be destroyed mid-battle,
-    /// this immutable map goes stale on the first destruction event. Cleaner
-    /// future state: move raw `EquippedItems` onto `CombatantSnapshot` (mutable),
-    /// drop this field, and have VM `makeDisplay` resolve the UI map on-the-fly
-    /// per render via `HeroEquippedSlotResolver`.
-    public let equippedItemsByCombatantId: [CombatantID: [HeroItemType: HeroEquippedSlot]]
+    /// this immutable map goes stale on the first destruction event — it will
+    /// then need to track each combatant's live `EquippedItems`.
+    public let equippedByCombatantId: [CombatantID: EquippedItems]
 
     /// `MonsterID` of the first opponent when it's a monster (`nil` for
     /// synthetic / elf opponents). Single source for resolving the bot monster
@@ -44,11 +44,11 @@ public struct Battle: Sendable, Identifiable {
         id: BattleID = BattleID(),
         leftTeam: [CombatantSnapshot],
         rightTeam: [CombatantSnapshot],
-        equippedItemsByCombatantId: [CombatantID: [HeroItemType: HeroEquippedSlot]] = [:]
+        equippedByCombatantId: [CombatantID: EquippedItems] = [:]
     ) {
         self.id = id
         self.leftTeam = leftTeam
         self.rightTeam = rightTeam
-        self.equippedItemsByCombatantId = equippedItemsByCombatantId
+        self.equippedByCombatantId = equippedByCombatantId
     }
 }

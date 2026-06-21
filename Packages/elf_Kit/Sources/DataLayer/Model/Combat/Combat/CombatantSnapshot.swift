@@ -16,9 +16,10 @@ import Foundation
 /// on the snapshot — `ElfSnapshotCombatCalculator` resolves them through
 /// `BuffEffectsCalculator` at the use site, keeping this type free of DI.
 ///
-/// UI-side equipment layout (`[HeroItemType: HeroEquippedSlot]`) is NOT carried
-/// here — it lives on `Battle.equippedItemsByCombatantId` keyed by snapshot id,
-/// so per-round HP / battleBuffs mutations don't invalidate equipment rendering.
+/// Equipment is NOT carried here — it lives on `Battle.equippedByCombatantId`
+/// keyed by snapshot id (as domain `EquippedItems`, resolved to the UI slot map
+/// at render time), so per-round HP / battleBuffs mutations don't invalidate
+/// equipment rendering.
 public struct CombatantSnapshot: Sendable, Identifiable, Hashable {
 
     // MARK: - Identity

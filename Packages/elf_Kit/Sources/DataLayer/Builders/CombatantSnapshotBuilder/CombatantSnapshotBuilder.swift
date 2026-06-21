@@ -18,9 +18,9 @@ public protocol CombatantSnapshotBuilder: Sendable {
     /// `name`, `imageName`, and `equipped` are pulled from the elf; `level` is
     /// the only piece the caller still computes (via `ProgressionService`).
     ///
-    /// The snapshot carries combat data only — equipment item refs and the
-    /// UI-side slot map are not stored on it (PR-B). UI equipment lives on
-    /// `Battle.equippedItemsByCombatantId`, assembled separately by the caller.
+    /// The snapshot carries combat data only — equipment item refs are not
+    /// stored on it (PR-B). Equipment lives on `Battle.equippedByCombatantId`
+    /// (domain `EquippedItems`), assembled separately by the caller.
     ///
     /// - Parameters:
     ///   - elf: The `ElfInfo` to build a combatant snapshot from. `elf.equipped`

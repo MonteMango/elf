@@ -24,7 +24,6 @@ public final class DefaultBotTurnSimulator: BotTurnSimulator {
     private let huntService: any HuntService
     private let progressionService: any ProgressionService
     private let snapshotBuilder: any CombatantSnapshotBuilder
-    private let equippedSlotResolver: any HeroEquippedSlotResolver
 
     // MARK: - Constants
 
@@ -39,13 +38,11 @@ public final class DefaultBotTurnSimulator: BotTurnSimulator {
         @Dependency(\.huntService) var huntService
         @Dependency(\.progressionService) var progressionService
         @Dependency(\.snapshotBuilder) var snapshotBuilder
-        @Dependency(\.equippedSlotResolver) var equippedSlotResolver
         self.monsterRepository = monsterRepository
         self.battleSimulationService = battleSimulationService
         self.huntService = huntService
         self.progressionService = progressionService
         self.snapshotBuilder = snapshotBuilder
-        self.equippedSlotResolver = equippedSlotResolver
     }
 
     // MARK: - BotTurnSimulator
@@ -59,13 +56,13 @@ public final class DefaultBotTurnSimulator: BotTurnSimulator {
         guard !monsters.isEmpty else { return emptyResult(slot: plan.slot) }
 
         // Built once and reused: every battle starts the bot at full HP from the
-        // same value-type snapshot, and the equipment map is constant for the turn.
+        // same value-type snapshot. These simulations are never rendered, so the
+        // battle carries no equipment map (the consumer is the UI fight screen).
         let botSnapshot = snapshotBuilder.buildSnapshot(
             elf: elf,
             level: level,
             globalBuffs: elf.globalBuffs
         )
-        let equipMap = equippedSlotResolver.resolve(equipped: elf.equipped)
 
         var totalExp = 0
         var materials: [MaterialReward] = []
@@ -90,8 +87,7 @@ public final class DefaultBotTurnSimulator: BotTurnSimulator {
                 let monsterSnapshot = snapshotBuilder.buildSnapshot(from: monster, globalBuffs: [])
                 let battle = Battle(
                     leftTeam: [botSnapshot],
-                    rightTeam: [monsterSnapshot],
-                    equippedItemsByCombatantId: [botSnapshot.id: equipMap]
+                    rightTeam: [monsterSnapshot]
                 )
 
                 let result = await battleSimulationService.runSingleBattle(battle, using: generator)

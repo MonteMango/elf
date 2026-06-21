@@ -70,7 +70,7 @@ extension BattleFightViewModel {
             endurance: AttributeDisplay(base: effSource.baseEndurance, effective: Int(effective.endurance.value)),
             attackPointsCount: source.attackPoints,
             defensePointsCount: source.defensePoints,
-            equippedItems: battle.equippedItemsByCombatantId[source.id] ?? [:],
+            equippedItems: battle.equippedByCombatantId[source.id].map { equippedSlotResolver.resolve(equipped: $0) } ?? [:],
             buffBadges: makeBuffBadges(for: effSource),
             isAlive: liveVitals?.isAlive ?? source.isAlive
         )

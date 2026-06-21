@@ -22,6 +22,7 @@ public final class BattleFightViewModel {
     private let buffApplicationService: any BuffApplicationService
     let buffEffectsCalculator: any BuffEffectsCalculator
     let buffsRepository: any BuffsRepository
+    let equippedSlotResolver: any HeroEquippedSlotResolver   // resolves EquippedItems → UI slot map per render (see +Display)
 
     // Optional session context (nil for non-hunt battles like dev BattleSetup flow)
     let session: GameSession?
@@ -149,6 +150,7 @@ public final class BattleFightViewModel {
         @Dependency(\.buffApplicationService) var buffApplicationService
         @Dependency(\.buffEffectsCalculator) var buffEffectsCalculator
         @Dependency(\.buffsRepository) var buffsRepository
+        @Dependency(\.equippedSlotResolver) var equippedSlotResolver
         self.battleRoundRunner = battleRoundRunner
         self.botAI = botAI
         self.battleLogger = battleLogger
@@ -157,6 +159,7 @@ public final class BattleFightViewModel {
         self.buffApplicationService = buffApplicationService
         self.buffEffectsCalculator = buffEffectsCalculator
         self.buffsRepository = buffsRepository
+        self.equippedSlotResolver = equippedSlotResolver
 
         self.battle = battle
         self.session = session
