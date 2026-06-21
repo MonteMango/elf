@@ -33,6 +33,7 @@ public struct House: Sendable, Identifiable, Equatable {
         members: [ElfInfo]
     ) {
         precondition(members.count == House.membersCount, "House must have exactly \(House.membersCount) members")
+        precondition(Set(members.map(\.id)).count == members.count, "House members must have unique ElfIDs")
         self.id = id
         self.name = name
         self.logoImageName = logoImageName
