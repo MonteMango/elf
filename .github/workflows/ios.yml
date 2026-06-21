@@ -23,8 +23,10 @@ jobs:
       - name: Select iOS Simulator
         id: select_device
         run: |
-          device=$(xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}' | sed -e "s/ Simulator$//")
-          echo "device=$device" >> $GITHUB_OUTPUT
+          # Pin a known-good simulator that exists on the macos-26 image.
+          # The previous xctrace regex was fragile and resolved to an
+          # unmatchable destination on the new image.
+          echo "device=iPhone 17" >> $GITHUB_OUTPUT
 
       - name: Build main app (elf)
         run: |
