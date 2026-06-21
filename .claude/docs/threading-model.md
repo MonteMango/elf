@@ -177,7 +177,7 @@ map. Update this section when you add a new `Task.detached`, `actor`, or `withTa
 
 ### 1. Persistence — `actor FileGameSaveStorage`
 
-File: `Packages/elf_Kit/Sources/DataLayer/Services/Persistence/Implementation/FileGameSaveStorage.swift`
+File: `Packages/elf_Kit/Sources/DataLayer/Persistence/Implementation/FileGameSaveStorage.swift`
 
 The only `actor` in the codebase. Serializes all disk I/O for saves (JSON files in
 Application Support). `DefaultGameService.saveGame()` builds the snapshot on MainActor,

@@ -275,12 +275,12 @@ mid-dungeon and tapping **Continue** resumes in the same room with the same
 squad state. `Game` stays pure — the run is a sibling field on the save.
 
 **Save shape**
-- `DungeonRunSaveData` (`Model/Persistence`, Codable, ID-reference): `dungeonId`,
+- `DungeonRunSaveData` (`Persistence/Model`, Codable, ID-reference): `dungeonId`,
   `allyIds`, `elfLocations: [ElfID: DungeonRoomID]`, `roomVitals: [ElfID: DungeonElfVitals]`,
   `clearedRoomIds: [DungeonRoomID]` (sorted for deterministic output),
   `pendingRewards: DungeonRunRewardsSaveData` (the run's banked XP/drops). No catalog
   payload — dungeon/rooms/elves/items resolve from repositories on load.
-- `DungeonRunRewardsSaveData` (`Model/Persistence`, Codable, ID-reference): the
+- `DungeonRunRewardsSaveData` (`Persistence/Model`, Codable, ID-reference): the
   on-disk form of the runtime `DungeonRunRewards` ledger — `experience`,
   `materials`, `weapons: [WeaponSaveData]`, `armor: [DefenseSaveData]`. The live
   ledger holds **resolved** `ElfWeaponItem`/`ElfDefenseItem`; `init(from:)` snapshots
@@ -399,17 +399,17 @@ private func migrate(data: Data, fromVersion: Int) throws -> Game {
 
 | File | Purpose |
 |------|---------|
-| `Services/Persistence/GameSaveStorage.swift` | Storage protocol (+ `loadDefault`, no-dungeon `save` overload) |
-| `Services/Persistence/Implementation/FileGameSaveStorage.swift` | JSON file implementation (atomic + backup) |
+| `Persistence/GameSaveStorage.swift` | Storage protocol (+ `loadDefault`, no-dungeon `save` overload) |
+| `Persistence/Implementation/FileGameSaveStorage.swift` | JSON file implementation (atomic + backup) |
 | `Sessions/GameSession.swift` | Session facade: `save()`, coalesced `saveInBackground()`, `concludeHuntBattle()`, `finishDungeonRun()` / `bankDungeonRewardsOnDeath()` / `discardDungeonRun()` |
 | `Sessions/DungeonSession.swift` | `makeSaveData()` / `resumableSaveData()` / `restore(from:)` / `isResumeStateValid()` / reward ledger `pendingRewards` |
-| `Model/Persistence/GameSave.swift` | DTO wrapper with version (+ `dungeonRun`) |
-| `Model/Persistence/GameSaveData.swift` | Main game data |
-| `Model/Persistence/DungeonRunSaveData.swift` | In-progress dungeon run snapshot (+ `pendingRewards`) |
-| `Model/Persistence/DungeonRunRewardsSaveData.swift` | On-disk reward ledger (id-refs) ↔ runtime `DungeonRunRewards` |
-| `Model/Persistence/LoadedSave.swift` | Load result `{ game, dungeonRun? }` |
-| `Model/Persistence/ElfSaveData.swift` | Character save data |
-| `Model/Persistence/GameSaveError.swift` | Error types |
+| `Persistence/Model/GameSave.swift` | DTO wrapper with version (+ `dungeonRun`) |
+| `Persistence/Model/GameSaveData.swift` | Main game data |
+| `Persistence/Model/DungeonRunSaveData.swift` | In-progress dungeon run snapshot (+ `pendingRewards`) |
+| `Persistence/Model/DungeonRunRewardsSaveData.swift` | On-disk reward ledger (id-refs) ↔ runtime `DungeonRunRewards` |
+| `Persistence/Model/LoadedSave.swift` | Load result `{ game, dungeonRun? }` |
+| `Persistence/Model/ElfSaveData.swift` | Character save data |
+| `Persistence/Model/GameSaveError.swift` | Error types |
 | `Coordinator/AppCoordinator.swift` | `startGame(dungeonRun:)` restore + `resumeRoute` |
 | `UILayer/Menu/MainMenuViewModel.swift` | Load trigger (exposes `loadedDungeonRun`) |
 

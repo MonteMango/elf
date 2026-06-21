@@ -4,6 +4,13 @@ How domain types are grouped under `Packages/elf_Kit/Sources/DataLayer/Model/`,
 and **where a new type belongs**. This is the taxonomy/folder guide; for the
 mechanics of two related areas see:
 
+> **One exception to "under `Model/`":** the on-disk `*SaveData` DTOs no longer
+> live in `Model/Persistence/`. They moved to their own top-level `DataLayer`
+> group, **`Persistence/Model/`**, co-located with the storage that reads/writes
+> them (`GameSaveStorage` / `FileGameSaveStorage`). They are still models by
+> nature, so this guide still owns the "where does a `*SaveData` go" decision —
+> the path is just `DataLayer/Persistence/Model/`, not `DataLayer/Model/Persistence/`.
+
 - Persistence / `*SaveData` round-trip → `persistence-patterns.md`
 - `TypedID`, phantom types, sum/product modelling → `type-driven-design.md`
 
@@ -16,19 +23,20 @@ mechanics of two related areas see:
 
 ## The 8 groups
 
-Every model file lives in exactly one top-level group. The split is by
-**lifecycle and role**, not by feature.
+Every model file lives in exactly one group. The split is by **lifecycle and
+role**, not by feature. Seven groups sit under `DataLayer/Model/`; the eighth,
+`Persistence/`, lives at `DataLayer/Persistence/Model/` (see note above).
 
 | Group | Role | Mutability | `Codable`? | ID / naming |
 |-------|------|-----------|-----------|-------------|
-| `Shared/` | Cross-cutting primitives | — | mixed | `TypedID`, `BodyPart` |
-| `ValueTypes/` | Domain primitives with invariants | immutable | yes (leaf fields) | `Attribute`, `HitPoints`, … |
-| `Catalog/` | Static reference data decoded from JSON | immutable | `Decodable`/`Codable` | `*` + `*ID` + `*Data` wrapper |
-| `OwnedItems/` | Player-owned instances of catalog items | identity | no (via SaveData) | `Elf*Item`, `OwnedItemID` |
-| `RuntimeDomain/` | Live, evolving game state | mutable | **mostly no** (via SaveData) | `*ID` |
-| `Combat/` | Battle mechanics, snapshots, results | mixed | mixed | `*Snapshot`, `Applied*` |
-| `Persistence/` | On-disk DTOs of runtime state | immutable | **yes** | `*SaveData` |
-| `Dev/` | Simulation/statistics for balancing | immutable | no | `*Result`, `*Statistics` |
+| `Model/Shared/` | Cross-cutting primitives | — | mixed | `TypedID`, `BodyPart` |
+| `Model/ValueTypes/` | Domain primitives with invariants | immutable | yes (leaf fields) | `Attribute`, `HitPoints`, … |
+| `Model/Catalog/` | Static reference data decoded from JSON | immutable | `Decodable`/`Codable` | `*` + `*ID` + `*Data` wrapper |
+| `Model/OwnedItems/` | Player-owned instances of catalog items | identity | no (via SaveData) | `Elf*Item`, `OwnedItemID` |
+| `Model/RuntimeDomain/` | Live, evolving game state | mutable | **mostly no** (via SaveData) | `*ID` |
+| `Model/Combat/` | Battle mechanics, snapshots, results | mixed | mixed | `*Snapshot`, `Applied*` |
+| `Persistence/Model/` | On-disk DTOs of runtime state | immutable | **yes** | `*SaveData` |
+| `Model/Dev/` | Simulation/statistics for balancing | immutable | no | `*Result`, `*Statistics` |
 
 ---
 
@@ -147,10 +155,12 @@ domain. Subfolders: `Combat/`, `Battle/`, `Buff/`, `Crit/`, `Damage/`, `Dodge/`,
 - `Crit`/`Damage`/`Dodge` — `*CalculationResult` / `*Distribution` outputs of
   combat math.
 
-### `Persistence/` — on-disk DTOs
+### `Persistence/Model/` — on-disk DTOs
 
-`Codable` mirrors of runtime state, with a **bidirectional** round-trip. See
-`persistence-patterns.md` for the full flow and the ID-Reference pattern.
+`Codable` mirrors of runtime state, with a **bidirectional** round-trip. Lives in
+the top-level `DataLayer/Persistence/` group (next to `GameSaveStorage` /
+`FileGameSaveStorage`), not under `Model/`. See `persistence-patterns.md` for the
+full flow and the ID-Reference pattern.
 
 ```swift
 public struct ElfSaveData: Codable, Sendable {
@@ -186,7 +196,7 @@ OwnedItems/ElfWeaponItem                (instance, OwnedItemID + enchantLevel)
 RuntimeDomain/Inventory/ElfInventory    (live collection on ElfInfo)
         │ frozen as / thawed from
         ▼
-Persistence/WeaponSaveData              (Codable: { id, itemId, enchantLevel })
+Persistence/Model/WeaponSaveData        (Codable: { id, itemId, enchantLevel })
 ```
 
 Persistence stores only the `itemId` (an `ItemID`), never the catalog payload;
@@ -218,7 +228,7 @@ pattern** — details in `persistence-patterns.md`.
 5. **Only meaningful inside a battle** (snapshot, round, buff instance, calc
    result)? → `Combat/<Subdomain>/`.
 6. **A `Codable` shape that exists only to save/load** a runtime type? →
-   `Persistence/` as `*SaveData` (add `init(from:)` + `toX(...)`).
+   `Persistence/Model/` as `*SaveData` (add `init(from:)` + `toX(...)`).
 7. **Simulation/stat output for balancing?** → `Dev/`.
 8. **Genuinely domain-agnostic, used everywhere?** → `Shared/`.
 

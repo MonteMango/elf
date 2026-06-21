@@ -16,7 +16,7 @@ Models (Data)
 - **View** — clean, no business logic, only depends on ViewModel
 - **ViewModel** — orchestration only, no business logic, delegates to Services
 - **Model** — pure data containers, no business logic
-- **Services/Repositories/Builders/Validators** — all business logic lives here
+- **Services/Repositories/Persistence/Builders/Validators** — all business logic lives here
 
 ---
 
