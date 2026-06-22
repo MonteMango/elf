@@ -18,7 +18,7 @@ public final class HuntViewModel {
     private let monsterRepository: any MonsterRepository
     private let materialRepository: any Repository<Material>
     private let itemsRepository: any ItemsRepository
-    private let snapshotBuilder: any CombatantSnapshotBuilder
+    private let battleBuilder: any BattleBuilder
     private let progressionService: any ProgressionService
 
     // MARK: - Constants / Local UI state
@@ -50,12 +50,12 @@ public final class HuntViewModel {
         @Dependency(\.monsterRepository) var monsterRepository
         @Dependency(\.materialRepository) var materialRepository
         @Dependency(\.itemsRepository) var itemsRepository
-        @Dependency(\.snapshotBuilder) var snapshotBuilder
+        @Dependency(\.battleBuilder) var battleBuilder
         @Dependency(\.progressionService) var progressionService
         self.monsterRepository = monsterRepository
         self.materialRepository = materialRepository
         self.itemsRepository = itemsRepository
-        self.snapshotBuilder = snapshotBuilder
+        self.battleBuilder = battleBuilder
         self.progressionService = progressionService
 
         self.session = session
@@ -75,19 +75,9 @@ public final class HuntViewModel {
 
         session.spendActionPoints(huntCost)
 
-        let player = session.state.player
-        let playerSnapshot = snapshotBuilder.buildSnapshot(
-            elf: player,
-            level: progressionService.calculateLevel(currentExp: player.currentExp),
-            globalBuffs: player.globalBuffs
-        )
-
-        let monsterSnapshot = snapshotBuilder.buildSnapshot(from: monster, globalBuffs: [])
-
-        return Battle(
-            leftTeam: [playerSnapshot],
-            rightTeam: [monsterSnapshot],
-            equippedByCombatantId: [playerSnapshot.id: player.equipped]
+        return battleBuilder.buildBattle(
+            party: [BattlePartyMember(elf: session.state.player)],
+            monsters: [monster]
         )
     }
 

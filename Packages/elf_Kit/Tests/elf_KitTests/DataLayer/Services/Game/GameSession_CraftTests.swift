@@ -70,8 +70,9 @@ final class GameSession_CraftTests: XCTestCase {
 
     private func makeGame(playerInventory: ElfInventory = ElfInventory()) -> Game {
         let player = makeElf(inventory: playerInventory)
-        let aiMember = makeElf()
-        let members = [player] + Array(repeating: aiMember, count: House.membersCount - 1)
+        // Each AI member needs a distinct ElfID — `Array(repeating:)` would clone
+        // one instance (and its id), tripping House.init's unique-ElfID precondition.
+        let members = [player] + (0..<(House.membersCount - 1)).map { _ in makeElf() }
 
         let houses: [House] = (0..<Game.housesCount).map { i in
             House(name: "H\(i)", logoImageName: "logo", members: members)

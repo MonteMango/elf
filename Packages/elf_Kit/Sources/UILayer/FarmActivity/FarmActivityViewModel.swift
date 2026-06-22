@@ -17,7 +17,7 @@ public final class FarmActivityViewModel {
     private let session: GameSession
     private let farmActivityService: any FarmActivityService
     private let monsterRepository: any MonsterRepository
-    private let snapshotBuilder: any CombatantSnapshotBuilder
+    private let battleBuilder: any BattleBuilder
     private let progressionService: any ProgressionService
 
     // MARK: - Activity
@@ -90,11 +90,11 @@ public final class FarmActivityViewModel {
     public init(activity: FarmActivity, session: GameSession) {
         @Dependency(\.farmActivityService) var farmActivityService
         @Dependency(\.monsterRepository) var monsterRepository
-        @Dependency(\.snapshotBuilder) var snapshotBuilder
+        @Dependency(\.battleBuilder) var battleBuilder
         @Dependency(\.progressionService) var progressionService
         self.farmActivityService = farmActivityService
         self.monsterRepository = monsterRepository
-        self.snapshotBuilder = snapshotBuilder
+        self.battleBuilder = battleBuilder
         self.progressionService = progressionService
 
         self.activity = activity
@@ -199,21 +199,15 @@ public final class FarmActivityViewModel {
             return false
         }
 
-        let player = session.state.player
-        let playerSnapshot = snapshotBuilder.buildSnapshot(
-            elf: player,
-            level: progressionService.calculateLevel(currentExp: player.currentExp),
-            globalBuffs: player.globalBuffs
-        )
-
-        let monsterSnapshot = snapshotBuilder.buildSnapshot(from: monster, globalBuffs: [])
+        guard let battle = battleBuilder.buildBattle(
+            party: [BattlePartyMember(elf: session.state.player)],
+            monsters: [monster]
+        ) else {
+            return false
+        }
 
         attackingMonster = monster
-        pendingBattle = Battle(
-            leftTeam: [playerSnapshot],
-            rightTeam: [monsterSnapshot],
-            equippedByCombatantId: [playerSnapshot.id: player.equipped]
-        )
+        pendingBattle = battle
 
         return true
     }

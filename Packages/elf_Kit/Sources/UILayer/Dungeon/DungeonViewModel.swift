@@ -37,10 +37,7 @@ public final class DungeonViewModel {
     private let gameSession: GameSession
 
     @ObservationIgnored
-    @Dependency(\.snapshotBuilder) private var snapshotBuilder
-
-    @ObservationIgnored
-    @Dependency(\.progressionService) private var progressionService
+    @Dependency(\.battleBuilder) private var battleBuilder
 
     @ObservationIgnored
     @Dependency(\.monsterRepository) private var monsterRepository
@@ -129,37 +126,19 @@ public final class DungeonViewModel {
         let monsterRefs = room.kind.monsters
         guard !monsterRefs.isEmpty else { return nil }
 
-        var leftTeam: [CombatantSnapshot] = []
-        var equipped: [CombatantID: EquippedItems] = [:]
-        for elf in session.squadElves() {
-            guard let vitals = session.roomVitals[elf.id], vitals.hp > 0 else { continue }
-            var snapshot = snapshotBuilder.buildSnapshot(
-                elf: elf,
-                level: progressionService.calculateLevel(currentExp: elf.currentExp),
-                globalBuffs: elf.globalBuffs
-            )
-            // The builder seeds full reserves; carry over the run's current HP/MP.
-            snapshot.currentHP = min(vitals.hp, snapshot.maxHP)
-            snapshot.currentMP = min(vitals.mp, snapshot.maxMP)
-            leftTeam.append(snapshot)
-            equipped[snapshot.id] = elf.equipped
+        // Only living members carry into the fight; each brings its run HP/MP.
+        let party = session.squadElves().compactMap { elf -> BattlePartyMember? in
+            guard let vitals = session.roomVitals[elf.id], vitals.hp > 0 else { return nil }
+            return BattlePartyMember(elf: elf, currentHP: vitals.hp, currentMP: vitals.mp)
         }
-        guard !leftTeam.isEmpty else { return nil }
 
-        var rightTeam: [CombatantSnapshot] = []
-        for ref in monsterRefs {
-            guard let monster = monsterRepository.getById(id: ref.monsterId) else { continue }
-            for _ in 0..<max(1, ref.count) {
-                rightTeam.append(snapshotBuilder.buildSnapshot(from: monster, globalBuffs: []))
-            }
+        // Expand each room monster ref into `count` instances of the resolved monster.
+        let monsters = monsterRefs.flatMap { ref -> [Monster] in
+            guard let monster = monsterRepository.getById(id: ref.monsterId) else { return [] }
+            return Array(repeating: monster, count: max(1, ref.count))
         }
-        guard !rightTeam.isEmpty else { return nil }
 
-        return Battle(
-            leftTeam: leftTeam,
-            rightTeam: rightTeam,
-            equippedByCombatantId: equipped
-        )
+        return battleBuilder.buildBattle(party: party, monsters: monsters)
     }
 
     /// Plays the room-to-room transition: shows the overlay, restores 25% HP/MP

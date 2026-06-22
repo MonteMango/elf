@@ -19,8 +19,6 @@ public final class GameDayViewModel {
     private let equipmentQueryService: any EquipmentQueryService
     private let equippedSlotResolver: any HeroEquippedSlotResolver
     private let itemsRepository: any ItemsRepository
-    private let snapshotBuilder: any CombatantSnapshotBuilder
-    private let monsterRepository: any MonsterRepository
     private let dungeonRepository: any DungeonRepository
 
     // MARK: - Constants
@@ -59,15 +57,11 @@ public final class GameDayViewModel {
         @Dependency(\.equipmentQueryService) var equipmentQueryService
         @Dependency(\.equippedSlotResolver) var equippedSlotResolver
         @Dependency(\.itemsRepository) var itemsRepository
-        @Dependency(\.snapshotBuilder) var snapshotBuilder
-        @Dependency(\.monsterRepository) var monsterRepository
         @Dependency(\.dungeonRepository) var dungeonRepository
         self.progressionService = progressionService
         self.equipmentQueryService = equipmentQueryService
         self.equippedSlotResolver = equippedSlotResolver
         self.itemsRepository = itemsRepository
-        self.snapshotBuilder = snapshotBuilder
-        self.monsterRepository = monsterRepository
         self.dungeonRepository = dungeonRepository
 
         self.session = session
@@ -175,57 +169,6 @@ public final class GameDayViewModel {
     /// Saves game and prepares for exit
     public func exitGame() async {
         try? await session.save()
-    }
-
-    /// Assembles a 5v5 dungeon battle: hero + 4 random allies vs 5 wolves (level 1).
-    /// Spends `dungeonCost` AP on success; returns nil if AP is insufficient or content is missing.
-    public func startDungeonBattle() -> Battle? {
-        guard session.state.actionPoints.current >= dungeonCost else { return nil }
-
-        let wolves = monsterRepository.getMonsters(world: .upper, level: 1)
-            .filter { $0.title == "Wolf" }
-        guard let wolfTemplate = wolves.first else { return nil }
-        let wolfSnapshots: [CombatantSnapshot] = (0..<5).map { _ in
-            snapshotBuilder.buildSnapshot(from: wolfTemplate, globalBuffs: [])
-        }
-
-        let player = session.state.player
-        let heroSnapshot = snapshotBuilder.buildSnapshot(
-            elf: player,
-            level: progressionService.calculateLevel(currentExp: player.currentExp),
-            globalBuffs: player.globalBuffs
-        )
-
-        let house = session.state.houses[session.state.playerHouseIndex]
-        let allies = house.members
-            .enumerated()
-            .filter { $0.offset != session.state.playerMemberIndex }
-            .map(\.element)
-            .shuffled()
-            .prefix(4)
-        let allySnapshots: [CombatantSnapshot] = allies.map { ally in
-            snapshotBuilder.buildSnapshot(
-                elf: ally,
-                level: progressionService.calculateLevel(currentExp: ally.currentExp),
-                globalBuffs: ally.globalBuffs
-            )
-        }
-
-        session.spendActionPoints(dungeonCost)
-
-        // Carry each elf-side combatant's equipment, keyed by snapshot id; the
-        // fight screen resolves it to the UI slot map at render time. Monsters
-        // carry no entry (consumer falls back to [:]).
-        var equipmentMap: [CombatantID: EquippedItems] = [heroSnapshot.id: player.equipped]
-        for (snapshot, ally) in zip(allySnapshots, allies) {
-            equipmentMap[snapshot.id] = ally.equipped
-        }
-
-        return Battle(
-            leftTeam: [heroSnapshot] + allySnapshots,
-            rightTeam: wolfSnapshots,
-            equippedByCombatantId: equipmentMap
-        )
     }
 
     /// Called when a pocket slot is tapped
