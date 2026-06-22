@@ -153,16 +153,7 @@ public final class DungeonOverviewViewModel {
     /// in a previous activity and were removed from the house), the row is
     /// silently dropped — the squad summary card handles fewer than 5 rows.
     public var squad: [DungeonSquadMemberDisplay] {
-        let player = session.gameStore.player
-        var rows: [DungeonSquadMemberDisplay] = [memberDisplay(for: player, isHero: true)]
-
-        let house = session.gameStore.houses[session.gameStore.playerHouseIndex]
-        let elfById = Dictionary(uniqueKeysWithValues: house.members.map { ($0.id, $0) })
-        for id in session.allyIds {
-            guard let elf = elfById[id] else { continue }
-            rows.append(memberDisplay(for: elf, isHero: false))
-        }
-        return rows
+        session.squadElves().map { memberDisplay(for: $0, isHero: $0.id == session.heroId) }
     }
 
     /// `true` when the hero's current room has been cleared — drives the

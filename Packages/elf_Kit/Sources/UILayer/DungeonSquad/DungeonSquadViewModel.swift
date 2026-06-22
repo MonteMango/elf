@@ -34,16 +34,10 @@ public final class DungeonSquadViewModel {
     // MARK: - Derived
 
     public var squad: [DungeonSquadMemberDetail] {
-        let player = session.gameStore.player
-        var rows: [DungeonSquadMemberDetail] = [memberDetail(for: player, isHero: true)]
-
-        let house = session.gameStore.houses[session.gameStore.playerHouseIndex]
-        let elfById = Dictionary(uniqueKeysWithValues: house.members.map { ($0.id, $0) })
-        for id in session.allyIds {
-            guard let elf = elfById[id] else { continue }
-            rows.append(memberDetail(for: elf, isHero: false))
-        }
-        return rows
+        // Hero-first roster comes from the session's single source of truth;
+        // squadElves() already pins the hero first and silently drops allies
+        // whose id no longer resolves.
+        session.squadElves().map { memberDetail(for: $0, isHero: $0.id == session.heroId) }
     }
 
     // MARK: - Private
