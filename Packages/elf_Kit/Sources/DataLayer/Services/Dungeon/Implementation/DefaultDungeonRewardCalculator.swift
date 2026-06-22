@@ -21,7 +21,15 @@ public struct DefaultDungeonRewardCalculator: DungeonRewardCalculator {
 
         var rewards: [HuntRewards] = []
         for ref in monsters {
-            guard let monster = monsterRepository.getById(id: ref.monsterId) else { continue }
+            // A ref whose id no longer resolves (catalog drift / typo in the room
+            // definition) is skipped with a log rather than vanishing silently —
+            // mirrors `DungeonRunRewardsSaveData.toRewards` on the banked-drop side.
+            guard let monster = monsterRepository.getById(id: ref.monsterId) else {
+                #if DEBUG
+                print("[DungeonRewardCalculator] monster \(ref.monsterId) no longer resolves — skipped")
+                #endif
+                continue
+            }
             for _ in 0..<max(1, ref.count) {
                 rewards.append(huntService.calculateRewards(for: monster))
             }
