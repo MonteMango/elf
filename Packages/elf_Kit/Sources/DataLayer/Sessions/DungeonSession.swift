@@ -124,6 +124,14 @@ public final class DungeonSession {
         return elves
     }
 
+    /// Vitals to display for a squad member. During the briefing (`roomVitals`
+    /// empty, before `beginRun()`) every member reads full HP/MP; once the squad
+    /// has entered, the live per-room values are returned. Single home of the
+    /// "full before the run" rule shared by the Overview and Squad tabs.
+    public func displayVitals(for elf: ElfInfo) -> DungeonElfVitals {
+        roomVitals[elf.id] ?? DungeonElfVitals(hp: Int(elf.maxHP), mp: Int(elf.maxMP))
+    }
+
     // MARK: - Run mutations
 
     /// Places the whole squad into the dungeon's entry room and seeds full

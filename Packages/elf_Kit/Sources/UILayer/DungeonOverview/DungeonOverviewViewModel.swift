@@ -160,17 +160,16 @@ public final class DungeonOverviewViewModel {
     /// "Cleared" marker in the room header.
     public var isCurrentRoomCleared: Bool { session.isCurrentRoomCleared }
 
-    /// Compact squad row. HP comes from the run's `roomVitals` once the squad
-    /// has entered; before that (briefing) it defaults to full.
+    /// Compact squad row. HP comes from the session's `displayVitals(for:)`:
+    /// live per-room values once the squad has entered, full during the briefing.
     private func memberDisplay(for elf: ElfInfo, isHero: Bool) -> DungeonSquadMemberDisplay {
-        let maxHP = Int(elf.maxHP)
         return DungeonSquadMemberDisplay(
             id: elf.id.rawValue,
             name: elf.name,
             imageName: elf.imageName,
             level: progressionService.calculateLevel(currentExp: elf.currentExp),
-            currentHP: session.roomVitals[elf.id]?.hp ?? maxHP,
-            maxHP: maxHP,
+            currentHP: session.displayVitals(for: elf).hp,
+            maxHP: Int(elf.maxHP),
             isHero: isHero
         )
     }

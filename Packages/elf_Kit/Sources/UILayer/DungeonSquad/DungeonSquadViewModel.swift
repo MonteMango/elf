@@ -43,27 +43,23 @@ public final class DungeonSquadViewModel {
     // MARK: - Private
 
     private func memberDetail(for elf: ElfInfo, isHero: Bool) -> DungeonSquadMemberDetail {
-        // HP/MP come from the run's `roomVitals` once the squad has entered;
-        // before that (briefing) they default to full. A `hp <= 0` reading marks
-        // a downed member. No domain buffs yet — empty array.
-        let maxHP = Int(elf.maxHP)
-        let maxMP = Int(elf.maxMP)
-        let vitals = session.roomVitals[elf.id]
-        let currentHP = vitals?.hp ?? maxHP
-        let currentMP = vitals?.mp ?? maxMP
+        // HP/MP come from the session's `displayVitals(for:)`: live per-room
+        // values once the squad has entered, full during the briefing. A
+        // `hp <= 0` reading marks a downed member. No domain buffs yet — empty array.
+        let vitals = session.displayVitals(for: elf)
         return DungeonSquadMemberDetail(
             id: elf.id.rawValue,
             name: elf.name,
             imageName: elf.imageName,
             level: progressionService.calculateLevel(currentExp: elf.currentExp),
-            currentHP: currentHP,
-            maxHP: maxHP,
-            currentMP: currentMP,
-            maxMP: maxMP,
+            currentHP: vitals.hp,
+            maxHP: Int(elf.maxHP),
+            currentMP: vitals.mp,
+            maxMP: Int(elf.maxMP),
             attributes: elf.totalAttributes,
             equippedItems: equippedSlotResolver.resolve(equipped: elf.equipped),
             activeBuffs: [],
-            state: currentHP <= 0 ? .dead : .alive,
+            state: vitals.hp <= 0 ? .dead : .alive,
             isHero: isHero
         )
     }
