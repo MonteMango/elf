@@ -332,7 +332,7 @@ is solved globally by a catalog-migration strategy — not per-feature here.
 | Trigger | Location | When |
 |---------|----------|------|
 | Day change | `GameDayStateViewModel` / `GameSession.advanceToNextDay()` | After the world turn + day advance |
-| App background | `AppCoordinator.saveIfNeeded()` (scenePhase) | App goes to background/inactive |
+| App background | `AppCoordinator.saveOnBackground()` (scenePhase) — under a `BackgroundTaskRunner` assertion; awaits any in-flight checkpoint save, then writes the final snapshot | App goes to background/inactive |
 | After hunt battle | `GameSession.concludeHuntBattle()` → `saveInBackground()` | XP/drops applied, then background save |
 | Dungeon step | `DungeonViewModel.persist()` / `BattleFightRouteView` / Finish / death → `GameSession.saveInBackground()` | Enter room, room cleared, room transition, run end |
 | New game | `ElfGameInitializationService` | After creating new game |
@@ -343,6 +343,27 @@ runs at a time (`saveInFlight`/`saveAgain`), and requests arriving mid-save
 collapse into a single follow-up pass that captures the latest state — so rapid
 checkpoints can't pile up independent Tasks contending on the storage actor, and
 the newest snapshot always wins.
+
+### Background save assertion
+
+The scene-phase save (`AppCoordinator.saveOnBackground()`) is the one save that
+can't be fire-and-forget: iOS gives only ~5s after `.background` before the
+process suspends, and a full `Game` snapshot may not finish in time. It runs the
+save under a `BackgroundTaskRunner` (UIKit `beginBackgroundTask`) assertion, which
+extends that window to ~30s. Two rules make it correct:
+
+- **The assertion is acquired synchronously.** `saveOnBackground()` is *not*
+  wrapped in a `Task` at the call site (`ScenePhaseChangeModifier`); the runner
+  takes the assertion before the async save is scheduled. Deferring it past an
+  `await` reopens the very suspension window it exists to close.
+- **It awaits the in-flight checkpoint first.** It calls
+  `GameSession.awaitInFlightSave()` before the final `save()`, so the final
+  durable write lands *after* any coalesced checkpoint still draining on the
+  storage actor — the final snapshot wins the ordering race.
+
+`BackgroundTaskRunner` lives in `elf_iOS/Sources/Platform/` (protocol +
+`DefaultBackgroundTaskRunner` + DI key) — UIKit is confined there, kept out of the
+UI-agnostic core. Tests override `\.backgroundTaskRunner`.
 
 ---
 

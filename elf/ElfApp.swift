@@ -76,16 +76,12 @@ private struct ScenePhaseChangeModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .onChange(of: scenePhase) { _, newPhase in
-                // TODO: [persistence/P0] Wrap save in UIApplication.beginBackgroundTask(expirationHandler:)
-                // Reason: iOS gives only ~5s after .background before suspending the process.
-                // A full JSON save for a large Game (8×10 elves + inventories) may not finish in time,
-                // leading to silently lost progress. beginBackgroundTask grants up to ~30s and lets us
-                // endBackgroundTask(_:) after the actor-isolated save completes.
-                // See: https://developer.apple.com/documentation/uikit/uiapplication/beginbackgroundtask(expirationhandler:)
                 if newPhase == .background || newPhase == .inactive {
-                    Task { @MainActor in
-                        await coordinator.saveIfNeeded()
-                    }
+                    // Synchronous: saveOnBackground() must take the UIKit background-task
+                    // assertion now, while the app is still running — before it spawns the
+                    // async save. Wrapping this in a Task would defer the assertion past a
+                    // possible suspension point.
+                    coordinator.saveOnBackground()
                 }
             }
     }

@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov
 //
 
+import Dependencies
 import elf_Kit
 import Foundation
 
@@ -30,7 +31,15 @@ public final class AppCoordinator {
 
     // MARK: - Initialization
 
-    public init() {}
+    /// Snapshot-in-init (project DI pattern): read once at construction and store,
+    /// so the runner is stable for the coordinator's lifetime. `liveValue` is always
+    /// available (not async-loaded), so reading it pre-`DependencyBootstrap` is safe.
+    private let backgroundTaskRunner: any BackgroundTaskRunner
+
+    public init() {
+        @Dependency(\.backgroundTaskRunner) var backgroundTaskRunner
+        self.backgroundTaskRunner = backgroundTaskRunner
+    }
 
     // MARK: - Session Lifecycle
 
@@ -73,9 +82,26 @@ public final class AppCoordinator {
         dayStateViewModel = nil
     }
 
-    /// Saves the active game if a session exists (called on scene-phase background).
-    public func saveIfNeeded() async {
-        try? await gameSession?.save()
+    /// Saves the active game when the app backgrounds, under a background-task
+    /// assertion (via `BackgroundTaskRunner`) so a large save finishes before the
+    /// process suspends. Awaits any in-flight checkpoint save first to avoid racing
+    /// it on the storage actor, then writes the final snapshot.
+    ///
+    /// Synchronous on purpose: `run(name:_:)` takes the assertion *before* the async
+    /// save is scheduled, so it is registered while the app is still running.
+    /// Orchestration only — the UIKit assertion mechanism lives in the runner.
+    public func saveOnBackground() {
+        guard let session = gameSession else { return }
+        backgroundTaskRunner.run(name: "GameSave") {
+            await session.awaitInFlightSave()
+            do {
+                try await session.save()
+            } catch {
+                #if DEBUG
+                print("[AppCoordinator] Background save failed: \(error)")
+                #endif
+            }
+        }
     }
 
     // MARK: - Preview Support

@@ -454,6 +454,14 @@ public final class GameSession {
         )
     }
 
+    /// Awaits the in-flight coalesced background save, if any, so a caller that must
+    /// guarantee a final durable write (scene → background) doesn't race a checkpoint
+    /// save still draining on the storage actor. No-op when idle. Never throws —
+    /// `saveInBackground()` swallows its own errors (logged in DEBUG).
+    public func awaitInFlightSave() async {
+        await saveInFlight?.value
+    }
+
     /// Fire-and-forget persistence for checkpoints where the UI shouldn't wait on
     /// disk I/O (battle conclusion, dungeon step points). Errors are logged in DEBUG.
     ///
