@@ -164,6 +164,20 @@ internal struct BattleSetupScreen: View {
         .task {
             await viewModel.load()
         }
+        // Debounced recompute: each keyed task cancels + restarts when its
+        // inputs change, replacing the ViewModel's hand-rolled Task handles.
+        .task(id: viewModel.attributesKey(for: .player)) {
+            await viewModel.applyAttributes(for: .player)
+        }
+        .task(id: viewModel.attributesKey(for: .bot)) {
+            await viewModel.applyAttributes(for: .bot)
+        }
+        .task(id: viewModel.playerState.selectedItems) {
+            await viewModel.applyEquipment(for: .player)
+        }
+        .task(id: viewModel.botState.selectedItems) {
+            await viewModel.applyEquipment(for: .bot)
+        }
     }
 
     // MARK: - Player Panel
@@ -178,18 +192,12 @@ internal struct BattleSetupScreen: View {
                         .foregroundStyle(.white)
 
                     FightStyleSelector(selectedFightStyle: $viewModel.playerState.fightStyle)
-                        .onChange(of: viewModel.playerState.fightStyle) { _, newValue in
-                            viewModel.updatePlayerFightStyle(newValue)
-                        }
                 }
 
                 Spacer()
 
                 // Level (Right)
                 LevelSelector(level: $viewModel.playerState.level)
-                    .onChange(of: viewModel.playerState.level) { _, newValue in
-                        viewModel.updatePlayerLevel(newValue)
-                    }
             }
 
             // Items and Attributes Section
@@ -225,9 +233,6 @@ internal struct BattleSetupScreen: View {
             HStack(alignment: .top, spacing: 20) {
                 // Level (Left)
                 LevelSelector(level: $viewModel.botState.level)
-                    .onChange(of: viewModel.botState.level) { _, newValue in
-                        viewModel.updateBotLevel(newValue)
-                    }
 
                 Spacer()
 
@@ -238,9 +243,6 @@ internal struct BattleSetupScreen: View {
                         .foregroundStyle(.white)
 
                     FightStyleSelector(selectedFightStyle: $viewModel.botState.fightStyle)
-                        .onChange(of: viewModel.botState.fightStyle) { _, newValue in
-                            viewModel.updateBotFightStyle(newValue)
-                        }
                 }
             }
 

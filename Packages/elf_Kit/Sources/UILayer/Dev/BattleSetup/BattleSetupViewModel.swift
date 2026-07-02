@@ -36,13 +36,10 @@ public final class BattleSetupViewModel {
     /// fight-style attributes (scaled by level) contribute to totals. Default
     /// `false` so dev battles are deterministic; toggle on to mimic the
     /// regular character creation roll.
-    public var includeRandomAttributes: Bool = false {
-        didSet {
-            guard oldValue != includeRandomAttributes else { return }
-            schedulePlayerUpdate()
-            scheduleBotUpdate()
-        }
-    }
+    /// Toggling this changes `attributesKey(for:)` for both heroes, so the
+    /// view's `.task(id:)` re-runs the debounced recompute. No manual
+    /// scheduling needed.
+    public var includeRandomAttributes: Bool = false
 
     // Hero configurations
     public var playerState = HeroConfigurationState()
@@ -50,24 +47,11 @@ public final class BattleSetupViewModel {
 
     // MARK: - Private State
 
-    // Task properties for background work cancellation
-    //
-    // These are internal task handles for debounced updates, not UI state, so
-    // they are `@ObservationIgnored` (observing them would invalidate the view
-    // on every (re)assignment for no reason). They are `nonisolated(unsafe)` so
-    // the nonisolated `deinit` can cancel them without hopping to the main actor;
-    // `nonisolated` (without `unsafe`) cannot be applied to a mutable stored
-    // property, so the escape hatch is required here.
-    //
-    // Thread safety justification:
-    // - Task.cancel() is thread-safe by design
-    // - deinit only calls cancel(), which is safe even if racing with setters
-    // - Setters (setAttributesTask, setEquipmentTask) are @MainActor isolated
-    // - Potential race: deinit vs setter - acceptable because cancel() is idempotent
-    @ObservationIgnored private nonisolated(unsafe) var playerAttributesTask: Task<Void, Never>?
-    @ObservationIgnored private nonisolated(unsafe) var botAttributesTask: Task<Void, Never>?
-    @ObservationIgnored private nonisolated(unsafe) var playerEquipmentTask: Task<Void, Never>?
-    @ObservationIgnored private nonisolated(unsafe) var botEquipmentTask: Task<Void, Never>?
+    /// Debounce window for recomputing attributes/equipment while the user is
+    /// rapidly editing. The wait itself lives inside `applyAttributes`/
+    /// `applyEquipment`; cancellation is handled by SwiftUI's `.task(id:)`,
+    /// so no task handles are stored here.
+    private let debounceDelay: Duration = .milliseconds(250)
 
     // MARK: - Hero Type Accessors
 
@@ -115,31 +99,6 @@ public final class BattleSetupViewModel {
         state(for: heroType).rightHandDamage = damage
     }
 
-    // Task accessors
-    private func attributesTask(for heroType: HeroType) -> Task<Void, Never>? {
-        heroType == .player ? playerAttributesTask : botAttributesTask
-    }
-
-    private func setAttributesTask(_ task: Task<Void, Never>?, for heroType: HeroType) {
-        if heroType == .player {
-            playerAttributesTask = task
-        } else {
-            botAttributesTask = task
-        }
-    }
-
-    private func equipmentTask(for heroType: HeroType) -> Task<Void, Never>? {
-        heroType == .player ? playerEquipmentTask : botEquipmentTask
-    }
-
-    private func setEquipmentTask(_ task: Task<Void, Never>?, for heroType: HeroType) {
-        if heroType == .player {
-            playerEquipmentTask = task
-        } else {
-            botEquipmentTask = task
-        }
-    }
-
     // MARK: - Initialization
 
     public init() {
@@ -180,36 +139,6 @@ public final class BattleSetupViewModel {
         allMonsters = monsters
     }
 
-    deinit {
-        // Cancel all active tasks to prevent memory leaks and ensure proper cleanup
-        playerAttributesTask?.cancel()
-        botAttributesTask?.cancel()
-        playerEquipmentTask?.cancel()
-        botEquipmentTask?.cancel()
-    }
-
-    // MARK: - Public API for State Updates
-
-    public func updatePlayerLevel(_ newLevel: Int) {
-        playerState.level = newLevel
-        schedulePlayerUpdate()
-    }
-
-    public func updatePlayerFightStyle(_ newStyle: FightStyle?) {
-        playerState.fightStyle = newStyle
-        schedulePlayerUpdate()
-    }
-
-    public func updateBotLevel(_ newLevel: Int) {
-        botState.level = newLevel
-        scheduleBotUpdate()
-    }
-
-    public func updateBotFightStyle(_ newStyle: FightStyle?) {
-        botState.fightStyle = newStyle
-        scheduleBotUpdate()
-    }
-
     // MARK: - Actions
 
     public func handlePlayerItemSelection(itemType: HeroItemType) {
@@ -239,6 +168,9 @@ public final class BattleSetupViewModel {
     // MARK: - Private Methods
 
     private func updateSelectedItems(for heroType: HeroType, itemType: HeroItemType, selectedItemId: UUID?) {
+        // Mutating `selectedItems` changes the equipment key the view's
+        // `.task(id:)` observes, which drives the debounced recompute — no
+        // explicit scheduling call needed here.
         if requiresValidation(itemType) {
             Task {
                 let currentState = state(for: heroType)
@@ -250,13 +182,11 @@ public final class BattleSetupViewModel {
                 )
 
                 currentState.selectedItems = validatedItems.mapValues { $0.map(\.rawValue) }
-                scheduleEquipmentUpdate(for: heroType)
             }
         } else {
             // Other items don't need validation
             let currentState = state(for: heroType)
             currentState.selectedItems[itemType] = selectedItemId
-            scheduleEquipmentUpdate(for: heroType)
         }
     }
 
@@ -268,158 +198,95 @@ public final class BattleSetupViewModel {
         return state(for: heroType).selectedItems[itemType] ?? nil
     }
 
-    // MARK: - Generic Attribute Updates
+    // MARK: - Debounced Recompute (driven by the view's `.task(id:)`)
 
-    private func scheduleAttributesUpdate(for heroType: HeroType) {
-        // Cancel previous task
-        attributesTask(for: heroType)?.cancel()
+    /// Identity of a hero's attribute inputs. When any component changes the
+    /// key changes, so `.task(id:)` cancels the in-flight recompute (its
+    /// `Task.sleep` throws) and starts a fresh one — this is the "latest wins"
+    /// guarantee that the old code re-implemented by hand with snapshot guards.
+    public struct AttributesKey: Equatable {
+        let level: Int
+        let fightStyle: FightStyle?
+        let includeRandom: Bool
+    }
 
-        // Capture current values for validation
-        let currentLevel = level(for: heroType)
-        let currentStyle = fightStyle(for: heroType)
+    public func attributesKey(for heroType: HeroType) -> AttributesKey {
+        AttributesKey(
+            level: level(for: heroType),
+            fightStyle: fightStyle(for: heroType),
+            includeRandom: includeRandomAttributes
+        )
+    }
 
-        guard let fightStyle = currentStyle else {
-            // Clear attributes if no fight style selected
+    /// Recomputes fight-style/level attributes after the debounce window.
+    /// Call from the view via `.task(id: attributesKey(for:))`.
+    public func applyAttributes(for heroType: HeroType) async {
+        // Clearing when no fight style is selected is immediate — no debounce.
+        guard let fightStyle = fightStyle(for: heroType) else {
             setFightStyleAttributes(nil, for: heroType)
             setLevelRandomAttributes(nil, for: heroType)
             return
         }
 
-        // Capture toggle state so the rest of the task uses a consistent value.
-        let shouldIncludeRandom = includeRandomAttributes
+        // Debounce. A newer edit changes the task id, so SwiftUI cancels this
+        // task and the sleep throws — we bail before mutating state. No manual
+        // isCancelled checks or snapshot re-validation required.
+        do { try await Task.sleep(for: debounceDelay) } catch { return }
 
-        let task = Task {
-            do {
-                // Debounce: Wait 250ms
-                try await Task.sleep(for: .milliseconds(250))
+        let currentLevel = level(for: heroType)
+        let fsAttrs = attributeService.getAllFightStyleAttributes(
+            for: fightStyle,
+            at: Int16(currentLevel)
+        )
+        let lrAttrs: HeroAttributes = includeRandomAttributes
+            ? attributeService.getAllRandomLevelAttributes(for: Int16(currentLevel))
+            : HeroAttributes()
 
-                // Check if cancelled during sleep
-                guard !Task.isCancelled else { return }
-
-                // Validate values haven't changed during debounce
-                guard level(for: heroType) == currentLevel,
-                      self.fightStyle(for: heroType) == currentStyle else {
-                    return  // Values changed - this task is outdated
-                }
-
-                let fsAttrs = attributeService.getAllFightStyleAttributes(
-                    for: fightStyle,
-                    at: Int16(currentLevel)
-                )
-                let lrAttrs: HeroAttributes = shouldIncludeRandom
-                    ? attributeService.getAllRandomLevelAttributes(for: Int16(currentLevel))
-                    : HeroAttributes()
-
-                // Final validation before updating UI
-                guard !Task.isCancelled,
-                      level(for: heroType) == currentLevel,
-                      self.fightStyle(for: heroType) == currentStyle else {
-                    return  // Values changed during fetch
-                }
-
-                // Safe to update
-                setFightStyleAttributes(fsAttrs, for: heroType)
-                setLevelRandomAttributes(lrAttrs, for: heroType)
-
-            } catch is CancellationError {
-                // Task was cancelled - this is expected
-                return
-            } catch {
-                // Handle other errors
-                print("Error updating \(heroType) attributes: \(error)")
-            }
-        }
-
-        setAttributesTask(task, for: heroType)
+        setFightStyleAttributes(fsAttrs, for: heroType)
+        setLevelRandomAttributes(lrAttrs, for: heroType)
     }
 
-    // MARK: - Player/Bot Wrapper Methods
+    /// Recomputes items attributes, armor, two-handed flag and per-hand damage
+    /// after the debounce window. Call from the view via
+    /// `.task(id: <hero>State.selectedItems)`.
+    public func applyEquipment(for heroType: HeroType) async {
+        do { try await Task.sleep(for: debounceDelay) } catch { return }
 
-    private func schedulePlayerUpdate() {
-        scheduleAttributesUpdate(for: .player)
-    }
-
-    private func scheduleBotUpdate() {
-        scheduleAttributesUpdate(for: .bot)
-    }
-
-    // MARK: - Consolidated Equipment Updates
-
-    /// Consolidates all equipment-related updates into a single async task
-    /// This includes: two-handed weapon check, items attributes, armor values, and damage calculation
-    private func scheduleEquipmentUpdate(for heroType: HeroType) {
-        // Cancel previous task
-        equipmentTask(for: heroType)?.cancel()
-
-        // Capture current items for validation
         let currentItems = selectedItems(for: heroType)
+        let itemIds = currentItems.values.compactMap { $0 }.map(ItemID.init(rawValue:))
+        let primaryWeaponId = currentItems[.weapons] ?? nil
+        let secondaryWeaponId = currentItems[.shields] ?? nil
 
-        let task = Task {
-            do {
-                // Debounce: Wait 250ms to avoid excessive updates during rapid equipment changes
-                try await Task.sleep(for: .milliseconds(250))
+        let attrs = attributeService.getAllItemsAttributes(for: itemIds)
+        let armor = armorService.getAllItemsArmor(for: itemIds)
 
-                // Check if cancelled during sleep
-                guard !Task.isCancelled else { return }
-
-                // Validate items haven't changed during debounce
-                guard selectedItems(for: heroType) == currentItems else {
-                    return  // Items changed - this task is outdated
-                }
-
-                // Extract item IDs
-                let itemIds = currentItems.values.compactMap { $0 }.map(ItemID.init(rawValue:))
-                let primaryWeaponId = currentItems[.weapons] ?? nil
-                let secondaryWeaponId = currentItems[.shields] ?? nil
-
-                let attrs = attributeService.getAllItemsAttributes(for: itemIds)
-                let armor = armorService.getAllItemsArmor(for: itemIds)
-
-                var twoHandedWeaponId: UUID?
-                let isTwoHanded: Bool
-                if let weaponId = primaryWeaponId,
-                   let item = itemsRepository.getHeroItem(ItemID(rawValue: weaponId)),
-                   let weapon = item as? WeaponItem,
-                   weapon.handUse == .both {
-                    isTwoHanded = true
-                    twoHandedWeaponId = weapon.id.rawValue
-                } else {
-                    isTwoHanded = false
-                }
-
-                let rightHandDamage: (minDmg: Int16, maxDmg: Int16)?
-                let leftHandDamage: (minDmg: Int16, maxDmg: Int16)?
-                if isTwoHanded {
-                    rightHandDamage = damageService.getWeaponDamage(weaponId: primaryWeaponId.map(ItemID.init(rawValue:)))
-                    leftHandDamage = (minDmg: 0, maxDmg: 0)
-                } else {
-                    rightHandDamage = damageService.getWeaponDamage(weaponId: primaryWeaponId.map(ItemID.init(rawValue:)))
-                    leftHandDamage = damageService.getWeaponDamage(weaponId: secondaryWeaponId.map(ItemID.init(rawValue:)))
-                }
-
-                // Final validation before updating UI
-                guard !Task.isCancelled,
-                      selectedItems(for: heroType) == currentItems else {
-                    return  // Items changed during fetch
-                }
-
-                // Update all properties in one batch
-                setItemsAttributes(attrs, for: heroType)
-                setArmorValues(armor, for: heroType)
-                setTwoHandedWeaponId(twoHandedWeaponId, for: heroType)
-                setRightHandDamage(rightHandDamage, for: heroType)
-                setLeftHandDamage(leftHandDamage, for: heroType)
-
-            } catch is CancellationError {
-                // Task was cancelled - this is expected
-                return
-            } catch {
-                // Handle other errors
-                print("Error updating \(heroType) equipment: \(error)")
-            }
+        var twoHandedWeaponId: UUID?
+        let isTwoHanded: Bool
+        if let weaponId = primaryWeaponId,
+           let item = itemsRepository.getHeroItem(ItemID(rawValue: weaponId)),
+           let weapon = item as? WeaponItem,
+           weapon.handUse == .both {
+            isTwoHanded = true
+            twoHandedWeaponId = weapon.id.rawValue
+        } else {
+            isTwoHanded = false
         }
 
-        setEquipmentTask(task, for: heroType)
+        let rightHandDamage: (minDmg: Int16, maxDmg: Int16)?
+        let leftHandDamage: (minDmg: Int16, maxDmg: Int16)?
+        if isTwoHanded {
+            rightHandDamage = damageService.getWeaponDamage(weaponId: primaryWeaponId.map(ItemID.init(rawValue:)))
+            leftHandDamage = (minDmg: 0, maxDmg: 0)
+        } else {
+            rightHandDamage = damageService.getWeaponDamage(weaponId: primaryWeaponId.map(ItemID.init(rawValue:)))
+            leftHandDamage = damageService.getWeaponDamage(weaponId: secondaryWeaponId.map(ItemID.init(rawValue:)))
+        }
+
+        setItemsAttributes(attrs, for: heroType)
+        setArmorValues(armor, for: heroType)
+        setTwoHandedWeaponId(twoHandedWeaponId, for: heroType)
+        setRightHandDamage(rightHandDamage, for: heroType)
+        setLeftHandDamage(leftHandDamage, for: heroType)
     }
 
     // MARK: - Battle Creation
