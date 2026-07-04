@@ -170,7 +170,7 @@ Two injection styles, picked by host isolation:
 - **`@Dependency` property wrapper** for `@MainActor` and actor-isolated classes (in `@Observable` classes mark with `@ObservationIgnored`).
 - **Typed-wrapper Dependency** (`let _foo = Dependency(\.foo); var foo: any Foo { _foo.wrappedValue }`) for plain `Sendable` `final class` services — keeps the class `Sendable` without `@unchecked`.
 
-Session-scoped ViewModel factories live on `GameSessionModel` (`Packages/elf_Kit/Sources/UILayer/GameSession/GameSessionModel.swift`), which holds the non-optional `gameService` and exposes `make*ViewModel()` for every session-bound feature. Optionality lives one level up on `AppCoordinator.sessionModel` and is unwrapped by `SessionRouteView` before reaching a screen.
+Session-scoped ViewModel factories live on `GameSession` (`Packages/elf_Kit/Sources/DataLayer/Sessions/GameSession.swift`), which holds the non-optional `gameService`; the `make*ViewModel()` factories for every session-bound feature are declared in an extension (`Packages/elf_Kit/Sources/UILayer/GameSession/GameSession+ViewModelFactories.swift`). Optionality lives one level up on `AppCoordinator.gameSession` and is unwrapped by `SessionRouteView` before reaching a screen.
 
 > **Full reference** — declaring deps, `liveValue`/`testValue`/`previewValue` rules, both injection styles, app bootstrap, tests, previews, and pitfalls — see `dependency-injection.md`.
 
@@ -188,7 +188,7 @@ struct HuntScreen: View {
     @State private var viewModel: HuntViewModel
     private let dayStateViewModel: GameDayStateViewModel
 
-    init(session: GameSessionModel) {
+    init(session: GameSession) {
         self._viewModel = State(initialValue: session.makeHuntViewModel())
         self.dayStateViewModel = session.dayState
     }
@@ -211,7 +211,7 @@ struct MainMenuScreen: View {
 }
 ```
 
-The VM resolves all its deps via `@Dependency`. No `GameSessionModel`, no `SessionRouteView`.
+The VM resolves all its deps via `@Dependency`. No `GameSession`, no `SessionRouteView`.
 
 ### Optional session (battle screens reachable from a dev path)
 
@@ -219,7 +219,7 @@ The VM resolves all its deps via `@Dependency`. No `GameSessionModel`, no `Sessi
 internal struct BattleFightScreen: View {
     @State private var viewModel: BattleFightViewModel
 
-    internal init(battle: Battle, session: GameSessionModel?) {
+    internal init(battle: Battle, session: GameSession?) {
         self._viewModel = State(initialValue: BattleFightViewModel(
             battle: battle,
             gameService: session?.gameService
@@ -404,7 +404,7 @@ public final class NewScreenViewModel {
 }
 ```
 
-2. **Add a factory** to `GameSessionModel` (`Packages/elf_Kit/Sources/UILayer/GameSession/GameSessionModel.swift`):
+2. **Add a factory** to `GameSession` (in the extension `Packages/elf_Kit/Sources/UILayer/GameSession/GameSession+ViewModelFactories.swift`):
 ```swift
 public func makeNewScreenViewModel() -> NewScreenViewModel {
     NewScreenViewModel(gameService: gameService)
@@ -421,7 +421,7 @@ struct NewScreen: View {
     @Environment(AppRouter.self) private var router
     @State private var viewModel: NewScreenViewModel
 
-    init(session: GameSessionModel) {
+    init(session: GameSession) {
         self._viewModel = State(initialValue: session.makeNewScreenViewModel())
     }
 
@@ -444,7 +444,7 @@ case .newScreen:
 ### Variants
 
 - **Not session-bound** (e.g., main menu): no-arg `init()`, build the VM directly (`MainMenuViewModel()`); skip step 2 and the `SessionRouteView` wrapper.
-- **Optional session** (e.g., battle screens reachable from a dev flow): take `init(thing:, session: GameSessionModel?)`; wire via a dedicated route adapter (see `BattleFightRouteView`).
+- **Optional session** (e.g., battle screens reachable from a dev flow): take `init(thing:, session: GameSession?)`; wire via a dedicated route adapter (see `BattleFightRouteView`).
 
 ---
 
@@ -468,7 +468,7 @@ Packages/elf_iOS/Sources/
 
 Packages/elf_Kit/Sources/UILayer/
 ├── GameSession/
-│   └── GameSessionModel.swift
+│   └── GameSession+ViewModelFactories.swift
 └── {Feature}/
     ├── {Feature}ViewModel.swift
     └── {Feature}DisplayModels.swift
