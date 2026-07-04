@@ -320,3 +320,7 @@ traces/**/sample.txt
 
 # Battle simulation sweep outputs — local dev artifacts (raw numbers per balance step)
 .claude/docs/simulationResults/
+
+# SDD per-developer settings (not committed)
+.claude/*.local.md
+.worktrees/
