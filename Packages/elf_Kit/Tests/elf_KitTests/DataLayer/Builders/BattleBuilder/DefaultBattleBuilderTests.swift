@@ -94,6 +94,7 @@ final class DefaultBattleBuilderTests: XCTestCase {
 
     private final class MockProgressionService: ProgressionService, @unchecked Sendable {
         func calculateLevel(currentExp: Int) -> Int { max(1, min(12, currentExp / 100)) }
+        func totalExp(forLevel level: Int) -> Int { max(1, min(12, level)) * 100 }
         func expToNextLevel(currentExp: Int) -> Int { 100 }
         func experienceTransition(previousExp: Int, gained: Int) -> ExperienceTransition {
             ExperienceTransition(

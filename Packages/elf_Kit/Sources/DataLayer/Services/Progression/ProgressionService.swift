@@ -10,23 +10,29 @@ import Foundation
 /// Service for calculating character progression (levels and experience)
 ///
 /// Extracted from ElfInfo computed properties to separate business logic from data models.
+/// Backed by explicit XP-threshold tables (`LevelCurve`), one per progression track.
 ///
-/// **Level Formulas**:
-/// - Character level: `max(1, min(12, currentExp / 100))`
-/// - Farming skill level: `max(1, min(12, exp / 50))`
+/// **Character curve** (levels 1–12): each level costs 25 XP more than the previous
+/// one — L1→2 = 100, L2→3 = 125, … , L11→12 = 350 (cumulative total to L12 = 2475).
 ///
-/// **Experience Thresholds**:
-/// - Character: 100 XP per level
-/// - Farming skills: 50 XP per level
+/// **Farming skills** (Foraging, Fishing, Mining), levels 1–12: preserved legacy
+/// `max(1, exp / 50)` mapping (level 1 spans 0–99, every later level spans 50 XP).
 public protocol ProgressionService: Sendable {
 
-    /// Calculates character level from total experience
-    ///
-    /// Formula: `max(1, min(12, currentExp / 100))`
+    /// Calculates character level from total experience.
     ///
     /// - Parameter currentExp: Total accumulated experience
     /// - Returns: Level from 1 to 12
     func calculateLevel(currentExp: Int) -> Int
+
+    /// Minimum total XP required for a character to be the given level.
+    ///
+    /// Inverse of `calculateLevel(currentExp:)` — used to seed AI elves at a desired
+    /// level. `level` is clamped to the valid 1–12 range.
+    ///
+    /// - Parameter level: Desired character level
+    /// - Returns: Total XP that places the character at exactly that level
+    func totalExp(forLevel level: Int) -> Int
 
     /// Calculates XP threshold required to reach the next level
     ///
@@ -50,9 +56,7 @@ public protocol ProgressionService: Sendable {
     /// - Returns: Progress from 0.0 to 1.0, returns 1.0 at max level
     func expProgress(currentExp: Int) -> Double
 
-    /// Calculates farming skill level from total skill experience
-    ///
-    /// Formula: `max(1, min(12, exp / 50))`
+    /// Calculates farming skill level from total skill experience.
     ///
     /// Applicable to: Foraging, Fishing, Mining
     ///

@@ -39,6 +39,7 @@ final class DefaultBattleResultCalculatorTests: XCTestCase {
     /// fixed at 100. Other protocol methods are unused stubs.
     final class MockProgressionService: ProgressionService, @unchecked Sendable {
         func calculateLevel(currentExp: Int) -> Int { currentExp / 100 }
+        func totalExp(forLevel level: Int) -> Int { level * 100 }
         func expToNextLevel(currentExp: Int) -> Int { 100 }
         func experienceTransition(previousExp: Int, gained: Int) -> ExperienceTransition {
             let newExp = previousExp + gained

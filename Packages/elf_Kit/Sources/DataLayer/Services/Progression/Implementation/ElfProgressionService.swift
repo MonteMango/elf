@@ -7,24 +7,34 @@
 
 import Foundation
 
-/// Default implementation of progression calculation service
+/// Default implementation of progression calculation service.
 ///
-/// **Character Progression**:
-/// - Levels 1-12
-/// - 100 XP per level
-/// - Level = max(1, min(12, currentExp / 100))
+/// Backed by two explicit XP-threshold tables (`LevelCurve`):
 ///
-/// **Farming Skills** (Foraging, Fishing, Mining):
-/// - Levels 1-12
-/// - 50 XP per level
-/// - Level = max(1, min(12, exp / 50))
+/// **Character** (levels 1–12): each level costs 25 XP more than the previous one.
+/// Per-level cost: 100, 125, 150, … , 350. Cumulative entry thresholds:
+/// `[0, 100, 225, 375, 550, 750, 975, 1225, 1500, 1800, 2125, 2475]`.
+///
+/// **Farming skills** (Foraging, Fishing, Mining), levels 1–12: preserves the legacy
+/// `max(1, exp / 50)` mapping bit-for-bit (level 1 spans 0–99, every later level spans
+/// 50 XP), so existing skill progression does not shift.
+///
+/// All work is pure synchronous value math with no stored mutable state, so calls run
+/// on the caller's executor (main actor for UI, cooperative pool for off-main callers)
+/// with no hop and no data races — deliberately *not* `@concurrent`.
 public final class ElfProgressionService: ProgressionService {
 
-    // MARK: - Constants
+    // MARK: - Curves
 
-    private let maxLevel = 12
-    private let characterExpPerLevel = 100
-    private let farmingExpPerLevel = 50
+    private let character = LevelCurve(
+        thresholds: [0, 100, 225, 375, 550, 750, 975, 1225, 1500, 1800, 2125, 2475]
+    )
+
+    /// Legacy `max(1, exp / 50)` mapping expressed as a threshold table:
+    /// level 1 = 0, level k = k * 50 for k >= 2  ->  [0, 100, 150, … , 600].
+    private let farming = LevelCurve(
+        thresholds: [0, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600]
+    )
 
     // MARK: - Initialization
 
@@ -33,13 +43,15 @@ public final class ElfProgressionService: ProgressionService {
     // MARK: - ProgressionService
 
     public func calculateLevel(currentExp: Int) -> Int {
-        max(1, min(maxLevel, currentExp / characterExpPerLevel))
+        character.level(for: currentExp)
+    }
+
+    public func totalExp(forLevel level: Int) -> Int {
+        character.totalExpToReach(level)
     }
 
     public func expToNextLevel(currentExp: Int) -> Int {
-        let level = calculateLevel(currentExp: currentExp)
-        guard level < maxLevel else { return 0 }
-        return (level + 1) * characterExpPerLevel
+        character.expToNextLevel(for: currentExp)
     }
 
     public func experienceTransition(previousExp: Int, gained: Int) -> ExperienceTransition {
@@ -55,26 +67,14 @@ public final class ElfProgressionService: ProgressionService {
     }
 
     public func expProgress(currentExp: Int) -> Double {
-        levelProgress(exp: currentExp, expPerLevel: characterExpPerLevel)
+        character.progress(for: currentExp)
     }
 
     public func farmingLevel(exp: Int) -> Int {
-        max(1, min(maxLevel, exp / farmingExpPerLevel))
+        farming.level(for: exp)
     }
 
     public func farmingProgress(exp: Int) -> Double {
-        levelProgress(exp: exp, expPerLevel: farmingExpPerLevel)
-    }
-
-    // MARK: - Private Helpers
-
-    private func levelProgress(exp: Int, expPerLevel: Int) -> Double {
-        let level = max(1, min(maxLevel, exp / expPerLevel))
-        guard level < maxLevel else { return 1.0 }
-
-        let levelStartXP = level <= 1 ? 0 : level * expPerLevel
-        let levelEndXP = (level + 1) * expPerLevel
-
-        return Double(exp - levelStartXP) / Double(levelEndXP - levelStartXP)
+        farming.progress(for: exp)
     }
 }

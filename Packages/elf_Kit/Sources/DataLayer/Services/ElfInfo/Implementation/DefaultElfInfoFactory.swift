@@ -16,6 +16,7 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
     private let attributeService: any AttributeService
     private let itemsRepository: any ItemsRepository
     private let inventoryService: any InventoryService
+    private let progressionService: any ProgressionService
 
     // MARK: - Constants
 
@@ -39,9 +40,11 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
         @Dependency(\.attributeService) var attributeService
         @Dependency(\.itemsRepository) var itemsRepository
         @Dependency(\.inventoryService) var inventoryService
+        @Dependency(\.progressionService) var progressionService
         self.attributeService = attributeService
         self.itemsRepository = itemsRepository
         self.inventoryService = inventoryService
+        self.progressionService = progressionService
     }
 
     // MARK: - Private Helpers
@@ -119,8 +122,8 @@ public final class DefaultElfInfoFactory: ElfInfoFactory {
 
         let (equipped, inventory) = createDefaultEquipment()
 
-        // Calculate currentExp for desired level
-        let currentExp = level <= 1 ? 0 : level * 100
+        // Seed currentExp so the elf lands at exactly `level` on the character curve
+        let currentExp = progressionService.totalExp(forLevel: level)
 
         return ElfInfo(
             name: aiNames.randomElement() ?? "AI",
