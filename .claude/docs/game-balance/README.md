@@ -10,6 +10,10 @@ elf RPG combat triangle (crit / def / dodge fight styles).
   document. Round-39 baseline + Session 2 refactors / decisions / scorecards.
 - **Mechanics reference:** `../attributes.md` (single source of truth on
   current code state — formulas, distributions, constants).
+- **Legacy mechanics archive:**
+  [`attributes-legacy-archive.md`](attributes-legacy-archive.md) — pre-Session-2
+  combat math, Round-39 win-rate sweeps, per-point-value tables and the original
+  EP design plan, split out of `../attributes.md` (2026-07-09). Historical only.
 
 ## Session 2 snapshots (2026-05-27 → 2026-06-01)
 

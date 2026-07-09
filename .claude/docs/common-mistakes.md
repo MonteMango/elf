@@ -149,6 +149,7 @@ let item = items.first!
 
 // ✅ Safe unwrap
 guard let item = items.first else { return }
+// or throw excwption (insted of just return)
 ```
 
 ### Combine vs async/await
