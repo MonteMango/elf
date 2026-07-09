@@ -47,23 +47,27 @@ target_surfaces: []  # filled in §4 — subset of: backend-service | web-fronte
      Never N/A — every feature inherits at least Conventions + Technical. -->
 
 **Technical.**
-- <Language + version>
-- <Framework(s) + version>
-- <Datastore(s) + version>
-- <Architecture convention — e.g. the layering style from the project convention file>
+- Swift 6.0, full Swift 6 language mode (`swiftLanguageModes: [.v6]`) — `Packages/elf_Kit/Package.swift`
+- iOS 18+ (`.iOS(.v18)` across all three `Package.swift`), **landscape-only**
+- SwiftUI 100% — `@Observable` + `@MainActor`, `NavigationStack`
+- async/await + actors — no Combine
+- [swift-dependencies](https://github.com/pointfreeco/swift-dependencies) (Point-Free) 1.4.0+
+- Architecture convention: strict one-directional module graph `elf → elf_iOS → {elf_Kit, elf_SwiftUI}`; `elf_Kit` UI-agnostic, `elf_SwiftUI` has zero dependencies
 
 **Organisational.**
-- <Effort budget — e.g. 3 person-weeks>
-- <Deadline — e.g. 2026-Q3 hard>
-- <Team composition>
+- No hard deadline — early active development; effort not sprint-boxed
+- Solo developer (Vitalii Lytvynov) — no team coordination overhead
+- Consequence for scope: §4/§5 may target the full delegation reshape of all three god-objects in one pass rather than an incremental multi-PR rollout, since there is no time pressure forcing a partial cut
 
 **Conventions.**
-- <Link to the project's convention file>
-- <Naming, ID strategy, error-handling pattern>
+- `CLAUDE.md` (Code Rules: no `static`; Save/Persistence Policy — no save-format migrations pre-ship) + `.claude/docs/{project-architecture,dependency-injection,persistence-patterns,model-organization,type-driven-design}.md`
+- ID strategy: `TypedID<Tag>` phantom types — `Packages/elf_Kit/Sources/DataLayer/Model/Shared/TypedID.swift`
+- DI pattern: `{Service}+Dependency.swift` (`DependencyKey` + `liveValue` = concrete impl), roots registered once in `prepareDependencies { }` — `Packages/elf_iOS/Sources/DependencyInjection/DependencyBootstrap.swift:24`
+- Error handling: domain `Error, LocalizedError` enums with an `errorDescription` per case — `Packages/elf_Kit/Sources/DataLayer/Persistence/Model/GameSaveError.swift`
 
 **Regulatory / external.**
-- <e.g. data-retention / deletion behaviour per ADR-NNNN>
-- <e.g. applicable compliance controls, or N/A with a reason>
+- N/A — offline single-user game; no PII, no network surface, no auth boundary (spec §6.1).
+- Save-migration policy (CLAUDE.md §Save/Persistence): no migrations while pre-ship — `Game`/`GameSaveData` shape changes freely, dev saves are wiped between runs. This removes migration risk from the mutator-extraction work: internal session state can be reshaped without save-format versioning.
 
 ## 3. Context and scope
 
