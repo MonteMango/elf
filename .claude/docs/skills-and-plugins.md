@@ -4,7 +4,7 @@
 Сведения физически разнесены по нескольким механизмам (см. ниже) — этот файл собирает их в одну картину.
 
 > Обновлять этот файл при подключении/отключении скилов вручную — Claude Code его не генерирует.
-> Актуально на: sdd 1.16.0, swiftui-expert 4.0.0, swift-concurrency 2.1.1.
+> Актуально на: sdd 1.16.0, swiftui-expert 4.0.0, swift-concurrency 2.1.1, claude-md-management 1.0.0.
 
 ---
 
@@ -18,6 +18,7 @@
 | **swift-testing-expert** | плагин | проектный | 1.2.0 | ✅ |
 | **rocketsim** | плагин | проектный | 1.0.0 | ✅ |
 | **swift-lsp** | плагин | глобальный | 1.0.0 | ❌ (ручное) |
+| **claude-md-management** (скил `claude-md-improver` + `/revise-claude-md`) | плагин | глобальный | 1.0.0 | ❌ (ручное) |
 | **swiftui-performance-audit** | standalone-скил | проектный | — | ❌ (переустановка) |
 | **leonardo-ai-prompts** | локальный скил | проектный | — | — (свой файл) |
 | build / lint / test / review / new-screen | команды | проектный | — | — (свои файлы) |
@@ -45,6 +46,7 @@
 |---|---|---|
 | `sdd` | `genkovich/sdd` | Spec-Driven Development: весь набор `sdd:*` (см. ниже) + агенты + дашборд + MCP-сервер |
 | `swift-lsp` | `anthropics/claude-plugins-official` | Swift Language Server (навигация/диагностика по коду) |
+| `claude-md-management` | `anthropics/claude-plugins-official` | аудит и улучшение `CLAUDE.md`: скил `claude-md-improver` (оценка A–F + точечные правки) и команда `/revise-claude-md` (внести learnings сессии). Официальный от Anthropic |
 | `career-ops` | локальная директория | ~20 скилов для резюме — **выключены** через `skillOverrides` в проекте |
 
 ### Скилы внутри плагина `sdd`
@@ -122,8 +124,8 @@ implement · fix · review · ship · start
 
 - **Автообновляемые** (`sdd`, `swiftui-expert`, `swift-concurrency`, `swift-testing-expert`,
   `rocketsim`): подтягиваются сами при старте сессии, когда в репо-источнике выходит новая версия.
-- **Ручные** (`swift-lsp`, `swiftui-performance-audit`): обновлять через `/plugin` → Update
-  либо переустановкой скила из источника.
+- **Ручные** (`swift-lsp`, `claude-md-management`, `swiftui-performance-audit`): обновлять через
+  `/plugin` → Update либо переустановкой скила из источника.
 - Форсировать проверку плагина раньше: `/plugin` → выбрать плагин → Update.
 
 ---
