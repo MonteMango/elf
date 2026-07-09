@@ -21,21 +21,20 @@ target_surfaces: []  # filled in §4 — subset of: backend-service | web-fronte
      ¶4 is the override slot — critic `Override` resolutions emit «Decision override: <headline>
      — rationale: <reason>» bullets here so downstream skills see the deliberate choice. -->
 
-**Intent.** <One paragraph from spec §2 Goals — what we're building and for whom.>
+**Intent.** Elfy's codebase is strong but uneven: outstanding patterns (invariant-bearing value types, auto-composing DI, project-wide typed IDs) sit next to a lagging floor — a session god-object (`GameSession`, 251→564 LOC after one feature bolt-on), a second god-object (`DungeonSession`, 365 LOC) and the largest ViewModel (`BattleFightViewModel`, 422 LOC); navigation routes carrying whole domain models behind ~72 hand-written equality lines; ViewModel/service logging that bypasses the project's own logger abstraction via raw `print` (9 confirmed sites across 4 files, re-verified 2026-07-09 — see §11); and three near-duplicate inventory-add methods. This feature raises the floor to the ceiling through a strictly behaviour-neutral consistency-and-surgery bundle — no new SPM module, no feature rewrite — for the sole beneficiary: the Developer/Maintainer who has to find, read, and safely extend this code.
 
 **Top-3 quality goals (1-liners; full scenarios in §10):**
 
-1. <e.g. "Availability under partial failure of a downstream module">
-2. <e.g. "Read performance for the dashboard under data-scale growth">
-3. <e.g. "Recoverability with <30 min RTO">
+1. **Consistency** — the weakest areas (logging discipline, session/VM size, navigation state) match the codebase's strongest patterns.
+2. **Self-defending consistency** — a mechanical lint guard prevents the logging regression from silently returning.
+3. **Behaviour neutrality** — the game and its existing test suite behave identically before and after every refactor.
 
 **Stakeholders.**
 
 | Role | Interest | Sign-off owner? |
 |---|---|---|
-| <author role from glossary> | <feature usage> | No |
-| <consumer role from glossary> | <read usage> | No |
-| Tech Lead | SAD approval | Yes |
+| Developer / Maintainer (Vitalii Lytvynov) | Authors, reads, and extends this code daily — the sole beneficiary of a raised floor | No |
+| Tech Lead (Vitalii Lytvynov, same person) | SAD approval | Yes |
 
 <!-- Decision overrides (¶4) — populated by the critic resolution loop, empty otherwise. -->
 
