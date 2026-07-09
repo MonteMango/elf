@@ -29,7 +29,7 @@ frontend: "SwiftUI (iOS 18, landscape-only)"
 - **DI:** [swift-dependencies](https://github.com/pointfreeco/swift-dependencies) (Point-Free) 1.4.0+
 - **Build:** `xcodebuild -scheme elf -destination 'platform=iOS Simulator,name=iPhone 17' build`
 - **Test:** `xcodebuild test -scheme elf_Kit -destination 'platform=iOS Simulator,name=iPhone 17'`
-- **Lint:** `swiftlint` (`.swiftlint.yml`) + dead-code `./scripts/periphery-scan.sh` (`.periphery.yml`)
+- **Lint:** `swiftlint` (`.swiftlint.yml`)
 
 ## C4 — system as it is
 
