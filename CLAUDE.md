@@ -14,10 +14,6 @@ xcodebuild -scheme elf -destination 'platform=iOS Simulator,name=iPhone 17 Pro' 
 
 # Tests
 xcodebuild test -scheme elf_Kit -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
-
-# Dead code detection (requires: brew install peripheryapp/periphery/periphery)
-./scripts/periphery-scan.sh              # all packages
-./scripts/periphery-scan.sh elf_Kit      # single package
 ```
 
 **Note:** Always run unit tests after making code changes to ensure nothing is broken.
