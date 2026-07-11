@@ -87,10 +87,7 @@ struct QuestScreen: View {
                 viewModel: dayStateViewModel,
                 onBack: { router.pop() },
                 onCalendarTap: {
-                    router.navigate(to: .calendar(
-                        calendar: dayStateViewModel.calendar,
-                        currentDayNumber: dayStateViewModel.currentDay.dayNumber
-                    ))
+                    router.navigate(to: .calendar)
                 }
             )
         }

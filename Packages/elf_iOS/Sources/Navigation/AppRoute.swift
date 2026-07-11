@@ -15,8 +15,8 @@ internal enum AppRoute {
 
     case mainMenu
     case characterCreation
-    case gameSession(Game, playTime: TimeInterval)
-    case calendar(calendar: [GameDay], currentDayNumber: Int)
+    case gameSession(GameID, playTime: TimeInterval)
+    case calendar
     case hunt
     case farm
     case farmActivity(FarmActivity)
@@ -41,16 +41,15 @@ extension AppRoute: Hashable {
         switch (lhs, rhs) {
         case (.mainMenu, .mainMenu),
              (.characterCreation, .characterCreation),
+             (.calendar, .calendar),
              (.hunt, .hunt),
              (.farm, .farm),
              (.craft, .craft),
              (.questList, .questList),
              (.battleSetup, .battleSetup):
             return true
-        case (.gameSession(let lhsGame, _), .gameSession(let rhsGame, _)):
-            return lhsGame.id == rhsGame.id
-        case (.calendar(let lhsCalendar, let lhsDay), .calendar(let rhsCalendar, let rhsDay)):
-            return lhsCalendar.count == rhsCalendar.count && lhsDay == rhsDay
+        case (.gameSession(let lhsId, _), .gameSession(let rhsId, _)):
+            return lhsId == rhsId
         case (.quest(let lhsId, _), .quest(let rhsId, _)):
             return lhsId == rhsId
         case (.farmActivity(let lhs), .farmActivity(let rhs)):
@@ -72,12 +71,11 @@ extension AppRoute: Hashable {
             hasher.combine("mainMenu")
         case .characterCreation:
             hasher.combine("characterCreation")
-        case .gameSession(let game, _):
+        case .gameSession(let gameId, _):
             hasher.combine("gameSession")
-            hasher.combine(game.id)
-        case .calendar(_, let currentDayNumber):
+            hasher.combine(gameId)
+        case .calendar:
             hasher.combine("calendar")
-            hasher.combine(currentDayNumber)
         case .hunt:
             hasher.combine("hunt")
         case .farm:
@@ -123,10 +121,12 @@ extension AppRoute {
             MainMenuScreen()
         case .characterCreation:
             CharacterCreationScreen()
-        case .gameSession:
-            SessionRouteView { GameDayScreen(session: $0) }
-        case .calendar(let calendar, let currentDayNumber):
-            CalendarScreen(calendar: calendar, currentDayNumber: currentDayNumber)
+        case .gameSession(let gameId, _):
+            SessionRouteView(expectedGameId: gameId) { GameDayScreen(session: $0) }
+        case .calendar:
+            SessionRouteView { session in
+                CalendarScreen(calendar: session.state.calendar, currentDayNumber: session.state.currentDay.dayNumber)
+            }
         case .hunt:
             SessionRouteView { HuntScreen(session: $0) }
         case .farm:

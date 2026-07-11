@@ -32,5 +32,15 @@ let package = Package(
             swiftSettings: [
                 .enableExperimentalFeature("DebugDescriptionMacro")
             ]),
+        .testTarget(
+            name: "elf_iOSTests",
+            dependencies: [
+                "elf_iOS",
+                "elf_Kit",
+                .product(name: "Dependencies", package: "swift-dependencies"),
+            ],
+            swiftSettings: [
+                .enableExperimentalFeature("DebugDescriptionMacro")
+            ]),
     ], swiftLanguageModes: [.v6]
 )

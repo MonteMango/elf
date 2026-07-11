@@ -1,0 +1,301 @@
+{
+  "slug": "architecture-hardening",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Capture pre-refactor performance baseline",
+      "layer": "tests",
+      "deps": [],
+      "acs": [],
+      "dod": "battle_simulation_IntegrationTests is run on the pre-change commit and its duration is recorded in tasks/tracker.md for T20's ±5% comparison.",
+      "files_hint": ["docs/features/architecture-hardening/tasks/tracker.md"]
+    },
+    {
+      "id": "T2",
+      "title": "Fix the two AC-08 documentation issues",
+      "layer": "docs",
+      "deps": [],
+      "acs": ["AC-08"],
+      "dod": "The stale DefaultGameService comment in GameStore.swift:21 is removed/corrected and CLAUDE.md's iOS 17+ platform lines (lines 4 and 50) are updated to iOS 18+ to match all three Package.swift declarations.",
+      "files_hint": ["Packages/elf_Kit/Sources/DataLayer/Sessions/GameStore.swift", "CLAUDE.md"]
+    },
+    {
+      "id": "T3",
+      "title": "Resolve persistence-layer and AppCoordinator print-site disposition",
+      "layer": "wiring",
+      "deps": [],
+      "acs": ["AC-02"],
+      "dod": "FileGameSaveStorage.swift's debugLog print( and DungeonRunRewardsSaveData.swift's 2 print( sites are dispositioned (allow-listed as persistence-layer diagnostics, per sad.md §11 risk row 1), and AppCoordinator.swift:101's print is routed through its reachable logger dependency (in-scope call per sad.md §11 risk row 2) — no site is left unresolved or silently deferred.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/DataLayer/Persistence/Implementation/FileGameSaveStorage.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Persistence/Model/DungeonRunRewardsSaveData.swift",
+        "Packages/elf_iOS/Sources/Coordinator/AppCoordinator.swift",
+        ".swiftlint.yml"
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "Route the 9 confirmed raw-print sites through the logger dependency",
+      "layer": "app",
+      "deps": [],
+      "acs": ["AC-02"],
+      "dod": "0 raw print( calls remain in CharacterCreationViewModel.swift (4 sites), GameDayViewModel.swift (3 sites), DefaultDungeonRewardCalculator.swift (1 site) and GameSession.swift:487 (1 site) — the first three gain a logger dependency (none currently injected) and all four now log via the existing debugGameLogger/debugBattleLogger abstraction; existing tests pass unchanged.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/CharacterCreation/CharacterCreationViewModel.swift",
+        "Packages/elf_Kit/Sources/UILayer/GameDay/GameDayViewModel.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Services/Dungeon/Implementation/DefaultDungeonRewardCalculator.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Sessions/GameSession.swift"
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "Add the SwiftLint raw-print custom_rules guard with the sad §8 allow-list",
+      "layer": "wiring",
+      "deps": ["T3", "T4"],
+      "acs": ["AC-02"],
+      "dod": "swiftlint --strict passes with 0 violations across the repo; a deliberately inserted print( in a non-allow-listed ViewModel/service (e.g. GameDayViewModel.swift) is blocked by the rule with a plain-language message pointing at the logger dependency, then removed after confirming.",
+      "files_hint": [".swiftlint.yml"]
+    },
+    {
+      "id": "T6",
+      "title": "DUP-1: collapse the three inventory-add methods into one core path",
+      "layer": "domain",
+      "deps": [],
+      "acs": ["AC-09"],
+      "dod": "addFishToInventory/addHerbsToInventory/addOresToInventory on GameSession share one core add path (still calling the existing injected InventoryService), each remaining a thin typed shim with its original signature at every call site; existing tests pass unchanged.",
+      "files_hint": ["Packages/elf_Kit/Sources/DataLayer/Sessions/GameSession.swift"]
+    },
+    {
+      "id": "T7",
+      "title": "Extract RewardApplicationMutator from GameSession's Battle-conclusion logic",
+      "layer": "domain",
+      "deps": [],
+      "acs": ["AC-03", "AC-04", "AC-06"],
+      "dod": "A named regression test for the AC-04 invariant #1 ordering (result computed against pre-mutation state before exp/inventory mutate) is written first and fails against the pre-extraction code path's intended guarantee is preserved; RewardApplicationMutator is a separate injected type (its own {Service}+Dependency.swift triad) with its own unit test; GameSession.concludeHuntBattle is reduced to one delegating call; existing tests pass unchanged.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/DataLayer/Sessions/GameSession.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Services/RewardApplication/"
+      ]
+    },
+    {
+      "id": "T8",
+      "title": "Extract RosterProgressionMutator from GameSession's progression logic",
+      "layer": "domain",
+      "deps": [],
+      "acs": ["AC-03", "AC-06"],
+      "dod": "addExperience/addDrops (Roster Progression MARK) and addDropsToPlayerInventory (Player Progression MARK) delegate to a separate injected RosterProgressionMutator type with its own {Service}+Dependency.swift triad and its own unit test; each GameSession method is reduced to one delegating call; existing tests pass unchanged.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/DataLayer/Sessions/GameSession.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Services/RosterProgression/"
+      ]
+    },
+    {
+      "id": "T9",
+      "title": "Verify BuffApplicationService already satisfies AC-06 and close any test gap",
+      "layer": "tests",
+      "deps": [],
+      "acs": ["AC-06"],
+      "dod": "Confirmed: BuffApplicationService (existing DI triad under Services/BuffApplication/) is the sole domain-rule owner for GameSession.applyGlobalBuffToPlayer/applyGlobalBuff and BattleFightViewModel.applyBattleBuff, each already a one-line delegating call; its own unit test exists and covers both call paths (added if missing); an explicit call is recorded on BattleFightViewModel.rescaleCurrentVitals — stays inline (vitals rescaling, not the buff-application domain rule) rather than requiring extraction.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/DataLayer/Services/BuffApplication/",
+        "Packages/elf_Kit/Sources/DataLayer/Sessions/GameSession.swift",
+        "Packages/elf_Kit/Sources/UILayer/BattleFight/BattleFightViewModel.swift"
+      ]
+    },
+    {
+      "id": "T10",
+      "title": "Extract DayCycleMutator from GameSession's Day Management logic",
+      "layer": "domain",
+      "deps": [],
+      "acs": ["AC-03", "AC-06"],
+      "dod": "advanceToNextDay (AP reset, buff expiry) delegates to a separate injected DayCycleMutator type with its own {Service}+Dependency.swift triad and its own unit test; GameSession.advanceToNextDay is reduced to one delegating call; existing tests pass unchanged.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/DataLayer/Sessions/GameSession.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Services/DayCycle/"
+      ]
+    },
+    {
+      "id": "T11",
+      "title": "Extract DungeonLifecycleMutator from GameSession's Dungeon Session Lifecycle logic",
+      "layer": "domain",
+      "deps": [],
+      "acs": ["AC-03", "AC-06"],
+      "dod": "startDungeonSession/releaseDungeonSession/flushRewards/bankDungeonRewardsOnDeath/finishDungeonRun/discardDungeonRun delegate to a separate injected DungeonLifecycleMutator type with its own {Service}+Dependency.swift triad and its own unit test; each GameSession method is reduced to one delegating call; existing tests pass unchanged.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/DataLayer/Sessions/GameSession.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Services/DungeonLifecycle/"
+      ]
+    },
+    {
+      "id": "T12",
+      "title": "Extract WorldTurnMutator and run GameSession orchestrator convergence check",
+      "layer": "domain",
+      "deps": ["T6", "T7", "T8", "T9", "T10", "T11"],
+      "acs": ["AC-03", "AC-04", "AC-06"],
+      "dod": "A named regression test for the AC-04 invariant #2 roster-reshuffle guard (applyWorldTurn verifies each target elf's id still matches its expected roster slot before mutating) is written first; applyWorldTurn delegates to a separate injected WorldTurnMutator with its own {Service}+Dependency.swift triad and its own unit test; GameSession is re-read end-to-end to confirm it contains no remaining inline domain-rule mutation (Equipment/Crafting/Persistence stay inline as intentional exceptions per ADR-0002) and every AC-06 delegation is real (separate type, own test, one-line facade call) rather than logic moved into more extension files; existing tests pass unchanged.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/DataLayer/Sessions/GameSession.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Services/WorldTurn/"
+      ]
+    },
+    {
+      "id": "T13",
+      "title": "Extract RunProgressionMutator from DungeonSession",
+      "layer": "domain",
+      "deps": [],
+      "acs": ["AC-03", "AC-06"],
+      "dod": "beginRun/restoreQuarter/apply/moveSquadToNextRoom delegate to a separate injected RunProgressionMutator type with its own {Service}+Dependency.swift triad and its own unit test; each DungeonSession method is reduced to one delegating call; existing tests pass unchanged.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/DataLayer/Sessions/DungeonSession.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Services/RunProgression/"
+      ]
+    },
+    {
+      "id": "T14",
+      "title": "Extract RoomBattleRewardMutator and run DungeonSession orchestrator convergence check",
+      "layer": "domain",
+      "deps": ["T13"],
+      "acs": ["AC-03", "AC-06"],
+      "dod": "concludeRoomBattle/applyBattleOutcome/clearPendingRewards delegate to a separate injected RoomBattleRewardMutator with its own {Service}+Dependency.swift triad and its own unit test; DungeonSession is re-read end-to-end to confirm no remaining inline domain-rule mutation (Persistence stays inline per ADR-0002) and both extracted mutators pass AC-06's real-delegation check; existing tests pass unchanged.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/DataLayer/Sessions/DungeonSession.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Services/RoomBattleReward/"
+      ]
+    },
+    {
+      "id": "T15",
+      "title": "Extract RoundExecutionMutator from BattleFightViewModel",
+      "layer": "domain",
+      "deps": [],
+      "acs": ["AC-03", "AC-06"],
+      "dod": "executeFightRound/executeWatchUntilEnd/runRound/determineBattleOutcome delegate to a separate injected RoundExecutionMutator type with its own {Service}+Dependency.swift triad and its own unit test; each BattleFightViewModel method is reduced to one delegating call; existing tests (incl. BattleFightViewModelTests) pass unchanged.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/BattleFight/BattleFightViewModel.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Services/RoundExecution/"
+      ]
+    },
+    {
+      "id": "T16",
+      "title": "Extract DuelPairingMutator from BattleFightViewModel",
+      "layer": "domain",
+      "deps": [],
+      "acs": ["AC-03", "AC-06"],
+      "dod": "generateNewRoundPairings delegates to a separate injected DuelPairingMutator type with its own {Service}+Dependency.swift triad and its own unit test; BattleFightViewModel.generateNewRoundPairings is reduced to one delegating call; existing tests pass unchanged.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/BattleFight/BattleFightViewModel.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Services/DuelPairing/"
+      ]
+    },
+    {
+      "id": "T17",
+      "title": "Split BattleFightViewModel+Display and run BattleFightViewModel orchestrator convergence check",
+      "layer": "ui",
+      "deps": ["T9", "T15", "T16"],
+      "acs": ["AC-06"],
+      "dod": "Pure display/formatting derivations move into a new BattleFightViewModel+Display.swift extension (the InventoryViewModel+DisplayItems precedent) — never a domain-mutation home; BattleFightViewModel is re-read end-to-end to confirm no remaining inline domain-rule mutation (Player Actions/Data Loading stay inline per ADR-0002) and every AC-06 delegation is real; existing tests pass unchanged.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/BattleFight/BattleFightViewModel.swift",
+        "Packages/elf_Kit/Sources/UILayer/BattleFight/BattleFightViewModel+Display.swift"
+      ]
+    },
+    {
+      "id": "T18",
+      "title": "Convert AppRoute.gameSession to a GameID payload with destination-side resolution",
+      "layer": "ui",
+      "deps": [],
+      "acs": ["AC-05", "AC-07"],
+      "dod": "AppRoute.gameSession carries GameID instead of Game; its hand-written Equatable/Hashable case is removed (synthesized Hashable on GameID matches the prior Game.id-based comparison exactly); the destination screen resolves Game from the active session by GameID via SessionRouteView, and silently pops back to the previous screen when the GameID no longer matches the active session instead of crashing; existing navigation behaviour for push/pop/re-push is unchanged.",
+      "files_hint": [
+        "Packages/elf_iOS/Sources/Navigation/AppRoute.swift",
+        "Packages/elf_iOS/Sources/Navigation/RouteViews/SessionRouteView.swift",
+        "Packages/elf_iOS/Sources/Screens/GameDayScreen/GameDayScreen.swift"
+      ]
+    },
+    {
+      "id": "T19",
+      "title": "Convert AppRoute.calendar to a zero-payload case with destination-side resolution",
+      "layer": "ui",
+      "deps": [],
+      "acs": ["AC-05", "AC-07"],
+      "dod": "AppRoute.calendar becomes a zero-payload case; its hand-written Equatable/Hashable case is removed (a payload-less case is always equal to itself, matching the prior always-dedup behaviour since all current push sites pass the session's own current calendar/day); the destination screen resolves the calendar and current day directly from the session via the same SessionRouteView pattern used by .hunt/.farm/.craft/.questList; existing navigation behaviour for push/pop/re-push is unchanged.",
+      "files_hint": [
+        "Packages/elf_iOS/Sources/Navigation/AppRoute.swift",
+        "Packages/elf_iOS/Sources/Navigation/RouteViews/SessionRouteView.swift"
+      ]
+    },
+    {
+      "id": "T20",
+      "title": "Final gate: build, test, lint and performance-regression check",
+      "layer": "tests",
+      "deps": ["T1", "T2", "T5", "T12", "T14", "T17", "T18", "T19"],
+      "acs": ["AC-01", "AC-03"],
+      "dod": "xcodebuild -scheme elf build: 0 errors, 0 new warnings; xcodebuild test -scheme elf_Kit: 100% of existing tests pass (≥420 per sad.md §10 QG-3's re-verified count); swiftlint --strict: 0 violations; battle_simulation_IntegrationTests duration is within ±5% of the T1 baseline.",
+      "files_hint": ["docs/features/architecture-hardening/tasks/tracker.md"]
+    },
+    {
+      "id": "T21",
+      "title": "Review finding #1: extract VitalsRescaleMutator from BattleFightViewModel, drop static",
+      "layer": "domain",
+      "deps": [],
+      "acs": ["AC-06"],
+      "dod": "BattleFightViewModel.rescaleCurrentVitals/scaledVital (proportional HP/MP rescale on buff-cap shift) is extracted into a separate injected VitalsRescaleMutator type with its own {Service}+Dependency.swift triad and its own unit test (the 8 existing scaledVital edge cases move to it); scaledVital is no longer static anywhere; applyBattleBuff's vitals-rescale reduces to one delegating call per team; a real-delegation test proves it; existing tests pass unchanged.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/BattleFight/BattleFightViewModel.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Services/VitalsRescale/",
+        "Packages/elf_Kit/Tests/elf_KitTests/UILayer/BattleFight/BattleFightViewModelTests.swift"
+      ]
+    },
+    {
+      "id": "T22",
+      "title": "Review finding #2: add facade-level AC-04 invariant #1 regression test",
+      "layer": "tests",
+      "deps": [],
+      "acs": ["AC-04"],
+      "dod": "A new facade-level test drives GameSession.concludeHuntBattle through the real DefaultRewardApplicationMutator + real DefaultBattleResultCalculator (not spies), with a monster-bearing battle producing non-zero experience, and asserts the reported previousExp equals the pre-call starting currentExp — genuinely fails if concludeHuntBattle's read-before-mutate ordering is reversed; existing tests pass unchanged.",
+      "files_hint": [
+        "Packages/elf_Kit/Tests/elf_KitTests/DataLayer/Sessions/GameSession_RewardApplicationDelegationTests.swift"
+      ]
+    },
+    {
+      "id": "T23",
+      "title": "Review finding #3: tighten GameStore.player to public internal(set)",
+      "layer": "wiring",
+      "deps": [],
+      "acs": ["AC-03"],
+      "dod": "GameStore.player's setter access is narrowed from public to internal (public internal(set) var player), matching currentDay/calendar/houses/actionPoints; confirmed no elf_iOS call site writes through player directly (read-only); a source-content test pins the internal(set) declaration; existing tests pass unchanged.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/DataLayer/Sessions/GameStore.swift"
+      ]
+    },
+    {
+      "id": "T24",
+      "title": "Review finding #7: add logDebug for non-error traces, unify #if DEBUG guard at the sink",
+      "layer": "app",
+      "deps": [],
+      "acs": ["AC-02"],
+      "dod": "DebugGameLogger gains logDebug(_:) for non-error informational traces (Console/NoOp impls added); CharacterCreationViewModel.swift:222's success trace and GameDayViewModel.swift:96,107,179's UI-tap traces move from logError to logDebug; the #if DEBUG guard moves into ConsoleDebugGameLogger's logError/logDebug bodies (sink-side), and the now-redundant call-site guards at GameSession.swift:437 and DefaultDungeonRewardCalculator.swift:29 are removed; both protocol doc comments state the sink gates DEBUG output so callers don't need to; existing tests pass unchanged, LoggerRoutingTests extended to cover the new method.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/DataLayer/Services/Logging/DebugGameLogger.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Services/Logging/Implementation/ConsoleDebugGameLogger.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Services/Logging/Implementation/NoOpDebugGameLogger.swift",
+        "Packages/elf_Kit/Sources/UILayer/CharacterCreation/CharacterCreationViewModel.swift",
+        "Packages/elf_Kit/Sources/UILayer/GameDay/GameDayViewModel.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Sessions/GameSession.swift",
+        "Packages/elf_Kit/Sources/DataLayer/Services/Dungeon/Implementation/DefaultDungeonRewardCalculator.swift",
+        "Packages/elf_Kit/Tests/elf_KitTests/Architecture/LoggerRoutingTests.swift"
+      ]
+    },
+    {
+      "id": "T25",
+      "title": "Review finding: add automated test coverage for AC-05's route-resolution behavior",
+      "layer": "ui",
+      "deps": [],
+      "acs": ["AC-05"],
+      "dod": "SessionRouteView's expectedGameId match/mismatch decision (SessionRouteView.swift:33-43) is extracted into a pure, unit-testable helper (no SwiftUI view-hosting harness exists in Packages/elf_iOS/Tests today, so the decision logic — not the View body — is what gets tested); new tests in Packages/elf_iOS/Tests/elf_iOSTests/ cover: (a) matching GameID resolves/renders, (b) a stale/non-matching GameID triggers pop-back per AC-05's 'silently pops back to the previous screen' Then-clause, (c) .calendar resolves calendar + current day directly from the session; existing tests (incl. AppRouteTests) pass unchanged; matches test-plan.md's AC-05 Component-level requirement.",
+      "files_hint": [
+        "Packages/elf_iOS/Sources/Navigation/RouteViews/SessionRouteView.swift",
+        "Packages/elf_iOS/Tests/elf_iOSTests/"
+      ]
+    }
+  ]
+}

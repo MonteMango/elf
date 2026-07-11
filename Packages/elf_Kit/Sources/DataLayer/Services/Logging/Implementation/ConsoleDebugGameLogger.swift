@@ -53,6 +53,18 @@ public final class ConsoleDebugGameLogger: DebugGameLogger {
         print("💾 ================================\n")
     }
 
+    public func logError(_ message: String) {
+        #if DEBUG
+        print("⚠️ \(message)")
+        #endif
+    }
+
+    public func logDebug(_ message: String) {
+        #if DEBUG
+        print("ℹ️ \(message)")
+        #endif
+    }
+
     public func logWorldTurn(_ outcome: WorldTurnOutcome) {
         guard categories.contains(.worldTurn) else { return }
 

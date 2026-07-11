@@ -35,10 +35,13 @@ public final class AppCoordinator {
     /// so the runner is stable for the coordinator's lifetime. `liveValue` is always
     /// available (not async-loaded), so reading it pre-`DependencyBootstrap` is safe.
     private let backgroundTaskRunner: any BackgroundTaskRunner
+    private let debugGameLogger: any DebugGameLogger
 
     public init() {
         @Dependency(\.backgroundTaskRunner) var backgroundTaskRunner
+        @Dependency(\.debugGameLogger) var debugGameLogger
         self.backgroundTaskRunner = backgroundTaskRunner
+        self.debugGameLogger = debugGameLogger
     }
 
     // MARK: - Session Lifecycle
@@ -98,7 +101,7 @@ public final class AppCoordinator {
                 try await session.save()
             } catch {
                 #if DEBUG
-                print("[AppCoordinator] Background save failed: \(error)")
+                self.debugGameLogger.logError("[AppCoordinator] Background save failed: \(error)")
                 #endif
             }
         }

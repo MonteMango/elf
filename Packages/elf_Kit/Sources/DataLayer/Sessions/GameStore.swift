@@ -18,9 +18,9 @@ import Observation
 /// writes it back via `snapshot()` (also trivial — no per-elf mapping).
 ///
 /// Mutations are restricted to the same module — the public surface is
-/// read-only. `DefaultGameService` (mutator) and `GameSession` (facade) live
-/// inside `elf_Kit` so they have `internal(set)` access; views in `elf_iOS`
-/// only read. `player` is a settable computed accessor that writes back into
+/// read-only. `GameSession` (mutator/facade) lives inside `elf_Kit` so it has
+/// `internal(set)` access; views in `elf_iOS` only read. `player` is an
+/// `internal(set)` computed accessor that writes back into
 /// `houses[playerHouseIndex].members[playerMemberIndex]`.
 @MainActor
 @Observable
@@ -39,13 +39,15 @@ public final class GameStore {
     public internal(set) var houses: [House]
     public internal(set) var playTime: TimeInterval
 
-    /// Settable computed accessor for the player elf. Reads return a value
-    /// copy of `houses[playerHouseIndex].members[playerMemberIndex]`; writes
-    /// (including `store.player.X = Y` and `store.player.currentExp += n`,
+    /// Computed accessor for the player elf. Reads return a value copy of
+    /// `houses[playerHouseIndex].members[playerMemberIndex]`; writes
+    /// (including `state.player.X = Y` and `state.player.currentExp += n`,
     /// which Swift expands to read-modify-write through this property) flow
     /// back into the same slot, triggering `@Observable` invalidation on
-    /// `houses`.
-    public var player: ElfInfo {
+    /// `houses`. The setter is `internal` — same module as `GameSession`, the
+    /// sole mutator — so `elf_iOS` can only read, matching
+    /// `currentDay`/`calendar`/`houses`/`actionPoints`.
+    public internal(set) var player: ElfInfo {
         get { houses[playerHouseIndex].members[playerMemberIndex] }
         set { houses[playerHouseIndex].members[playerMemberIndex] = newValue }
     }

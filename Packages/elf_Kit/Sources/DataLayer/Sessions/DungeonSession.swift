@@ -26,6 +26,8 @@ public final class DungeonSession {
     // MARK: - Dependencies
 
     private let dungeonRepository: any DungeonRepository
+    private let runProgressionMutator: any RunProgressionMutator
+    private let roomBattleRewardMutator: any RoomBattleRewardMutator
 
     /// Read-only access to the parent game-level state (player, houses).
     /// Future phases will add mutator references when dungeon mutations land.
@@ -61,7 +63,11 @@ public final class DungeonSession {
 
     public init(gameStore: GameStore, dungeonId: DungeonID, allyIds: [ElfID]) {
         @Dependency(\.dungeonRepository) var dungeonRepository
+        @Dependency(\.runProgressionMutator) var runProgressionMutator
+        @Dependency(\.roomBattleRewardMutator) var roomBattleRewardMutator
         self.dungeonRepository = dungeonRepository
+        self.runProgressionMutator = runProgressionMutator
+        self.roomBattleRewardMutator = roomBattleRewardMutator
         self.gameStore = gameStore
         self.dungeonId = dungeonId
         self.allyIds = allyIds
@@ -138,26 +144,19 @@ public final class DungeonSession {
     /// HP/MP reserves. Called once the entrance transition overlay completes.
     public func beginRun() {
         guard let entry = dungeon?.entryRoomIds.first else { return }
-        var locations: [ElfID: DungeonRoomID] = [heroId: entry]
-        for allyId in allyIds { locations[allyId] = entry }
-        elfLocations = locations
-
-        var vitals: [ElfID: DungeonElfVitals] = [:]
-        for elf in squadElves() {
-            vitals[elf.id] = DungeonElfVitals(hp: Int(elf.maxHP), mp: Int(elf.maxMP))
-        }
-        roomVitals = vitals
+        let result = runProgressionMutator.beginRun(
+            entryRoomId: entry,
+            heroId: heroId,
+            allyIds: allyIds,
+            squadElves: squadElves()
+        )
+        (elfLocations, roomVitals) = (result.elfLocations, result.roomVitals)
     }
 
     /// Restores 25% of max HP/MP to every *living* squad member (downed members
     /// stay down — no revive). Used during the room-to-room transition.
     public func restoreQuarter() {
-        updateLivingVitals { elf, vitals in
-            let maxHP = Int(elf.maxHP)
-            let maxMP = Int(elf.maxMP)
-            vitals.hp = min(maxHP, vitals.hp + maxHP / 4)
-            vitals.mp = min(maxMP, vitals.mp + maxMP / 4)
-        }
+        roomVitals = runProgressionMutator.restoreQuarter(squadElves: squadElves(), roomVitals: roomVitals)
     }
 
     /// Applies a resolved `SpecialEvent` outcome to the run. `DungeonSession`
@@ -165,30 +164,14 @@ public final class DungeonSession {
     /// lives in `SpecialEventResolver`. Restores apply to living members only —
     /// no revive (consistent with `restoreQuarter`).
     public func apply(_ outcome: DungeonEventOutcome) {
-        switch outcome.restore {
-        case .full:
-            updateLivingVitals { elf, vitals in
-                vitals.hp = Int(elf.maxHP)
-                vitals.mp = Int(elf.maxMP)
-            }
-        case nil:
-            break
-        }
-        if outcome.clearsRoom, let room = currentRoom {
-            clearedRoomIds.insert(room.id)
-        }
-    }
-
-    /// Applies `transform` to each *living* member's vitals (downed members,
-    /// `hp <= 0`, are skipped — no revive). Shared by `restoreQuarter` and
-    /// `apply(_:)`.
-    private func updateLivingVitals(_ transform: (ElfInfo, inout DungeonElfVitals) -> Void) {
-        let byId = Dictionary(squadElves().map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-        for id in Array(roomVitals.keys) {
-            guard var vitals = roomVitals[id], vitals.hp > 0, let elf = byId[id] else { continue }
-            transform(elf, &vitals)
-            roomVitals[id] = vitals
-        }
+        let result = runProgressionMutator.apply(
+            outcome,
+            squadElves: squadElves(),
+            roomVitals: roomVitals,
+            currentRoomId: currentRoom?.id,
+            clearedRoomIds: clearedRoomIds
+        )
+        (roomVitals, clearedRoomIds) = (result.roomVitals, result.clearedRoomIds)
     }
 
     // MARK: - Persistence
@@ -261,10 +244,10 @@ public final class DungeonSession {
     /// Moves the whole squad into the current room's first next room (linear
     /// path). No-op on a final room.
     public func moveSquadToNextRoom() {
-        guard let next = currentRoom?.nextRoomIds.first else { return }
-        var locations: [ElfID: DungeonRoomID] = [:]
-        for id in elfLocations.keys { locations[id] = next }
-        elfLocations = locations
+        elfLocations = runProgressionMutator.moveSquadToNextRoom(
+            nextRoomId: currentRoom?.nextRoomIds.first,
+            elfLocations: elfLocations
+        )
     }
 }
 
@@ -286,56 +269,27 @@ extension DungeonSession {
         outcome: BattleOutcome,
         finalLeftTeam: [CombatantSnapshot]
     ) -> ManualBattleResult {
-        // Resolved lazily (not in init) so constructing a DungeonSession doesn't
-        // eagerly pull these live-only deps — keeps existing tests/flows clean.
-        @Dependency(\.dungeonRewardCalculator) var dungeonRewardCalculator
-        @Dependency(\.dropService) var dropService
-        @Dependency(\.progressionService) var progressionService
-
-        // Capture before applyBattleOutcome mutates clearedRoomIds, so we accrue
-        // a room's rewards exactly once (only on its first clear).
+        // Capture before applyBattleOutcome mutates clearedRoomIds, so the
+        // mutator accrues a room's rewards exactly once (only on its first
+        // clear).
         let roomBeforeClear = currentRoom
         let wasAlreadyCleared = isCurrentRoomCleared
-        let bankedExpBefore = pendingRewards.experience
 
         applyBattleOutcome(finalLeftTeam: finalLeftTeam, outcome: outcome)
 
         // A room win earns its rewards whether or not the hero survived the final
         // blow — if the squad cleared the enemies (`.victory`), the loot is owed.
         // A downed hero still ends the run (from the result screen), but the
-        // rewards are banked and flushed on the way out. Roll once and reuse the
-        // same instances for ledger + overlay (the roll uses RNG, never twice).
-        var roomRewards: [HuntRewards] = []
-        if outcome == .victory, !wasAlreadyCleared, let room = roomBeforeClear {
-            roomRewards = dungeonRewardCalculator.roomRewards(monsters: room.kind.monsters)
-            for reward in roomRewards {
-                pendingRewards.accrue(reward)
-            }
-        }
-
-        // Cumulative XP bar: animate from the player's real XP plus everything
-        // banked in earlier rooms, up by this room's gain. The ledger isn't
-        // flushed to the player until the run ends, so the base is read live.
-        let previousExp = gameStore.player.currentExp + bankedExpBefore
-        let roomExperience = pendingRewards.experience - bankedExpBefore
-        let transition = progressionService.experienceTransition(
-            previousExp: previousExp,
-            gained: roomExperience
-        )
-
-        let drops = roomRewards.flatMap {
-            dropService.convertToDropItems(rewards: $0, didWin: outcome == .victory)
-        }
-
-        return ManualBattleResult(
+        // rewards are banked and flushed on the way out.
+        let result = roomBattleRewardMutator.concludeRoomBattle(
             outcome: outcome,
-            experienceGained: roomExperience,
-            drops: drops,
-            // Drops are flushed from the run ledger on exit (not from this result),
-            // so leave huntRewards nil to avoid any double-application downstream.
-            huntRewards: nil,
-            transition: transition
+            room: roomBeforeClear,
+            wasAlreadyCleared: wasAlreadyCleared,
+            pendingRewards: pendingRewards,
+            playerCurrentExp: gameStore.player.currentExp
         )
+        pendingRewards = result.pendingRewards
+        return result.manualBattleResult
     }
 
     /// Folds a finished room battle back into the run: writes each elf's
@@ -344,22 +298,20 @@ extension DungeonSession {
     /// (the room is genuinely cleared; the run still ends from the Game Day side).
     /// A defeat/draw leaves the room uncleared. Called by `concludeRoomBattle`.
     public func applyBattleOutcome(finalLeftTeam: [CombatantSnapshot], outcome: BattleOutcome) {
-        for snapshot in finalLeftTeam {
-            guard case .elf(let elfId) = snapshot.source else { continue }
-            roomVitals[elfId] = DungeonElfVitals(
-                hp: max(0, snapshot.currentHP),
-                mp: max(0, snapshot.currentMP)
-            )
-        }
-        if outcome == .victory, let room = currentRoom {
-            clearedRoomIds.insert(room.id)
-        }
+        let result = roomBattleRewardMutator.applyBattleOutcome(
+            finalLeftTeam: finalLeftTeam,
+            outcome: outcome,
+            currentRoomId: currentRoom?.id,
+            roomVitals: roomVitals,
+            clearedRoomIds: clearedRoomIds
+        )
+        (roomVitals, clearedRoomIds) = (result.roomVitals, result.clearedRoomIds)
     }
 
     /// Empties the run reward ledger after it has been flushed into the player.
     /// Keeps the flush idempotent: a second flush (e.g. `finishDungeonRun` after a
     /// death-time bank) then grants nothing.
     public func clearPendingRewards() {
-        pendingRewards = .empty
+        pendingRewards = roomBattleRewardMutator.clearPendingRewards()
     }
 }

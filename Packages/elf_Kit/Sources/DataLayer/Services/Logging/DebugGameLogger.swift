@@ -29,4 +29,19 @@ public protocol DebugGameLogger: Sendable {
     ///
     /// - Parameter outcome: The combined result of every bot's turn.
     func logWorldTurn(_ outcome: WorldTurnOutcome)
+
+    /// Logs a one-off diagnostic error message (e.g. a swallowed background
+    /// save failure). The console implementation compiles its output out
+    /// entirely in non-DEBUG builds — callers do not need to gate the call
+    /// themselves.
+    ///
+    /// - Parameter message: The error message to log.
+    func logError(_ message: String)
+
+    /// Logs a one-off diagnostic informational message (e.g. a UI action
+    /// trace, a non-error lifecycle event) — same DEBUG-only output policy as
+    /// `logError`, without the error-severity framing.
+    ///
+    /// - Parameter message: The message to log.
+    func logDebug(_ message: String)
 }

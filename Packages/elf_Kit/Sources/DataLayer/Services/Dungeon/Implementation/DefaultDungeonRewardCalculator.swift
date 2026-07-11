@@ -18,6 +18,7 @@ public struct DefaultDungeonRewardCalculator: DungeonRewardCalculator {
         // of the hunt/monster dependency chain.
         @Dependency(\.huntService) var huntService
         @Dependency(\.monsterRepository) var monsterRepository
+        @Dependency(\.debugGameLogger) var debugGameLogger
 
         var rewards: [HuntRewards] = []
         for ref in monsters {
@@ -25,9 +26,7 @@ public struct DefaultDungeonRewardCalculator: DungeonRewardCalculator {
             // definition) is skipped with a log rather than vanishing silently —
             // mirrors `DungeonRunRewardsSaveData.toRewards` on the banked-drop side.
             guard let monster = monsterRepository.getById(id: ref.monsterId) else {
-                #if DEBUG
-                print("[DungeonRewardCalculator] monster \(ref.monsterId) no longer resolves — skipped")
-                #endif
+                debugGameLogger.logError("[DungeonRewardCalculator] monster \(ref.monsterId) no longer resolves — skipped")
                 continue
             }
             for _ in 0..<max(1, ref.count) {

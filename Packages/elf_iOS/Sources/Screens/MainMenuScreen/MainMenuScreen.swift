@@ -57,7 +57,7 @@ struct MainMenuScreen: View {
                     playTime: viewModel.loadedPlayTime,
                     dungeonRun: viewModel.loadedDungeonRun
                 )
-                router.navigate(to: .gameSession(game, playTime: viewModel.loadedPlayTime))
+                router.navigate(to: .gameSession(game.id, playTime: viewModel.loadedPlayTime))
                 // Resume into the dungeon room if the save had a valid run.
                 // The coordinator owns the "which route to resume" decision.
                 if let resumeRoute = coordinator.resumeRoute {

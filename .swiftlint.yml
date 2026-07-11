@@ -1,5 +1,13 @@
 # SwiftLint Configuration for Elfy Project
 
+# Logging allow-list groundwork (architecture-hardening T3, sad.md §11 risk row 1):
+# these two persistence-layer print sites don't fit any allow-list category from
+# sad.md §8 (not a logger implementation, not a leaf/dev-only/diagnostics module) —
+# extending the allow-list to cover them is the T3 decision. The custom_rules entry
+# itself (ADR-0004) is wired in T5; these paths are recorded here for it to consume:
+#   - Packages/elf_Kit/Sources/DataLayer/Persistence/Implementation/FileGameSaveStorage.swift
+#   - Packages/elf_Kit/Sources/DataLayer/Persistence/Model/DungeonRunRewardsSaveData.swift
+
 # Excluded paths from linting
 excluded:
   - "**/.build"              # SPM build folders in all packages
@@ -22,6 +30,29 @@ opt_in_rules:
   - empty_string             # Prefer .isEmpty over == ""
   - force_unwrapping         # Warn about force unwrap (!)
   - sorted_imports           # Keep imports alphabetically sorted
+
+# Raw `print(` guard (architecture-hardening T5, ADR-0004, sad.md §8): ViewModels/services
+# must log through @Dependency(\.debugGameLogger) / \.debugBattleLogger instead of raw print.
+# The allow-list below is sad.md §8 plus T3's two persistence-layer additions (see header comment).
+custom_rules:
+  raw_print_banned:
+    name: "Raw print( banned"
+    regex: "(?<!Self\\.|Swift\\.)\\bprint\\("
+    match_kinds:
+      - identifier
+    message: "Don't call print( directly — route logging through the injected logger dependency (@Dependency(\\.debugGameLogger) or \\.debugBattleLogger) instead."
+    severity: error
+    included:
+      - ".*\\.swift"
+    excluded:
+      - ".*/Services/Logging/Implementation/.*Logger.*\\.swift"
+      - "Packages/elf_SwiftUI/.*"
+      - "Packages/elf_iOS/Sources/Screens/Dev/.*"
+      - "Packages/elf_Kit/Sources/UILayer/Dev/.*"
+      - "Packages/elf_iOS/Sources/Diagnostics/.*"
+      - "elf/ElfApp\\.swift"
+      - "Packages/elf_Kit/Sources/DataLayer/Persistence/Implementation/FileGameSaveStorage\\.swift"
+      - "Packages/elf_Kit/Sources/DataLayer/Persistence/Model/DungeonRunRewardsSaveData\\.swift"
 
 # Line length - very relaxed
 line_length:

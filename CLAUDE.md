@@ -1,7 +1,7 @@
 # Elfy - iOS RPG Game
 
 ## Tech Stack
-- **Platform:** iOS 17+
+- **Platform:** iOS 18+
 - **Language:** Swift 5.9+
 - **UI Framework:** SwiftUI
 - **Architecture:** MVVM
@@ -39,12 +39,15 @@ App supports **landscape orientation only**.
 - Never use `static` keyword in code. Only use it when there is no other option — prefer Dependency Injection
 - Build and test only for iOS (not macOS)
 
+## Git Policy
+- **Never make git commits.** Only the user (Vitalii Lytvynov) commits. Write/edit files as needed, but do not run `git commit` (or `git push`) — stage or leave changes as-is and let the user commit when ready. This applies to every workflow, including multi-step tools/skills whose default protocol calls for per-step commits (e.g. SDD skills) — skip the commit step and continue with the rest of the work.
+
 ## Save / Persistence Policy
 While the project is in active early development, **save-format migrations are NOT a concern**. If a refactor needs to change the shape of `Game`, `GameSaveData`, or any persisted structure, change it freely — old save files do not need to keep loading. No migration code, no version bumps, no compatibility shims. Existing saves on dev devices can be wiped between runs. This policy lifts once the game ships its first public build.
 
 ---
 
-## SwiftUI Rules (iOS 17+)
+## SwiftUI Rules (iOS 18+)
 
 ### Use
 - `@Observable` instead of ObservableObject

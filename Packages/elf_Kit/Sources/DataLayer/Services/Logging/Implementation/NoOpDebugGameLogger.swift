@@ -14,4 +14,6 @@ public struct NoOpDebugGameLogger: DebugGameLogger {
     public init() {}
     public func logGameSave(game: Game, playTime: TimeInterval) {}
     public func logWorldTurn(_ outcome: WorldTurnOutcome) {}
+    public func logError(_ message: String) {}
+    public func logDebug(_ message: String) {}
 }

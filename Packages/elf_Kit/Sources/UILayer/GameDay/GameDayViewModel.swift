@@ -20,6 +20,7 @@ public final class GameDayViewModel {
     private let equippedSlotResolver: any HeroEquippedSlotResolver
     private let itemsRepository: any ItemsRepository
     private let dungeonRepository: any DungeonRepository
+    private let debugGameLogger: any DebugGameLogger
 
     // MARK: - Constants
 
@@ -58,11 +59,13 @@ public final class GameDayViewModel {
         @Dependency(\.equippedSlotResolver) var equippedSlotResolver
         @Dependency(\.itemsRepository) var itemsRepository
         @Dependency(\.dungeonRepository) var dungeonRepository
+        @Dependency(\.debugGameLogger) var debugGameLogger
         self.progressionService = progressionService
         self.equipmentQueryService = equipmentQueryService
         self.equippedSlotResolver = equippedSlotResolver
         self.itemsRepository = itemsRepository
         self.dungeonRepository = dungeonRepository
+        self.debugGameLogger = debugGameLogger
 
         self.session = session
     }
@@ -90,7 +93,7 @@ public final class GameDayViewModel {
 
     /// Called when an action button is tapped (non-navigation actions only)
     public func onActionTapped(_ action: ActionType) {
-        print("Action tapped: \(action.rawValue)")
+        debugGameLogger.logDebug("Action tapped: \(action.rawValue)")
     }
 
     /// Called when a side menu button is tapped
@@ -101,7 +104,7 @@ public final class GameDayViewModel {
         case .house:
             fillEquipmentInventory()
         default:
-            print("Side menu tapped: \(menu.rawValue)")
+            debugGameLogger.logDebug("Side menu tapped: \(menu.rawValue)")
         }
     }
 
@@ -173,6 +176,6 @@ public final class GameDayViewModel {
 
     /// Called when a pocket slot is tapped
     public func onPocketTapped(_ index: Int) {
-        print("Pocket tapped: \(index)")
+        debugGameLogger.logDebug("Pocket tapped: \(index)")
     }
 }

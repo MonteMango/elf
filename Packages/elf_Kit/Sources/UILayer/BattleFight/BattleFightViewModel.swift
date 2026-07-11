@@ -14,12 +14,13 @@ public final class BattleFightViewModel {
 
     // MARK: - Dependencies (snapshotted at init)
 
-    private let battleRoundRunner: any BattleRoundRunner
+    private let roundExecutionMutator: any RoundExecutionMutator
     private let botAI: any BotAIService                // used by autoFillPoints (AUTO button)
     private let battleLogger: any BattleLogger
     private let debugLogger: any DebugBattleLogger
-    private let duelPairingService: any DuelPairingService
+    private let duelPairingMutator: any DuelPairingMutator
     private let buffApplicationService: any BuffApplicationService
+    private let vitalsRescaleMutator: any VitalsRescaleMutator
     let buffEffectsCalculator: any BuffEffectsCalculator
     let buffsRepository: any BuffsRepository
     let equippedSlotResolver: any HeroEquippedSlotResolver   // resolves EquippedItems → UI slot map per render (see +Display)
@@ -142,21 +143,23 @@ public final class BattleFightViewModel {
         precondition(!battle.leftTeam.isEmpty, "Battle.leftTeam must be non-empty")
         precondition(!battle.rightTeam.isEmpty, "Battle.rightTeam must be non-empty")
 
-        @Dependency(\.battleRoundRunner) var battleRoundRunner
+        @Dependency(\.roundExecutionMutator) var roundExecutionMutator
         @Dependency(\.botAI) var botAI
         @Dependency(\.battleLogger) var battleLogger
         @Dependency(\.debugBattleLogger) var debugLogger
-        @Dependency(\.duelPairingService) var duelPairingService
+        @Dependency(\.duelPairingMutator) var duelPairingMutator
         @Dependency(\.buffApplicationService) var buffApplicationService
+        @Dependency(\.vitalsRescaleMutator) var vitalsRescaleMutator
         @Dependency(\.buffEffectsCalculator) var buffEffectsCalculator
         @Dependency(\.buffsRepository) var buffsRepository
         @Dependency(\.equippedSlotResolver) var equippedSlotResolver
-        self.battleRoundRunner = battleRoundRunner
+        self.roundExecutionMutator = roundExecutionMutator
         self.botAI = botAI
         self.battleLogger = battleLogger
         self.debugLogger = debugLogger
-        self.duelPairingService = duelPairingService
+        self.duelPairingMutator = duelPairingMutator
         self.buffApplicationService = buffApplicationService
+        self.vitalsRescaleMutator = vitalsRescaleMutator
         self.buffEffectsCalculator = buffEffectsCalculator
         self.buffsRepository = buffsRepository
         self.equippedSlotResolver = equippedSlotResolver
@@ -211,25 +214,7 @@ public final class BattleFightViewModel {
     /// internally — caller passes the pre-mutation snapshot for comparison.
     private func rescaleCurrentVitals(combatant: inout CombatantSnapshot, before: HeroAttributes) {
         let after = buffEffectsCalculator.effectiveAttributes(of: combatant)
-        combatant.currentHP = Self.scaledVital(
-            current: combatant.currentHP,
-            oldMax: before.hitPoints.intValue,
-            newMax: after.hitPoints.intValue
-        )
-        combatant.currentMP = Self.scaledVital(
-            current: combatant.currentMP,
-            oldMax: before.manaPoints.intValue,
-            newMax: after.manaPoints.intValue
-        )
-    }
-
-    /// Half-up integer scaling of `current` from `oldMax` to `newMax`, clamped
-    /// to `[0, newMax]`. `oldMax == 0` short-circuits to `min(current, newMax)`
-    /// — preserves a dead combatant (current == 0) and avoids ÷0.
-    static func scaledVital(current: Int, oldMax: Int, newMax: Int) -> Int {
-        guard oldMax > 0 else { return max(0, min(current, newMax)) }
-        let scaled = (current * newMax + oldMax / 2) / oldMax
-        return max(0, min(scaled, newMax))
+        vitalsRescaleMutator.rescaleVitals(combatant: &combatant, before: before, after: after)
     }
 
     // MARK: - Player Actions
@@ -264,11 +249,13 @@ public final class BattleFightViewModel {
     public func executeFightRound() async {
         guard !isExecutingRound, currentBattleRound != nil else { return }
 
-        let heroIsPaired = heroDuelPair != nil
-        if heroIsPaired {
-            guard playerAttackPoints.count == playerSnapshot.attackPoints else { return }
-            guard playerDefensePoints.count == playerSnapshot.defensePoints else { return }
-        }
+        guard roundExecutionMutator.canExecuteFightRound(
+            heroIsPaired: heroDuelPair != nil,
+            playerAttackPoints: playerAttackPoints,
+            requiredAttackPoints: playerSnapshot.attackPoints,
+            playerDefensePoints: playerDefensePoints,
+            requiredDefensePoints: playerSnapshot.defensePoints
+        ) else { return }
 
         isExecutingRound = true
         defer { isExecutingRound = false }
@@ -296,9 +283,9 @@ public final class BattleFightViewModel {
         }
     }
 
-    /// Delegates round mechanics to `BattleRoundRunner`, then applies the
-    /// returned `RoundOutcome` to the observable state. Advances the round
-    /// (or ends the battle) at the end.
+    /// Delegates round mechanics and round-advance-vs-battle-ended bookkeeping
+    /// to `RoundExecutionMutator`, then applies the returned result to the
+    /// observable state.
     private func runRound(useHeroSelection: Bool) async {
         guard let round = currentBattleRound else { return }
 
@@ -313,23 +300,24 @@ public final class BattleFightViewModel {
             heroSelection = nil
         }
 
-        let outcome = await battleRoundRunner.runRound(
+        let result = await roundExecutionMutator.runRound(
             leftTeam: leftTeam,
             rightTeam: rightTeam,
             round: round,
-            heroSelection: heroSelection
+            heroSelection: heroSelection,
+            currentRoundNumber: currentRoundNumber
         )
 
-        leftTeam = outcome.updatedLeftTeam
-        rightTeam = outcome.updatedRightTeam
-        for pairResult in outcome.pairResults where pairResult.isHeroPair {
+        leftTeam = result.updatedLeftTeam
+        rightTeam = result.updatedRightTeam
+        for pairResult in result.pairResults where pairResult.isHeroPair {
             emitHeroPairUI(pairResult)
         }
 
-        if outcome.battleOutcome != nil {
+        currentRoundNumber = result.nextRoundNumber
+        if result.battleEnded {
             battleEnded = true
         } else {
-            currentRoundNumber += 1
             generateNewRoundPairings()
         }
     }
@@ -394,29 +382,21 @@ public final class BattleFightViewModel {
     // MARK: - Private Helpers
 
     private func determineBattleOutcome() -> BattleOutcome {
-        // `?? .draw` is a defensive fallback — `finishBattle` only fires when
-        // `battleEnded == true`, which means at least one side has wiped.
-        detectBattleOutcome(left: leftTeam, right: rightTeam) ?? .draw
+        roundExecutionMutator.determineBattleOutcome(left: leftTeam, right: rightTeam)
     }
 
     // MARK: - Duel Pairs
 
     /// Generates new random pairings for the current round
     public func generateNewRoundPairings() {
-        currentBattleRound = duelPairingService.createRandomPairs(
+        let result = duelPairingMutator.generateNewRoundPairings(
             leftTeam: leftTeam,
             rightTeam: rightTeam,
-            roundNumber: currentRoundNumber
-        )
-        if let bot = botSnapshot {
-            displayedBotSnapshot = bot
-        }
-        debugLogger.logRoundState(
             roundNumber: currentRoundNumber,
-            leftTeam: leftTeam,
-            rightTeam: rightTeam,
             playerCombatantId: playerCombatantId,
-            battleRound: currentBattleRound
+            previousDisplayedBotSnapshot: displayedBotSnapshot
         )
+        currentBattleRound = result.battleRound
+        displayedBotSnapshot = result.displayedBotSnapshot
     }
 }

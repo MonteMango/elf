@@ -150,7 +150,7 @@ struct CharacterCreationScreen: View {
                     // Stage 4 after Ready: Start - Navigate to game screen
                     if let game = viewModel.createdGame {
                         coordinator.startGame(game, playTime: 0)
-                        router.navigate(to: .gameSession(game, playTime: 0), removingPrevious: 1)
+                        router.navigate(to: .gameSession(game.id, playTime: 0), removingPrevious: 1)
                     }
                 }
             }) {

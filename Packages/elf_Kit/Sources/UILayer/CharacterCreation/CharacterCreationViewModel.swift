@@ -19,6 +19,7 @@ public final class CharacterCreationViewModel {
     private let fightStyleDescriptionService: any FightStyleDescriptionService
     private let nameSuggestionService: any CharacterNameSuggestionService
     private let gameInitializationService: any GameInitializationService
+    private let debugGameLogger: any DebugGameLogger
 
     /// Stateful per-VM builder — we inject a factory (not the builder itself)
     /// so each VM owns its own accumulation of appearance/name/fight-style,
@@ -116,12 +117,14 @@ public final class CharacterCreationViewModel {
         @Dependency(\.characterNameSuggestionService) var nameSuggestionService
         @Dependency(\.gameInitializationService) var gameInitializationService
         @Dependency(\.characterBuilderFactory) var makeBuilder
+        @Dependency(\.debugGameLogger) var debugGameLogger
         self.attributeService = attributeService
         self.nameValidator = nameValidator
         self.fightStyleDescriptionService = fightStyleDescriptionService
         self.nameSuggestionService = nameSuggestionService
         self.gameInitializationService = gameInitializationService
         self.characterBuilder = makeBuilder()
+        self.debugGameLogger = debugGameLogger
 
         if let style = selectedFightStyle {
             characterBuilder.setFightStyle(style)
@@ -198,7 +201,7 @@ public final class CharacterCreationViewModel {
             )
             isCharacterReady = true
         } catch {
-            print("Failed to create game: \(error)")
+            debugGameLogger.logError("Failed to create game: \(error)")
         }
     }
 
@@ -206,7 +209,7 @@ public final class CharacterCreationViewModel {
     public func createCharacter() -> PlayerCharacter? {
         guard let fightAttrs = fightStyleAttributes,
               let randomAttrs = randomLevelAttributes else {
-            print("❌ createCharacter failed: missing attributes")
+            debugGameLogger.logError("❌ createCharacter failed: missing attributes")
             return nil
         }
 
@@ -216,10 +219,10 @@ public final class CharacterCreationViewModel {
                 randomLevelAttributes: randomAttrs
             )
             createdCharacter = character
-            print("✅ Character created: \(character.name)")
+            debugGameLogger.logDebug("✅ Character created: \(character.name)")
             return character
         } catch {
-            print("❌ createCharacter failed: \(error)")
+            debugGameLogger.logError("❌ createCharacter failed: \(error)")
             return nil
         }
     }

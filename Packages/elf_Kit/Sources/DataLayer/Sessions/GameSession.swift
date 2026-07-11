@@ -37,8 +37,9 @@ public final class GameSession {
     private let debugGameLogger: any DebugGameLogger
     private let inventoryService: any InventoryService
     private let craftService: any CraftService
-    private let buffsRepository: any BuffsRepository
     private let buffApplicationService: any BuffApplicationService
+    private let dayCycleMutator: any DayCycleMutator
+    private let worldTurnMutator: any WorldTurnMutator
 
     private let slotId: String
 
@@ -65,14 +66,16 @@ public final class GameSession {
         @Dependency(\.debugGameLogger) var debugGameLogger
         @Dependency(\.inventoryService) var inventoryService
         @Dependency(\.craftService) var craftService
-        @Dependency(\.buffsRepository) var buffsRepository
         @Dependency(\.buffApplicationService) var buffApplicationService
+        @Dependency(\.dayCycleMutator) var dayCycleMutator
+        @Dependency(\.worldTurnMutator) var worldTurnMutator
         self.gameRepository = gameRepository
         self.debugGameLogger = debugGameLogger
         self.inventoryService = inventoryService
         self.craftService = craftService
-        self.buffsRepository = buffsRepository
         self.buffApplicationService = buffApplicationService
+        self.dayCycleMutator = dayCycleMutator
+        self.worldTurnMutator = worldTurnMutator
         self.state = GameStore(from: game, playTime: playTime)
         self.slotId = slotId
     }
@@ -88,38 +91,7 @@ public final class GameSession {
             return
         }
         state.currentDay = state.calendar[nextDayIndex]
-        resetActionPointsForAllElves()
-        expireGlobalBuffs(currentDayNumber: nextDayNumber)
-    }
-
-    /// Refills every elf's per-day action points to maximum. Player AP is
-    /// included (the player is one of the roster members).
-    private func resetActionPointsForAllElves() {
-        for houseIndex in state.houses.indices {
-            for memberIndex in state.houses[houseIndex].members.indices {
-                let current = state.houses[houseIndex].members[memberIndex].actionPoints
-                state.houses[houseIndex].members[memberIndex].actionPoints = current.reset()
-            }
-        }
-    }
-
-    private func expireGlobalBuffs(currentDayNumber: Int) {
-        for houseIndex in state.houses.indices {
-            for memberIndex in state.houses[houseIndex].members.indices {
-                let current = state.houses[houseIndex].members[memberIndex].globalBuffs
-                let kept = current.filter { applied in
-                    guard let buff = buffsRepository.getById(id: applied.buffId),
-                          let duration = buff.durationDays,
-                          let appliedOnDay = applied.appliedOnDay else {
-                        return true  // unknown buff, no expiry, or missing day → keep
-                    }
-                    return currentDayNumber - appliedOnDay < duration
-                }
-                if kept.count != current.count {
-                    state.houses[houseIndex].members[memberIndex].globalBuffs = kept
-                }
-            }
-        }
+        state.houses = dayCycleMutator.advanceDay(houses: state.houses, toDayNumber: nextDayNumber)
     }
 
     /// Spends the player's action points for an activity. No-op if insufficient.
@@ -199,23 +171,20 @@ public final class GameSession {
         // Resolved lazily (not in init) so constructing a GameSession doesn't
         // eagerly pull these live-only deps — keeps non-battle flows and tests
         // free of the hunt/drop/monster dependency chain.
-        @Dependency(\.battleResultCalculator) var battleResultCalculator
-        @Dependency(\.monsterRepository) var monsterRepository
+        @Dependency(\.rewardApplicationMutator) var rewardApplicationMutator
 
-        let monster = battle.botMonsterID.flatMap { monsterRepository.getById(id: $0) }
-
-        // Order matters: compute the result against the *current* exp BEFORE
-        // `addPlayerExperience` mutates it, so the overlay's previous→new XP
-        // progression is correct. Do not reorder these two statements.
-        let result = battleResultCalculator.calculateResult(
+        // Order matters: pass the *current* exp BEFORE any mutation, so the
+        // mutator computes the overlay's previous→new XP progression against
+        // the pre-mutation value. Do not reorder these two statements.
+        let result = rewardApplicationMutator.concludeHuntBattle(
+            battle: battle,
             outcome: outcome,
-            monster: monster,
-            currentExp: state.player.currentExp
+            playerCurrentExp: state.player.currentExp
         )
-        if result.experienceGained > 0 {
-            addPlayerExperience(result.experienceGained)
+        if result.experienceToAdd > 0 {
+            addPlayerExperience(result.experienceToAdd)
         }
-        if let huntRewards = result.huntRewards {
+        if let huntRewards = result.huntRewardsToAdd {
             addDropsToPlayerInventory(rewards: huntRewards)
         }
         // Persist off the critical path so the result overlay isn't blocked on
@@ -223,7 +192,7 @@ public final class GameSession {
         // scenePhase-background and the next day-advance save are the safety net
         // if this fire-and-forget save is interrupted.
         saveInBackground()
-        return result
+        return result.manualBattleResult
     }
 
     // MARK: - Roster Progression (any elf)
@@ -231,7 +200,10 @@ public final class GameSession {
     /// Adds combat experience to a specific elf. No-op if the slot is invalid.
     public func addExperience(_ amount: Int, toElfAt houseIndex: Int, memberIndex: Int) {
         guard isValidSlot(houseIndex: houseIndex, memberIndex: memberIndex) else { return }
-        state.houses[houseIndex].members[memberIndex].currentExp += amount
+        @Dependency(\.rosterProgressionMutator) var rosterProgressionMutator
+        state.houses[houseIndex].members[memberIndex].currentExp = rosterProgressionMutator.addExperience(
+            amount, to: state.houses[houseIndex].members[memberIndex].currentExp
+        )
     }
 
     /// Adds monster drops (materials, weapons, armor) to a specific elf's
@@ -244,40 +216,35 @@ public final class GameSession {
         memberIndex: Int
     ) {
         guard isValidSlot(houseIndex: houseIndex, memberIndex: memberIndex) else { return }
-        let additions = materials.map {
-            MaterialAddition(ref: .monster($0.id), quantity: $0.amount)
-        }
-        var inventory = inventoryService.addMaterials(additions, to: state.houses[houseIndex].members[memberIndex].inventory)
-        for weapon in weapons {
-            inventory = inventoryService.addWeapon(weapon, to: inventory)
-        }
-        for armorPiece in armor {
-            inventory = inventoryService.addArmor(armorPiece, to: inventory)
-        }
-        state.houses[houseIndex].members[memberIndex].inventory = inventory
+        @Dependency(\.rosterProgressionMutator) var rosterProgressionMutator
+        state.houses[houseIndex].members[memberIndex].inventory = rosterProgressionMutator.addDrops(
+            materials: materials,
+            weapons: weapons,
+            armor: armor,
+            to: state.houses[houseIndex].members[memberIndex].inventory
+        )
     }
 
     /// Adds caught fish to the player's inventory as materials.
     public func addFishToInventory(_ fish: [Fish]) {
-        let additions = fish.map {
-            MaterialAddition(ref: .fish($0.id), quantity: 1)
-        }
-        state.player.inventory = inventoryService.addMaterials(additions, to: state.player.inventory)
+        addMaterialsToInventory(fish.map { .fish($0.id) })
     }
 
     /// Adds gathered herbs to the player's inventory as materials.
     public func addHerbsToInventory(_ herbs: [Herb]) {
-        let additions = herbs.map {
-            MaterialAddition(ref: .herb($0.id), quantity: 1)
-        }
-        state.player.inventory = inventoryService.addMaterials(additions, to: state.player.inventory)
+        addMaterialsToInventory(herbs.map { .herb($0.id) })
     }
 
     /// Adds mined ores to the player's inventory as materials.
     public func addOresToInventory(_ ores: [Ore]) {
-        let additions = ores.map {
-            MaterialAddition(ref: .ore($0.id), quantity: 1)
-        }
+        addMaterialsToInventory(ores.map { .ore($0.id) })
+    }
+
+    /// Core path shared by the typed material-add shims above: turns a list
+    /// of material refs into single-quantity additions and applies them via
+    /// the injected inventory service.
+    private func addMaterialsToInventory(_ refs: [MaterialRef]) {
+        let additions = refs.map { MaterialAddition(ref: $0, quantity: 1) }
         state.player.inventory = inventoryService.addMaterials(additions, to: state.player.inventory)
     }
 
@@ -332,23 +299,7 @@ public final class GameSession {
     /// elf's `id` before applying, guarding against any roster reshuffle
     /// between snapshot and apply.
     public func applyWorldTurn(_ outcome: WorldTurnOutcome) {
-        for result in outcome.results {
-            let houseIndex = result.slot.houseIndex
-            let memberIndex = result.slot.memberIndex
-            guard isValidSlot(houseIndex: houseIndex, memberIndex: memberIndex),
-                  state.houses[houseIndex].members[memberIndex].id == result.slot.id else {
-                continue
-            }
-            addExperience(result.experienceGained, toElfAt: houseIndex, memberIndex: memberIndex)
-            addDrops(
-                materials: result.materials,
-                weapons: result.weapons,
-                armor: result.armor,
-                toElfAt: houseIndex,
-                memberIndex: memberIndex
-            )
-            spendActionPoints(result.actionPointsSpent, forElfAt: houseIndex, memberIndex: memberIndex)
-        }
+        state.houses = worldTurnMutator.applyWorldTurn(outcome, to: state.houses)
         debugGameLogger.logWorldTurn(outcome)
     }
 
@@ -483,9 +434,7 @@ public final class GameSession {
                 do {
                     try await self.save()
                 } catch {
-                    #if DEBUG
-                    print("[GameSession] Background save failed: \(error)")
-                    #endif
+                    self.debugGameLogger.logError("[GameSession] Background save failed: \(error)")
                 }
             } while self.saveAgain
             self.saveInFlight = nil
@@ -496,41 +445,10 @@ public final class GameSession {
 
     @discardableResult
     public func startDungeonSession(dungeonId: DungeonID, allyIds: [ElfID]) -> DungeonSession {
-        let session = DungeonSession(
-            gameStore: state,
-            dungeonId: dungeonId,
-            allyIds: allyIds
-        )
+        @Dependency(\.dungeonLifecycleMutator) var dungeonLifecycleMutator
+        let session = dungeonLifecycleMutator.startDungeonSession(gameStore: state, dungeonId: dungeonId, allyIds: allyIds)
         dungeonSession = session
         return session
-    }
-
-    /// Low-level teardown — the single place the dungeon session is released.
-    /// Callers pick the intent-named wrapper (`finishDungeonRun` /
-    /// `discardDungeonRun`) so the reward semantics are explicit at the call site.
-    private func releaseDungeonSession() {
-        dungeonSession = nil
-    }
-
-    /// Flushes a run reward ledger into the player and empties it. Shared by the
-    /// run-end flush and the on-death bank; clearing keeps it idempotent so a
-    /// later flush of the same (now-empty) ledger grants nothing.
-    private func flushRewards(from dungeonSession: DungeonSession) {
-        // The ledger holds resolved drop instances, so flush hands them to the
-        // player directly — no repository round-trip (resolution already happened
-        // at accrue, and again at restore for a resumed run).
-        let rewards = dungeonSession.pendingRewards
-        if rewards.experience > 0 {
-            addPlayerExperience(rewards.experience)
-        }
-        if !rewards.materials.isEmpty || !rewards.weapons.isEmpty || !rewards.armor.isEmpty {
-            addDropsToPlayerInventory(
-                materials: rewards.materials,
-                weapons: rewards.weapons,
-                armor: rewards.armor
-            )
-        }
-        dungeonSession.clearPendingRewards()
     }
 
     /// Banks the run's rewards into the player *immediately on hero death*, while
@@ -539,8 +457,8 @@ public final class GameSession {
     /// would erase the on-disk ledger — banking now lands the rewards in the
     /// always-saved game state first. Idempotent (clears the ledger).
     public func bankDungeonRewardsOnDeath() {
-        guard let dungeonSession else { return }
-        flushRewards(from: dungeonSession)
+        @Dependency(\.dungeonLifecycleMutator) var dungeonLifecycleMutator
+        dungeonLifecycleMutator.bankDungeonRewardsOnDeath(dungeonSession: dungeonSession, into: state)
     }
 
     /// Ends a *completed* dungeon run: flushes the run's accrued rewards (XP +
@@ -549,9 +467,8 @@ public final class GameSession {
     /// rewards are kept even when the hero falls. After an on-death bank the
     /// ledger is already empty, so the flush here is a no-op and only releases.
     public func finishDungeonRun() {
-        guard let dungeonSession else { return }
-        flushRewards(from: dungeonSession)
-        releaseDungeonSession()
+        @Dependency(\.dungeonLifecycleMutator) var dungeonLifecycleMutator
+        dungeonSession = dungeonLifecycleMutator.finishDungeonRun(dungeonSession: dungeonSession, into: state)
     }
 
     /// Discards a dungeon run *without* granting any rewards. Use ONLY when the
@@ -559,6 +476,7 @@ public final class GameSession {
     /// longer resolves. The "discard" name is deliberate: throwing away a run's
     /// banked XP/drops must be spelled out, never the path of least resistance.
     public func discardDungeonRun() {
-        releaseDungeonSession()
+        @Dependency(\.dungeonLifecycleMutator) var dungeonLifecycleMutator
+        dungeonSession = dungeonLifecycleMutator.discardDungeonRun()
     }
 }

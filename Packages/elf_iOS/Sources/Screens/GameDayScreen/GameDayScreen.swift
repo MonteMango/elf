@@ -158,10 +158,7 @@ internal struct GameDayScreen: View {
                     currentDay: dayStateViewModel.currentDay.calendarDayData,
                     upcomingDays: dayStateViewModel.upcomingDays.map(\.calendarDayData),
                     onTap: {
-                        router.navigate(to: .calendar(
-                            calendar: dayStateViewModel.calendar,
-                            currentDayNumber: dayStateViewModel.currentDay.dayNumber
-                        ))
+                        router.navigate(to: .calendar)
                     }
                 )
 
