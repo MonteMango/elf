@@ -1,8 +1,8 @@
 ---
 status: current
 mode: current
-updated_at: "2026-07-04"
-reflects_commit: "91c3cba"
+updated_at: "2026-07-09"
+reflects_commit: "03562c3"
 # machine-readable keys — filled by survey from the explorer's findings; "" = unknown, NEVER guessed.
 # implement's command-detection cascade reads test_cmd/lint_cmd right after the settings override.
 language: "Swift 6.0 (iOS 18)"
@@ -108,8 +108,6 @@ C4Container
 
 ## Reconciliation with the authored architecture doc
 
-Авторский `.claude/docs/project-architecture.md` — авторитетный источник паттернов и **согласуется** с кодом по MVVM-слоям, DI-стилю, Screen-паттерну, Presentation-типам и Design System. Найденный дрейф именования:
+Авторский `.claude/docs/project-architecture.md` — авторитетный источник паттернов и **согласуется** с кодом по MVVM-слоям, DI-стилю, Screen-паттерну, Presentation-типам и Design System. Ранее отмеченный дрейф именования `GameSessionModel` → **`GameSession`** (`Packages/elf_Kit/Sources/DataLayer/Sessions/GameSession.swift:24`, фабрики в extension `.../UILayer/GameSession/GameSession+ViewModelFactories.swift`) **устранён** в авторском doc (commit `8e97e95`).
 
-- Документ ссылается на **`GameSessionModel`** (`UILayer/GameSession/GameSessionModel.swift`) как на держатель `gameService` + фабрик `make*ViewModel()`. В коде класс называется **`GameSession`** (`Packages/elf_Kit/Sources/DataLayer/Sessions/GameSession.swift:24`), а фабрики вынесены в extension `Packages/elf_Kit/Sources/UILayer/GameSession/GameSession+ViewModelFactories.swift`. Роль та же — расходится только имя/расположение. Стоит обновить авторский doc (карта не правит его).
-
-Прочих расхождений с авторским документом не выявлено.
+Расхождений с авторским документом не выявлено.
