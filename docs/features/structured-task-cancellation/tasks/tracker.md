@@ -7,7 +7,7 @@
 |---|---|---|---|---|---|---|
 | T1 | Add per-slot validation-Task handles to `HeroConfigurationState` | domain | Vitalii Lytvynov | S | — | done |
 | T2 | Cancel-and-replace + merge-on-write in `updateSelectedItems` | domain | Vitalii Lytvynov | M | T1 | todo |
-| T3 | Controllable fake `WeaponValidator` test double | tests | Vitalii Lytvynov | S | — | todo |
+| T3 | Controllable fake `WeaponValidator` test double | tests | Vitalii Lytvynov | S | — | done |
 | T4 | Regression suite (rapid re-selection, cross-slot, cross-hero, neutrality) | tests | Vitalii Lytvynov | M | T2, T3 | todo |
 
 **Total:** 4 tasks, ~1 person-day (single PR, XS per `.size`).
