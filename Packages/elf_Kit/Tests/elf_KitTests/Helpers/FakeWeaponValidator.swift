@@ -63,7 +63,9 @@ actor FakeWeaponValidator: WeaponValidator {
     }
 
     /// Releases the call at `index` (in arrival order), resuming its
-    /// `validateAndResolve` await with `result`.
+    /// `validateAndResolve` await with `result`. Removes the entry, so every
+    /// later index shifts down by one — releasing multiple calls in one test
+    /// should go from the highest index down.
     func release(at index: Int, with result: [HeroItemType: ItemID?]) {
         let entry = entries.remove(at: index)
         entry.continuation.resume(returning: result)

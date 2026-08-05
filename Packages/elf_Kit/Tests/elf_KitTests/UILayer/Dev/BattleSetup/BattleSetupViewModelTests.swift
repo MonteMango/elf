@@ -114,4 +114,91 @@ final class BattleSetupViewModelTests: XCTestCase {
 
         XCTAssertEqual(vm.playerState.selectedItems[.weapons] ?? nil, weaponB)
     }
+
+    // MARK: - AC-02 — single, non-superseded selection resolves as today
+
+    /// A selection that is never superseded still gets its validation's
+    /// rejection/auto-resolution applied in full — e.g. equipping a
+    /// two-handed weapon clears an already-equipped shield. Introducing
+    /// cancellation for superseded selections must not skip, delay, or
+    /// partially apply the outcome for one that was never superseded.
+    func testSingleSelection_RejectionOutcomeIsAppliedInFull() async {
+        let fakeValidator = FakeWeaponValidator()
+        let vm = makeViewModel(weaponValidator: fakeValidator)
+        let existingShield = UUID()
+        vm.playerState.selectedItems[.shields] = existingShield
+        let twoHandedWeapon = UUID()
+
+        vm.equipItem(for: .player, itemType: .weapons, selectedItemId: twoHandedWeapon)
+        await fakeValidator.waitUntilPending(1)
+
+        // The validator resolves the two-handed conflict by clearing shields.
+        await fakeValidator.release(at: 0, with: [.weapons: ItemID(rawValue: twoHandedWeapon), .shields: nil])
+        await drainMainActorQueue()
+
+        XCTAssertEqual(vm.playerState.selectedItems[.weapons] ?? nil, twoHandedWeapon)
+        XCTAssertEqual(vm.playerState.selectedItems[.shields] ?? nil, nil)
+    }
+
+    // MARK: - AC-05 — cross-hero independence
+
+    /// Cancelling/superseding one hero's validation Task never cancels,
+    /// delays, or otherwise interferes with the other hero's Task.
+    func testCrossHeroSelections_DoNotInterfereWithEachOther() async {
+        let fakeValidator = FakeWeaponValidator()
+        let vm = makeViewModel(weaponValidator: fakeValidator)
+        let playerWeaponA = UUID()
+        let playerWeaponB = UUID()
+        let botWeapon = UUID()
+
+        vm.equipItem(for: .player, itemType: .weapons, selectedItemId: playerWeaponA)
+        await fakeValidator.waitUntilPending(1)
+
+        vm.equipItem(for: .bot, itemType: .weapons, selectedItemId: botWeapon)
+        await fakeValidator.waitUntilPending(2)
+
+        // A newer player selection supersedes only the player's Task.
+        vm.equipItem(for: .player, itemType: .weapons, selectedItemId: playerWeaponB)
+        await fakeValidator.waitUntilPending(3)
+
+        // Release from the highest index down, since `release(at:)` removes
+        // the entry and shifts every later index down by one. Player's newer
+        // selection (index 2) resolves before the superseded first call
+        // (index 0); bot's call (index 1) resolves in between, unaffected.
+        await fakeValidator.release(at: 2, with: [.weapons: ItemID(rawValue: playerWeaponB)])
+        await fakeValidator.release(at: 1, with: [.weapons: ItemID(rawValue: botWeapon)])
+        await fakeValidator.release(at: 0, with: [.weapons: ItemID(rawValue: playerWeaponA)])
+        await drainMainActorQueue()
+
+        XCTAssertEqual(vm.playerState.selectedItems[.weapons] ?? nil, playerWeaponB)
+        XCTAssertEqual(vm.botState.selectedItems[.weapons] ?? nil, botWeapon)
+    }
+
+    // MARK: - AC-06 — cross-slot rapid selection preserves both outcomes
+
+    /// Selecting a shield while a weapon validation for the same hero is
+    /// still in flight (or vice versa) never causes the other slot's
+    /// already-made, not-yet-applied selection to silently revert.
+    func testCrossSlotRapidSelection_BothOutcomesArePreserved() async {
+        let fakeValidator = FakeWeaponValidator()
+        let vm = makeViewModel(weaponValidator: fakeValidator)
+        let weapon = UUID()
+        let shield = UUID()
+
+        vm.equipItem(for: .player, itemType: .weapons, selectedItemId: weapon)
+        await fakeValidator.waitUntilPending(1)
+
+        // A shield selection for the same hero before the weapon's validation
+        // resolves — a different slot, so it must not cancel the weapon's Task.
+        vm.equipItem(for: .player, itemType: .shields, selectedItemId: shield)
+        await fakeValidator.waitUntilPending(2)
+
+        // Shield's call resolves first, then the weapon's.
+        await fakeValidator.release(at: 1, with: [.shields: ItemID(rawValue: shield)])
+        await fakeValidator.release(at: 0, with: [.weapons: ItemID(rawValue: weapon)])
+        await drainMainActorQueue()
+
+        XCTAssertEqual(vm.playerState.selectedItems[.weapons] ?? nil, weapon)
+        XCTAssertEqual(vm.playerState.selectedItems[.shields] ?? nil, shield)
+    }
 }
