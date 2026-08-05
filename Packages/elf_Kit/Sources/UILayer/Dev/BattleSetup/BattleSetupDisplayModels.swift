@@ -23,6 +23,12 @@ public final class HeroConfigurationState {
     public var selectedItems: [HeroItemType: UUID?]
     public var twoHandedWeaponId: UUID?
 
+    /// In-flight weapon/shield-compatibility validation, one handle per slot so a
+    /// rapid re-selection cancels only that slot's previous validation (see
+    /// `BattleSetupViewModel.updateSelectedItems`).
+    public var weaponValidationTask: Task<Void, Never>?
+    public var shieldValidationTask: Task<Void, Never>?
+
     public var totalAttributes: HeroAttributes? {
         guard let fightStyle = fightStyleAttributes,
               let level = levelRandomAttributes else {

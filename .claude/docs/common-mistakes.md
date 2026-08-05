@@ -194,6 +194,35 @@ class ViewModel {
 }
 ```
 
+### Assigning `nil` to a dictionary keyed by an Optional value type removes the key, not the value
+For `[Key: Value?]`, subscript-assigning the literal `nil` removes the key entirely — it does **not**
+store `.some(nil)` (a key present with a nil value). This is a real bug, found in review of
+`structured-task-cancellation`: `ElfWeaponValidator` cleared a slot via `dict[slot] = nil`, and code
+merging the result by iterating `dict`'s own keys silently skipped the cleared slot because it was no
+longer in the dictionary at all.
+```swift
+var items: [Slot: ItemID?] = [.weapons: someId, .shields: shieldId]
+
+// ❌ Removes `.shields` from `items` — does not store "shields is now nil"
+items[.shields] = nil
+// items == [.weapons: someId]  — `.shields` key is gone
+
+// If downstream code merges by iterating `items`' own keys, a cleared slot
+// is invisible to it — the old value silently survives.
+for (slot, value) in items { merge(slot, value) }   // `.shields` never visited
+
+// ✅ If "key present, value nil" is the intent, wrap explicitly
+items.updateValue(Optional<ItemID>.none, forKey: .shields)
+// items == [.weapons: someId, .shields: nil]  — `.shields` key still present
+
+// ✅ Downstream code that must distinguish "absent" from "explicitly cleared"
+// should merge over the union of both dictionaries' keys, not just one side's
+for slot in Set(before.keys).union(after.keys) {
+    let resolved = after[slot] ?? nil   // absent-in-`after` reads the same as present-with-nil
+    // ...
+}
+```
+
 ---
 
 ## Presentation Types

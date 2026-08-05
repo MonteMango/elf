@@ -172,17 +172,40 @@ public final class BattleSetupViewModel {
         // `.task(id:)` observes, which drives the debounced recompute — no
         // explicit scheduling call needed here.
         if requiresValidation(itemType) {
-            Task {
-                let currentState = state(for: heroType)
-                let currentItems = currentState.selectedItems
+            let currentState = state(for: heroType)
+            validationTask(for: itemType, on: currentState)?.cancel()
+
+            let currentItems = currentState.selectedItems
+            let newTask: Task<Void, Never> = Task {
                 let validatedItems = await self.weaponValidator.validateAndResolve(
                     selecting: selectedItemId.map(ItemID.init(rawValue:)),
                     for: itemType,
                     currentItems: currentItems.mapValues { $0.map(ItemID.init(rawValue:)) }
                 )
 
-                currentState.selectedItems = validatedItems.mapValues { $0.map(\.rawValue) }
+                // A cancelled Task's non-cooperating `await` above still
+                // completes, but `Task.isCancelled` reflects the cancellation
+                // flag set by the newer selection's cancel-and-replace above —
+                // bail before writing a stale result (AC-03).
+                guard !Task.isCancelled else { return }
+
+                // Merge only the keys this call actually changed, onto the
+                // *current* live state — never a full overwrite from the
+                // pre-tap snapshot — so a concurrent selection in the other
+                // slot (still in flight) is never reverted (AC-06). Walk the
+                // union of both slot sets, not just `validatedItems`' own
+                // keys: the validator clears a slot via `dict[slot] = nil`,
+                // which removes the key from its returned dictionary rather
+                // than storing it as present-with-nil, so a cleared slot
+                // must still be treated as changed even though it no longer
+                // appears in `validatedItems`.
+                for slot in Set(currentItems.keys).union(validatedItems.keys) {
+                    let resolvedRawId = (validatedItems[slot] ?? nil).map(\.rawValue)
+                    guard (currentItems[slot] ?? nil) != resolvedRawId else { continue }
+                    currentState.selectedItems[slot] = resolvedRawId
+                }
             }
+            setValidationTask(newTask, for: itemType, on: currentState)
         } else {
             // Other items don't need validation
             let currentState = state(for: heroType)
@@ -192,6 +215,21 @@ public final class BattleSetupViewModel {
 
     private func requiresValidation(_ itemType: HeroItemType) -> Bool {
         return itemType == .weapons || itemType == .shields
+    }
+
+    /// `itemType` is guaranteed `.weapons` or `.shields` at every call site
+    /// (both are behind `requiresValidation`), so the pair below covers it.
+
+    private func validationTask(for itemType: HeroItemType, on state: HeroConfigurationState) -> Task<Void, Never>? {
+        itemType == .weapons ? state.weaponValidationTask : state.shieldValidationTask
+    }
+
+    private func setValidationTask(_ task: Task<Void, Never>?, for itemType: HeroItemType, on state: HeroConfigurationState) {
+        if itemType == .weapons {
+            state.weaponValidationTask = task
+        } else {
+            state.shieldValidationTask = task
+        }
     }
 
     private func getCurrentItemId(for heroType: HeroType, itemType: HeroItemType) -> UUID? {
