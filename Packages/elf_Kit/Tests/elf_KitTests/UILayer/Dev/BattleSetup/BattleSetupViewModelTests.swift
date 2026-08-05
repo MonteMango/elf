@@ -132,12 +132,36 @@ final class BattleSetupViewModelTests: XCTestCase {
         vm.equipItem(for: .player, itemType: .weapons, selectedItemId: twoHandedWeapon)
         await fakeValidator.waitUntilPending(1)
 
-        // The validator resolves the two-handed conflict by clearing shields.
-        await fakeValidator.release(at: 0, with: [.weapons: ItemID(rawValue: twoHandedWeapon), .shields: nil])
+        // The real ElfWeaponValidator resolves a two-handed conflict by
+        // writing `updatedItems[.shields] = nil`, which — for a dictionary
+        // whose Value is itself Optional — *removes* the `.shields` key
+        // rather than storing it as present-with-nil. Releasing with the
+        // key omitted (not `.shields: nil`) reproduces that real shape.
+        await fakeValidator.release(at: 0, with: [.weapons: ItemID(rawValue: twoHandedWeapon)])
         await drainMainActorQueue()
 
         XCTAssertEqual(vm.playerState.selectedItems[.weapons] ?? nil, twoHandedWeapon)
         XCTAssertEqual(vm.playerState.selectedItems[.shields] ?? nil, nil)
+    }
+
+    // MARK: - AC-02 — unequip (clearing a slot) is applied, not a no-op
+
+    /// Unequipping goes through the same validated path and the real
+    /// validator clears the slot by omitting its key from the returned
+    /// dictionary (see above) — the merge must still apply that as a clear.
+    func testUnequip_ClearsTheSlot() async {
+        let fakeValidator = FakeWeaponValidator()
+        let vm = makeViewModel(weaponValidator: fakeValidator)
+        let equippedWeapon = UUID()
+        vm.playerState.selectedItems[.weapons] = equippedWeapon
+
+        vm.equipItem(for: .player, itemType: .weapons, selectedItemId: nil)
+        await fakeValidator.waitUntilPending(1)
+
+        await fakeValidator.release(at: 0, with: [:])
+        await drainMainActorQueue()
+
+        XCTAssertEqual(vm.playerState.selectedItems[.weapons] ?? nil, nil)
     }
 
     // MARK: - AC-05 — cross-hero independence

@@ -192,9 +192,15 @@ public final class BattleSetupViewModel {
                 // Merge only the keys this call actually changed, onto the
                 // *current* live state — never a full overwrite from the
                 // pre-tap snapshot — so a concurrent selection in the other
-                // slot (still in flight) is never reverted (AC-06).
-                for (slot, resolvedId) in validatedItems {
-                    let resolvedRawId = resolvedId.map(\.rawValue)
+                // slot (still in flight) is never reverted (AC-06). Walk the
+                // union of both slot sets, not just `validatedItems`' own
+                // keys: the validator clears a slot via `dict[slot] = nil`,
+                // which removes the key from its returned dictionary rather
+                // than storing it as present-with-nil, so a cleared slot
+                // must still be treated as changed even though it no longer
+                // appears in `validatedItems`.
+                for slot in Set(currentItems.keys).union(validatedItems.keys) {
+                    let resolvedRawId = (validatedItems[slot] ?? nil).map(\.rawValue)
                     guard (currentItems[slot] ?? nil) != resolvedRawId else { continue }
                     currentState.selectedItems[slot] = resolvedRawId
                 }
