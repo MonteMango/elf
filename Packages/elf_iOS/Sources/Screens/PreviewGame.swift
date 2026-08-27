@@ -5,6 +5,7 @@
 //  Created by Vitalii Lytvynov
 //
 
+import Dependencies
 import elf_Kit
 import Foundation
 
@@ -32,7 +33,8 @@ enum PreviewGame {
             "tier": 1,
             "minimumAttackPoint": 5,
             "maximumAttackPoint": 10,
-            "handUse": "both"
+            "handUse": "both",
+            "epBlockCost": 0
         }
         """
         // swiftlint:disable:next force_try
@@ -164,7 +166,15 @@ enum PreviewGame {
 
     @MainActor
     static func createMockSession() -> GameSession {
-        GameSession(game: createMockGame())
+        // Cold-path deps resolved eagerly by `GameSession.init` that have no
+        // `testValue` (see dependency-injection.md): explicit live overrides
+        // let this helper also be used from XCTest contexts, not just Previews.
+        withDependencies {
+            $0.inventoryService = ElfInventoryService()
+            $0.craftService = DefaultCraftService()
+        } operation: {
+            GameSession(game: createMockGame())
+        }
     }
 
     @MainActor

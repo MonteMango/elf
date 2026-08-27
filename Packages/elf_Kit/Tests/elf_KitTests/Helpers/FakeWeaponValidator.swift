@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import XCTest
 @testable import elf_Kit
 
 /// Controllable `WeaponValidator` test double. Each `validateAndResolve` call
@@ -29,7 +30,7 @@ actor FakeWeaponValidator: WeaponValidator {
     }
 
     private var entries: [Entry] = []
-    private var waiters: [(count: Int, continuation: CheckedContinuation<Void, Never>)] = []
+    private var waiters: [(id: UUID, count: Int, continuation: CheckedContinuation<Void, Never>)] = []
 
     /// Calls currently suspended, oldest first — inspect to decide which index
     /// to release and with what result.
@@ -54,12 +55,28 @@ actor FakeWeaponValidator: WeaponValidator {
     /// Suspends until at least `count` calls are registered — the test's
     /// synchronization point to know a call has actually reached its `await`
     /// before releasing anything, so releasing never races the ViewModel's
-    /// own `Task` scheduling.
-    func waitUntilPending(_ count: Int) async {
+    /// own `Task` scheduling. Bounded by `timeout`: a coverage regression
+    /// that stops calling the validator on some path would otherwise hang
+    /// the test/CI indefinitely instead of failing with a readable message.
+    func waitUntilPending(_ count: Int, timeout: Duration = .seconds(2)) async {
         guard entries.count < count else { return }
-        await withCheckedContinuation { continuation in
-            waiters.append((count, continuation))
+        let id = UUID()
+        let timeoutTask = Task { [weak self] in
+            try? await Task.sleep(for: timeout)
+            await self?.failWaiter(id: id, expectedCount: count)
         }
+        await withCheckedContinuation { continuation in
+            waiters.append((id, count, continuation))
+            resumeSatisfiedWaiters()
+        }
+        timeoutTask.cancel()
+    }
+
+    private func failWaiter(id: UUID, expectedCount: Int) {
+        guard let index = waiters.firstIndex(where: { $0.id == id }) else { return }
+        let waiter = waiters.remove(at: index)
+        XCTFail("Timed out waiting for \(expectedCount) pending WeaponValidator call(s) — still \(entries.count) pending")
+        waiter.continuation.resume()
     }
 
     /// Releases the call at `index` (in arrival order), resuming its

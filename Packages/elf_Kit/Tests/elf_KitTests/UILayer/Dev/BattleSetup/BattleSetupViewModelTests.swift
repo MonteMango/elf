@@ -220,9 +220,105 @@ final class BattleSetupViewModelTests: XCTestCase {
         // Shield's call resolves first, then the weapon's.
         await fakeValidator.release(at: 1, with: [.shields: ItemID(rawValue: shield)])
         await fakeValidator.release(at: 0, with: [.weapons: ItemID(rawValue: weapon)])
+
+        // The weapon Task's own snapshot predates the shield's live write —
+        // it re-validates once against the now-live state before merging
+        // (see the cross-slot side-effect tests below); release that too.
+        await fakeValidator.waitUntilPending(1)
+        await fakeValidator.release(
+            at: 0,
+            with: [.weapons: ItemID(rawValue: weapon), .shields: ItemID(rawValue: shield)]
+        )
         await drainMainActorQueue()
 
         XCTAssertEqual(vm.playerState.selectedItems[.weapons] ?? nil, weapon)
         XCTAssertEqual(vm.playerState.selectedItems[.shields] ?? nil, shield)
+    }
+
+    // MARK: - AC-02 / AC-06 — cross-slot side effect re-validates against live state
+
+    /// The weapon and shield calls above never touch the same result key, so
+    /// they can't catch a validator side effect that lands on the *other*
+    /// slot. Here the weapon call's own snapshot still shows the old
+    /// two-handed weapon at the moment it's called, and a shield selection
+    /// resolves in between — the shield call's compatibility decision must
+    /// be re-checked against the live (already one-handed) weapon before
+    /// writing, or it would wrongly clear the weapon selection that already
+    /// landed.
+    func testCrossSlotSideEffect_WeaponWriteSurvivesAStaleShieldValidation() async {
+        let fakeValidator = FakeWeaponValidator()
+        let vm = makeViewModel(weaponValidator: fakeValidator)
+        let twoHandedWeapon = UUID()
+        let oneHandedWeapon = UUID()
+        let shield = UUID()
+        vm.playerState.selectedItems[.weapons] = twoHandedWeapon
+
+        vm.equipItem(for: .player, itemType: .weapons, selectedItemId: oneHandedWeapon)
+        await fakeValidator.waitUntilPending(1)
+
+        vm.equipItem(for: .player, itemType: .shields, selectedItemId: shield)
+        await fakeValidator.waitUntilPending(2)
+
+        // Weapon's call resolves first: on its own it's simply compatible,
+        // nothing to clear.
+        await fakeValidator.release(at: 0, with: [.weapons: ItemID(rawValue: oneHandedWeapon)])
+        await drainMainActorQueue()
+
+        // Shield's call resolves against its *stale* snapshot (weapon still
+        // looked two-handed when it was called) — the real validator would
+        // have cleared `.weapons` for that stale picture. Releasing it
+        // triggers a live re-check, which issues a second validator call.
+        await fakeValidator.release(at: 0, with: [.shields: ItemID(rawValue: shield)])
+        await fakeValidator.waitUntilPending(1)
+        await fakeValidator.release(
+            at: 0,
+            with: [.weapons: ItemID(rawValue: oneHandedWeapon), .shields: ItemID(rawValue: shield)]
+        )
+        await drainMainActorQueue()
+
+        XCTAssertEqual(vm.playerState.selectedItems[.weapons] ?? nil, oneHandedWeapon)
+        XCTAssertEqual(vm.playerState.selectedItems[.shields] ?? nil, shield)
+    }
+
+    /// Mirror scenario with the roles reversed: the shield slot is empty
+    /// when the weapon call is made (so `.shields` never appears in its
+    /// snapshot at all), a shield lands live while the weapon validation is
+    /// in flight, and the weapon turns out to be two-handed. Without a live
+    /// re-check, `.shields` would never even be visited by the weapon call's
+    /// merge (its stale snapshot never had that key), leaving a two-handed
+    /// weapon and a shield equipped at the same time.
+    func testCrossSlotSideEffect_TwoHandedWeaponClearsALiveConcurrentShield() async {
+        let fakeValidator = FakeWeaponValidator()
+        let vm = makeViewModel(weaponValidator: fakeValidator)
+        let oneHandedWeapon = UUID()
+        let twoHandedWeapon = UUID()
+        let shield = UUID()
+        vm.playerState.selectedItems[.weapons] = oneHandedWeapon
+
+        vm.equipItem(for: .player, itemType: .weapons, selectedItemId: twoHandedWeapon)
+        await fakeValidator.waitUntilPending(1)
+
+        vm.equipItem(for: .player, itemType: .shields, selectedItemId: shield)
+        await fakeValidator.waitUntilPending(2)
+
+        // Shield's call resolves first: its own snapshot still sees the
+        // one-handed weapon, so it's genuinely compatible and applies clean.
+        await fakeValidator.release(
+            at: 1,
+            with: [.weapons: ItemID(rawValue: oneHandedWeapon), .shields: ItemID(rawValue: shield)]
+        )
+        await drainMainActorQueue()
+
+        // Weapon's call resolves against its own stale snapshot (no shield
+        // equipped yet when it was called) — the real validator's response
+        // never mentions `.shields`. Releasing it triggers a live re-check
+        // that must notice the shield which appeared underneath it.
+        await fakeValidator.release(at: 0, with: [.weapons: ItemID(rawValue: twoHandedWeapon)])
+        await fakeValidator.waitUntilPending(1)
+        await fakeValidator.release(at: 0, with: [.weapons: ItemID(rawValue: twoHandedWeapon)])
+        await drainMainActorQueue()
+
+        XCTAssertEqual(vm.playerState.selectedItems[.weapons] ?? nil, twoHandedWeapon)
+        XCTAssertEqual(vm.playerState.selectedItems[.shields] ?? nil, nil)
     }
 }

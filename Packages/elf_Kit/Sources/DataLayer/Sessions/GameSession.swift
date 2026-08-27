@@ -471,6 +471,16 @@ public final class GameSession {
         dungeonSession = dungeonLifecycleMutator.finishDungeonRun(dungeonSession: dungeonSession, into: state)
     }
 
+    /// Ends a dungeon run and persists the result: flushes rewards via
+    /// `finishDungeonRun()` then saves in the background. A no-op (no reward
+    /// flush, no save) when there is no active dungeon run — safe to call
+    /// speculatively without double-paying rewards.
+    public func completeDungeonRun() {
+        guard dungeonSession != nil else { return }
+        finishDungeonRun()
+        saveInBackground()
+    }
+
     /// Discards a dungeon run *without* granting any rewards. Use ONLY when the
     /// run never legitimately ran — e.g. an invalid resume whose dungeon/room no
     /// longer resolves. The "discard" name is deliberate: throwing away a run's

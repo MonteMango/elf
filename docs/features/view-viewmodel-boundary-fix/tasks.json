@@ -1,0 +1,307 @@
+{
+  "slug": "view-viewmodel-boundary-fix",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Add GameSession.completeDungeonRun() with idempotent early return",
+      "layer": "domain",
+      "deps": [],
+      "acs": ["AC-03", "AC-04", "AC-07"],
+      "dod": "Unit test proves completeDungeonRun() calls finishDungeonRun()+saveInBackground() when a dungeon run is active, and is a no-op (no reward re-payout, no save) when called with no active run.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/DataLayer/Sessions/GameSession.swift",
+        "Packages/elf_Kit/Tests/elf_KitTests/DataLayer/Sessions/GameSession_DungeonRunCompletionTests.swift"
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "Add GameDayViewModel.startDungeonRun() with action-point debit",
+      "layer": "app",
+      "deps": [],
+      "acs": ["AC-01", "AC-02", "AC-02b", "AC-07"],
+      "dod": "Unit tests cover: sufficient AP + dungeon available starts the run and debits dungeonCost exactly once; insufficient AP is a no-op with zero debit; empty dungeon pool is a no-op with zero debit.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/GameDay/GameDayViewModel.swift",
+        "Packages/elf_Kit/Tests/elf_KitTests/UILayer/GameDay/GameDayViewModel_StartDungeonRunTests.swift"
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "Route DungeonViewModel.finishRun() through GameSession.completeDungeonRun()",
+      "layer": "app",
+      "deps": ["T1"],
+      "acs": ["AC-03", "AC-04", "AC-07"],
+      "dod": "Unit test proves DungeonViewModel.finishRun() delegates to gameSession.completeDungeonRun() and does not duplicate the finish+save logic itself.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/Dungeon/DungeonViewModel.swift",
+        "Packages/elf_Kit/Tests/elf_KitTests/UILayer/Dungeon/DungeonViewModel_FinishRunTests.swift"
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "Add session-aware BattleResult companion ViewModel + factory calling completeDungeonRun()",
+      "layer": "app",
+      "deps": ["T1"],
+      "acs": ["AC-03", "AC-04", "AC-07"],
+      "dod": "Unit test proves the new companion ViewModel's finish method delegates to gameSession.completeDungeonRun(); generic ResultViewModel<T> is untouched; a factory method exists on GameSession+ViewModelFactories.swift.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/BattleResult/",
+        "Packages/elf_Kit/Sources/UILayer/GameSession/GameSession+ViewModelFactories.swift",
+        "Packages/elf_Kit/Tests/elf_KitTests/UILayer/BattleResult/"
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "Move death-path reward banking from BattleFightRouteView into BattleFightViewModel",
+      "layer": "app",
+      "deps": [],
+      "acs": ["AC-04", "AC-07"],
+      "dod": "Unit test proves BattleFightViewModel's battle-finish hook calls session.bankDungeonRewardsOnDeath() then saveInBackground() when the hero is downed, and skips banking (but still checkpoint-saves) when the hero survives.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/BattleFight/BattleFightViewModel.swift",
+        "Packages/elf_Kit/Tests/elf_KitTests/UILayer/BattleFight/BattleFightViewModel_DeathRewardBankingTests.swift"
+      ]
+    },
+    {
+      "id": "T6",
+      "title": "Replace try? await session.save() with session.saveInBackground() in FarmActivityViewModel",
+      "layer": "app",
+      "deps": [],
+      "acs": ["AC-05", "AC-07"],
+      "dod": "Unit test proves both call sites (lines 147, 156) now go through saveInBackground() and a forced save failure is observable via DebugGameLogger.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/FarmActivity/FarmActivityViewModel.swift",
+        "Packages/elf_Kit/Tests/elf_KitTests/UILayer/FarmActivity/FarmActivityViewModel_SaveDiagnosticsTests.swift"
+      ]
+    },
+    {
+      "id": "T7",
+      "title": "Harden GameDayStateViewModel.advanceToNextDay() save ordering + logging",
+      "layer": "app",
+      "deps": [],
+      "acs": ["AC-05", "AC-06", "AC-06b", "AC-07"],
+      "dod": "Unit tests prove: awaitInFlightSave() is called before the day-advance save; a save failure is caught and logged via DebugGameLogger instead of propagating; the isAdvancingDay guard stays raised for the full duration of both awaits and clears on both success and failure paths.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/GameDayState/GameDayStateViewModel.swift",
+        "Packages/elf_Kit/Tests/elf_KitTests/UILayer/GameDayState/GameDayStateViewModel_AdvanceToNextDayTests.swift"
+      ]
+    },
+    {
+      "id": "T8",
+      "title": "Harden GameDayViewModel.exitGame() save ordering + logging",
+      "layer": "app",
+      "deps": [],
+      "acs": ["AC-05", "AC-06", "AC-06b", "AC-07"],
+      "dod": "Unit tests prove: awaitInFlightSave() is called before the exit save; a save failure is caught and logged via DebugGameLogger instead of propagating; exitGame() still completes (and the caller can proceed to AppCoordinator.endGame()) regardless of save outcome.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/GameDay/GameDayViewModel.swift",
+        "Packages/elf_Kit/Tests/elf_KitTests/UILayer/GameDay/GameDayViewModel_ExitGameTests.swift"
+      ]
+    },
+    {
+      "id": "T9",
+      "title": "Wire GameDayScreen to call viewModel.startDungeonRun() instead of session.startDungeonSession(...)",
+      "layer": "ui",
+      "deps": ["T2"],
+      "acs": ["AC-01", "AC-02", "AC-02b"],
+      "dod": "GameDayScreen.swift:131's button action calls viewModel.startDungeonRun() only; no direct GameSession mutation remains in the file; build succeeds and existing screen behavior is unchanged for the happy path.",
+      "files_hint": [
+        "Packages/elf_iOS/Sources/Screens/GameDayScreen/GameDayScreen.swift"
+      ]
+    },
+    {
+      "id": "T10",
+      "title": "Wire DungeonScreen to call viewModel.finishRun() instead of gameSession.finishDungeonRun()+saveInBackground()",
+      "layer": "ui",
+      "deps": ["T3"],
+      "acs": ["AC-03", "AC-04"],
+      "dod": "DungeonScreen.swift:93,95's Finish path calls viewModel.finishRun() only, with router.popToGameDay() still executed synchronously before the call (no await in between); build succeeds.",
+      "files_hint": [
+        "Packages/elf_iOS/Sources/Screens/DungeonScreen/DungeonScreen.swift"
+      ]
+    },
+    {
+      "id": "T11",
+      "title": "Wire BattleResultScreen to hold and call the new session-aware companion ViewModel",
+      "layer": "ui",
+      "deps": ["T4"],
+      "acs": ["AC-03", "AC-04"],
+      "dod": "BattleResultScreen.swift:109-115's death-continuation path calls the companion ViewModel's finish method instead of coordinator.gameSession?.finishDungeonRun()+.saveInBackground(); build succeeds.",
+      "files_hint": [
+        "Packages/elf_iOS/Sources/Screens/BattleResultScreen/BattleResultScreen.swift"
+      ]
+    },
+    {
+      "id": "T12",
+      "title": "Wire BattleFightRouteView to stop calling session.bankDungeonRewardsOnDeath() directly",
+      "layer": "ui",
+      "deps": ["T5"],
+      "acs": ["AC-04"],
+      "dod": "BattleFightRouteView.swift:38 no longer calls session.bankDungeonRewardsOnDeath() or .saveInBackground() directly; the reward banking is triggered only via BattleFightViewModel; build succeeds.",
+      "files_hint": [
+        "Packages/elf_iOS/Sources/Navigation/RouteViews/BattleFightRouteView.swift"
+      ]
+    },
+    {
+      "id": "T13",
+      "title": "Document the View→GameSession bypass as a named anti-pattern in common-mistakes.md",
+      "layer": "docs",
+      "deps": [],
+      "acs": [],
+      "dod": "common-mistakes.md gains a named anti-pattern entry (View mutating GameSession/DungeonSession directly instead of going through its ViewModel), with a short correct-pattern example.",
+      "files_hint": [
+        ".claude/docs/common-mistakes.md"
+      ]
+    },
+    {
+      "id": "T14",
+      "title": "Fix death-path reward-banking order so the fatal room's reward is never lost (review finding #1+#2)",
+      "layer": "app",
+      "deps": ["T5", "T12"],
+      "acs": ["AC-04"],
+      "dod": "BattleFightViewModel.finishBattle() invokes onBattleConcluded (which runs concludeRoomBattle, adding the fatal room's reward to pendingRewards) BEFORE session.bankDungeonRewardsOnDeath() flushes pendingRewards to the player; battleResult is still not published until after banking completes, preserving the no-render-before-banking guarantee. Unit test wires a real onBattleConcluded closure that mimics concludeRoomBattle (adds a known reward to pendingRewards) and proves that reward is included in the banked total — the prior onBattleConcluded: nil tests no longer suffice as the only coverage.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/BattleFight/BattleFightViewModel.swift",
+        "Packages/elf_Kit/Tests/elf_KitTests/UILayer/BattleFight/BattleFightViewModel_DeathRewardBankingTests.swift"
+      ]
+    },
+    {
+      "id": "T15",
+      "title": "AC-02/AC-02b: GameDayScreen navigates on startDungeonRun()'s own return value, not session.dungeonSession (review finding #3)",
+      "layer": "app",
+      "deps": ["T2", "T9"],
+      "acs": ["AC-02", "AC-02b"],
+      "dod": "GameDayViewModel.startDungeonRun() returns (dungeonId: DungeonID, allyIds: [ElfID])? (nil on the no-op paths) instead of Void; GameDayScreen's dungeon action navigates using that returned value only — no read of session.dungeonSession for navigation. Unit/wiring tests updated accordingly.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/GameDay/GameDayViewModel.swift",
+        "Packages/elf_iOS/Sources/Screens/GameDayScreen/GameDayScreen.swift",
+        "Packages/elf_Kit/Tests/elf_KitTests/UILayer/GameDay/GameDayViewModel_StartDungeonRunTests.swift",
+        "Packages/elf_Kit/Tests/elf_KitTests/Architecture/GameDayScreenWiringTests.swift"
+      ]
+    },
+    {
+      "id": "T16",
+      "title": "Remove orphaned GameDayViewModel.prepareDungeonRun() (review finding, stage-2)",
+      "layer": "app",
+      "deps": ["T15"],
+      "acs": [],
+      "dod": "prepareDungeonRun() deleted from GameDayViewModel.swift; grep confirms no remaining callers or references; GameDayScreenWiringTests updated to no longer reference the removed method.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/GameDay/GameDayViewModel.swift",
+        "Packages/elf_Kit/Tests/elf_KitTests/Architecture/GameDayScreenWiringTests.swift"
+      ]
+    },
+    {
+      "id": "T17",
+      "title": "Correct awaitInFlightSave() comments to match sad.md Flow 5's documented caveat (review finding, stage-2)",
+      "layer": "app",
+      "deps": ["T7", "T8"],
+      "acs": [],
+      "dod": "Comments at GameDayViewModel.swift and GameDayStateViewModel.swift no longer claim the two saves 'never interleave'; reworded to state awaitInFlightSave() only drains a save already in flight at call time and does not register the caller's own subsequent save, matching sad.md Flow 5.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/GameDay/GameDayViewModel.swift",
+        "Packages/elf_Kit/Sources/UILayer/GameDayState/GameDayStateViewModel.swift"
+      ]
+    },
+    {
+      "id": "T18",
+      "title": "Restrict finishBattle()'s unconditional saveInBackground() to the dungeon path (review finding, stage-2)",
+      "layer": "app",
+      "deps": ["T5"],
+      "acs": [],
+      "dod": "BattleFightViewModel.finishBattle() no longer issues an extra, redundant session.saveInBackground() call for hunt battles (concludeHuntBattle() already saves internally); the dungeon path keeps its save. Unit test asserts saveInBackground() call count for a hunt-battle finish.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/BattleFight/BattleFightViewModel.swift",
+        "Packages/elf_Kit/Tests/elf_KitTests/UILayer/BattleFight/BattleFightViewModel_DeathRewardBankingTests.swift"
+      ]
+    },
+    {
+      "id": "T19",
+      "title": "BattleResultScreen's SessionRouteView falls back to dismissModal() instead of rendering empty when session is gone (review finding, stage-2)",
+      "layer": "ui",
+      "deps": [],
+      "acs": [],
+      "dod": "ModalRoute.swift's SessionRouteView gains an else-branch that calls router.dismissModal() when gameSession/dayStateViewModel are nil, matching the existing stale-route fallback pattern, instead of rendering an empty body.",
+      "files_hint": [
+        "Packages/elf_iOS/Sources/Navigation/ModalRoute.swift"
+      ]
+    },
+    {
+      "id": "T20",
+      "title": "Strengthen the AC-01 'AP spent exactly once' test to distinguish single vs double spend (review finding, stage-2)",
+      "layer": "app",
+      "deps": ["T2"],
+      "acs": ["AC-01"],
+      "dod": "GameDayViewModel_StartDungeonRunTests.swift's exactly-once assertion uses starting AP where a double-spend would produce a different (wrong) balance than a single spend (e.g. current well above dungeonCost*2), asserting the correct single-spend remainder.",
+      "files_hint": [
+        "Packages/elf_Kit/Tests/elf_KitTests/UILayer/GameDay/GameDayViewModel_StartDungeonRunTests.swift"
+      ]
+    },
+    {
+      "id": "T21",
+      "title": "T14 test must prove the fatal room's reward is actually banked, not just that call order was logged (review-2026-08-26 finding #1)",
+      "layer": "app",
+      "deps": ["T14"],
+      "acs": ["AC-04"],
+      "dod": "testFinishBattle_HeroDowned_InvokesLauncherBeforeBanking wires its onBattleConcluded closure to invoke the real DungeonSession.concludeRoomBattle(...) and banks through the real DefaultDungeonLifecycleMutator (not spies); asserts session.state.player.currentExp reflects the known reward after finishBattle() — a reversed launcher/bank order would leave it at 0.",
+      "files_hint": [
+        "Packages/elf_Kit/Tests/elf_KitTests/UILayer/BattleFight/BattleFightViewModel_DeathRewardBankingTests.swift"
+      ]
+    },
+    {
+      "id": "T22",
+      "title": "sad.md Flow 3 diagram documents the pre-T14/T18 buggy order (review-2026-08-26 finding #2)",
+      "layer": "docs",
+      "deps": ["T14", "T18"],
+      "acs": ["AC-04"],
+      "dod": "sad.md §6 Flow 3 mermaid diagram shows the launcher call before the death-branch, banking after the launcher, and the checkpoint save scoped to session.dungeonSession != nil — matching finishBattle()'s actual post-T14/T18 order. Flow 1's minor spendActionPoints/startDungeonSession order mismatch against GameDayViewModel.swift is also corrected.",
+      "files_hint": [
+        "docs/features/view-viewmodel-boundary-fix/sad.md"
+      ]
+    },
+    {
+      "id": "T23",
+      "title": "finishBattle() doc comment misdescribes the session == nil no-op scope (review-2026-08-26 finding #3)",
+      "layer": "app",
+      "deps": [],
+      "acs": [],
+      "dod": "BattleFightViewModel.finishBattle()'s doc comment no longer claims 'No-op for non-hunt battles (session == nil)'; states instead that banking/saving is skipped for the dev BattleSetup flow (session == nil) while the launcher call and battleResult assignment still happen.",
+      "files_hint": [
+        "Packages/elf_Kit/Sources/UILayer/BattleFight/BattleFightViewModel.swift"
+      ]
+    },
+    {
+      "id": "T24",
+      "title": "AC-02/AC-02b tests don't assert startDungeonRun()'s return value, the exact contract T15 wired navigation to (review-2026-08-26 finding #4)",
+      "layer": "app",
+      "deps": ["T15"],
+      "acs": ["AC-01", "AC-02", "AC-02b"],
+      "dod": "GameDayViewModel_StartDungeonRunTests.swift's test helper returns startDungeonRun()'s result instead of discarding it; both no-op tests assert the result is nil; the AC-01 test asserts result?.dungeonId matches the started dungeon.",
+      "files_hint": [
+        "Packages/elf_Kit/Tests/elf_KitTests/UILayer/GameDay/GameDayViewModel_StartDungeonRunTests.swift"
+      ]
+    },
+    {
+      "id": "T25",
+      "title": "Wrap BattleResultScreen's #Preview blocks in #if DEBUG — Release build fails (review-2026-08-26 round-2 finding #1)",
+      "layer": "ui",
+      "deps": ["T11"],
+      "acs": [],
+      "dod": "BattleResultScreen.swift's three #Preview blocks (Victory/Defeat/Draw) are wrapped in #if DEBUG / #endif, matching the convention every other screen in Packages/elf_iOS/Sources/Screens/ already follows (DungeonScreen, GameDayScreen, HuntScreen, ...); xcodebuild -scheme elf -configuration Release build succeeds (previously failed with 'cannot find PreviewGame in scope' because PreviewGame.createMockSession() is DEBUG-only but was referenced from an unguarded #Preview).",
+      "files_hint": [
+        "Packages/elf_iOS/Sources/Screens/BattleResultScreen/BattleResultScreen.swift"
+      ]
+    },
+    {
+      "id": "T26",
+      "title": "Fix stale BattleFightRouteView reference in continueAfterBattle() comment (review-2026-08-26 round-2 finding #2)",
+      "layer": "ui",
+      "deps": ["T5", "T12"],
+      "acs": [],
+      "dod": "BattleResultScreen.swift's continueAfterBattle() comment no longer attributes death-path reward banking to '(BattleFightRouteView)'; reworded to name the actual current owner, BattleFightViewModel.finishBattle() (per T5/T12).",
+      "files_hint": [
+        "Packages/elf_iOS/Sources/Screens/BattleResultScreen/BattleResultScreen.swift"
+      ]
+    }
+  ]
+}

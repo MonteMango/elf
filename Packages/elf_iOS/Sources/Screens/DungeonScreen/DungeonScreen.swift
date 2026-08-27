@@ -88,11 +88,10 @@ struct DungeonScreen: View {
         case .finish:
             // Pop first, then finish the run: removing the route before nil-ing
             // the session avoids rebuilding this screen against a missing session.
-            // finishDungeonRun flushes the run's banked XP/drops into the player.
+            // finishRun() flushes the run's banked XP/drops into the player and
+            // persists the save.
             router.popToGameDay()
-            gameSession.finishDungeonRun()
-            // Persist the now-flushed game state (dungeonSession is nil → no run).
-            gameSession.saveInBackground()
+            viewModel.finishRun()
         case .drink:
             Task { await viewModel.resolveRoomEvent() }
         case .none:

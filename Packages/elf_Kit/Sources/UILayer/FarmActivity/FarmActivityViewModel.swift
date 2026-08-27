@@ -144,7 +144,7 @@ public final class FarmActivityViewModel {
 
         // Skip UI updates if cancelled (user left the screen)
         guard !Task.isCancelled else {
-            try? await session.save()
+            session.saveInBackground()
             return
         }
 
@@ -153,7 +153,7 @@ public final class FarmActivityViewModel {
         activityState = .idle
 
         // Save game
-        try? await session.save()
+        session.saveInBackground()
     }
 
     /// Clear activity result after modal has been presented

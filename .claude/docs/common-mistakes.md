@@ -81,6 +81,49 @@ init(session: GameSessionModel) {
 }
 ```
 
+### View → GameSession Bypass (View mutating GameSession/DungeonSession directly)
+```swift
+// ❌ View reaches past its ViewModel into session state directly
+struct HuntView: View {
+    let session: GameSessionModel
+
+    var body: some View {
+        Button("Flee") {
+            session.dungeonSession?.endRun() // View mutates session state directly
+        }
+    }
+}
+
+// ✅ View only ever talks to its own ViewModel; the ViewModel owns the session call
+@MainActor
+@Observable
+final class HuntViewModel {
+    private let session: GameSessionModel
+
+    init(session: GameSessionModel) {
+        self.session = session
+    }
+
+    func flee() {
+        session.dungeonSession?.endRun()
+    }
+}
+
+struct HuntView: View {
+    let viewModel: HuntViewModel
+
+    var body: some View {
+        Button("Flee") {
+            viewModel.flee()
+        }
+    }
+}
+```
+A View that mutates `GameSessionModel`/`DungeonSession` directly breaks the MVVM boundary: it duplicates
+state-change logic outside the ViewModel, makes that logic untestable without standing up a View, and
+lets two code paths (View and ViewModel) mutate the same session state independently. Route every
+session mutation through the ViewModel.
+
 ### Business Logic in ViewModel
 ```swift
 // ❌ ViewModel contains business logic
@@ -222,6 +265,45 @@ for slot in Set(before.keys).union(after.keys) {
     // ...
 }
 ```
+
+### Cancel-and-replace `Task` per key: a cross-key side effect decided from the pre-`await` snapshot can go stale
+When a `Task<Void, Never>?` handle is scoped *per key* (e.g. one handle per dictionary slot, so an
+edit to key A doesn't cancel an in-flight edit to key B), a Task that snapshots the whole dictionary
+before its `await` and later applies a decision that touches a key it doesn't own (a cross-key side
+effect, e.g. "selecting a two-handed weapon must clear the shield slot") can act on a value that
+another concurrent, independent Task for that other key already overwrote while the first Task was
+suspended. This is a real bug, found in review of `structured-task-cancellation`: the snapshot-based
+compare-before-write let an older Task's side effect silently drop or invalidly re-apply a newer,
+already-landed selection for the key it didn't own.
+```swift
+// ❌ Compares/writes against the pre-`await` snapshot, even for a key this
+// Task doesn't own — a concurrent Task for that other key may have already
+// written something newer while this Task was suspended.
+let snapshot = state.items
+let result = await validate(current: snapshot)
+for key in Set(snapshot.keys).union(result.keys) {
+    guard (snapshot[key] ?? nil) != (result[key] ?? nil) else { continue }
+    state.items[key] = result[key] ?? nil
+}
+
+// ✅ Re-check against the live state before writing; if it diverged from the
+// snapshot, re-run the decision against the live state and use that as both
+// the merge baseline and the source of truth for keys this Task doesn't own.
+var validated = result
+var baseline = snapshot
+let live = state.items
+if live != snapshot {
+    validated = await validate(current: live)
+    baseline = live
+}
+for key in Set(baseline.keys).union(validated.keys) {
+    guard (baseline[key] ?? nil) != (validated[key] ?? nil) else { continue }
+    state.items[key] = validated[key] ?? nil
+}
+```
+Per-key handles fix the *spurious cancellation* problem (an edit to key B no longer cancels an
+in-flight edit to key A) but reintroduce a *stale cross-key decision* problem unless the write path
+re-checks live state before applying anything that isn't scoped to the Task's own key.
 
 ---
 

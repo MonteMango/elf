@@ -29,15 +29,11 @@ internal struct BattleFightRouteView: View {
                 // `isInRun` (a derived currentRoom != nil condition).
                 if let session = coordinator.gameSession, let dungeon = session.dungeonSession {
                     let result = dungeon.concludeRoomBattle(outcome: outcome, finalLeftTeam: finalLeftTeam)
-                    // On a downed hero the run is non-resumable, so its banked
-                    // ledger must land in the always-saved player state NOW —
-                    // before any downed-state save writes dungeonRun=nil and
-                    // erases it. The result screen's Continue then just releases
-                    // the (already-flushed) session. Survivors checkpoint as usual.
-                    if dungeon.heroIsDowned {
-                        session.bankDungeonRewardsOnDeath()
-                    }
-                    session.saveInBackground()
+                    // Death-banking and saving are handled by
+                    // `BattleFightViewModel.finishBattle()` right after this
+                    // closure returns — deliberately after, so the fatal room's
+                    // reward (just added to `pendingRewards` above) is banked
+                    // too, not left unflushed. No direct GameSession mutation here.
                     return result
                 }
                 if let session = coordinator.gameSession {
