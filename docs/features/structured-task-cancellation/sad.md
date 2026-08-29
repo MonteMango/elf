@@ -319,12 +319,10 @@ ADR files live under `docs/features/structured-task-cancellation/adr/NNNN-<title
 
 | Risk / debt | Severity | Mitigation | Owner |
 |---|---|---|---|
-| A slot's validation `Task` can still apply an auto-resolved conflict (e.g. a two-handed weapon clearing a shield) based on a stale snapshot of the *other* slot, if that other slot changed concurrently during the same rapid cross-slot edit — a narrow residual case beyond AC-06's own tested scenario (ADR-0001, Consequences/Neutral) | Low | Documented as accepted debt, not solved by this fix — closing it fully would need a live re-validation loop, over-engineering for a dev-only testing screen; revisit only if this screen sees heavier use | Vitalii Lytvynov |
+| ~~A slot's validation `Task` can still apply an auto-resolved conflict... based on a stale snapshot of the *other* slot~~ — **Resolved 2026-08-26.** The 2026-08-26 re-review (`_review/review-2026-08-26.md`) found this residual was reachable and could either silently drop a valid selection or leave a two-handed weapon and a shield equipped simultaneously — worse than the "auto-resolved conflict applied against a stale picture" this row originally described. `updateSelectedItems` now detects when the live state diverged from the pre-`await` snapshot and re-validates once against the live state before merging (ADR-0001's Neutral consequence is superseded by this fix; see the ADR's own Update note) | — (resolved) | — | Vitalii Lytvynov |
 | Pre-existing: `updateSelectedItems`'s validated branch used to overwrite the whole `selectedItems` map from a pre-tap snapshot, which could clobber a non-validating item (e.g. boots) picked while a weapon/shield validation was in flight. Decision 3's merge-on-write (ADR-0001) incidentally narrows this — only the validator's changed key(s) are applied, not the whole map — but the path remains out of scope for this fix (spec §3 Non-goal): it is not re-tested here and no guarantee is made beyond the `.weapons`/`.shields` race this fix targets | Low | Deferred as a separate future finding (tracked in spec §3 / `nextArch/possiblePlans.md`) | — |
 
 **Accepted debt (acceptable in v1, plan to fix later):**
-- The two-handed/stale-snapshot residual case above (ADR-0001 Neutral) — acceptable for a dev-only
-  testing screen; revisit if usage grows.
 - `MultiBattleViewModel.runningTask` dead code and the missing `.disabled` double-tap guards on
   `BattleSetupScreen`/`AutoBattleResultScreen`/`MultiBattleResultScreen` (spec §3 Non-goals) are
   pre-existing, explicitly out of scope — tracked as separate future findings, not reintroduced here.

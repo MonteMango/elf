@@ -364,19 +364,43 @@ public final class BattleFightViewModel {
 
     // MARK: - Actions
 
-    /// Ends the battle: hands off to the launcher (which owns rewards, saving,
-    /// and any dungeon writeback) and publishes the result for the overlay. The
-    /// VM itself applies nothing and never saves.
+    /// Ends the battle: hands off to the launcher first (which owns the display
+    /// result and any further dungeon writeback — including `concludeRoomBattle`,
+    /// which adds the just-cleared room's reward to `pendingRewards`), then banks
+    /// dungeon rewards on hero death (or checkpoint-saves on survival). The
+    /// launcher must run before banking, or a fatal room's own reward is still
+    /// unflushed when the death-bank fires. `battleResult` is assigned only
+    /// after banking/saving so the View never renders/navigates before rewards
+    /// are banked. Skips banking/saving entirely for the dev BattleSetup flow
+    /// (`session == nil`); the launcher call and `battleResult` assignment
+    /// still happen.
+    ///
+    /// The checkpoint `saveInBackground()` call here is scoped to the dungeon
+    /// path (`session.dungeonSession != nil`) — a hunt battle's launcher
+    /// (`GameSession.concludeHuntBattle()`) already saves internally, so an
+    /// unconditional call here would be a redundant extra save pass.
     public func finishBattle() async {
         guard battleEnded, !isFinishingBattle else { return }
         isFinishingBattle = true
 
         let outcome = determineBattleOutcome()
+
         // The launcher owns all post-battle handling and returns the result to
         // display; `nil` means no overlay — the dev BattleSetup flow, which
-        // auto-closes the battle screen instead. Synchronous: the overlay is not
-        // blocked on the launcher's background save.
-        battleResult = onBattleConcluded?(outcome, leftTeam)
+        // auto-closes the battle screen instead.
+        let result = onBattleConcluded?(outcome, leftTeam)
+
+        if let session {
+            if !isHeroAlive {
+                session.bankDungeonRewardsOnDeath()
+            }
+            if session.dungeonSession != nil {
+                session.saveInBackground()
+            }
+        }
+
+        // Synchronous: the overlay is not blocked on the background save.
+        battleResult = result
     }
 
     // MARK: - Private Helpers

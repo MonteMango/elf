@@ -90,6 +90,14 @@ write closes that gap.
   loop, which is over-engineering for a dev-only testing screen; accepted as debt (§11), not solved by
   this fix.
 
+**Update — 2026-08-26:** superseded. The 2026-08-26 re-review found this residual was not the mild
+case described above — it could silently drop an already-applied, valid selection, or leave a
+two-handed weapon and a shield equipped simultaneously (the exact combination Option 3 exists to
+prevent). `updateSelectedItems` was changed to detect a live/snapshot divergence at write time and
+re-validate once against the live state before merging (a single re-run, not a loop — the residual
+this leaves is the same order of magnitude as the original single-`await` race this ADR already
+accepts). See `_review/review-2026-08-26.md` and `sad.md` §11.
+
 ## Links
 
 - Spec: [[../spec.md]]

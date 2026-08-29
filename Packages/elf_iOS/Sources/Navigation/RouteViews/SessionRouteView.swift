@@ -22,10 +22,20 @@ internal struct SessionRouteView<Content: View>: View {
     @Environment(AppCoordinator.self) private var coordinator
     @Environment(AppRouter.self) private var router
     internal var expectedGameId: GameID?
+    /// Called when `gameSession`/`dayStateViewModel` are already released
+    /// instead of rendering empty — mirrors the stale-`expectedGameId`
+    /// fallback below. Defaults to popping the navigation stack; modal
+    /// presentations (e.g. `.battleResult`) pass `dismissModal()` instead.
+    internal var onMissingSession: (AppRouter) -> Void = { $0.pop() }
     @ViewBuilder internal let content: (GameSession) -> Content
 
-    internal init(expectedGameId: GameID? = nil, @ViewBuilder content: @escaping (GameSession) -> Content) {
+    internal init(
+        expectedGameId: GameID? = nil,
+        onMissingSession: @escaping (AppRouter) -> Void = { $0.pop() },
+        @ViewBuilder content: @escaping (GameSession) -> Content
+    ) {
         self.expectedGameId = expectedGameId
+        self.onMissingSession = onMissingSession
         self.content = content
     }
 
@@ -39,6 +49,9 @@ internal struct SessionRouteView<Content: View>: View {
                 Color.clear
                     .task { router.pop() }
             }
+        } else {
+            Color.clear
+                .task { onMissingSession(router) }
         }
     }
 }

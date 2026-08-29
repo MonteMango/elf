@@ -175,12 +175,12 @@ public final class BattleSetupViewModel {
             let currentState = state(for: heroType)
             validationTask(for: itemType, on: currentState)?.cancel()
 
-            let currentItems = currentState.selectedItems
+            let snapshotItems = currentState.selectedItems
             let newTask: Task<Void, Never> = Task {
-                let validatedItems = await self.weaponValidator.validateAndResolve(
+                var validatedItems = await self.weaponValidator.validateAndResolve(
                     selecting: selectedItemId.map(ItemID.init(rawValue:)),
                     for: itemType,
-                    currentItems: currentItems.mapValues { $0.map(ItemID.init(rawValue:)) }
+                    currentItems: snapshotItems.mapValues { $0.map(ItemID.init(rawValue:)) }
                 )
 
                 // A cancelled Task's non-cooperating `await` above still
@@ -189,21 +189,45 @@ public final class BattleSetupViewModel {
                 // bail before writing a stale result (AC-03).
                 guard !Task.isCancelled else { return }
 
+                // The pre-`await` snapshot can go stale for a slot this Task
+                // doesn't own: a concurrent, independent selection for the
+                // *other* slot may have written to the live state while this
+                // validation was in flight, so the decision above (e.g.
+                // whether a two-handed weapon must clear an equipped shield)
+                // may have been made against an outdated picture of that
+                // other slot. When the live state has diverged from the
+                // snapshot, re-validate once against the live state so the
+                // outcome reflects what's actually equipped now, not a
+                // stale guess (AC-02, AC-06).
+                var baselineItems = snapshotItems
+                let liveItems = currentState.selectedItems
+                if liveItems != snapshotItems {
+                    validatedItems = await self.weaponValidator.validateAndResolve(
+                        selecting: selectedItemId.map(ItemID.init(rawValue:)),
+                        for: itemType,
+                        currentItems: liveItems.mapValues { $0.map(ItemID.init(rawValue:)) }
+                    )
+                    guard !Task.isCancelled else { return }
+                    baselineItems = liveItems
+                }
+
                 // Merge only the keys this call actually changed, onto the
-                // *current* live state — never a full overwrite from the
-                // pre-tap snapshot — so a concurrent selection in the other
-                // slot (still in flight) is never reverted (AC-06). Walk the
+                // baseline it was just validated against — never a full
+                // overwrite — so a concurrent selection in the other slot
+                // (still in flight) is never reverted (AC-06). Walk the
                 // union of both slot sets, not just `validatedItems`' own
                 // keys: the validator clears a slot via `dict[slot] = nil`,
                 // which removes the key from its returned dictionary rather
                 // than storing it as present-with-nil, so a cleared slot
                 // must still be treated as changed even though it no longer
                 // appears in `validatedItems`.
-                for slot in Set(currentItems.keys).union(validatedItems.keys) {
+                for slot in Set(baselineItems.keys).union(validatedItems.keys) {
                     let resolvedRawId = (validatedItems[slot] ?? nil).map(\.rawValue)
-                    guard (currentItems[slot] ?? nil) != resolvedRawId else { continue }
+                    guard (baselineItems[slot] ?? nil) != resolvedRawId else { continue }
                     currentState.selectedItems[slot] = resolvedRawId
                 }
+
+                setValidationTask(nil, for: itemType, on: currentState)
             }
             setValidationTask(newTask, for: itemType, on: currentState)
         } else {
@@ -218,17 +242,22 @@ public final class BattleSetupViewModel {
     }
 
     /// `itemType` is guaranteed `.weapons` or `.shields` at every call site
-    /// (both are behind `requiresValidation`), so the pair below covers it.
-
+    /// (both are behind `requiresValidation`); `default` is a defensive
+    /// no-op so a future third validating slot fails to cancel/store
+    /// anything instead of silently sharing the shield handle.
     private func validationTask(for itemType: HeroItemType, on state: HeroConfigurationState) -> Task<Void, Never>? {
-        itemType == .weapons ? state.weaponValidationTask : state.shieldValidationTask
+        switch itemType {
+        case .weapons: return state.weaponValidationTask
+        case .shields: return state.shieldValidationTask
+        default: return nil
+        }
     }
 
     private func setValidationTask(_ task: Task<Void, Never>?, for itemType: HeroItemType, on state: HeroConfigurationState) {
-        if itemType == .weapons {
-            state.weaponValidationTask = task
-        } else {
-            state.shieldValidationTask = task
+        switch itemType {
+        case .weapons: state.weaponValidationTask = task
+        case .shields: state.shieldValidationTask = task
+        default: break
         }
     }
 

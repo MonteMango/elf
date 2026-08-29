@@ -28,6 +28,9 @@ public final class GameDayStateViewModel {
     /// its `run` executes the bot battles on the cooperative pool.
     private let worldTurnRunner: any WorldTurnRunner
 
+    /// Logs the day-advance save failure instead of letting it propagate.
+    private let debugGameLogger: any DebugGameLogger
+
     /// True while a day transition (world turn → apply → save) is in flight.
     /// Guards against a re-entrant "Next day" tap during the off-main await,
     /// which would otherwise run a second world turn over already-mutated state.
@@ -60,7 +63,9 @@ public final class GameDayStateViewModel {
 
     public init(session: GameSession) {
         @Dependency(\.worldTurnRunner) var worldTurnRunner
+        @Dependency(\.debugGameLogger) var debugGameLogger
         self.worldTurnRunner = worldTurnRunner
+        self.debugGameLogger = debugGameLogger
         self.session = session
     }
 
@@ -81,6 +86,13 @@ public final class GameDayStateViewModel {
         isAdvancingDay = true
         defer { isAdvancingDay = false }
 
+        // Join any save already in flight at this call (not a new one) before
+        // mutating state and issuing this method's own save — closes the race
+        // with an earlier background save (e.g. from the farm). The
+        // strict-order guarantee rests on this method's own Task, not on a
+        // storage-actor queue (sad.md Flow 6).
+        await session.awaitInFlightSave()
+
         // 1. Snapshot the bots on the main actor (value-type copies, player
         //    excluded). This is the isolation barrier from the observable store.
         let bots = buildBotContexts(session: session)
@@ -100,7 +112,11 @@ public final class GameDayStateViewModel {
         // 3. Apply + advance + save, all synchronous on the main actor.
         session.applyWorldTurn(outcome)
         session.advanceToNextDay()
-        try? await session.save()
+        do {
+            try await session.save()
+        } catch {
+            debugGameLogger.logError("GameDayStateViewModel.advanceToNextDay() save failed: \(error)")
+        }
     }
 
     public func spendActionPoints(_ amount: Int) {

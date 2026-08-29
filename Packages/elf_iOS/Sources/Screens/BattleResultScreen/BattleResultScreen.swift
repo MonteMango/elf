@@ -11,8 +11,8 @@ import SwiftUI
 
 struct BattleResultScreen: View {
     @Environment(AppRouter.self) private var router
-    @Environment(AppCoordinator.self) private var coordinator
     @State private var viewModel: BattleResultViewModel
+    @State private var completionViewModel: BattleResultCompletionViewModel
 
     // Animation states (kept in View)
     @State private var showBackground: Bool = false
@@ -22,9 +22,12 @@ struct BattleResultScreen: View {
     @State private var startXPProgress: Bool = false
     @State private var startDropReveal: Bool = false
     @State private var showContinueButton: Bool = false
+    private let session: GameSession
 
-    init(result: ManualBattleResult) {
+    init(result: ManualBattleResult, session: GameSession) {
         self._viewModel = State(initialValue: BattleResultViewModel(result: result))
+        self._completionViewModel = State(initialValue: session.makeBattleResultCompletionViewModel())
+        self.session = session
     }
 
     var body: some View {
@@ -101,18 +104,17 @@ struct BattleResultScreen: View {
     /// room. Hunt / dev battles keep the plain pop-back.
     private func continueAfterBattle() {
         router.dismissModal()
-        if let dungeon = coordinator.gameSession?.dungeonSession, dungeon.isInRun {
+        if let dungeon = session.dungeonSession, dungeon.isInRun {
             if dungeon.heroIsDowned {
                 // Pop first, then release the run (see DungeonRouteView): removing
                 // the route before nil-ing the session keeps DungeonScreen from
                 // being rebuilt against a released session.
                 router.popToGameDay()
                 // Rewards were already banked into the player at the moment of
-                // death (BattleFightRouteView), so this flush is a no-op and just
-                // releases the session. Kept for symmetry with the Finish path.
-                coordinator.gameSession?.finishDungeonRun()
-                // Persist the now-flushed game state (dungeonSession now nil).
-                coordinator.gameSession?.saveInBackground()
+                // death (BattleFightViewModel.finishBattle()), so this flush is a
+                // no-op and just releases the session. Kept for symmetry with the
+                // Finish path.
+                completionViewModel.finishRun()
             } else {
                 router.pop()
             }
@@ -173,6 +175,7 @@ struct BattleResultScreen: View {
 
 // MARK: - Preview
 
+#if DEBUG
 #Preview("Victory with drops") {
     BattleResultScreen(
         result: ManualBattleResult(
@@ -200,7 +203,8 @@ struct BattleResultScreen: View {
             newLevel: 2,
             newExp: 15,
             newExpToNext: 120
-        )
+        ),
+        session: PreviewGame.createMockSession()
     )
     .environment(AppRouter())
     .environment(AppCoordinator())
@@ -218,7 +222,8 @@ struct BattleResultScreen: View {
             newLevel: 1,
             newExp: 50,
             newExpToNext: 100
-        )
+        ),
+        session: PreviewGame.createMockSession()
     )
     .environment(AppRouter())
     .environment(AppCoordinator())
@@ -236,8 +241,10 @@ struct BattleResultScreen: View {
             newLevel: 1,
             newExp: 55,
             newExpToNext: 100
-        )
+        ),
+        session: PreviewGame.createMockSession()
     )
     .environment(AppRouter())
     .environment(AppCoordinator())
 }
+#endif

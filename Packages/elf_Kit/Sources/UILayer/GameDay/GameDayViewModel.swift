@@ -70,12 +70,14 @@ public final class GameDayViewModel {
         self.session = session
     }
 
-    /// Picks a random dungeon and freezes the squad of allies the hero will run with.
-    /// Returns the chosen `dungeonId` plus the four ally member ids — both are passed
-    /// through the route so reopening `DungeonOverviewScreen` with the same parameters
-    /// shows the same squad. Returns `nil` if AP is insufficient or the dungeon pool is empty.
-    /// Note: AP is **not** spent here — that happens when the run actually starts (follow-up PR).
-    public func prepareDungeonRun() -> (dungeonId: DungeonID, allyIds: [ElfID])? {
+    /// Starts a dungeon run against a randomly picked dungeon, debiting `dungeonCost`
+    /// action points exactly once, and returns the chosen `dungeonId` plus the four
+    /// ally member ids so the caller can navigate — both are passed through the route
+    /// so reopening `DungeonOverviewScreen` with the same parameters shows the same
+    /// squad. Returns `nil` (no run started, no AP debited) if AP is insufficient or
+    /// the dungeon pool is empty.
+    @discardableResult
+    public func startDungeonRun() -> (dungeonId: DungeonID, allyIds: [ElfID])? {
         guard session.state.actionPoints.current >= dungeonCost else { return nil }
         guard let dungeon = dungeonRepository.randomDungeon() else { return nil }
 
@@ -86,6 +88,9 @@ public final class GameDayViewModel {
             .map(\.element.id)
             .shuffled()
             .prefix(4)
+
+        session.spendActionPoints(dungeonCost)
+        session.startDungeonSession(dungeonId: dungeon.id, allyIds: Array(allyIds))
         return (dungeon.id, Array(allyIds))
     }
 
@@ -171,7 +176,18 @@ public final class GameDayViewModel {
 
     /// Saves game and prepares for exit
     public func exitGame() async {
-        try? await session.save()
+        // Join any save already in flight at this call (not a new one) before
+        // issuing this method's own save. The strict-order guarantee rests on
+        // this method's own Task, not on a storage-actor queue — another
+        // concurrent caller could still slip in between this await and the
+        // next (sad.md Flow 5).
+        await session.awaitInFlightSave()
+
+        do {
+            try await session.save()
+        } catch {
+            debugGameLogger.logError("GameDayViewModel.exitGame() save failed: \(error)")
+        }
     }
 
     /// Called when a pocket slot is tapped

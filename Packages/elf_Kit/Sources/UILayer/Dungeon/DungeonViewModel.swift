@@ -186,6 +186,13 @@ public final class DungeonViewModel {
         persist()             // checkpoint: room event resolved (room cleared)
     }
 
+    /// Finishes the run from a cleared final room: delegates to
+    /// `gameSession.completeDungeonRun()`, which flushes rewards, releases the
+    /// run, and persists the save — no duplicated finish/save logic here.
+    public func finishRun() {
+        gameSession.completeDungeonRun()
+    }
+
     /// Overlay copy shown while a room event resolves.
     private func eventTransition(for event: SpecialEvent) -> DungeonTransition {
         switch event {

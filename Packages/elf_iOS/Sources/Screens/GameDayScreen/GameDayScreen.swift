@@ -127,11 +127,7 @@ internal struct GameDayScreen: View {
                     case .quests:
                         router.navigate(to: .questList)
                     case .dungeon:
-                        if let run = viewModel.prepareDungeonRun() {
-                            session.startDungeonSession(
-                                dungeonId: run.dungeonId,
-                                allyIds: run.allyIds
-                            )
+                        if let run = viewModel.startDungeonRun() {
                             router.navigate(to: .dungeon(
                                 dungeonId: run.dungeonId,
                                 allyIds: run.allyIds

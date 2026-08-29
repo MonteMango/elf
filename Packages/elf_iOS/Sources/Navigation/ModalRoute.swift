@@ -43,7 +43,9 @@ extension ModalRoute {
     internal func view() -> some View {
         switch self {
         case .battleResult(let result):
-            BattleResultScreen(result: result)
+            SessionRouteView(onMissingSession: { $0.dismissModal() }) {
+                BattleResultScreen(result: result, session: $0)
+            }
         case .fishingResult(let result):
             FishingResultScreen(result: result)
         case .foragingResult(let result):

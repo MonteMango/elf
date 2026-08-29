@@ -48,4 +48,8 @@ extension GameSession {
     public func makeInventoryViewModel() -> InventoryViewModel {
         InventoryViewModel(session: self)
     }
+
+    public func makeBattleResultCompletionViewModel() -> BattleResultCompletionViewModel {
+        BattleResultCompletionViewModel(gameSession: self)
+    }
 }

@@ -29,7 +29,9 @@ selection now behave correctly with no visible change to the single-selection pa
 
 **Acceptance criteria delivered:** AC-01 (last selection wins under rapid re-selection), AC-02
 (a genuinely rejected/auto-resolved selection is still applied in full, including the clear-by-omission
-merge fix), AC-03 (a superseded, cancelled Task's stale result is barred from writing state), AC-04
-(no more than the invariant's allowed concurrent validation Tasks per hero — see the open AC-04
-wording note in spec.md §8), AC-05 (player/bot Task lifecycles are fully independent), AC-06
-(cross-slot rapid selection preserves both outcomes).
+merge fix and — per the 2026-08-26 re-review — a live re-check when a concurrent cross-slot edit made
+the original decision's picture of the other slot stale), AC-03 (a superseded, cancelled Task's stale
+result is barred from writing state), AC-04 (no more than the invariant's allowed concurrent validation
+Tasks per hero — see the open AC-04 wording note in spec.md §8), AC-05 (player/bot Task lifecycles are
+fully independent), AC-06 (cross-slot rapid selection preserves both outcomes, including when the two
+slots' outcomes genuinely conflict with each other — see `_review/review-2026-08-26.md`).
